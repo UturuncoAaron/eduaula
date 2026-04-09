@@ -1,0 +1,178 @@
+.login-page {
+    display: grid;
+    grid-template-columns: 1fr 480px;
+    min-height: 100vh;
+}
+
+// ── PANEL IZQUIERDO ──────────────────────────────
+.panel-left {
+    background: #0f172a;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem;
+    color: #fff;
+}
+
+.panel-left__content {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    max-width: 480px;
+}
+
+.panel-left__footer {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    &__icon {
+        font-size: 1.75rem;
+    }
+
+    &__name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+}
+
+.hero {
+    &__title {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+        margin: 0 0 1rem;
+    }
+
+    &__subtitle {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.55);
+        margin: 0;
+    }
+}
+
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    &__icon {
+        font-size: 1.1rem !important;
+        color: #38bdf8;
+        flex-shrink: 0;
+    }
+}
+
+// ── PANEL DERECHO ──────────────────────────────
+.panel-right {
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.login-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 380px;
+
+    &__header {
+        margin-bottom: 2rem;
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 0.35rem;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin: 0;
+        }
+    }
+}
+
+.field {
+    width: 100%;
+    margin-bottom: 0.25rem;
+}
+
+.error-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 0.875rem;
+    padding: 0.65rem 0.9rem;
+    margin-bottom: 0.75rem;
+
+    mat-icon {
+        font-size: 1.1rem !important;
+        flex-shrink: 0;
+    }
+}
+
+.btn-submit {
+    width: 100%;
+    height: 46px;
+    border-radius: 8px !important;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-top: 0.5rem;
+    background: #0f172a !important;
+    color: #fff !important;
+
+    mat-spinner {
+        margin: 0 auto;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+    }
+}
+
+// ── RESPONSIVE ──────────────────────────────────
+@media (max-width: 900px) {
+    .login-page {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-left {
+        display: none;
+    }
+
+    .panel-right {
+        background: #fff;
+        min-height: 100vh;
+    }
+}

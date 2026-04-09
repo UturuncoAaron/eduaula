@@ -1,1 +1,36 @@
-<p>sidebar works!</p>
+<aside class="sidebar" [class.collapsed]="collapsed()">
+
+    <!-- BRAND -->
+    <div class="sidebar-brand">
+        <div class="brand-logo">🎓</div>
+        <span class="brand-name">EduAula</span>
+        <button class="collapse-btn" (click)="onToggle()" [matTooltip]="collapsed() ? 'Expandir' : 'Colapsar'">
+            <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+        </button>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="sidebar-profile">
+        <div class="avatar" [style.background]="roleColor()">
+            {{ user()?.name?.charAt(0)?.toUpperCase() }}
+        </div>
+        <div class="profile-info">
+            <span class="profile-name">{{ user()?.name }}</span>
+            <span class="profile-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
+        </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- NAV -->
+    <nav class="sidebar-nav">
+        @for (item of visibleItems(); track item.route) {
+        <div class="nav-item" [class.active]="isActive(item.route)" (click)="navigate(item.route)" matRipple
+            [matTooltip]="collapsed() ? item.label : ''" matTooltipPosition="right">
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            <span class="nav-label">{{ item.label }}</span>
+        </div>
+        }
+    </nav>
+
+</aside>

@@ -1,9 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { Auth } from '../../core/auth/auth';
 
 @Component({
   selector: 'app-dashboard-redirect',
-  imports: [],
-  templateUrl: './dashboard-redirect.html',
-  styleUrl: './dashboard-redirect.scss',
+  template: '',
 })
-export class DashboardRedirect {}
+export class DashboardRedirect implements OnInit {
+  private auth = inject(Auth);
+  private router = inject(Router);
+
+  ngOnInit() {
+    const role = this.auth.currentUser()?.role;
+    const map: Record<string, string> = {
+      alumno: '/dashboard/alumno',
+      docente: '/dashboard/docente',
+      admin: '/dashboard/admin',
+      padre: '/dashboard/padre',
+    };
+    this.router.navigate([map[role ?? ''] ?? '/auth/login']);
+  }
+}

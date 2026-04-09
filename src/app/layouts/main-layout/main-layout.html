@@ -1,1 +1,13 @@
-<p>main-layout works!</p>
+<div class="layout-wrapper">
+
+    <app-sidebar [collapsed]="sidebarCollapsed()" (toggleCollapse)="toggleSidebar()" />
+
+    <div class="layout-main">
+        <app-navbar [sidebarCollapsed]="sidebarCollapsed()" (toggleSidebar)="toggleSidebar()" />
+
+        <main class="layout-content">
+            <router-outlet />
+        </main>
+    </div>
+
+</div>

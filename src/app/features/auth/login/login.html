@@ -1,1 +1,102 @@
-<p>login works!</p>
+<div class="login-page">
+
+    <!-- PANEL IZQUIERDO -->
+    <div class="panel-left">
+        <div class="panel-left__content">
+
+            <div class="brand">
+                <span class="brand__icon">🎓</span>
+                <span class="brand__name">EduAula</span>
+            </div>
+
+            <div class="hero">
+                <h1 class="hero__title">Plataforma educativa para toda la comunidad escolar</h1>
+                <p class="hero__subtitle">Accede a cursos, exámenes, tareas y mucho más desde un solo lugar.</p>
+            </div>
+
+            <ul class="features">
+                @for (f of features; track f.icon) {
+                <li class="features__item">
+                    <mat-icon class="features__icon">{{ f.icon }}</mat-icon>
+                    <span>{{ f.label }}</span>
+                </li>
+                }
+            </ul>
+
+        </div>
+        <div class="panel-left__footer">
+            © {{ year }} EduAula — Todos los derechos reservados
+        </div>
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="panel-right">
+        <div class="login-card">
+
+            <div class="login-card__header">
+                <h2>Iniciar sesión</h2>
+                <p>Ingresa con tu documento de identidad</p>
+            </div>
+
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+                <!-- Tipo de documento -->
+                <mat-form-field appearance="outline" class="field">
+                    <mat-label>Tipo de documento</mat-label>
+                    <mat-select formControlName="tipo_documento">
+                        @for (tipo of tiposDocumento; track tipo.value) {
+                        <mat-option [value]="tipo.value">{{ tipo.label }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Número de documento -->
+                <mat-form-field appearance="outline" class="field">
+                    <mat-label>{{ tipoSeleccionado.label }}</mat-label>
+                    <input matInput formControlName="numero_documento" [placeholder]="tipoSeleccionado.placeholder"
+                        [maxlength]="tipoSeleccionado.maxLength" autocomplete="username" />
+                    @if (form.get('numero_documento')?.touched && form.get('numero_documento')?.hasError('required')) {
+                    <mat-error>El número de documento es requerido</mat-error>
+                    }
+                </mat-form-field>
+
+                <!-- Contraseña -->
+                <mat-form-field appearance="outline" class="field">
+                    <mat-label>Contraseña</mat-label>
+                    <input matInput formControlName="password" [type]="hidePassword() ? 'password' : 'text'"
+                        autocomplete="current-password" />
+                    <button matSuffix mat-icon-button type="button" (click)="togglePassword()"
+                        [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+                        <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    @if (form.get('password')?.touched && form.get('password')?.hasError('required')) {
+                    <mat-error>La contraseña es requerida</mat-error>
+                    }
+                    @if (form.get('password')?.touched && form.get('password')?.hasError('minlength')) {
+                    <mat-error>Mínimo 6 caracteres</mat-error>
+                    }
+                </mat-form-field>
+
+                <!-- Error global -->
+                @if (errorMsg()) {
+                <div class="error-alert" role="alert">
+                    <mat-icon>error_outline</mat-icon>
+                    <span>{{ errorMsg() }}</span>
+                </div>
+                }
+
+                <!-- Submit -->
+                <button mat-flat-button class="btn-submit" type="submit" [disabled]="loading()">
+                    @if (loading()) {
+                    <mat-spinner diameter="20" />
+                    } @else {
+                    Ingresar
+                    }
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>

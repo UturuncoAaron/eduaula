@@ -1,1 +1,58 @@
-<p>navbar works!</p>
+<header class="navbar">
+
+    <!-- IZQUIERDA: toggle + breadcrumb -->
+    <div class="navbar-left">
+        <button class="menu-btn" (click)="onToggleSidebar()" matTooltip="Menú">
+            <mat-icon>menu</mat-icon>
+        </button>
+        <div class="app-title">
+            <span class="title-main">EduAula</span>
+            <span class="title-divider">/</span>
+            <span class="title-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
+        </div>
+    </div>
+
+    <!-- DERECHA: acciones + perfil -->
+    <div class="navbar-right">
+
+        <!-- Notificaciones (placeholder) -->
+        <button mat-icon-button matTooltip="Notificaciones" class="icon-btn">
+            <mat-icon>notifications_none</mat-icon>
+        </button>
+
+        <!-- Avatar + menú -->
+        <button class="avatar-btn" [matMenuTriggerFor]="userMenu">
+            <div class="avatar" [style.background]="roleColor()">
+                {{ initials() }}
+            </div>
+            <div class="avatar-info">
+                <span class="avatar-name">{{ user()?.name }}</span>
+                <span class="avatar-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
+            </div>
+            <mat-icon class="chevron">expand_more</mat-icon>
+        </button>
+
+        <!-- Menú desplegable -->
+        <mat-menu #userMenu="matMenu" xPosition="before">
+            <div class="menu-header">
+                <strong>{{ user()?.name }}</strong>
+                <small>{{ roleLabel() }}</small>
+            </div>
+            <mat-divider />
+            <button mat-menu-item>
+                <mat-icon>person_outline</mat-icon>
+                Mi perfil
+            </button>
+            <button mat-menu-item>
+                <mat-icon>settings</mat-icon>
+                Configuración
+            </button>
+            <mat-divider />
+            <button mat-menu-item class="logout-item" (click)="onLogout()">
+                <mat-icon>logout</mat-icon>
+                Cerrar sesión
+            </button>
+        </mat-menu>
+
+    </div>
+</header>

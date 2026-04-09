@@ -1,0 +1,158 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  height: 100%;
+  background: #0f172a;
+  color: white;
+  transition: width 0.25s ease;
+  overflow: hidden;
+}
+
+// ── COLLAPSED ─────────────────────────────────
+.sidebar.collapsed {
+  width: 64px;
+
+  .brand-name,
+  .profile-info,
+  .nav-label     { display: none; }
+
+  .sidebar-brand   { justify-content: center; gap: 0; }
+  .sidebar-profile { justify-content: center; }
+  .nav-item        { justify-content: center; padding: 0.65rem 0; }
+}
+
+// ── BRAND ─────────────────────────────────────
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+  .brand-logo {
+    font-size: 1.75rem;
+    flex-shrink: 0;
+  }
+
+  .brand-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    flex: 1;
+    white-space: nowrap;
+  }
+
+  .collapse-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.4);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: color 0.2s, background 0.2s;
+
+    &:hover { color: white; background: rgba(255,255,255,0.08); }
+  }
+}
+
+// ── PERFIL ────────────────────────────────────
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+
+  .avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+    color: white;
+  }
+
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .profile-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .profile-role {
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// ── DIVIDER ───────────────────────────────────
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 0 1rem;
+}
+
+// ── NAV ───────────────────────────────────────
+.sidebar-nav {
+  flex: 1;
+  padding: 0.75rem 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+  }
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  margin: 2px 8px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s, background 0.2s;
+
+  &:hover {
+    color: white;
+    background: rgba(255,255,255,0.07);
+  }
+
+  &.active {
+    color: white;
+    background: rgba(99,179,237,0.15);
+    border-left: 3px solid #63b3ed;
+    padding-left: calc(1rem - 3px);
+
+    .nav-icon { color: #63b3ed; }
+  }
+
+  .nav-icon  { font-size: 1.25rem; flex-shrink: 0; }
+  .nav-label { font-size: 0.9rem;  font-weight: 500; }
+}
