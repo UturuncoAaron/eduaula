@@ -2,8 +2,11 @@
 
     <!-- BRAND -->
     <div class="sidebar-brand">
-        <div class="brand-logo">🎓</div>
-        <span class="brand-name">EduAula</span>
+        <img src="logo.png" alt="IE JPVG" class="brand-logo" />
+        <div class="brand-text">
+            <span class="brand-name">IE Juan Pablo</span>
+            <span class="brand-sub">Vizcardo y Guzmán</span>
+        </div>
         <button class="collapse-btn" (click)="onToggle()" [matTooltip]="collapsed() ? 'Expandir' : 'Colapsar'">
             <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
         </button>
@@ -11,11 +14,15 @@
 
     <!-- PERFIL -->
     <div class="sidebar-profile">
-        <div class="avatar" [style.background]="roleColor()">
-            {{ user()?.name?.charAt(0)?.toUpperCase() }}
+        <div class="profile-avatar" [style.background]="user()?.foto_url ? 'transparent' : roleColor()">
+            @if (user()?.foto_url) {
+            <img [src]="user()!.foto_url" alt="foto" class="profile-photo" />
+            } @else {
+            {{ user()?.nombre?.charAt(0) }}{{ user()?.apellido_paterno?.charAt(0) }}
+            }
         </div>
         <div class="profile-info">
-            <span class="profile-name">{{ user()?.name }}</span>
+            <span class="profile-name">{{ user()?.nombre }} {{ user()?.apellido_paterno }}</span>
             <span class="profile-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
         </div>
     </div>
@@ -32,5 +39,14 @@
         </div>
         }
     </nav>
+
+    <!-- LOGOUT al fondo -->
+    <div class="sidebar-footer">
+        <div class="nav-item logout-item" (click)="logout()" matRipple [matTooltip]="collapsed() ? 'Cerrar sesión' : ''"
+            matTooltipPosition="right">
+            <mat-icon class="nav-icon">logout</mat-icon>
+            <span class="nav-label">Cerrar sesión</span>
+        </div>
+    </div>
 
 </aside>

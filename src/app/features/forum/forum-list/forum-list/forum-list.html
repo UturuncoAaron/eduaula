@@ -1,1 +1,31 @@
-<p>forum-list works!</p>
+<app-page-header title="Foro del curso" />
+
+@if (loading()) {
+<app-loading-skeleton [count]="3" />
+} @else if (posts().length === 0) {
+<app-empty-state icon="forum" title="Sin preguntas" message="Sé el primero en publicar una pregunta." />
+} @else {
+<div class="posts-list">
+    @for (p of posts(); track p.id) {
+    <mat-card class="post-card" [routerLink]="['/foro', p.id]">
+        <mat-card-content>
+            <div class="post-row">
+                <div class="post-status" [class.answered]="p.respondido">
+                    <mat-icon>{{ p.respondido ? 'check_circle' : 'help_outline' }}</mat-icon>
+                </div>
+                <div class="post-info">
+                    <span class="post-title">{{ p.titulo }}</span>
+                    <span class="post-meta">
+                        {{ p.usuario }} · {{ p.curso }} · {{ p.created_at | timeAgo }}
+                    </span>
+                </div>
+                <div class="replies-badge">
+                    <mat-icon>chat_bubble_outline</mat-icon>
+                    {{ p.replies }}
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+    }
+</div>
+}

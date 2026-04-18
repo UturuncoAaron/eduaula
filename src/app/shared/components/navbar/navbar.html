@@ -6,7 +6,7 @@
             <mat-icon>menu</mat-icon>
         </button>
         <div class="app-title">
-            <span class="title-main">EduAula</span>
+            <span class="title-main">IE JPVG</span>
             <span class="title-divider">/</span>
             <span class="title-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
         </div>
@@ -26,7 +26,7 @@
                 {{ initials() }}
             </div>
             <div class="avatar-info">
-                <span class="avatar-name">{{ user()?.name }}</span>
+                <span class="avatar-name">{{ user()?.nombre }} {{ user()?.apellido_paterno }}</span>
                 <span class="avatar-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
             </div>
             <mat-icon class="chevron">expand_more</mat-icon>
@@ -35,7 +35,7 @@
         <!-- Menú desplegable -->
         <mat-menu #userMenu="matMenu" xPosition="before">
             <div class="menu-header">
-                <strong>{{ user()?.name }}</strong>
+                <strong>{{ user()?.nombre }} {{ user()?.apellido_paterno }}</strong>
                 <small>{{ roleLabel() }}</small>
             </div>
             <mat-divider />

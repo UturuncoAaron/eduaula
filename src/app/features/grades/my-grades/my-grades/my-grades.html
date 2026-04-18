@@ -1,1 +1,61 @@
-<p>my-grades works!</p>
+<app-page-header title="Mis notas" />
+
+<div class="controls">
+    <mat-form-field appearance="outline">
+        <mat-label>Bimestre</mat-label>
+        <mat-select [(ngModel)]="bimestre">
+            <mat-option [value]="1">1er Bimestre</mat-option>
+            <mat-option [value]="2">2do Bimestre</mat-option>
+            <mat-option [value]="3">3er Bimestre</mat-option>
+            <mat-option [value]="4">4to Bimestre</mat-option>
+        </mat-select>
+    </mat-form-field>
+</div>
+
+@if (loading()) {
+<p>Cargando notas...</p>
+} @else if (filtered.length === 0) {
+<app-empty-state icon="grade" title="Sin notas" message="No hay notas registradas para este bimestre." />
+} @else {
+<mat-card class="table-card">
+    <div class="table-wrapper">
+        <table mat-table [dataSource]="filtered">
+
+            <ng-container matColumnDef="curso">
+                <th mat-header-cell *matHeaderCellDef>Curso</th>
+                <td mat-cell *matCellDef="let g">{{ g.curso }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="examenes">
+                <th mat-header-cell *matHeaderCellDef>Exámenes</th>
+                <td mat-cell *matCellDef="let g">{{ g.nota_examenes ?? '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="tareas">
+                <th mat-header-cell *matHeaderCellDef>Tareas</th>
+                <td mat-cell *matCellDef="let g">{{ g.nota_tareas ?? '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="participacion">
+                <th mat-header-cell *matHeaderCellDef>Participación</th>
+                <td mat-cell *matCellDef="let g">{{ g.nota_participacion ?? '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="final">
+                <th mat-header-cell *matHeaderCellDef>Final</th>
+                <td mat-cell *matCellDef="let g"><strong>{{ g.nota_final ?? '—' }}</strong></td>
+            </ng-container>
+
+            <ng-container matColumnDef="escala">
+                <th mat-header-cell *matHeaderCellDef>Escala</th>
+                <td mat-cell *matCellDef="let g">
+                    <app-grade-badge [escala]="g.escala" [nota]="g.nota_final" />
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="cols"></tr>
+            <tr mat-row *matRowDef="let row; columns: cols;"></tr>
+        </table>
+    </div>
+</mat-card>
+}

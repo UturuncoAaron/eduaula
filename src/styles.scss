@@ -1,7 +1,111 @@
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+ 
+// ── VARIABLES GLOBALES ──────────────────────────────────────────
+:root {
+  // Paleta del colegio: Azul marino + dorado
+  --c-primary:       #1A3A6B;
+  --c-primary-light: #2554A0;
+  --c-primary-dark:  #0F2347;
+  --c-gold:          #D4A017;
+  --c-gold-light:    #F5C842;
+ 
+  // Grises
+  --c-bg:            #F2F5FA;
+  --c-surface:       #FFFFFF;
+  --c-border:        #E2E8F0;
+  --c-text-1:        #0F172A;
+  --c-text-2:        #475569;
+  --c-text-3:        #94A3B8;
+ 
+  // Semánticos
+  --c-success:       #059669;
+  --c-success-bg:    #ECFDF5;
+  --c-warn:          #D97706;
+  --c-warn-bg:       #FFFBEB;
+  --c-danger:        #DC2626;
+  --c-danger-bg:     #FEF2F2;
+  --c-info:          #2563EB;
+  --c-info-bg:       #EFF6FF;
+ 
+  // Escalas de notas AD/A/B/C
+  --c-ad-bg:   #DCFCE7; --c-ad-text:  #166534;
+  --c-a-bg:    #DBEAFE; --c-a-text:   #1E40AF;
+  --c-b-bg:    #FEF9C3; --c-b-text:   #854D0E;
+  --c-c-bg:    #FEE2E2; --c-c-text:   #991B1B;
+ 
+  // Radios y sombras
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,.12);
+  --shadow-card: 0 2px 8px rgba(15,23,42,.06);
 }
+ 
+// ── RESET & BASE ────────────────────────────────────────────────
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+html, body {
+  height: 100%;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text-1);
+  -webkit-font-smoothing: antialiased;
+}
+ 
+// ── MATERIAL OVERRIDES ──────────────────────────────────────────
+.mat-mdc-card {
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--shadow-card) !important;
+  border: 1px solid var(--c-border) !important;
+}
+ 
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-flat-button.mat-primary {
+  background: var(--c-primary) !important;
+  border-radius: var(--r-sm) !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+ 
+.mat-mdc-outlined-button {
+  border-radius: var(--r-sm) !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+ 
+.mat-mdc-form-field {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+ 
+.mat-mdc-table {
+  border-radius: var(--r-lg) !important;
+  overflow: hidden;
+}
+ 
+th.mat-mdc-header-cell {
+  background: var(--c-bg) !important;
+  color: var(--c-primary) !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  letter-spacing: .3px;
+}
+ 
+td.mat-mdc-cell {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  color: var(--c-text-1) !important;
+}
+ 
+.mat-mdc-tab-label-container {
+  border-bottom: 2px solid var(--c-border) !important;
+}
+ 
+// ── SCROLLBAR GLOBAL ────────────────────────────────────────────
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--c-text-3); }
+ 

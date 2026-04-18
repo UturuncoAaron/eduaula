@@ -1,1 +1,49 @@
-<p>live-class-create works!</p>
+<div class="container">
+    <app-page-header title="Programar clase en vivo" backRoute="/clases-vivo" />
+
+    <mat-card class="form-card">
+        <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+
+                <mat-form-field appearance="outline" class="w100">
+                    <mat-label>Título de la clase</mat-label>
+                    <input matInput formControlName="titulo" placeholder="Ej: Clase: Funciones cuadráticas" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w100">
+                    <mat-label>Descripción (opcional)</mat-label>
+                    <textarea matInput formControlName="descripcion" rows="2"></textarea>
+                </mat-form-field>
+
+                <div class="row-2">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Fecha y hora</mat-label>
+                        <input matInput type="datetime-local" formControlName="fecha_hora" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Duración (minutos)</mat-label>
+                        <input matInput type="number" formControlName="duracion_min" />
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="w100">
+                    <mat-label>Link de Google Meet o Jitsi</mat-label>
+                    <mat-icon matPrefix>link</mat-icon>
+                    <input matInput formControlName="link_reunion" placeholder="https://meet.google.com/..." />
+                    @if (form.controls.link_reunion.invalid && form.controls.link_reunion.touched) {
+                    <mat-error>Ingresa una URL válida</mat-error>
+                    }
+                </mat-form-field>
+
+                <div class="actions">
+                    <a mat-button routerLink="/clases-vivo">Cancelar</a>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+                        <mat-icon>videocam</mat-icon>
+                        {{ loading() ? 'Guardando...' : 'Programar clase' }}
+                    </button>
+                </div>
+
+            </form>
+        </mat-card-content>
+    </mat-card>
+</div>

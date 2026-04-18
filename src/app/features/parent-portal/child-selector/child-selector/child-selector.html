@@ -1,1 +1,44 @@
-<p>child-selector works!</p>
+<app-page-header title="Portal de Padres" [subtitle]="'Bienvenido, ' + auth.fullName()" />
+
+@if (loading()) {
+<p>Cargando...</p>
+} @else if (children().length === 0) {
+<app-empty-state icon="family_restroom" title="Sin hijos vinculados"
+    message="Contacta al administrador del colegio para vincular a tu hijo." />
+} @else {
+<div class="children-grid">
+    @for (c of children(); track c.id) {
+    <mat-card class="child-card">
+        <mat-card-header>
+            <div mat-card-avatar class="avatar">
+                {{ c.nombre.charAt(0) }}{{ c.apellido_paterno.charAt(0) }}
+            </div>
+            <mat-card-title>{{ c.nombre }} {{ c.apellido_paterno }}</mat-card-title>
+            <mat-card-subtitle>{{ c.grado }} — Sección {{ c.seccion }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            <div class="quick-links">
+                <a mat-stroked-button [routerLink]="['/portal-padres', c.id, 'notas']">
+                    <mat-icon>grade</mat-icon> Notas
+                </a>
+                <a mat-stroked-button [routerLink]="['/portal-padres', c.id, 'asistencia']">
+                    <mat-icon>event_available</mat-icon> Asistencia
+                </a>
+                @if (c.tiene_libreta) {
+                <a mat-stroked-button [routerLink]="['/portal-padres', c.id, 'libreta']">
+                    <mat-icon>menu_book</mat-icon> Libreta
+                </a>
+                }
+            </div>
+        </mat-card-content>
+    </mat-card>
+    }
+</div>
+
+<div class="comunicados-link">
+    <a mat-flat-button color="primary" routerLink="/portal-padres/comunicados">
+        <mat-icon>campaign</mat-icon> Ver comunicados del colegio
+    </a>
+</div>
+}

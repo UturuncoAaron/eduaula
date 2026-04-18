@@ -1,0 +1,74 @@
+.posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.post-card {
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.1s;
+
+    &:hover {
+        background: #F5F9FF;
+    }
+
+    .post-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .post-status {
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 22px;
+            width: 22px;
+            height: 22px;
+            color: #9E9E9E;
+        }
+
+        &.answered mat-icon {
+            color: #2E7D32;
+        }
+    }
+
+    .post-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .post-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .post-meta {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+    }
+
+    .replies-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: #888;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .post-meta {
+        display: none;
+    }
+}

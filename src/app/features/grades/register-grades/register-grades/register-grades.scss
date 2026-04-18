@@ -1,0 +1,36 @@
+.controls {
+    margin-bottom: 16px;
+}
+
+.table-card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+}
+
+th.mat-mdc-header-cell {
+    font-weight: 600;
+    color: #1A237E;
+    white-space: nowrap;
+}
+
+.grade-input {
+    width: 64px;
+    padding: 4px 8px;
+    border: 1px solid #DDD;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+
+    &:focus {
+        outline: 2px solid #1565C0;
+        border-color: transparent;
+    }
+}

@@ -1,1 +1,37 @@
-<p>course-list works!</p>
+<div class="page">
+    <div class="page-header">
+        <h2>Mis cursos</h2>
+        <p>{{ courses().length }} cursos activos este período</p>
+    </div>
+
+    @if (loading()) {
+    <div class="loading-center">
+        <mat-spinner diameter="40" />
+    </div>
+    } @else {
+    <div class="courses-grid">
+        @for (course of courses(); track course.id; let i = $index) {
+        <mat-card class="course-card" [routerLink]="['/cursos', course.id]">
+            <div class="course-banner" [style.background]="courseColors[i % courseColors.length]">
+                <mat-icon>menu_book</mat-icon>
+                <span>{{ course.nombre }}</span>
+            </div>
+            <mat-card-content>
+                <p class="desc">{{ course.descripcion }}</p>
+                @if (auth.isDocente()) {
+                <mat-chip color="accent">Soy el docente</mat-chip>
+                }
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-button color="primary">Ver contenido</button>
+            </mat-card-actions>
+        </mat-card>
+        } @empty {
+        <div class="empty">
+            <mat-icon>info</mat-icon>
+            <p>No tienes cursos asignados en este período.</p>
+        </div>
+        }
+    </div>
+    }
+</div>

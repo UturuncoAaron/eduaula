@@ -1,0 +1,29 @@
+<app-page-header title="Libreta de notas" [backRoute]="'/portal-padres'" />
+
+@if (loading()) {
+<p>Cargando libreta...</p>
+} @else if (libretas().length === 0) {
+<app-empty-state icon="menu_book" title="Sin libreta disponible"
+    message="El administrador del colegio aún no ha asignado una libreta para este alumno." />
+} @else {
+<div class="libretas-list">
+    @for (l of libretas(); track l.id) {
+    <mat-card class="libreta-card">
+        <mat-card-content>
+            <div class="libreta-row">
+                <div class="libreta-icon">
+                    <mat-icon>menu_book</mat-icon>
+                </div>
+                <div class="libreta-info">
+                    <span class="libreta-name">{{ l.nombre }}</span>
+                    <span class="libreta-period">{{ l.periodo }}</span>
+                </div>
+                <button mat-flat-button color="primary" (click)="open(l.url_pdf)">
+                    <mat-icon>visibility</mat-icon> Ver libreta
+                </button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+    }
+</div>
+}

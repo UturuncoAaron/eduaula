@@ -1,1 +1,22 @@
-<p>announcements works!</p>
+<app-page-header title="Comunicados del colegio" [backRoute]="'/portal-padres'" />
+
+@if (loading()) {
+<p>Cargando comunicados...</p>
+} @else if (items().length === 0) {
+<app-empty-state icon="campaign" title="Sin comunicados" message="No hay comunicados publicados." />
+} @else {
+<div class="list">
+    @for (a of items(); track a.id) {
+    <mat-card class="ann-card">
+        <mat-card-header>
+            <mat-icon mat-card-avatar style="color:#1565C0">campaign</mat-icon>
+            <mat-card-title>{{ a.titulo }}</mat-card-title>
+            <mat-card-subtitle>{{ a.created_at | timeAgo }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <p>{{ a.contenido }}</p>
+        </mat-card-content>
+    </mat-card>
+    }
+</div>
+}

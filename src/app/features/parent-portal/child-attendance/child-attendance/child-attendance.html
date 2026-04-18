@@ -1,1 +1,50 @@
-<p>child-attendance works!</p>
+<app-page-header title="Asistencia del alumno" [backRoute]="'/portal-padres'" />
+
+@if (total > 0) {
+<div class="summary">
+    <span class="present-count">{{ presentes }} presentes</span>
+    <span class="separator">/</span>
+    <span>{{ total }} clases</span>
+    <span class="pct">({{ ((presentes / total) * 100) | number:'1.0-0' }}%)</span>
+</div>
+}
+
+@if (records().length === 0) {
+<app-empty-state icon="event" title="Sin registros" message="No hay registros de asistencia." />
+} @else {
+<mat-card class="table-card">
+    <div class="table-wrapper">
+        <table mat-table [dataSource]="records()">
+
+            <ng-container matColumnDef="fecha">
+                <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                <td mat-cell *matCellDef="let r">{{ r.fecha_hora | date:'dd/MM/yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="clase">
+                <th mat-header-cell *matHeaderCellDef>Clase</th>
+                <td mat-cell *matCellDef="let r">{{ r.clase }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let r">
+                    @if (r.presente) {
+                    <span class="tag present">
+                        <mat-icon>check_circle</mat-icon> Presente
+                    </span>
+                    } @else {
+                    <span class="tag absent">
+                        <mat-icon>cancel</mat-icon>
+                        Ausente {{ r.justificacion ? '(' + r.justificacion + ')' : '' }}
+                    </span>
+                    }
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="cols"></tr>
+            <tr mat-row *matRowDef="let row; columns: cols;"></tr>
+        </table>
+    </div>
+</mat-card>
+}

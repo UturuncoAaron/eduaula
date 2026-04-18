@@ -1,1 +1,8 @@
-<p>doc-type-selector works!</p>
+<mat-form-field appearance="outline" class="full">
+    <mat-label>Tipo de documento</mat-label>
+    <mat-select [(ngModel)]="value" (ngModelChange)="onChange($event)">
+        <mat-option value="dni">DNI</mat-option>
+        <mat-option value="ce">Carné de Extranjería</mat-option>
+        <mat-option value="pasaporte">Pasaporte</mat-option>
+    </mat-select>
+</mat-form-field>

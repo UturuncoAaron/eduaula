@@ -1,0 +1,26 @@
+.controls {
+    margin-bottom: 16px;
+}
+
+.table-card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+}
+
+th.mat-mdc-header-cell {
+    font-weight: 600;
+    color: #1A237E;
+    white-space: nowrap;
+}
+
+td.mat-mdc-cell {
+    white-space: nowrap;
+}

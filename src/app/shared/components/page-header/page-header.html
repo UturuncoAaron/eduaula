@@ -1,1 +1,18 @@
-<p>page-header works!</p>
+<div class="header">
+    <div class="header-left">
+        @if (backRoute) {
+        <a mat-icon-button [routerLink]="backRoute">
+            <mat-icon>arrow_back</mat-icon>
+        </a>
+        }
+        <div>
+            <h2 class="title">{{ title }}</h2>
+            @if (subtitle) {
+            <p class="sub">{{ subtitle }}</p>
+            }
+        </div>
+    </div>
+    <div class="header-actions">
+        <ng-content />
+    </div>
+</div>

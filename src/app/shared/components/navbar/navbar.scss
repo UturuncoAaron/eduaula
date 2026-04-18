@@ -2,98 +2,105 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 64px;
-    padding: 0 1.5rem;
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
+    height: 60px;
+    padding: 0 24px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E2E8F0;
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+    flex-shrink: 0;
 }
 
-// ── IZQUIERDA ──────────────────────────────────
 .navbar-left {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 10px;
 }
 
 .menu-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px;
+    width: 36px;
+    height: 36px;
     border-radius: 8px;
-    color: #64748b;
+    color: #64748B;
     display: flex;
     align-items: center;
-    transition: background 0.2s, color 0.2s;
+    justify-content: center;
+    transition: all 0.15s;
 
     &:hover {
-        background: #f1f5f9;
-        color: #0f172a;
+        background: #F1F5F9;
+        color: #1A3A6B;
     }
 }
 
 .app-title {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.95rem;
+    gap: 6px;
+    font-size: 14px;
 
     .title-main {
         font-weight: 700;
-        color: #0f172a;
+        color: #1A3A6B;
+        letter-spacing: -.2px;
     }
 
     .title-divider {
-        color: #cbd5e1;
+        color: #CBD5E1;
+        font-size: 16px;
     }
 
     .title-role {
-        font-weight: 500;
+        font-size: 12.5px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 99px;
+        background: #F1F5F9;
     }
 }
 
-// ── DERECHA ──────────────────────────────────
 .navbar-right {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 6px;
 }
 
 .icon-btn {
-    color: #64748b;
+    color: #64748B;
 }
 
 .avatar-btn {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 8px;
     background: none;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 0.4rem 0.75rem 0.4rem 0.4rem;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 99px;
+    padding: 5px 12px 5px 5px;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    transition: all 0.15s;
 
     &:hover {
-        background: #f8fafc;
-        border-color: #cbd5e1;
+        border-color: #1A3A6B;
+        background: #F8FAFC;
     }
 
     .avatar {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.8rem;
+        font-size: 11px;
         font-weight: 700;
         color: white;
-        flex-shrink: 0;
+        letter-spacing: .5px;
     }
 
     .avatar-info {
@@ -102,55 +109,62 @@
         text-align: left;
 
         .avatar-name {
-            font-size: 0.8rem;
+            font-size: 13px;
             font-weight: 600;
-            color: #0f172a;
+            color: #0F172A;
             white-space: nowrap;
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .avatar-role {
-            font-size: 0.7rem;
+            font-size: 11px;
             font-weight: 500;
             white-space: nowrap;
         }
     }
 
     .chevron {
-        font-size: 1.1rem;
-        color: #94a3b8;
+        font-size: 16px !important;
+        width: 16px !important;
+        height: 16px !important;
+        color: #94A3B8;
     }
 }
 
-// ── MENÚ DESPLEGABLE ──────────────────────────
 .menu-header {
-    padding: 0.75rem 1rem;
+    padding: 12px 16px 8px;
+    pointer-events: none;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    pointer-events: none;
 
     strong {
-        font-size: 0.875rem;
-        color: #0f172a;
+        font-size: 14px;
+        font-weight: 700;
+        color: #0F172A;
     }
 
     small {
-        font-size: 0.75rem;
-        color: #64748b;
+        font-size: 12px;
+        color: #94A3B8;
     }
 }
 
 .logout-item {
-    color: #ef4444 !important;
+    color: #EF4444 !important;
 }
 
-// ── RESPONSIVE ──────────────────────────────
 @media (max-width: 640px) {
-    .avatar-info {
+
+    .avatar-info,
+    .title-main,
+    .title-divider {
         display: none;
     }
 
-    .app-title .title-role {
-        display: none;
+    .navbar {
+        padding: 0 16px;
     }
 }

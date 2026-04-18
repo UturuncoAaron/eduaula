@@ -1,1 +1,33 @@
-<p>admin-dashboard works!</p>
+<div class="dashboard">
+    <h2 class="greeting">Panel de Administración</h2>
+    <p class="subtitle">Gestiona toda la plataforma del colegio</p>
+
+    <div class="stats-grid">
+        <mat-card class="stat-card">
+            <mat-icon>school</mat-icon>
+            <div><span class="num">{{ stats().alumnos }}</span><span class="lbl">Alumnos</span></div>
+        </mat-card>
+        <mat-card class="stat-card">
+            <mat-icon>person</mat-icon>
+            <div><span class="num">{{ stats().docentes }}</span><span class="lbl">Docentes</span></div>
+        </mat-card>
+        <mat-card class="stat-card">
+            <mat-icon>menu_book</mat-icon>
+            <div><span class="num">{{ stats().cursos }}</span><span class="lbl">Cursos</span></div>
+        </mat-card>
+        <mat-card class="stat-card">
+            <mat-icon>family_restroom</mat-icon>
+            <div><span class="num">{{ stats().padres }}</span><span class="lbl">Padres</span></div>
+        </mat-card>
+    </div>
+
+    <h3 class="section-title">Accesos rápidos</h3>
+    <div class="quick-grid">
+        @for (q of quickAccess; track q.route) {
+        <a mat-flat-button [routerLink]="q.route" class="quick-btn">
+            <mat-icon>{{ q.icon }}</mat-icon>
+            {{ q.label }}
+        </a>
+        }
+    </div>
+</div>

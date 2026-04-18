@@ -1,0 +1,53 @@
+.container {
+    max-width: 640px;
+}
+
+.form-card {
+    border-radius: 12px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.w100 {
+    width: 100%;
+}
+
+.w50 {
+    width: 50%;
+}
+
+.row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+    .row-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .w50 {
+        width: 100%;
+    }
+
+    .actions {
+        flex-direction: column;
+
+        button,
+        a {
+            width: 100%;
+        }
+    }
+}

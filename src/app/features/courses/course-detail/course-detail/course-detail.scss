@@ -1,0 +1,93 @@
+.page {
+    .course-header {
+        margin-bottom: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        h2 {
+            flex: 1;
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        p {
+            width: 100%;
+            color: #666;
+            margin: 4px 0 0;
+        }
+    }
+}
+
+.materials-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px 0;
+}
+
+.material-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.1s;
+
+    &:hover {
+        background: #F0F4FF;
+    }
+
+    .material-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        mat-icon {
+            color: white;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .material-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .material-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .material-type {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+    }
+
+    .open-icon {
+        color: #999;
+    }
+}
+
+.empty {
+    text-align: center;
+    padding: 48px;
+    color: #999;
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+    }
+}

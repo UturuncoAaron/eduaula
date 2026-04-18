@@ -1,1 +1,26 @@
-<p>academic-setup works!</p>
+<app-page-header title="Estructura académica" />
+<mat-tab-group>
+    <mat-tab label="Grados">
+        <div class="tab-content">
+            @for (g of grados(); track g.nombre) {
+            <div class="item-row">
+                <mat-icon>school</mat-icon>
+                <span>{{ g.nombre }}</span>
+                <span class="nivel-tag">{{ g.nivel }}</span>
+            </div>
+            }
+            <p class="hint">Conectar al backend para gestión completa.</p>
+        </div>
+    </mat-tab>
+    <mat-tab label="Períodos">
+        <div class="tab-content">
+            @for (p of periodos(); track p.nombre) {
+            <div class="item-row">
+                <mat-icon>calendar_today</mat-icon>
+                <span>{{ p.nombre }}</span>
+                @if (p.activo) { <span class="active-tag">Activo</span> }
+            </div>
+            }
+        </div>
+    </mat-tab>
+</mat-tab-group>

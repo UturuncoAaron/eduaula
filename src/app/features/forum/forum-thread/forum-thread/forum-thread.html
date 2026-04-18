@@ -1,1 +1,40 @@
-<p>forum-thread works!</p>
+<app-page-header title="Hilo del foro" backRoute="/foro" />
+
+<div class="thread">
+    @for (p of posts(); track p.id) {
+    <div class="post" [class.teacher-post]="p.rol === 'docente'">
+        <div class="post-avatar" [class.teacher-avatar]="p.rol === 'docente'">
+            {{ p.usuario.charAt(0) }}
+        </div>
+        <div class="post-body">
+            <div class="post-meta">
+                <strong>{{ p.usuario }}</strong>
+                <span class="role-tag" [class.teacher-tag]="p.rol === 'docente'">
+                    {{ p.rol === 'docente' ? 'Docente' : 'Alumno' }}
+                </span>
+                <span class="time">{{ p.created_at | timeAgo }}</span>
+            </div>
+            <p class="post-content">{{ p.contenido }}</p>
+        </div>
+    </div>
+    }
+
+    <mat-card class="reply-card">
+        <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="reply()" class="reply-form">
+                <mat-form-field appearance="outline" class="w100">
+                    <mat-label>Escribe tu respuesta</mat-label>
+                    <textarea matInput formControlName="contenido" rows="3"></textarea>
+                    @if (form.controls.contenido.invalid && form.controls.contenido.touched) {
+                    <mat-error>Escribe al menos 5 caracteres</mat-error>
+                    }
+                </mat-form-field>
+                <div class="reply-actions">
+                    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+                        <mat-icon>send</mat-icon> Publicar respuesta
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</div>

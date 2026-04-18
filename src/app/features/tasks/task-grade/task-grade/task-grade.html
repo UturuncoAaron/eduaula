@@ -1,1 +1,54 @@
-<p>task-grade works!</p>
+<app-page-header title="Calificar entregas" backRoute="/tareas" />
+
+@if (loading()) {
+<p>Cargando entregas...</p>
+} @else if (submissions().length === 0) {
+<app-empty-state icon="assignment_turned_in" title="Sin entregas"
+    message="Ningún alumno ha entregado esta tarea aún." />
+} @else {
+<div class="submissions-list">
+    @for (s of submissions(); track s.id) {
+    <mat-card class="sub-card">
+        <mat-card-header>
+            <mat-icon mat-card-avatar>person</mat-icon>
+            <mat-card-title>{{ s.alumno }}</mat-card-title>
+            <mat-card-subtitle>
+                {{ s.con_retraso ? '⚠ Con retraso' : 'A tiempo' }}
+                · {{ s.fecha_entrega | slice:0:10 }}
+            </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            <p class="response">{{ s.respuesta_texto }}</p>
+
+            @if (s.url_archivo) {
+            <a [href]="s.url_archivo" target="_blank" class="file-link">
+                <mat-icon>attach_file</mat-icon> Ver archivo adjunto
+            </a>
+            }
+
+            <div class="grade-row">
+                <mat-form-field appearance="outline" class="grade-field">
+                    <mat-label>Nota (0-20)</mat-label>
+                    <input matInput type="number" min="0" max="20" [(ngModel)]="s.calificacion" />
+                </mat-form-field>
+                @if (s.calificacion != null) {
+                <app-grade-badge [nota]="s.calificacion" />
+                }
+            </div>
+
+            <mat-form-field appearance="outline" class="w100">
+                <mat-label>Comentario de retroalimentación (opcional)</mat-label>
+                <textarea matInput rows="2" [(ngModel)]="s.comentario"></textarea>
+            </mat-form-field>
+        </mat-card-content>
+
+        <mat-card-actions>
+            <button mat-flat-button color="primary" (click)="saveGrade(s)">
+                <mat-icon>save</mat-icon> Guardar nota
+            </button>
+        </mat-card-actions>
+    </mat-card>
+    }
+</div>
+}

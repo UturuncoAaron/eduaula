@@ -1,0 +1,35 @@
+.container {
+    max-width: 600px;
+}
+
+.form-card {
+    border-radius: 12px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.w100 {
+    width: 100%;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+    .actions {
+        flex-direction: column;
+
+        button,
+        a {
+            width: 100%;
+        }
+    }
+}

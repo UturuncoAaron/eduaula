@@ -1,1 +1,33 @@
-<p>attendance-register works!</p>
+<app-page-header title="Registrar asistencia" backRoute="/clases-vivo" />
+
+@if (loading()) {
+<p>Cargando alumnos...</p>
+} @else {
+<div class="summary">
+    <span>{{ presentes }} / {{ attendance().length }} presentes</span>
+</div>
+
+<mat-card class="att-card">
+    <mat-card-content>
+        @for (a of attendance(); track a.alumno_id) {
+        <div class="att-row">
+            <div class="alumno-info">
+                <mat-icon [style.color]="a.presente ? '#2E7D32' : '#9E9E9E'">
+                    {{ a.presente ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                <span>{{ a.alumno }}</span>
+            </div>
+            <mat-slide-toggle [(ngModel)]="a.presente" color="primary">
+                {{ a.presente ? 'Presente' : 'Ausente' }}
+            </mat-slide-toggle>
+        </div>
+        }
+    </mat-card-content>
+
+    <mat-card-actions>
+        <button mat-flat-button color="primary" (click)="save()">
+            <mat-icon>save</mat-icon> Guardar asistencia
+        </button>
+    </mat-card-actions>
+</mat-card>
+}

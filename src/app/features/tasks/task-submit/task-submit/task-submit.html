@@ -1,1 +1,34 @@
-<p>task-submit works!</p>
+<div class="container">
+    <app-page-header title="Entregar tarea" backRoute="/tareas" />
+
+    <mat-card class="form-card">
+        <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+
+                <mat-form-field appearance="outline" class="w100">
+                    <mat-label>Tu respuesta</mat-label>
+                    <textarea matInput formControlName="respuesta_texto" rows="6"
+                        placeholder="Escribe tu respuesta aquí..."></textarea>
+                    @if (form.controls.respuesta_texto.invalid && form.controls.respuesta_texto.touched) {
+                    <mat-error>Escribe tu respuesta para entregar la tarea</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w100">
+                    <mat-label>URL de archivo adjunto (opcional)</mat-label>
+                    <mat-icon matPrefix>link</mat-icon>
+                    <input matInput formControlName="url_archivo" placeholder="https://drive.google.com/..." />
+                </mat-form-field>
+
+                <div class="actions">
+                    <a mat-button routerLink="/tareas">Cancelar</a>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+                        <mat-icon>send</mat-icon>
+                        {{ loading() ? 'Enviando...' : 'Entregar tarea' }}
+                    </button>
+                </div>
+
+            </form>
+        </mat-card-content>
+    </mat-card>
+</div>

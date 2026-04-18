@@ -1,1 +1,55 @@
-<p>task-list works!</p>
+<app-page-header title="Tareas">
+    @if (auth.isDocente()) {
+    <button mat-flat-button color="primary">
+        <mat-icon>add</mat-icon> Nueva tarea
+    </button>
+    }
+</app-page-header>
+
+@if (loading()) {
+<app-loading-skeleton [count]="3" />
+} @else if (tasks().length === 0) {
+<app-empty-state icon="assignment" title="Sin tareas" message="No hay tareas pendientes." />
+} @else {
+<div class="tasks-list">
+    @for (t of tasks(); track t.id) {
+    <mat-card class="task-card">
+        <mat-card-header>
+            <mat-icon mat-card-avatar [style.color]="isPending(t) ? '#E65100' : '#9E9E9E'">
+                assignment
+            </mat-icon>
+            <mat-card-title>{{ t.titulo }}</mat-card-title>
+            <mat-card-subtitle>{{ t.curso }} · {{ t.puntos_max }} puntos</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            @if (t.descripcion) {
+            <p class="desc">{{ t.descripcion }}</p>
+            }
+            <div class="deadline">
+                <mat-icon>event</mat-icon>
+                <span>Entrega: {{ t.fecha_entrega | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            @if (isPending(t)) {
+            <mat-chip color="warn" selected>Pendiente</mat-chip>
+            } @else {
+            <mat-chip>Vencida</mat-chip>
+            }
+        </mat-card-content>
+
+        <mat-card-actions>
+            @if (auth.isAlumno()) {
+            <a mat-flat-button color="primary" [routerLink]="['/tareas', t.id, 'entregar']">
+                Entregar tarea
+            </a>
+            }
+            @if (auth.isDocente()) {
+            <a mat-button [routerLink]="['/tareas', t.id, 'calificar']">
+                Calificar entregas
+            </a>
+            }
+        </mat-card-actions>
+    </mat-card>
+    }
+</div>
+}

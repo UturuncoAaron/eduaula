@@ -1,11 +1,11 @@
-<div class="layout-wrapper">
+<div class="layout" [class.sidebar-collapsed]="collapsed()">
 
-    <app-sidebar [collapsed]="sidebarCollapsed()" (toggleCollapse)="toggleSidebar()" />
+    <app-sidebar [collapsed]="collapsed()" (toggleCollapse)="toggleSidebar()" />
 
-    <div class="layout-main">
-        <app-navbar [sidebarCollapsed]="sidebarCollapsed()" (toggleSidebar)="toggleSidebar()" />
+    <div class="layout-body">
+        <app-navbar [sidebarCollapsed]="collapsed()" (toggleSidebar)="toggleSidebar()" />
 
-        <main class="layout-content">
+        <main class="page-content">
             <router-outlet />
         </main>
     </div>

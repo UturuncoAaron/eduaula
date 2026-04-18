@@ -1,0 +1,78 @@
+.page {
+    .page-header {
+        margin-bottom: 24px;
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        p {
+            color: #666;
+            margin: 4px 0 0;
+        }
+    }
+}
+
+.loading-center {
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+}
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.course-card {
+    cursor: pointer;
+    border-radius: 12px;
+    transition: transform 0.15s, box-shadow 0.15s;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .course-banner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 20px 16px;
+        border-radius: 12px 12px 0 0;
+        color: white;
+
+        mat-icon {
+            font-size: 28px;
+            width: 28px;
+            height: 28px;
+        }
+
+        span {
+            font-size: 16px;
+            font-weight: 600;
+        }
+    }
+
+    .desc {
+        font-size: 13px;
+        color: #666;
+        margin: 8px 0 0;
+    }
+}
+
+.empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 48px;
+    color: #999;
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+    }
+}

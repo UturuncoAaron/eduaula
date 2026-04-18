@@ -1,0 +1,60 @@
+.summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    margin-bottom: 16px;
+
+    .present-count {
+        font-weight: 700;
+        color: #2E7D32;
+    }
+
+    .separator {
+        color: #999;
+    }
+
+    .pct {
+        font-size: 13px;
+        color: #777;
+    }
+}
+
+.table-card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+}
+
+th.mat-mdc-header-cell {
+    font-weight: 600;
+    color: #1A237E;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.present {
+    color: #2E7D32;
+}
+
+.absent {
+    color: #C62828;
+}

@@ -1,0 +1,44 @@
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.title {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    color: #1A237E;
+}
+
+.sub {
+    font-size: 13px;
+    color: #666;
+    margin: 4px 0 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+    }
+
+    .title {
+        font-size: 18px;
+    }
+}

@@ -1,0 +1,35 @@
+.summary {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 12px;
+}
+
+.att-card {
+    max-width: 500px;
+    border-radius: 12px;
+}
+
+.att-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #F0F0F0;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.alumno-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}

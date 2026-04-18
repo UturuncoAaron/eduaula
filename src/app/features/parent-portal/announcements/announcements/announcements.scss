@@ -1,0 +1,16 @@
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ann-card {
+    border-radius: 12px;
+
+    p {
+        font-size: 14px;
+        color: #444;
+        line-height: 1.6;
+        margin: 8px 0 0;
+    }
+}

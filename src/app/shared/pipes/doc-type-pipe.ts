@@ -1,10 +1,13 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({
-  name: 'docType',
-})
+@Pipe({ name: 'docType', standalone: true })
 export class DocTypePipe implements PipeTransform {
-  transform(value: unknown, ...args: unknown[]): unknown {
-    return null;
+  transform(value: string): string {
+    const map: Record<string, string> = {
+      dni: 'DNI',
+      ce: 'Carné de Extranjería',
+      pasaporte: 'Pasaporte',
+    };
+    return map[value] ?? value.toUpperCase();
   }
 }

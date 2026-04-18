@@ -1,1 +1,54 @@
-<p>live-class-list works!</p>
+<app-page-header title="Clases en vivo">
+    @if (auth.isDocente()) {
+    <a mat-flat-button color="primary" routerLink="/clases-vivo/crear">
+        <mat-icon>add</mat-icon> Programar clase
+    </a>
+    }
+</app-page-header>
+
+@if (loading()) {
+<app-loading-skeleton [count]="3" />
+} @else if (classes().length === 0) {
+<app-empty-state icon="videocam_off" title="Sin clases programadas" message="No hay clases en vivo próximas." />
+} @else {
+<div class="classes-list">
+    @for (c of classes(); track c.id) {
+    <mat-card class="class-card">
+        <mat-card-header>
+            <mat-icon mat-card-avatar style="color:#1565C0">videocam</mat-icon>
+            <mat-card-title>{{ c.titulo }}</mat-card-title>
+            <mat-card-subtitle>{{ c.curso }} · {{ c.duracion_min }} min</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            @if (c.descripcion) {
+            <p class="desc">{{ c.descripcion }}</p>
+            }
+            <div class="date-row">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ c.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <mat-chip [class]="'chip-' + c.estado">
+                {{ c.estado | titlecase }}
+            </mat-chip>
+        </mat-card-content>
+
+        <mat-card-actions>
+            @if (auth.isAlumno() && c.estado !== 'cancelada') {
+            <button mat-flat-button color="primary" (click)="join(c.link_reunion)">
+                <mat-icon>video_call</mat-icon> Unirse a la clase
+            </button>
+            }
+            @if (auth.isDocente()) {
+            <button mat-flat-button color="primary" (click)="join(c.link_reunion)">
+                <mat-icon>video_call</mat-icon> Iniciar clase
+            </button>
+            <a mat-button [routerLink]="['/clases-vivo', c.id, 'asistencia']">
+                Asistencia
+            </a>
+            }
+        </mat-card-actions>
+    </mat-card>
+    }
+</div>
+}

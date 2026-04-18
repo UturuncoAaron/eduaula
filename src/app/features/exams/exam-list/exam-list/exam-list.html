@@ -1,1 +1,58 @@
-<p>exam-list works!</p>
+<app-page-header title="Exámenes">
+    @if (auth.isDocente()) {
+    <a mat-flat-button color="primary" routerLink="/examenes/crear">
+        <mat-icon>add</mat-icon> Nuevo examen
+    </a>
+    }
+</app-page-header>
+
+@if (loading()) {
+<app-loading-skeleton [count]="3" />
+} @else if (exams().length === 0) {
+<app-empty-state icon="quiz" title="Sin exámenes" message="No hay exámenes disponibles en este momento." />
+} @else {
+<div class="exams-list">
+    @for (e of exams(); track e.id) {
+    <mat-card class="exam-card">
+        <mat-card-header>
+            <mat-icon mat-card-avatar [style.color]="isActive(e) ? '#2E7D32' : '#9E9E9E'">
+                quiz
+            </mat-icon>
+            <mat-card-title>{{ e.titulo }}</mat-card-title>
+            <mat-card-subtitle>{{ e.curso }} · {{ e.puntos_total }} puntos</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            @if (e.descripcion) {
+            <p class="desc">{{ e.descripcion }}</p>
+            }
+            <div class="dates">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ e.fecha_inicio | date:'dd/MM/yyyy HH:mm' }}
+                    — {{ e.fecha_fin | date:'HH:mm' }}</span>
+            </div>
+            @if (isActive(e)) {
+            <mat-chip color="primary" selected>Disponible ahora</mat-chip>
+            } @else if (!e.activo) {
+            <mat-chip>No publicado</mat-chip>
+            } @else {
+            <mat-chip>Cerrado</mat-chip>
+            }
+        </mat-card-content>
+
+        <mat-card-actions>
+            @if (auth.isAlumno() && isActive(e)) {
+            <a mat-flat-button color="primary" [routerLink]="['/examenes', e.id, 'tomar']">
+                Rendir examen
+            </a>
+            }
+            @if (auth.isDocente()) {
+            <a mat-button [routerLink]="['/examenes', e.id, 'resultados']">
+                Ver resultados
+            </a>
+            }
+        </mat-card-actions>
+    </mat-card>
+    }
+</div>
+}

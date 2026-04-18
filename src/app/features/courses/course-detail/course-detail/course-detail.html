@@ -1,1 +1,66 @@
-<p>course-detail works!</p>
+<div class="page">
+    <!-- Header del curso -->
+    <div class="course-header">
+        <h2>{{ course()?.nombre ?? 'Cargando...' }}</h2>
+        <p>{{ course()?.descripcion }}</p>
+
+        @if (auth.isDocente()) {
+        <a mat-flat-button color="primary" [routerLink]="['/cursos', course()?.id, 'subir-material']">
+            <mat-icon>upload</mat-icon> Subir material
+        </a>
+        }
+    </div>
+
+    <!-- Tabs -->
+    <mat-tab-group>
+
+        <!-- TAB: Materiales -->
+        <mat-tab label="Materiales">
+            @if (loading()) {
+            <mat-spinner diameter="32" style="margin: 32px auto;" />
+            } @else {
+            <div class="materials-list">
+                @for (m of materials(); track m.id) {
+                <mat-card class="material-card" (click)="openMaterial(m.url)">
+                    <div class="material-icon" [style.background]="materialColors[m.tipo]">
+                        <mat-icon>{{ materialIcons[m.tipo] }}</mat-icon>
+                    </div>
+                    <div class="material-info">
+                        <span class="material-title">{{ m.titulo }}</span>
+                        <span class="material-type">{{ m.tipo | uppercase }}</span>
+                    </div>
+                    <mat-icon class="open-icon">open_in_new</mat-icon>
+                </mat-card>
+                } @empty {
+                <div class="empty">
+                    <mat-icon>folder_open</mat-icon>
+                    <p>No hay materiales subidos aún.</p>
+                </div>
+                }
+            </div>
+            }
+        </mat-tab>
+
+        <!-- TAB: Tareas -->
+        <mat-tab label="Tareas">
+            <div style="padding: 24px;">
+                <a mat-flat-button color="primary" routerLink="/tareas">Ver todas las tareas</a>
+            </div>
+        </mat-tab>
+
+        <!-- TAB: Exámenes -->
+        <mat-tab label="Exámenes">
+            <div style="padding: 24px;">
+                <a mat-flat-button color="primary" routerLink="/examenes">Ver todos los exámenes</a>
+            </div>
+        </mat-tab>
+
+        <!-- TAB: Foro -->
+        <mat-tab label="Foro">
+            <div style="padding: 24px;">
+                <a mat-flat-button color="primary" routerLink="/foro">Ir al foro</a>
+            </div>
+        </mat-tab>
+
+    </mat-tab-group>
+</div>

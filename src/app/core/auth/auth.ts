@@ -1,29 +1,59 @@
-import { Injectable, signal } from '@angular/core';
-
-export interface CurrentUser {
-  id: string;
-  name: string;
-  role: 'alumno' | 'docente' | 'admin' | 'padre';
-  token: string;
-}
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
+import { User, LoginPayload, LoginResponse } from '../models/user';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class Auth {
-  private user = signal<CurrentUser | null>(null);
+export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly api = environment.apiUrl;
 
-  currentUser() {
-    return this.user();
-  }
+  private _user = signal<User | null>(this.loadUser());
+  private _token = signal<string | null>(localStorage.getItem('token'));
 
-  isAuthenticated(): boolean {
-    return this.user() !== null;
-  }
+  readonly currentUser = this._user.asReadonly();
+  readonly token = this._token.asReadonly();
+  readonly isLoggedIn = computed(() => !!this._token());
+  readonly isAlumno = computed(() => this._user()?.rol === 'alumno');
+  readonly isDocente = computed(() => this._user()?.rol === 'docente');
+  readonly isAdmin = computed(() => this._user()?.rol === 'admin');
+  readonly isPadre = computed(() => this._user()?.rol === 'padre');
+  readonly fullName = computed(() => {
+    const u = this._user();
+    return u ? `${u.nombre} ${u.apellido_paterno}` : '';
+  });
+  readonly avatarInitials = computed(() => {
+    const u = this._user();
+    return u ? `${u.nombre[0]}${u.apellido_paterno[0]}`.toUpperCase() : '?';
+  });
 
-  login(userData: CurrentUser) {
-    this.user.set(userData);
+  login(payload: LoginPayload) {
+    return this.http.post<LoginResponse>(`${this.api}/auth/login`, payload).pipe(
+      tap(res => {
+        const { token, user } = res.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        this._token.set(token);
+        this._user.set(user);
+      })
+    );
   }
 
   logout() {
-    this.user.set(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    this._token.set(null);
+    this._user.set(null);
+    this.router.navigate(['/auth/login']);
+  }
+
+  private loadUser(): User | null {
+    try {
+      const s = localStorage.getItem('user');
+      return s ? JSON.parse(s) : null;
+    } catch { return null; }
   }
 }

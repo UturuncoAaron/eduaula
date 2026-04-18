@@ -5,35 +5,34 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
-import { Auth } from '../../../core/auth/auth';
-
+import { AuthService } from '../../../core/auth/auth';
 @Component({
   selector: 'app-navbar',
+  standalone: true,
   imports: [
-    MatIconModule,
-    MatButtonModule,
-    MatMenuModule,
-    MatTooltipModule,
-    MatDividerModule,
+    MatIconModule, MatButtonModule, MatMenuModule,
+    MatTooltipModule, MatDividerModule,
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
-export class Navbar {
-  private auth = inject(Auth);
+export class NavbarComponent {
+  private auth = inject(AuthService);
   private router = inject(Router);
 
-  // Input desde main-layout
   sidebarCollapsed = input<boolean>(false);
-
-  // Output para toggle del sidebar en mobile
   toggleSidebar = output<void>();
 
   user = computed(() => this.auth.currentUser());
 
   initials = computed(() => {
-    const name = this.user()?.name ?? '';
-    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+    const u = this.user();
+    const nombre = u?.nombre ?? '';
+    const apellido = u?.apellido_paterno ?? '';
+    return `${nombre} ${apellido}`.trim()
+      .split(' ').filter(Boolean)
+      .map((n: string) => n[0])
+      .slice(0, 2).join('').toUpperCase();
   });
 
   roleLabel = computed(() => {
@@ -43,7 +42,7 @@ export class Navbar {
       admin: 'Administrador',
       padre: 'Padre / Tutor',
     };
-    return map[this.user()?.role ?? ''] ?? '';
+    return map[this.user()?.rol ?? ''] ?? '';
   });
 
   roleColor = computed(() => {
@@ -53,7 +52,7 @@ export class Navbar {
       admin: '#f44336',
       padre: '#9c27b0',
     };
-    return map[this.user()?.role ?? ''] ?? '#90a4ae';
+    return map[this.user()?.rol ?? ''] ?? '#90a4ae';
   });
 
   onToggleSidebar() {

@@ -1,1 +1,51 @@
-<p>docente-dashboard works!</p>
+<div class="dashboard">
+    <h2 class="greeting">¡Hola, Prof. {{ auth.currentUser()?.apellido_paterno }}! 👋</h2>
+    <p class="subtitle">Tienes alertas pendientes</p>
+
+    <!-- Alertas -->
+    <div class="alerts-grid">
+        <mat-card class="alert-card orange">
+            <mat-icon>assignment_late</mat-icon>
+            <div>
+                <span class="alert-num">{{ alerts().sinCalificar }}</span>
+                <span class="alert-label">Entregas sin calificar</span>
+            </div>
+        </mat-card>
+        <mat-card class="alert-card red">
+            <mat-icon>grade</mat-icon>
+            <div>
+                <span class="alert-num">{{ alerts().notasPendientes }}</span>
+                <span class="alert-label">Notas bimestrales pendientes</span>
+            </div>
+        </mat-card>
+        <mat-card class="alert-card blue">
+            <mat-icon>quiz</mat-icon>
+            <div>
+                <span class="alert-num">{{ alerts().examenes }}</span>
+                <span class="alert-label">Exámenes activos hoy</span>
+            </div>
+        </mat-card>
+    </div>
+
+    <h3 class="section-title">Mis cursos asignados</h3>
+
+    @if (loading()) {
+    <p>Cargando...</p>
+    } @else {
+    <div class="courses-grid">
+        @for (c of courses(); track c.id) {
+        <mat-card class="course-card">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>menu_book</mat-icon>
+                <mat-card-title>{{ c.nombre }}</mat-card-title>
+                <mat-card-subtitle>{{ c.descripcion }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-actions>
+                <a mat-button color="primary" [routerLink]="['/cursos', c.id]">Gestionar</a>
+                <a mat-button [routerLink]="['/notas', 'registrar']">Notas</a>
+            </mat-card-actions>
+        </mat-card>
+        }
+    </div>
+    }
+</div>
