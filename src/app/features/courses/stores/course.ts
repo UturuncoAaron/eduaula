@@ -44,7 +44,9 @@ export class CourseService {
   addMaterial(id: string, d: Partial<Material>) {
     return this.api.post<Material>(`courses/${id}/materials`, d);
   }
-
+  addMaterialFile(courseId: string, formData: FormData) {
+    return this.api.postForm<Material>(`courses/${courseId}/materials`, formData);
+  }
   deleteMaterial(materialId: string) {
     return this.api.delete<void>(`materials/${materialId}`);
   }

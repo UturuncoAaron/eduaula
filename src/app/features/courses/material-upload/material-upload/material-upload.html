@@ -1,6 +1,9 @@
-<h2 mat-dialog-title>Subir material</h2>
+<h2 mat-dialog-title class="dialog-title">
+    <mat-icon>upload_file</mat-icon>
+    Subir material
+</h2>
 
-<mat-dialog-content>
+<mat-dialog-content class="dialog-content">
     <form [formGroup]="form" class="form">
 
         <mat-form-field appearance="outline" class="w100">
@@ -13,32 +16,80 @@
 
         <mat-form-field appearance="outline" class="w100">
             <mat-label>Tipo de material</mat-label>
-            <mat-select formControlName="tipo">
-                <mat-option value="pdf">PDF</mat-option>
-                <mat-option value="video">Video (YouTube)</mat-option>
-                <mat-option value="link">Link externo</mat-option>
-                <mat-option value="grabacion">Grabación de clase</mat-option>
-                <mat-option value="otro">Otro</mat-option>
+            <mat-select formControlName="tipo" (selectionChange)="onTipoChange()">
+                <mat-option value="pdf">
+                    <mat-icon>picture_as_pdf</mat-icon> PDF
+                </mat-option>
+                <mat-option value="video">
+                    <mat-icon>play_circle</mat-icon> Video (YouTube)
+                </mat-option>
+                <mat-option value="link">
+                    <mat-icon>link</mat-icon> Link externo
+                </mat-option>
+                <mat-option value="grabacion">
+                    <mat-icon>videocam</mat-icon> Grabación de clase
+                </mat-option>
+                <mat-option value="otro">
+                    <mat-icon>attach_file</mat-icon> Otro archivo
+                </mat-option>
             </mat-select>
         </mat-form-field>
 
+        @if (tipoAceptaArchivo()) {
+        <div class="upload-section">
+            <div class="upload-tabs">
+                <button type="button" class="tab-btn" [class.active]="modoSubida() === 'archivo'"
+                    (click)="setModo('archivo')">
+                    <mat-icon>upload</mat-icon> Subir archivo
+                </button>
+                <button type="button" class="tab-btn" [class.active]="modoSubida() === 'url'" (click)="setModo('url')">
+                    <mat-icon>link</mat-icon> Pegar URL
+                </button>
+            </div>
+
+            @if (modoSubida() === 'archivo') {
+            <div class="drop-zone" [class.has-file]="archivoSeleccionado()" (click)="fileInput.click()"
+                (dragover)="$event.preventDefault()" (drop)="onDrop($event)">
+                @if (!archivoSeleccionado()) {
+                <mat-icon class="drop-icon">cloud_upload</mat-icon>
+                <p class="drop-title">Arrastra tu archivo aquí</p>
+                <p class="drop-sub">o haz clic para seleccionar</p>
+                <span class="drop-hint">PDF, imágenes hasta 10MB</span>
+                } @else {
+                <mat-icon class="drop-icon success">check_circle</mat-icon>
+                <p class="drop-title">{{ archivoSeleccionado()!.name }}</p>
+                <p class="drop-sub">{{ formatSize(archivoSeleccionado()!.size) }}</p>
+                <button type="button" mat-icon-button class="remove-file" (click)="removeFile($event)">
+                    <mat-icon>close</mat-icon>
+                </button>
+                }
+            </div>
+            <input #fileInput type="file" hidden [accept]="acceptedTypes()" (change)="onFileSelected($event)" />
+            }
+
+            @if (modoSubida() === 'url') {
+            <mat-form-field appearance="outline" class="w100">
+                <mat-label>URL del material</mat-label>
+                <mat-icon matPrefix>link</mat-icon>
+                <input matInput formControlName="url" placeholder="https://..." />
+                <mat-hint>{{ urlHint() }}</mat-hint>
+                @if (form.controls.url.invalid && form.controls.url.touched) {
+                <mat-error>Ingresa una URL válida (debe empezar con https://)</mat-error>
+                }
+            </mat-form-field>
+            }
+        </div>
+        } @else {
         <mat-form-field appearance="outline" class="w100">
             <mat-label>URL del material</mat-label>
             <mat-icon matPrefix>link</mat-icon>
             <input matInput formControlName="url" placeholder="https://..." />
-            @if (form.value.tipo === 'pdf') {
-            <mat-hint>Sube tu PDF a Google Drive → clic derecho → "Obtener enlace" → pega aquí</mat-hint>
-            }
-            @if (form.value.tipo === 'video' || form.value.tipo === 'grabacion') {
-            <mat-hint>Pega el link de YouTube o Google Drive</mat-hint>
-            }
-            @if (form.value.tipo === 'link' || form.value.tipo === 'otro') {
-            <mat-hint>Pega la URL completa del recurso externo</mat-hint>
-            }
+            <mat-hint>{{ urlHint() }}</mat-hint>
             @if (form.controls.url.invalid && form.controls.url.touched) {
             <mat-error>Ingresa una URL válida (debe empezar con https://)</mat-error>
             }
         </mat-form-field>
+        }
 
         <mat-form-field appearance="outline" class="w100">
             <mat-label>Descripción (opcional)</mat-label>
@@ -49,10 +100,14 @@
     </form>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close [disabled]="loading()">Cancelar</button>
-    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading()">
-        <mat-icon>upload</mat-icon>
-        {{ loading() ? 'Subiendo...' : 'Subir material' }}
-    </button>
-</mat-dialog-actions>
+<button mat-flat-button color="primary" (click)="submit()" [disabled]="loading() || !puedeEnviar()">
+    @if (loading()) {
+    <ng-container>
+        <mat-icon>hourglass_empty</mat-icon> Subiendo...
+    </ng-container>
+    } @else {
+    <ng-container>
+        <mat-icon>upload</mat-icon> Subir material
+    </ng-container>
+    }
+</button>
