@@ -2,57 +2,50 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { CourseService } from '../../stores/course';
+import { ApiService } from '../../../core/services/api';
 
 @Component({
-  selector: 'app-material-upload',
+  selector: 'app-forum-create',
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
     MatDialogModule,
   ],
-  templateUrl: './material-upload.html',
-  styleUrl: './material-upload.scss',
+  templateUrl: './forum-create.html',
+  styleUrl: './forum-create.scss',
 })
-export class MaterialUpload {
+export class ForumCreate {
   private fb = inject(FormBuilder);
-  private csSvc = inject(CourseService);
+  private api = inject(ApiService);
   private snack = inject(MatSnackBar);
-  private dialogRef = inject(MatDialogRef<MaterialUpload>);
+  private dialogRef = inject(MatDialogRef<ForumCreate>);
   private courseId = inject<string>(MAT_DIALOG_DATA);
 
   loading = signal(false);
 
   form = this.fb.group({
     titulo: ['', [Validators.required, Validators.minLength(3)]],
-    tipo: ['pdf', Validators.required],
-    url: ['', [Validators.required, Validators.pattern('https?://.+')]],
     descripcion: [''],
   });
 
   submit() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading.set(true);
-    this.csSvc.addMaterial(this.courseId, this.form.value as any).subscribe({
+    this.api.post(`courses/${this.courseId}/forums`, this.form.value).subscribe({
       next: () => {
-        this.snack.open('Material subido correctamente', 'OK', { duration: 3000 });
+        this.snack.open('Foro creado correctamente', 'OK', { duration: 3000 });
         this.dialogRef.close(true);
       },
       error: () => {
-        this.snack.open('Error al subir el material', 'OK', { duration: 3000 });
+        this.snack.open('Error al crear el foro', 'OK', { duration: 3000 });
         this.loading.set(false);
       },
     });

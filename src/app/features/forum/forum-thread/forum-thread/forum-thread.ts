@@ -1,45 +1,44 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { AuthService } from '../../../../core/auth/auth';
 import { ApiService } from '../../../../core/services/api';
+import { ForumPost, ForumThread as ForumThreadData } from '../../../../core/models/forum';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
-import { TimeAgoPipe } from '../../../../shared/pipes/time-ago-pipe';
-
-interface ThreadPost {
-  id: string;
-  usuario: string;
-  rol: string;
-  contenido: string;
-  created_at: string;
-}
 
 @Component({
   selector: 'app-forum-thread',
-  standalone: true,
   imports: [
     ReactiveFormsModule, MatCardModule, MatButtonModule,
     MatFormFieldModule, MatInputModule, MatIconModule,
-    MatSnackBarModule, PageHeader, TimeAgoPipe,
+    MatProgressSpinnerModule, MatSnackBarModule,
+    DatePipe, PageHeader,
   ],
   templateUrl: './forum-thread.html',
   styleUrl: './forum-thread.scss',
 })
 export class ForumThread implements OnInit {
-  readonly auth = inject(AuthService);
   private route = inject(ActivatedRoute);
   private api = inject(ApiService);
   private snack = inject(MatSnackBar);
   private fb = inject(FormBuilder);
 
-  threadId = this.route.snapshot.paramMap.get('id')!;
-  posts = signal<ThreadPost[]>([]);
+  forumId = this.route.snapshot.paramMap.get('id')!;
+  courseId = this.route.snapshot.queryParamMap.get('courseId') ?? '';
+
+  posts = signal<ForumPost[]>([]);
+  forumTitle = signal('');
+  forumDesc = signal<string | null>(null);
+  loading = signal(true);
+  sending = signal(false);
+
   form = this.fb.group({
     contenido: ['', [Validators.required, Validators.minLength(5)]],
   });
@@ -47,24 +46,35 @@ export class ForumThread implements OnInit {
   ngOnInit() { this.loadPosts(); }
 
   loadPosts() {
-    this.api.get<ThreadPost[]>(`forum/${this.threadId}/posts`).subscribe({
-      next: r => this.posts.set(r.data),
-      error: () => this.posts.set([
-        { id: '1', usuario: 'García, Carlos', rol: 'alumno', contenido: '¿Cómo resuelvo el ejercicio 5? No entiendo la fórmula que debemos aplicar.', created_at: new Date(Date.now() - 3600000).toISOString() },
-        { id: '2', usuario: 'Prof. Quispe', rol: 'docente', contenido: 'Para resolver el ejercicio 5 debes aplicar la fórmula del área del triángulo. Primero identifica la base y la altura del triángulo en el gráfico, luego aplica A = (b × h) / 2.', created_at: new Date(Date.now() - 1800000).toISOString() },
-      ]),
+    this.loading.set(true);
+    this.api.get<ForumThreadData>(`courses/${this.courseId}/forums/${this.forumId}`).subscribe({
+      next: r => {
+        this.forumTitle.set(r.data.forum?.titulo ?? '');
+        this.forumDesc.set(r.data.forum?.descripcion ?? null);
+        this.posts.set(r.data.posts ?? []);
+        this.loading.set(false);
+      },
+      error: () => { this.posts.set([]); this.loading.set(false); },
     });
   }
 
   reply() {
     if (this.form.invalid) return;
-    this.api.post(`forum/${this.threadId}/posts`, this.form.value).subscribe({
+    this.sending.set(true);
+    this.api.post(
+      `courses/${this.courseId}/forums/${this.forumId}/posts`,
+      this.form.value
+    ).subscribe({
       next: () => {
         this.snack.open('Respuesta publicada', 'OK', { duration: 2000 });
         this.form.reset();
+        this.sending.set(false);
         this.loadPosts();
       },
-      error: () => this.snack.open('Error al publicar', 'OK', { duration: 2000 }),
+      error: () => {
+        this.snack.open('Error al publicar', 'OK', { duration: 2000 });
+        this.sending.set(false);
+      },
     });
   }
 }

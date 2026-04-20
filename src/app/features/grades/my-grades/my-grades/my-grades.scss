@@ -1,3 +1,9 @@
+.loading-center {
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+}
+
 .controls {
     margin-bottom: 16px;
 }
@@ -23,4 +29,64 @@ th.mat-mdc-header-cell {
 
 td.mat-mdc-cell {
     white-space: nowrap;
+}
+
+.courses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.course-grade-card {
+    border-radius: 12px !important;
+
+    .course-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .course-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #E3F2FD;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        mat-icon {
+            color: #1565C0;
+        }
+    }
+
+    .course-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .course-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .course-desc {
+            font-size: 12px;
+            color: #666;
+        }
+    }
+
+    .course-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+
+        a {
+            min-width: 44px;
+            padding: 0 8px;
+            font-size: 12px;
+        }
+    }
 }

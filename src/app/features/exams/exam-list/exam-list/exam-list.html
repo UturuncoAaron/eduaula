@@ -13,42 +13,48 @@
 } @else {
 <div class="exams-list">
     @for (e of exams(); track e.id) {
-    <mat-card class="exam-card">
-        <mat-card-header>
-            <mat-icon mat-card-avatar [style.color]="isActive(e) ? '#2E7D32' : '#9E9E9E'">
-                quiz
-            </mat-icon>
-            <mat-card-title>{{ e.titulo }}</mat-card-title>
-            <mat-card-subtitle>{{ e.curso }} · {{ e.puntos_total }} puntos</mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-            @if (e.descripcion) {
-            <p class="desc">{{ e.descripcion }}</p>
-            }
-            <div class="dates">
-                <mat-icon>schedule</mat-icon>
-                <span>{{ e.fecha_inicio | date:'dd/MM/yyyy HH:mm' }}
-                    — {{ e.fecha_fin | date:'HH:mm' }}</span>
+    <mat-card class="exam-card" [class.active]="isActive(e)" [class.inactive]="!e.activo">
+        <div class="exam-status-bar" [class.green]="isActive(e)" [class.gray]="!e.activo"></div>
+        <mat-card-content class="card-body">
+            <div class="exam-main">
+                <div class="exam-icon">
+                    <mat-icon>quiz</mat-icon>
+                </div>
+                <div class="exam-info">
+                    <span class="exam-title">{{ e.titulo }}</span>
+                    @if (e.descripcion) {
+                    <span class="exam-desc">{{ e.descripcion }}</span>
+                    }
+                    <div class="exam-meta">
+                        <span><mat-icon>schedule</mat-icon>
+                            {{ e.fecha_inicio | date:'dd/MM/yyyy HH:mm' }} →
+                            {{ e.fecha_fin | date:'dd/MM/yyyy HH:mm' }}
+                        </span>
+                        <span><mat-icon>star</mat-icon> {{ e.puntos_total }} pts</span>
+                    </div>
+                </div>
+                <div class="exam-badge">
+                    @if (isActive(e)) {
+                    <mat-chip class="chip-active">Disponible</mat-chip>
+                    } @else if (!e.activo) {
+                    <mat-chip class="chip-inactive">No publicado</mat-chip>
+                    } @else {
+                    <mat-chip class="chip-closed">Cerrado</mat-chip>
+                    }
+                </div>
             </div>
-            @if (isActive(e)) {
-            <mat-chip color="primary" selected>Disponible ahora</mat-chip>
-            } @else if (!e.activo) {
-            <mat-chip>No publicado</mat-chip>
-            } @else {
-            <mat-chip>Cerrado</mat-chip>
-            }
         </mat-card-content>
-
-        <mat-card-actions>
+        <mat-card-actions class="card-actions">
             @if (auth.isAlumno() && isActive(e)) {
-            <a mat-flat-button color="primary" [routerLink]="['/examenes', e.id, 'tomar']">
-                Rendir examen
+            <a mat-flat-button color="primary" [routerLink]="['/examenes', e.id, 'tomar']"
+                [queryParams]="{ courseId: e.curso_id }">
+                <mat-icon>play_arrow</mat-icon> Rendir examen
             </a>
             }
             @if (auth.isDocente()) {
-            <a mat-button [routerLink]="['/examenes', e.id, 'resultados']">
-                Ver resultados
+            <a mat-stroked-button [routerLink]="['/examenes', e.id, 'resultados']"
+                [queryParams]="{ courseId: e.curso_id }">
+                <mat-icon>bar_chart</mat-icon> Resultados
             </a>
             }
         </mat-card-actions>

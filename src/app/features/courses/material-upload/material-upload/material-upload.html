@@ -1,52 +1,58 @@
-<div class="container">
-    <app-page-header title="Subir material" [backRoute]="'/cursos/' + courseId" />
+<h2 mat-dialog-title>Subir material</h2>
 
-    <mat-card class="form-card">
-        <mat-card-content>
-            <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+<mat-dialog-content>
+    <form [formGroup]="form" class="form">
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Título del material</mat-label>
-                    <input matInput formControlName="titulo" placeholder="Ej: Semana 1 — Introducción" />
-                    @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
-                    <mat-error>El título es obligatorio (mín. 3 caracteres)</mat-error>
-                    }
-                </mat-form-field>
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Título del material</mat-label>
+            <input matInput formControlName="titulo" placeholder="Ej: Semana 1 — Introducción" />
+            @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
+            <mat-error>El título es obligatorio (mín. 3 caracteres)</mat-error>
+            }
+        </mat-form-field>
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Tipo de material</mat-label>
-                    <mat-select formControlName="tipo">
-                        <mat-option value="pdf">PDF</mat-option>
-                        <mat-option value="video">Video</mat-option>
-                        <mat-option value="link">Link externo</mat-option>
-                        <mat-option value="grabacion">Grabación de clase</mat-option>
-                        <mat-option value="otro">Otro</mat-option>
-                    </mat-select>
-                </mat-form-field>
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Tipo de material</mat-label>
+            <mat-select formControlName="tipo">
+                <mat-option value="pdf">PDF</mat-option>
+                <mat-option value="video">Video (YouTube)</mat-option>
+                <mat-option value="link">Link externo</mat-option>
+                <mat-option value="grabacion">Grabación de clase</mat-option>
+                <mat-option value="otro">Otro</mat-option>
+            </mat-select>
+        </mat-form-field>
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>URL del material</mat-label>
-                    <mat-icon matPrefix>link</mat-icon>
-                    <input matInput formControlName="url" placeholder="https://..." />
-                    @if (form.controls.url.invalid && form.controls.url.touched) {
-                    <mat-error>Ingresa una URL válida (debe empezar con https://)</mat-error>
-                    }
-                </mat-form-field>
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>URL del material</mat-label>
+            <mat-icon matPrefix>link</mat-icon>
+            <input matInput formControlName="url" placeholder="https://..." />
+            @if (form.value.tipo === 'pdf') {
+            <mat-hint>Sube tu PDF a Google Drive → clic derecho → "Obtener enlace" → pega aquí</mat-hint>
+            }
+            @if (form.value.tipo === 'video' || form.value.tipo === 'grabacion') {
+            <mat-hint>Pega el link de YouTube o Google Drive</mat-hint>
+            }
+            @if (form.value.tipo === 'link' || form.value.tipo === 'otro') {
+            <mat-hint>Pega la URL completa del recurso externo</mat-hint>
+            }
+            @if (form.controls.url.invalid && form.controls.url.touched) {
+            <mat-error>Ingresa una URL válida (debe empezar con https://)</mat-error>
+            }
+        </mat-form-field>
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Descripción (opcional)</mat-label>
-                    <textarea matInput formControlName="descripcion" rows="3"></textarea>
-                </mat-form-field>
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Descripción (opcional)</mat-label>
+            <textarea matInput formControlName="descripcion" rows="2"
+                placeholder="Breve descripción del contenido..."></textarea>
+        </mat-form-field>
 
-                <div class="actions">
-                    <a mat-button [routerLink]="'/cursos/' + courseId">Cancelar</a>
-                    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
-                        <mat-icon>upload</mat-icon>
-                        {{ loading() ? 'Subiendo...' : 'Subir material' }}
-                    </button>
-                </div>
+    </form>
+</mat-dialog-content>
 
-            </form>
-        </mat-card-content>
-    </mat-card>
-</div>
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close [disabled]="loading()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading()">
+        <mat-icon>upload</mat-icon>
+        {{ loading() ? 'Subiendo...' : 'Subir material' }}
+    </button>
+</mat-dialog-actions>

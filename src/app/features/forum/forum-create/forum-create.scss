@@ -1,0 +1,19 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 8px;
+}
+
+.w100 {
+    width: 100%;
+}
+
+mat-dialog-content {
+    min-width: 440px;
+
+    @media (max-width: 600px) {
+        min-width: unset;
+        width: 100%;
+    }
+}

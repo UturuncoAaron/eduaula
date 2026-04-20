@@ -1,32 +1,36 @@
+// src/app/core/models/user.ts
+
+export type TipoDocumento = 'dni' | 'ce' | 'pasaporte';
 export type Rol = 'alumno' | 'docente' | 'admin' | 'padre';
-export type TipoDoc = 'dni' | 'ce' | 'pasaporte';
 
 export interface User {
     id: string;
-    tipo_documento: TipoDoc;
+    tipo_documento: TipoDocumento;
     numero_documento: string;
     nombre: string;
     apellido_paterno: string;
-    apellido_materno?: string;
+    apellido_materno: string | null;
+    foto_url: string | null;
     rol: Rol;
-    foto_url?: string | null;
-    // alumno
-    codigo_estudiante?: string;
-    // docente
-    especialidad?: string;
-    // padre
-    relacion_familiar?: string;
-    // admin
-    cargo?: string;
+    activo: boolean;
+    email: string | null;
+    telefono: string | null;
+    codigo_estudiante: string | null;
+    fecha_nacimiento: string | null;
+    especialidad: string | null;
+    titulo_profesional: string | null;
+    relacion_familiar: string | null;
+    cargo: string | null;
 }
 
 export interface LoginPayload {
-    tipo_documento: TipoDoc;
+    tipo_documento: TipoDocumento;
     numero_documento: string;
     password: string;
 }
 
 export interface LoginResponse {
+    success: boolean;
     data: {
         token: string;
         user: User;

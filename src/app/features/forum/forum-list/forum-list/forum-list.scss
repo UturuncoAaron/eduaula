@@ -1,74 +1,79 @@
-.posts-list {
+.loading-center {
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+}
+
+.forums-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.post-card {
+.forum-card {
     border-radius: 10px;
     cursor: pointer;
-    transition: background 0.1s;
+    transition: background 0.15s;
 
     &:hover {
         background: #F5F9FF;
     }
 
-    .post-row {
+    .forum-row {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
     }
 
-    .post-status {
+    .forum-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #E3F2FD;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
 
         mat-icon {
-            font-size: 22px;
-            width: 22px;
-            height: 22px;
-            color: #9E9E9E;
-        }
-
-        &.answered mat-icon {
-            color: #2E7D32;
+            color: #1565C0;
         }
     }
 
-    .post-info {
+    .forum-info {
         flex: 1;
         display: flex;
         flex-direction: column;
+        gap: 2px;
 
-        .post-title {
+        .forum-title {
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        .post-meta {
+        .forum-desc {
             font-size: 12px;
-            color: #888;
-            margin-top: 2px;
+            color: #666;
+        }
+
+        .forum-meta {
+            font-size: 11px;
+            color: #aaa;
         }
     }
 
-    .replies-badge {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        color: #888;
+    .arrow-icon {
+        color: #ccc;
         flex-shrink: 0;
-
-        mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
-        }
     }
 }
-
-@media (max-width: 480px) {
-    .post-meta {
-        display: none;
-    }
+.forum-course {
+    font-size: 11px;
+    background: #E3F2FD;
+    color: #1565C0;
+    padding: 2px 8px;
+    border-radius: 99px;
+    width: fit-content;
+    margin-bottom: 2px;
+    display: inline-block;
 }

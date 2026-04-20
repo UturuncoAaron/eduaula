@@ -1,29 +1,39 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from '../../../core/services/api';
-import { Exam, Question, Attempt, Answer } from '../../../core/models/exam';
+import { Exam, Attempt, Answer } from '../../../core/models/exam';
 
 @Injectable({ providedIn: 'root' })
 export class ExamService {
   private api = inject(ApiService);
 
-  getExams(courseId?: string) {
-    return courseId
-      ? this.api.get<Exam[]>(`courses/${courseId}/exams`)
-      : this.api.get<Exam[]>('exams');
+  getExams(courseId: string) {
+    return this.api.get<Exam[]>(`courses/${courseId}/exams`);
   }
-  createExam(courseId: string, d: Partial<Exam>) {
+
+  getExamWithQuestions(courseId: string, examId: string) {
+    return this.api.get<Exam>(`courses/${courseId}/exams/${examId}`);
+  }
+
+  createExam(courseId: string, d: any) {
     return this.api.post<Exam>(`courses/${courseId}/exams`, d);
   }
-  getExamWithQuestions(id: string) {
-    return this.api.get<Question[]>(`exams/${id}/questions`);
+
+  toggleExam(courseId: string, examId: string) {
+    return this.api.patch<Exam>(`courses/${courseId}/exams/${examId}/toggle`, {});
   }
-  startAttempt(id: string) {
-    return this.api.post<Attempt>(`exams/${id}/start`, {});
+
+  startAttempt(courseId: string, examId: string) {
+    return this.api.post<Attempt>(`courses/${courseId}/exams/${examId}/start`, {});
   }
-  submitAttempt(id: string, answers: Answer[]) {
-    return this.api.post<Attempt>(`exams/${id}/submit`, { answers });
+
+  submitAttempt(courseId: string, examId: string, attemptId: string, respuestas: Answer[]) {
+    return this.api.post<Attempt>(`courses/${courseId}/exams/${examId}/submit`, {
+      attempt_id: attemptId,
+      respuestas,
+    });
   }
-  getResults(id: string) {
-    return this.api.get<Attempt[]>(`exams/${id}/results`);
+
+  getResults(courseId: string, examId: string) {
+    return this.api.get<Attempt[]>(`courses/${courseId}/exams/${examId}/results`);
   }
 }

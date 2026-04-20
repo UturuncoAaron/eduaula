@@ -55,11 +55,15 @@
     <!-- Botón -->
     <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="form.invalid || loading()">
         @if (loading()) {
-        <mat-spinner diameter="20" />
-        Ingresando...
+        <ng-container>
+            <mat-spinner diameter="20" />
+            Ingresando...
+        </ng-container>
         } @else {
-        <mat-icon>login</mat-icon>
-        Ingresar
+        <ng-container>
+            <mat-icon>login</mat-icon>
+            Ingresar
+        </ng-container>
         }
     </button>
 

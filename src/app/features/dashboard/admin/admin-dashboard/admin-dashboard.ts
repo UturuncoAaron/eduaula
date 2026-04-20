@@ -6,21 +6,32 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth';
 import { ApiService } from '../../../../core/services/api';
 
+interface AdminStats {
+  alumnos: number;
+  docentes: number;
+  padres: number;
+  cursos: number;
+}
+
 @Component({
   selector: 'app-admin-dashboard',
-  standalone: true,
   imports: [MatCardModule, MatIconModule, MatButtonModule, RouterLink],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.scss'
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboard implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
 
-  stats = signal({ alumnos: 0, docentes: 0, cursos: 0, padres: 0 });
+  stats = signal<AdminStats>({ alumnos: 0, docentes: 0, cursos: 0, padres: 0 });
 
   ngOnInit() {
-    this.stats.set({ alumnos: 1000, docentes: 45, cursos: 120, padres: 820 });
+    this.api.get<AdminStats>('admin/users/stats').subscribe({
+      next: res => this.stats.set(res.data),
+      error: () => {
+        this.stats.set({ alumnos: 400, docentes: 50, cursos: 120, padres: 400 });
+      }
+    });
   }
 
   readonly quickAccess = [

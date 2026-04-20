@@ -11,7 +11,6 @@ import { AuthService } from '../../../core/auth/auth';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,

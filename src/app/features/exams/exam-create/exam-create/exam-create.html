@@ -1,47 +1,134 @@
-<div class="container">
-    <app-page-header title="Crear examen" backRoute="/examenes" />
+<h2 mat-dialog-title>Crear examen</h2>
 
-    <mat-card class="form-card">
-        <mat-card-content>
-            <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+<mat-dialog-content>
+    <form [formGroup]="form" class="form">
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Título del examen</mat-label>
-                    <input matInput formControlName="titulo" />
-                    @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
-                    <mat-error>El título es obligatorio</mat-error>
-                    }
-                </mat-form-field>
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Título del examen</mat-label>
+            <input matInput formControlName="titulo" placeholder="Ej: Examen Bimestral 1" />
+            @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
+            <mat-error>El título es obligatorio (mín. 3 caracteres)</mat-error>
+            }
+        </mat-form-field>
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Descripción (opcional)</mat-label>
-                    <textarea matInput formControlName="descripcion" rows="2"></textarea>
-                </mat-form-field>
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Descripción (opcional)</mat-label>
+            <textarea matInput formControlName="descripcion" rows="2"
+                placeholder="Temas que cubre este examen..."></textarea>
+        </mat-form-field>
 
-                <div class="row-2">
-                    <mat-form-field appearance="outline">
-                        <mat-label>Fecha y hora inicio</mat-label>
-                        <input matInput type="datetime-local" formControlName="fecha_inicio" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                        <mat-label>Fecha y hora fin</mat-label>
-                        <input matInput type="datetime-local" formControlName="fecha_fin" />
-                    </mat-form-field>
-                </div>
+        <div class="date-row">
+            <mat-form-field appearance="outline" class="w100">
+                <mat-label>Fecha inicio</mat-label>
+                <mat-icon matPrefix>event</mat-icon>
+                <input matInput [matDatepicker]="pickerInicio" formControlName="fecha_inicio" placeholder="dd/mm/aaaa"
+                    readonly (click)="pickerInicio.open()" />
+                <mat-datepicker-toggle matIconSuffix [for]="pickerInicio" />
+                <mat-datepicker #pickerInicio />
+                @if (form.controls.fecha_inicio.invalid && form.controls.fecha_inicio.touched) {
+                <mat-error>La fecha de inicio es obligatoria</mat-error>
+                }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="time-field">
+                <mat-label>Hora inicio</mat-label>
+                <input matInput type="time" formControlName="hora_inicio" />
+            </mat-form-field>
+        </div>
 
-                <mat-form-field appearance="outline" class="w50">
-                    <mat-label>Puntos totales</mat-label>
-                    <input matInput type="number" formControlName="puntos_total" />
-                </mat-form-field>
+        <div class="date-row">
+            <mat-form-field appearance="outline" class="w100">
+                <mat-label>Fecha fin</mat-label>
+                <mat-icon matPrefix>event</mat-icon>
+                <input matInput [matDatepicker]="pickerFin" formControlName="fecha_fin" placeholder="dd/mm/aaaa"
+                    readonly (click)="pickerFin.open()" />
+                <mat-datepicker-toggle matIconSuffix [for]="pickerFin" />
+                <mat-datepicker #pickerFin />
+                @if (form.controls.fecha_fin.invalid && form.controls.fecha_fin.touched) {
+                <mat-error>La fecha de fin es obligatoria</mat-error>
+                }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="time-field">
+                <mat-label>Hora fin</mat-label>
+                <input matInput type="time" formControlName="hora_fin" />
+            </mat-form-field>
+        </div>
 
-                <div class="actions">
-                    <a mat-button routerLink="/examenes">Cancelar</a>
-                    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
-                        <mat-icon>save</mat-icon> Guardar examen
+        <mat-form-field appearance="outline" class="w50">
+            <mat-label>Puntos totales</mat-label>
+            <mat-icon matPrefix>grade</mat-icon>
+            <input matInput type="number" formControlName="puntos_total" min="1" max="20" />
+            <mat-hint>Escala vigesimal (1-20)</mat-hint>
+        </mat-form-field>
+
+        <!-- Preguntas -->
+        <div class="questions-section">
+            <div class="questions-header">
+                <span>Preguntas ({{ preguntasArray.length }})</span>
+                <button mat-stroked-button type="button" (click)="addPregunta()">
+                    <mat-icon>add</mat-icon> Agregar pregunta
+                </button>
+            </div>
+
+            @for (pGroup of preguntasArray.controls; track $index) {
+            <div class="question-block" [formGroup]="getPreguntaGroup($index)">
+                <div class="question-header">
+                    <span class="q-num">Pregunta {{ $index + 1 }}</span>
+                    <button mat-icon-button type="button" color="warn" (click)="removePregunta($index)">
+                        <mat-icon>delete</mat-icon>
                     </button>
                 </div>
 
-            </form>
-        </mat-card-content>
-    </mat-card>
-</div>
+                <mat-form-field appearance="outline" class="w100">
+                    <mat-label>Enunciado</mat-label>
+                    <textarea matInput formControlName="enunciado" rows="2"></textarea>
+                </mat-form-field>
+
+                <div class="q-meta-row">
+                    <mat-form-field appearance="outline" class="tipo-field">
+                        <mat-label>Tipo</mat-label>
+                        <mat-select formControlName="tipo" (selectionChange)="onTipoChange($index)">
+                            <mat-option value="multiple">Opción múltiple</mat-option>
+                            <mat-option value="verdadero_falso">Verdadero / Falso</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="pts-field">
+                        <mat-label>Puntos</mat-label>
+                        <input matInput type="number" formControlName="puntos" min="1" />
+                    </mat-form-field>
+                </div>
+
+                <!-- Opciones -->
+                <div class="options-list">
+                    @for (oGroup of getOpcionesArray($index).controls; track oi; let oi = $index) {
+                    <div class="option-row" [formGroup]="getOpcionGroup($index, oi)">
+                        <mat-checkbox formControlName="es_correcta" />
+                        <mat-form-field appearance="outline" class="opt-field">
+                            <input matInput formControlName="texto" placeholder="Texto de la opción" />
+                        </mat-form-field>
+                        @if (getPreguntaGroup($index).value.tipo === 'multiple') {
+                        <button mat-icon-button type="button" color="warn" (click)="removeOpcion($index, oi)">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                        }
+                    </div>
+                    }
+                    @if (getPreguntaGroup($index).value.tipo === 'multiple') {
+                    <button mat-button type="button" (click)="addOpcion($index)">
+                        <mat-icon>add</mat-icon> Agregar opción
+                    </button>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close [disabled]="loading()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading()">
+        <mat-icon>save</mat-icon>
+        {{ loading() ? 'Guardando...' : 'Crear examen' }}
+    </button>
+</mat-dialog-actions>

@@ -1,3 +1,9 @@
+.loading-center {
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+}
+
 .controls {
     margin-bottom: 16px;
 }
@@ -5,6 +11,12 @@
 .table-card {
     border-radius: 12px;
     overflow: hidden;
+
+    mat-card-actions {
+        padding: 12px 16px !important;
+        display: flex;
+        justify-content: flex-end;
+    }
 }
 
 .table-wrapper {
@@ -21,6 +33,10 @@ th.mat-mdc-header-cell {
     white-space: nowrap;
 }
 
+td.mat-mdc-cell {
+    white-space: nowrap;
+}
+
 .grade-input {
     width: 64px;
     padding: 4px 8px;
@@ -33,4 +49,29 @@ th.mat-mdc-header-cell {
         outline: 2px solid #1565C0;
         border-color: transparent;
     }
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        opacity: 1;
+    }
+}
+
+.nota-ad {
+    color: #1B5E20;
+    font-weight: 700;
+}
+
+.nota-a {
+    color: #2E7D32;
+    font-weight: 700;
+}
+
+.nota-b {
+    color: #E65100;
+    font-weight: 700;
+}
+
+.nota-c {
+    color: #C62828;
+    font-weight: 700;
 }

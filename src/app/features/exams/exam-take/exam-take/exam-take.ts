@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { ExamService } from '../../stores/exam';
@@ -13,59 +14,52 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 
 @Component({
   selector: 'app-exam-take',
-  standalone: true,
   imports: [
     MatCardModule, MatButtonModule, MatRadioModule,
-    MatProgressBarModule, MatIconModule, MatSnackBarModule,
-    FormsModule, PageHeader,
+    MatProgressBarModule, MatIconModule, MatProgressSpinnerModule,
+    MatSnackBarModule, FormsModule, PageHeader,
   ],
   templateUrl: './exam-take.html',
   styleUrl: './exam-take.scss',
 })
 export class ExamTake implements OnInit {
-objectKeys = Object.keys;
+  objectKeys = Object.keys;
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private examSvc = inject(ExamService);
   private snack = inject(MatSnackBar);
 
   examId = this.route.snapshot.paramMap.get('id')!;
+  courseId = this.route.snapshot.queryParamMap.get('courseId')!;
+
   questions = signal<Question[]>([]);
   answers = signal<Record<string, string>>({});
+  attemptId = signal<string | null>(null);
   loading = signal(true);
   submitting = signal(false);
 
-  get progress() {
+  get progress(): number {
     const q = this.questions().length;
     const a = Object.keys(this.answers()).length;
     return q ? Math.round((a / q) * 100) : 0;
   }
 
   ngOnInit() {
-    this.examSvc.getExamWithQuestions(this.examId).subscribe({
-      next: r => { this.questions.set(r.data); this.loading.set(false); },
-      error: () => {
-        this.questions.set([
-          {
-            id: 'q1', examen_id: this.examId, enunciado: '¿Cuánto es 2 + 2?',
-            tipo: 'multiple', puntos: 2, orden: 1,
-            opciones: [
-              { id: 'o1', pregunta_id: 'q1', texto: '3', es_correcta: false, orden: 1 },
-              { id: 'o2', pregunta_id: 'q1', texto: '4', es_correcta: true, orden: 2 },
-              { id: 'o3', pregunta_id: 'q1', texto: '5', es_correcta: false, orden: 3 },
-            ],
+    this.examSvc.startAttempt(this.courseId, this.examId).subscribe({
+      next: res => {
+        this.attemptId.set(res.data.id);
+        this.examSvc.getExamWithQuestions(this.courseId, this.examId).subscribe({
+          next: r => {
+            this.questions.set((r.data as any).preguntas ?? []);
+            this.loading.set(false);
           },
-          {
-            id: 'q2', examen_id: this.examId, enunciado: 'El sol es una estrella',
-            tipo: 'verdadero_falso', puntos: 2, orden: 2,
-            opciones: [
-              { id: 'o4', pregunta_id: 'q2', texto: 'Verdadero', es_correcta: true, orden: 1 },
-              { id: 'o5', pregunta_id: 'q2', texto: 'Falso', es_correcta: false, orden: 2 },
-            ],
-          },
-        ]);
-        this.loading.set(false);
+          error: () => this.loading.set(false),
+        });
       },
+      error: () => {
+        this.snack.open('No se puede iniciar el examen ahora', 'OK', { duration: 3000 });
+        this.router.navigate(['/examenes']);
+      }
     });
   }
 
@@ -81,15 +75,12 @@ objectKeys = Object.keys;
       return;
     }
     this.submitting.set(true);
-    const payload: Answer[] = Object.entries(this.answers())
+    const respuestas: Answer[] = Object.entries(this.answers())
       .map(([pregunta_id, opcion_id]) => ({ pregunta_id, opcion_id }));
 
-    this.examSvc.submitAttempt(this.examId, payload).subscribe({
+    this.examSvc.submitAttempt(this.courseId, this.examId, this.attemptId()!, respuestas).subscribe({
       next: r => {
-        this.snack.open(
-          `Examen enviado. Puntaje: ${r.data.puntaje ?? '—'}`,
-          'OK', { duration: 4000 }
-        );
+        this.snack.open(`Examen enviado. Puntaje: ${r.data.puntaje ?? '—'}`, 'OK', { duration: 4000 });
         this.router.navigate(['/examenes']);
       },
       error: () => {

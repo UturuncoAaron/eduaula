@@ -19,14 +19,29 @@ import { Course } from '../../../../core/models/course';
   templateUrl: './course-list.html',
   styleUrl: './course-list.scss'
 })
-export class CourseListComponent implements OnInit {
+export class CourseList implements OnInit {
   readonly auth = inject(AuthService);
   private csSvc = inject(CourseService);
 
   courses = this.csSvc.courses;
   loading = this.csSvc.loading;
 
-  readonly courseColors = ['#1565C0', '#2E7D32', '#6A1B9A', '#E65100', '#00838F'];
+  readonly gradients = [
+    'linear-gradient(135deg, #1565C0, #42A5F5)',
+    'linear-gradient(135deg, #2E7D32, #66BB6A)',
+    'linear-gradient(135deg, #6A1B9A, #AB47BC)',
+    'linear-gradient(135deg, #E65100, #FFA726)',
+    'linear-gradient(135deg, #00838F, #26C6DA)',
+    'linear-gradient(135deg, #AD1457, #EC407A)',
+  ];
+
+  getInitials(nombre: string): string {
+    return nombre.split(' ')
+      .slice(0, 2)
+      .map(w => w[0])
+      .join('')
+      .toUpperCase();
+  }
 
   ngOnInit() {
     this.csSvc.loadMyCourses().subscribe({

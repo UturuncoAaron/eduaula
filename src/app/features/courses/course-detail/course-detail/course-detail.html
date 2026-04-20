@@ -1,66 +1,243 @@
-<div class="page">
-    <!-- Header del curso -->
-    <div class="course-header">
-        <h2>{{ course()?.nombre ?? 'Cargando...' }}</h2>
-        <p>{{ course()?.descripcion }}</p>
+<div class="page-container">
+    <header class="course-header">
+        <div class="header-content">
+            <button mat-icon-button class="btn-back" (click)="goBack()" aria-label="Volver">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div class="header-titles">
+                <div class="badge-active">Curso activo</div>
+                <h1>{{ course()?.nombre ?? 'Cargando curso...' }}</h1>
+                <p>{{ course()?.descripcion }}</p>
+            </div>
+        </div>
 
         @if (auth.isDocente()) {
-        <a mat-flat-button color="primary" [routerLink]="['/cursos', course()?.id, 'subir-material']">
-            <mat-icon>upload</mat-icon> Subir material
-        </a>
+        <button mat-flat-button class="btn-primary" (click)="openUploadDialog()">
+            <mat-icon>cloud_upload</mat-icon> Subir material
+        </button>
         }
-    </div>
+    </header>
 
-    <!-- Tabs -->
-    <mat-tab-group>
+    <main class="main-content">
+        <mat-tab-group animationDuration="300ms" class="custom-tabs" mat-stretch-tabs="false" mat-align-tabs="start">
 
-        <!-- TAB: Materiales -->
-        <mat-tab label="Materiales">
-            @if (loading()) {
-            <mat-spinner diameter="32" style="margin: 32px auto;" />
-            } @else {
-            <div class="materials-list">
-                @for (m of materials(); track m.id) {
-                <mat-card class="material-card" (click)="openMaterial(m.url)">
-                    <div class="material-icon" [style.background]="materialColors[m.tipo]">
-                        <mat-icon>{{ materialIcons[m.tipo] }}</mat-icon>
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <div class="tab-label"><mat-icon>folder_open</mat-icon> Materiales</div>
+                </ng-template>
+
+                @if (loadingMaterials()) {
+                <div class="custom-loader-wrapper">
+                    <p class="loader-text">Cargando materiales...</p>
+                </div>
+                } @else {
+                <div class="tab-body">
+                    @if (auth.isDocente()) {
+                    <div class="action-bar">
+                        <button mat-flat-button class="btn-primary" (click)="openUploadDialog()">
+                            <mat-icon>add</mat-icon> Nuevo material
+                        </button>
                     </div>
-                    <div class="material-info">
-                        <span class="material-title">{{ m.titulo }}</span>
-                        <span class="material-type">{{ m.tipo | uppercase }}</span>
+                    }
+
+                    <div class="resource-grid">
+                        @for (m of materials(); track m.id) {
+                        <div class="resource-card" (click)="openMaterial(m.url)" role="button">
+                            <div class="resource-icon" [style.background]="materialColors[m.tipo] || '#94a3b8'">
+                                <mat-icon>{{ materialIcons[m.tipo] || 'insert_drive_file' }}</mat-icon>
+                            </div>
+                            <div class="resource-info">
+                                <h3>{{ m.titulo }}</h3>
+                                <span class="meta-data">
+                                    <span class="tag">{{ m.tipo | uppercase }}</span>
+                                    <span class="dot">•</span>
+                                    Subido el {{ m.created_at | date:'dd MMM yyyy' }}
+                                </span>
+                            </div>
+                            <div class="resource-actions">
+                                <mat-icon class="icon-action">open_in_new</mat-icon>
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="empty-state">
+                            <div class="empty-icon"><mat-icon>inventory_2</mat-icon></div>
+                            <h3>Aún no hay materiales</h3>
+                            <p>Los recursos de estudio aparecerán aquí.</p>
+                        </div>
+                        }
                     </div>
-                    <mat-icon class="open-icon">open_in_new</mat-icon>
-                </mat-card>
-                } @empty {
-                <div class="empty">
-                    <mat-icon>folder_open</mat-icon>
-                    <p>No hay materiales subidos aún.</p>
                 </div>
                 }
-            </div>
-            }
-        </mat-tab>
+            </mat-tab>
 
-        <!-- TAB: Tareas -->
-        <mat-tab label="Tareas">
-            <div style="padding: 24px;">
-                <a mat-flat-button color="primary" routerLink="/tareas">Ver todas las tareas</a>
-            </div>
-        </mat-tab>
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <div class="tab-label"><mat-icon>assignment</mat-icon> Tareas</div>
+                </ng-template>
 
-        <!-- TAB: Exámenes -->
-        <mat-tab label="Exámenes">
-            <div style="padding: 24px;">
-                <a mat-flat-button color="primary" routerLink="/examenes">Ver todos los exámenes</a>
-            </div>
-        </mat-tab>
+                @if (loadingTasks()) {
+                <div class="custom-loader-wrapper">
+                    <p class="loader-text">Cargando tareas...</p>
+                </div>
+                } @else {
+                <div class="tab-body">
+                    @if (auth.isDocente()) {
+                    <div class="action-bar">
+                        <button mat-flat-button class="btn-primary" (click)="openCreateTask()">
+                            <mat-icon>add</mat-icon> Crear tarea
+                        </button>
+                    </div>
+                    }
 
-        <!-- TAB: Foro -->
-        <mat-tab label="Foro">
-            <div style="padding: 24px;">
-                <a mat-flat-button color="primary" routerLink="/foro">Ir al foro</a>
-            </div>
-        </mat-tab>
+                    <div class="resource-grid">
+                        @for (t of tasks(); track t.id) {
+                        <div class="resource-card task-card" [class.is-pending]="isPending(t.fecha_entrega)">
+                            <div class="resource-icon outline-icon">
+                                <mat-icon>fact_check</mat-icon>
+                            </div>
+                            <div class="resource-info">
+                                <h3>{{ t.titulo }}</h3>
+                                <span class="meta-data">
+                                    <mat-icon class="sm-icon">event</mat-icon>
+                                    Entrega: {{ t.fecha_entrega | date:'dd/MM/yyyy HH:mm' }}
+                                    <span class="dot">•</span>
+                                    <mat-icon class="sm-icon">stars</mat-icon> {{ t.puntos_max }} pts
+                                </span>
+                            </div>
+                            <div class="resource-actions">
+                                @if (auth.isAlumno()) {
+                                <a mat-flat-button class="btn-primary"
+                                    [routerLink]="['/tareas', t.id, 'entregar']">Entregar</a>
+                                }
+                                @if (auth.isDocente()) {
+                                <a mat-stroked-button class="btn-outline"
+                                    [routerLink]="['/tareas', t.id, 'calificar']">Calificar</a>
+                                }
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="empty-state">
+                            <div class="empty-icon"><mat-icon>assignment_turned_in</mat-icon></div>
+                            <h3>No hay tareas pendientes</h3>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </mat-tab>
 
-    </mat-tab-group>
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <div class="tab-label"><mat-icon>quiz</mat-icon> Exámenes</div>
+                </ng-template>
+
+                @if (loadingExams()) {
+                <div class="custom-loader-wrapper">
+                    <p class="loader-text">Cargando exámenes...</p>
+                </div>
+                } @else {
+                <div class="tab-body">
+                    @if (auth.isDocente()) {
+                    <div class="action-bar">
+                        <button mat-flat-button class="btn-primary" (click)="openCreateExam()">
+                            <mat-icon>add</mat-icon> Crear examen
+                        </button>
+                    </div>
+                    }
+
+                    <div class="resource-grid">
+                        @for (e of exams(); track e.id) {
+                        <div class="resource-card exam-card" [class.is-active]="e.activo">
+                            <div class="resource-icon outline-icon">
+                                <mat-icon>history_edu</mat-icon>
+                            </div>
+                            <div class="resource-info">
+                                <div class="title-wrapper">
+                                    <h3>{{ e.titulo }}</h3>
+                                    @if(e.activo) { <span class="status-badge pulse">En curso</span> }
+                                </div>
+                                <span class="meta-data">
+                                    <mat-icon class="sm-icon">schedule</mat-icon>
+                                    {{ e.fecha_inicio | date:'dd MMM' }} al {{ e.fecha_fin | date:'dd MMM HH:mm' }}
+                                    <span class="dot">•</span>
+                                    {{ e.puntos_total }} pts
+                                </span>
+                            </div>
+                            <div class="resource-actions">
+                                @if (e.activo && auth.isAlumno()) {
+                                <a mat-flat-button color="primary" [routerLink]="['/examenes', e.id, 'tomar']"
+                                    [queryParams]="{ courseId: courseId }">
+                                    Rendir
+                                </a> }
+                                @if (auth.isDocente()) {
+                                <a mat-button [routerLink]="['/examenes', e.id, 'resultados']"
+                                    [queryParams]="{ courseId: courseId }">
+                                    Resultados
+                                </a>
+                                }
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="empty-state">
+                            <div class="empty-icon"><mat-icon>event_note</mat-icon></div>
+                            <h3>Sin exámenes programados</h3>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </mat-tab>
+
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <div class="tab-label"><mat-icon>forum</mat-icon> Foro</div>
+                </ng-template>
+                <div class="tab-body">
+                    @if (auth.isDocente()) {
+                    <div class="action-bar">
+                        <button mat-flat-button class="btn-primary" (click)="openCreateForum()">
+                            <mat-icon>add</mat-icon> Crear foro
+                        </button>
+                    </div>
+                    }
+
+                    @if (loadingForums()) {
+                    <div class="custom-loader-wrapper">
+                        <p class="loader-text">Cargando foros...</p>
+                    </div>
+                    } @else {
+                    <div class="resource-grid">
+                        @for (f of forums(); track f.id) {
+                        <div class="resource-card" [routerLink]="['/foro', f.id]" [queryParams]="{ courseId: courseId }"
+                            role="button">
+                            <div class="resource-icon" style="background: #1565C0">
+                                <mat-icon>forum</mat-icon>
+                            </div>
+                            <div class="resource-info">
+                                <h3>{{ f.titulo }}</h3>
+                                @if (f.descripcion) {
+                                <span class="meta-data">{{ f.descripcion }}</span>
+                                }
+                                <span class="meta-data">
+                                    {{ f.created_at | date:'dd MMM yyyy' }}
+                                </span>
+                            </div>
+                            <div class="resource-actions">
+                                <mat-icon class="icon-action">chevron_right</mat-icon>
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="empty-state">
+                            <div class="empty-icon"><mat-icon>forum</mat-icon></div>
+                            <h3>Sin foros creados</h3>
+                            <p>El docente puede crear foros de debate aquí.</p>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+            </mat-tab>
+
+        </mat-tab-group>
+    </main>
 </div>

@@ -16,12 +16,11 @@ interface Child {
 
 @Component({
   selector: 'app-padre-dashboard',
-  standalone: true,
   imports: [MatCardModule, MatIconModule, MatButtonModule, RouterLink],
   templateUrl: './padre-dashboard.html',
   styleUrl: './padre-dashboard.scss'
 })
-export class PadreDashboardComponent implements OnInit {
+export class PadreDashboard implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
 
@@ -30,10 +29,14 @@ export class PadreDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.api.get<Child[]>('parent/children').subscribe({
-      next: res => { this.children.set(res.data); this.loading.set(false); },
+      next: res => {
+        this.children.set(res.data);
+        this.loading.set(false);
+      },
       error: () => {
+        // TODO: reemplazar con API
         this.children.set([
-          { id: '1', nombre: 'Carlos', apellido_paterno: 'García', grado: '3ro de Secundaria', seccion: 'A' }
+          { id: '1', nombre: 'Carlos', apellido_paterno: 'López', grado: '3ro de Secundaria', seccion: 'A' },
         ]);
         this.loading.set(false);
       }

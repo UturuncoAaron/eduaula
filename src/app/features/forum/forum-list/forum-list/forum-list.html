@@ -1,28 +1,33 @@
-<app-page-header title="Foro del curso" />
+<app-page-header title="Foros" />
 
 @if (loading()) {
-<app-loading-skeleton [count]="3" />
-} @else if (posts().length === 0) {
-<app-empty-state icon="forum" title="Sin preguntas" message="Sé el primero en publicar una pregunta." />
+<div class="loading-center">
+    <mat-spinner diameter="40" />
+</div>
+} @else if (forums().length === 0) {
+<app-empty-state icon="forum" title="Sin foros" message="No hay foros creados aún." />
 } @else {
-<div class="posts-list">
-    @for (p of posts(); track p.id) {
-    <mat-card class="post-card" [routerLink]="['/foro', p.id]">
+<div class="forums-list">
+    @for (f of forums(); track f.id) {
+    <mat-card class="forum-card" [routerLink]="['/foro', f.id]" [queryParams]="{ courseId: f.curso_id }">
         <mat-card-content>
-            <div class="post-row">
-                <div class="post-status" [class.answered]="p.respondido">
-                    <mat-icon>{{ p.respondido ? 'check_circle' : 'help_outline' }}</mat-icon>
+            <div class="forum-row">
+                <div class="forum-icon">
+                    <mat-icon>forum</mat-icon>
                 </div>
-                <div class="post-info">
-                    <span class="post-title">{{ p.titulo }}</span>
-                    <span class="post-meta">
-                        {{ p.usuario }} · {{ p.curso }} · {{ p.created_at | timeAgo }}
+                <div class="forum-info">
+                    <span class="forum-title">{{ f.titulo }}</span>
+                    @if (f.curso_nombre) {
+                    <span class="forum-course">{{ f.curso_nombre }}</span>
+                    }
+                    @if (f.descripcion) {
+                    <span class="forum-desc">{{ f.descripcion }}</span>
+                    }
+                    <span class="forum-meta">
+                        {{ f.created_at | date:'dd MMM yyyy' }}
                     </span>
                 </div>
-                <div class="replies-badge">
-                    <mat-icon>chat_bubble_outline</mat-icon>
-                    {{ p.replies }}
-                </div>
+                <mat-icon class="arrow-icon">chevron_right</mat-icon>
             </div>
         </mat-card-content>
     </mat-card>

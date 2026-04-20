@@ -1,0 +1,160 @@
+/* ==========================================================================
+   VARIABLES DE DISEÑO
+   ========================================================================== */
+$primary-blue: #2563eb;
+$primary-hover: #1d4ed8;
+$primary-light: #eff6ff;
+
+$text-main: #1e293b;
+$text-muted: #64748b;
+$border-color: #e2e8f0;
+
+/* ==========================================================================
+   CABECERA DEL DIALOG
+   ========================================================================== */
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid $border-color;
+    background-color: #f8fafc;
+    border-radius: 8px 8px 0 0;
+
+    .title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .icon-box {
+            width: 36px;
+            height: 36px;
+            background: $primary-light;
+            color: $primary-blue;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        h2[mat-dialog-title] {
+            margin: 0;
+            padding: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: $text-main;
+        }
+    }
+
+    .btn-close {
+        color: $text-muted;
+        transition: color 0.2s, background 0.2s;
+
+        &:hover {
+            color: #ef4444;
+            /* Rojo suave al hacer hover */
+            background: #fef2f2;
+        }
+    }
+}
+
+/* ==========================================================================
+   CONTENIDO Y FORMULARIO
+   ========================================================================== */
+.dialog-body {
+    padding: 24px !important;
+    min-width: 500px;
+    overflow-x: hidden;
+
+    @media (max-width: 600px) {
+        min-width: unset;
+        width: 100%;
+        padding: 16px !important;
+    }
+}
+
+.custom-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .full-width {
+        width: 100%;
+    }
+
+    /* Cuadrícula para agrupar inputs pequeños */
+    .grid-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        /* Fecha es más ancha, hora y puntos son iguales */
+        gap: 16px;
+        align-items: flex-start;
+
+        @media (max-width: 500px) {
+            grid-template-columns: 1fr;
+            /* En móviles muy pequeños, se apilan */
+            gap: 12px;
+        }
+    }
+}
+
+/* ==========================================================================
+   FOOTER Y BOTONES
+   ========================================================================== */
+.dialog-footer {
+    padding: 16px 24px 20px 24px;
+    border-top: 1px solid #f1f5f9;
+    margin-bottom: 0;
+    gap: 12px;
+
+    .btn-cancel {
+        color: $text-muted;
+        font-weight: 500;
+
+        &:hover {
+            background: #f1f5f9;
+        }
+    }
+
+    .btn-submit {
+        background: $primary-blue;
+        color: white;
+        border-radius: 6px;
+        padding: 0 20px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+
+        mat-icon {
+            margin-right: 6px;
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+
+        &:hover:not([disabled]) {
+            background: $primary-hover;
+        }
+    }
+}
+
+/* ==========================================================================
+   SOBREESCRIBIR MATERIAL (Limpieza visual de los inputs)
+   ========================================================================== */
+::ng-deep .custom-form {
+    .mdc-text-field--outlined {
+        --mdc-outlined-text-field-focus-outline-color: #2563eb;
+        --mdc-outlined-text-field-hover-outline-color: #94a3b8;
+        --mdc-outlined-text-field-outline-color: #cbd5e1;
+    }
+
+    /* Hacer el input de textarea un poco más limpio */
+    textarea.mat-mdc-input-element {
+        resize: none;
+    }
+}

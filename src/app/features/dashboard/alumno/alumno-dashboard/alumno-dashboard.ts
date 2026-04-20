@@ -15,7 +15,7 @@ import { Course } from '../../../../core/models/course';
   templateUrl: './alumno-dashboard.html',
   styleUrl: './alumno-dashboard.scss'
 })
-export class AlumnoDashboardComponent implements OnInit {
+export class AlumnoDashboard implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
 

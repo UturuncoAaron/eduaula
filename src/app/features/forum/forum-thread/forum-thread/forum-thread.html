@@ -1,21 +1,38 @@
-<app-page-header title="Hilo del foro" backRoute="/foro" />
+<app-page-header title="Foro" backRoute="/foro" />
 
+@if (loading()) {
+<div class="loading-center">
+    <mat-spinner diameter="40" />
+</div>
+} @else {
 <div class="thread">
+    <div class="thread-title-card">
+        <h3>{{ forumTitle() }}</h3>
+        @if (forumDesc()) {
+        <p>{{ forumDesc() }}</p>
+        }
+    </div>
+
     @for (p of posts(); track p.id) {
-    <div class="post" [class.teacher-post]="p.rol === 'docente'">
-        <div class="post-avatar" [class.teacher-avatar]="p.rol === 'docente'">
-            {{ p.usuario.charAt(0) }}
+    <div class="post" [class.teacher-post]="p.usuario.rol === 'docente'">
+        <div class="post-avatar" [class.teacher-avatar]="p.usuario.rol === 'docente'">
+            {{ p.usuario.nombre.charAt(0) }}
         </div>
         <div class="post-body">
             <div class="post-meta">
-                <strong>{{ p.usuario }}</strong>
-                <span class="role-tag" [class.teacher-tag]="p.rol === 'docente'">
-                    {{ p.rol === 'docente' ? 'Docente' : 'Alumno' }}
+                <strong>{{ p.usuario.nombre }} {{ p.usuario.apellido_paterno }}</strong>
+                <span class="role-tag" [class.teacher-tag]="p.usuario.rol === 'docente'">
+                    {{ p.usuario.rol === 'docente' ? 'Docente' : 'Alumno' }}
                 </span>
-                <span class="time">{{ p.created_at | timeAgo }}</span>
+                <span class="time">{{ p.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
             </div>
             <p class="post-content">{{ p.contenido }}</p>
         </div>
+    </div>
+    } @empty {
+    <div class="empty-posts">
+        <mat-icon>chat_bubble_outline</mat-icon>
+        <p>Sé el primero en participar.</p>
     </div>
     }
 
@@ -30,11 +47,13 @@
                     }
                 </mat-form-field>
                 <div class="reply-actions">
-                    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
-                        <mat-icon>send</mat-icon> Publicar respuesta
+                    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || sending()">
+                        <mat-icon>send</mat-icon>
+                        {{ sending() ? 'Publicando...' : 'Publicar respuesta' }}
                     </button>
                 </div>
             </form>
         </mat-card-content>
     </mat-card>
 </div>
+}

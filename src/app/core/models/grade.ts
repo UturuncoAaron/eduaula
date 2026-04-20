@@ -6,9 +6,17 @@ export interface Grade {
     curso?: string;
     periodo_id: number;
     bimestre: 1 | 2 | 3 | 4;
-    nota_examenes?: number;
-    nota_tareas?: number;
-    nota_participacion?: number;
-    nota_final?: number;
-    escala?: 'AD' | 'A' | 'B' | 'C';
+    nota_examenes?: number | null;
+    nota_tareas?: number | null;
+    nota_participacion?: number | null;
+    nota_final?: number | null;
+    escala?: 'AD' | 'A' | 'B' | 'C' | null;
+    observaciones?: string | null;
+}
+
+export interface GradeSummary {
+    curso_id: string;
+    curso_nombre: string;
+    total_alumnos: number;
+    registrados: number;
 }

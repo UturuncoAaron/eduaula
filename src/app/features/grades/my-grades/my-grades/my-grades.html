@@ -1,4 +1,38 @@
-<app-page-header title="Mis notas" />
+<app-page-header title="Notas" />
+
+@if (loading()) {
+<div class="loading-center"><mat-spinner diameter="40" /></div>
+} @else if (auth.isDocente()) {
+
+<div class="courses-list">
+    @for (c of courses(); track c.id) {
+    <mat-card class="course-grade-card">
+        <mat-card-content>
+            <div class="course-row">
+                <div class="course-icon">
+                    <mat-icon>menu_book</mat-icon>
+                </div>
+                <div class="course-info">
+                    <span class="course-name">{{ c.nombre }}</span>
+                    <span class="course-desc">{{ c.descripcion }}</span>
+                </div>
+                <div class="course-actions">
+                    @for (b of [1,2,3,4]; track b) {
+                    <a mat-stroked-button [routerLink]="['/notas/registrar']"
+                        [queryParams]="{ cursoId: c.id, bimestre: b, cursoNombre: c.nombre, periodoId: 1 }">
+                        B{{ b }}
+                    </a>
+                    }
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+    } @empty {
+    <app-empty-state icon="menu_book" title="Sin cursos" message="No tienes cursos asignados." />
+    }
+</div>
+
+} @else {
 
 <div class="controls">
     <mat-form-field appearance="outline">
@@ -12,50 +46,44 @@
     </mat-form-field>
 </div>
 
-@if (loading()) {
-<p>Cargando notas...</p>
-} @else if (filtered.length === 0) {
+@if (filtered().length === 0) {
 <app-empty-state icon="grade" title="Sin notas" message="No hay notas registradas para este bimestre." />
 } @else {
 <mat-card class="table-card">
     <div class="table-wrapper">
-        <table mat-table [dataSource]="filtered">
-
+        <table mat-table [dataSource]="filtered()">
             <ng-container matColumnDef="curso">
                 <th mat-header-cell *matHeaderCellDef>Curso</th>
-                <td mat-cell *matCellDef="let g">{{ g.curso }}</td>
+                <td mat-cell *matCellDef="let g">{{ g.curso?.nombre ?? g.curso }}</td>
             </ng-container>
-
             <ng-container matColumnDef="examenes">
                 <th mat-header-cell *matHeaderCellDef>Exámenes</th>
                 <td mat-cell *matCellDef="let g">{{ g.nota_examenes ?? '—' }}</td>
             </ng-container>
-
             <ng-container matColumnDef="tareas">
                 <th mat-header-cell *matHeaderCellDef>Tareas</th>
                 <td mat-cell *matCellDef="let g">{{ g.nota_tareas ?? '—' }}</td>
             </ng-container>
-
             <ng-container matColumnDef="participacion">
                 <th mat-header-cell *matHeaderCellDef>Participación</th>
                 <td mat-cell *matCellDef="let g">{{ g.nota_participacion ?? '—' }}</td>
             </ng-container>
-
             <ng-container matColumnDef="final">
                 <th mat-header-cell *matHeaderCellDef>Final</th>
-                <td mat-cell *matCellDef="let g"><strong>{{ g.nota_final ?? '—' }}</strong></td>
+                <td mat-cell *matCellDef="let g">
+                    <strong>{{ g.nota_final ?? '—' }}</strong>
+                </td>
             </ng-container>
-
             <ng-container matColumnDef="escala">
                 <th mat-header-cell *matHeaderCellDef>Escala</th>
                 <td mat-cell *matCellDef="let g">
-                    <app-grade-badge [escala]="g.escala" [nota]="g.nota_final" />
+                    <app-grade-badge [nota]="g.nota_final" />
                 </td>
             </ng-container>
-
             <tr mat-header-row *matHeaderRowDef="cols"></tr>
             <tr mat-row *matRowDef="let row; columns: cols;"></tr>
         </table>
     </div>
 </mat-card>
+}
 }

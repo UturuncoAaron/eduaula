@@ -1,93 +1,429 @@
-.page {
-    .course-header {
-        margin-bottom: 24px;
+/* ==========================================================================
+   VARIABLES (Paleta Limpia y Profesional)
+   ========================================================================== */
+$bg-app: transparent;
+$white: #ffffff;
+$text-main: #1e293b;
+/* Slate 800 - Excelente legibilidad */
+$text-muted: #64748b;
+/* Slate 500 */
+$border-color: #e2e8f0;
+/* Slate 200 */
+
+$primary-blue: #2563eb;
+/* Azul corporativo brillante */
+$primary-hover: #1d4ed8;
+
+/* Colores de Estado (Sutiles y elegantes) */
+$warning: #eab308;
+/* Amarillo */
+$warning-light: rgba(234, 179, 8, 0.04);
+
+$accent: #9333ea;
+/* Morado */
+$accent-light: rgba(147, 51, 234, 0.04);
+
+$success: #10b981;
+/* Verde */
+$success-light: rgba(16, 185, 129, 0.1);
+
+$radius-lg: 12px;
+$radius-md: 8px;
+$radius-sm: 6px;
+
+/* ==========================================================================
+   LAYOUT (Fluido al 100%)
+   ========================================================================== */
+.page-container {
+    background-color: $bg-app;
+    /* Un padding generoso para que respire, pero sin comprimir el centro */
+    padding: 0 32px 40px 32px;
+    font-family: 'Inter', Roboto, sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+
+    @media (max-width: 768px) {
+        padding: 0 16px 24px 16px;
+    }
+}
+
+/* ==========================================================================
+   HEADER / BANNER (Estilo "Clean Card")
+   ========================================================================== */
+.course-header {
+    background-color: $white;
+    border: 1px solid $border-color;
+    border-left: 6px solid $primary-blue;
+    /* Acento lateral azul */
+    border-radius: $radius-lg;
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .header-content {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
-        flex-wrap: wrap;
+        gap: 16px;
+    }
 
-        h2 {
-            flex: 1;
-            font-size: 22px;
+    .btn-back {
+        color: $text-muted;
+        background: #f8fafc;
+        border: 1px solid $border-color;
+        transition: all 0.2s;
+
+        &:hover {
+            color: $primary-blue;
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+    }
+
+    .header-titles {
+        .badge-active {
+            display: inline-block;
+            background: $success-light;
+            color: #047857;
+            font-size: 11px;
             font-weight: 600;
-            margin: 0;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: $text-main;
+            margin: 0 0 4px 0;
+            line-height: 1.2;
         }
 
         p {
+            font-size: 14px;
+            color: $text-muted;
+            margin: 0;
+        }
+    }
+
+    .btn-primary {
+        background: $primary-blue;
+        color: $white;
+        border-radius: $radius-sm;
+        height: 40px;
+        padding: 0 20px;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+
+        &:hover {
+            background: $primary-hover;
+        }
+
+        @media (max-width: 768px) {
             width: 100%;
-            color: #666;
-            margin: 4px 0 0;
         }
     }
 }
 
-.materials-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 20px 0;
-}
-
-.material-card {
+/* ==========================================================================
+   TABS Y BARRA DE ACCIÓN
+   ========================================================================== */
+.tab-label {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.1s;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
 
-    &:hover {
-        background: #F0F4FF;
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.tab-body {
+    padding: 24px 0;
+}
+
+.action-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+
+    .btn-primary {
+        background: $primary-blue;
+        color: $white;
+        border-radius: $radius-sm;
+    }
+}
+
+/* ==========================================================================
+   TARJETAS UNIFICADAS (Diseño elegante con borde lateral)
+   ========================================================================== */
+.resource-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.resource-card {
+    display: flex;
+    align-items: center;
+    background: $white;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    padding: 16px 24px;
+    /* Un poco más de padding interno horizontal */
+    gap: 16px;
+    transition: all 0.2s ease;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
     }
 
-    .material-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
+    &:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        transform: translateY(-1px);
+
+        .icon-action {
+            color: $primary-blue;
+        }
+    }
+
+    /* ESTADOS SUTILES: Solo borde y fondo tenue */
+    &.is-pending {
+        border-left: 4px solid $warning;
+        background: $warning-light;
+
+        .outline-icon {
+            color: $warning;
+            background: $white;
+            border: 1px solid #fef08a;
+        }
+    }
+
+    &.is-active {
+        border-left: 4px solid $accent;
+        background: $accent-light;
+
+        .outline-icon {
+            color: $accent;
+            background: $white;
+            border: 1px solid #e9d5ff;
+        }
+    }
+
+    /* Iconos internos */
+    .resource-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: $radius-sm;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        color: $white;
 
         mat-icon {
-            color: white;
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
+            font-size: 22px;
+            width: 22px;
+            height: 22px;
+        }
+
+        &.outline-icon {
+            color: $text-muted;
+            background: #f8fafc;
+            border: 1px solid $border-color;
         }
     }
 
-    .material-info {
+    /* Información de texto */
+    .resource-info {
         flex: 1;
         display: flex;
         flex-direction: column;
+        gap: 4px;
+        width: 100%;
 
-        .material-title {
-            font-size: 14px;
-            font-weight: 500;
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .material-type {
-            font-size: 11px;
-            color: #888;
-            margin-top: 2px;
+        h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: $text-main;
+            margin: 0;
+        }
+
+        .meta-data {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+            color: $text-muted;
+
+            .sm-icon {
+                font-size: 14px;
+                width: 14px;
+                height: 14px;
+            }
+
+            .tag {
+                background: #f1f5f9;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: 600;
+                color: $text-main;
+                border: 1px solid #e2e8f0;
+            }
+
+            .dot {
+                opacity: 0.4;
+            }
         }
     }
 
-    .open-icon {
-        color: #999;
+    /* Botones de acción */
+    .resource-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        @media (max-width: 640px) {
+            width: 100%;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        .icon-action {
+            color: #cbd5e1;
+            transition: color 0.2s;
+        }
+
+        .btn-primary {
+            background: $primary-blue;
+            color: $white;
+            border-radius: $radius-sm;
+        }
+
+        .btn-outline {
+            border: 1px solid #cbd5e1;
+            color: $text-main;
+            border-radius: $radius-sm;
+            background: $white;
+
+            &:hover {
+                background: #f8fafc;
+            }
+        }
     }
 }
 
-.empty {
-    text-align: center;
-    padding: 48px;
-    color: #999;
+/* ==========================================================================
+   ESTADOS VACÍOS Y LOADER
+   ========================================================================== */
+.custom-loader-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
 
-    mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
+    .loader-text {
+        color: $text-muted;
+        font-size: 14px;
+        font-weight: 500;
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: $radius-md;
+
+    .empty-icon {
+        width: 64px;
+        height: 64px;
+        background: $white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px auto;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        color: #94a3b8;
+
+        mat-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+        }
+    }
+
+    h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0 0 4px 0;
+    }
+
+    p {
+        font-size: 14px;
+        color: $text-muted;
+        margin: 0;
+    }
+}
+
+.status-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: $accent;
+    color: $white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   AJUSTES MATERIAL ANGULAR
+   ========================================================================== */
+::ng-deep .custom-tabs {
+    .mat-mdc-tab-header {
+        border-bottom: 1px solid $border-color;
+    }
+
+    .mdc-tab-indicator__content--underline {
+        border-color: $primary-blue !important;
+        border-width: 3px !important;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+    }
+
+    .mat-mdc-tab:not(.mat-mdc-tab-disabled).mdc-tab--active .mdc-tab__text-label {
+        color: $primary-blue !important;
+        font-weight: 600;
     }
 }

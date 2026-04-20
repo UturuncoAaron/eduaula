@@ -1,0 +1,68 @@
+<div class="dialog-header">
+    <div class="title-wrapper">
+        <div class="icon-box">
+            <mat-icon>assignment_add</mat-icon>
+        </div>
+        <h2 mat-dialog-title>Crear nueva tarea</h2>
+    </div>
+    <button mat-icon-button mat-dialog-close class="btn-close" aria-label="Cerrar modal">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+
+<mat-dialog-content class="dialog-body">
+    <form [formGroup]="form" class="custom-form">
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Título de la tarea</mat-label>
+            <input matInput formControlName="titulo" placeholder="Ej: Ejercicios Capítulo 3" cdkFocusInitial />
+            @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
+            <mat-error>El título es obligatorio (mín. 3 caracteres)</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descripción (opcional)</mat-label>
+            <textarea matInput formControlName="descripcion" rows="4"
+                placeholder="Instrucciones detalladas para los alumnos..."></textarea>
+        </mat-form-field>
+
+        <div class="grid-row">
+            <mat-form-field appearance="outline" class="grid-item">
+                <mat-label>Fecha de entrega</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="fecha_entrega" placeholder="DD/MM/AAAA"
+                    readonly (click)="picker.open()" />
+                <mat-datepicker-toggle matIconSuffix [for]="picker" color="primary"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+                @if (form.controls.fecha_entrega.invalid && form.controls.fecha_entrega.touched) {
+                <mat-error>Requerido</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="grid-item">
+                <mat-label>Hora límite</mat-label>
+                <input matInput type="time" formControlName="hora_entrega" />
+                @if (form.controls.hora_entrega.invalid && form.controls.hora_entrega.touched) {
+                <mat-error>Requerido</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="grid-item">
+                <mat-label>Puntaje (1-20)</mat-label>
+                <input matInput formControlName="puntos_max" type="number" min="1" max="20" />
+                @if (form.controls.puntos_max.invalid && form.controls.puntos_max.touched) {
+                <mat-error>Inválido</mat-error>
+                }
+            </mat-form-field>
+        </div>
+
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-footer">
+    <button mat-button mat-dialog-close [disabled]="loading()" class="btn-cancel">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading()" class="btn-submit">
+        <mat-icon>check_circle</mat-icon>
+        {{ loading() ? 'Guardando...' : 'Crear tarea' }}
+    </button>
+</mat-dialog-actions>

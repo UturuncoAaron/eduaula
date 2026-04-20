@@ -1,31 +1,27 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../../core/auth/auth';
 import { ApiService } from '../../../../core/services/api';
+import { Forum } from '../../../../core/models/forum';
+import { Course } from '../../../../core/models/course';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
-import { LoadingSkeleton } from '../../../../shared/components/loading-skeleton/loading-skeleton';
-import { TimeAgoPipe } from '../../../../shared/pipes/time-ago-pipe';
 
-interface ForumPost {
-  id: string;
-  titulo: string;
-  usuario: string;
-  curso: string;
-  created_at: string;
-  replies: number;
-  respondido: boolean;
+interface ForumWithCourse extends Forum {
+  curso_nombre?: string;
 }
 
 @Component({
   selector: 'app-forum-list',
-  standalone: true,
   imports: [
     MatCardModule, MatIconModule, MatButtonModule,
-    RouterLink, PageHeader, EmptyState, LoadingSkeleton, TimeAgoPipe,
+    MatProgressSpinnerModule, DatePipe,
+    RouterLink, PageHeader, EmptyState,
   ],
   templateUrl: './forum-list.html',
   styleUrl: './forum-list.scss',
@@ -33,21 +29,48 @@ interface ForumPost {
 export class ForumList implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
+  private route = inject(ActivatedRoute);
 
-  posts = signal<ForumPost[]>([]);
+  forums = signal<ForumWithCourse[]>([]);
   loading = signal(true);
+  courseId = '';
 
   ngOnInit() {
-    this.api.get<ForumPost[]>('forum').subscribe({
-      next: r => { this.posts.set(r.data); this.loading.set(false); },
-      error: () => {
-        this.posts.set([
-          { id: '1', titulo: '¿Cómo resolver el ejercicio 5 del capítulo 3?', usuario: 'García, Carlos', curso: 'Matemáticas', created_at: new Date(Date.now() - 3600000).toISOString(), replies: 3, respondido: true },
-          { id: '2', titulo: 'No entiendo los vectores', usuario: 'López, María', curso: 'Matemáticas', created_at: new Date(Date.now() - 86400000).toISOString(), replies: 1, respondido: false },
-          { id: '3', titulo: '¿Para qué sirve el ensayo argumentativo?', usuario: 'Torres, Pedro', curso: 'Comunicación', created_at: new Date(Date.now() - 172800000).toISOString(), replies: 2, respondido: true },
-        ]);
-        this.loading.set(false);
+    this.courseId = this.route.snapshot.queryParamMap.get('courseId') ?? '';
+
+    if (this.courseId) {
+      this.loadForumsByCourse(this.courseId);
+    } else {
+      this.loadAllForums();
+    }
+  }
+
+  loadForumsByCourse(courseId: string) {
+    this.api.get<Forum[]>(`courses/${courseId}/forums`).subscribe({
+      next: r => { this.forums.set(r.data); this.loading.set(false); },
+      error: () => { this.forums.set([]); this.loading.set(false); },
+    });
+  }
+
+  loadAllForums() {
+    this.api.get<Course[]>('courses').subscribe({
+      next: res => {
+        const courses = res.data;
+        if (!courses.length) { this.loading.set(false); return; }
+
+        const requests = courses.map(c =>
+          this.api.get<Forum[]>(`courses/${c.id}/forums`).toPromise()
+            .then(r => (r?.data ?? []).map(f => ({ ...f, curso_nombre: c.nombre })))
+            .catch(() => [])
+        );
+
+        Promise.all(requests).then(results => {
+          const all = (results.flat()) as ForumWithCourse[];
+          this.forums.set(all);
+          this.loading.set(false);
+        });
       },
+      error: () => { this.forums.set([]); this.loading.set(false); },
     });
   }
 }

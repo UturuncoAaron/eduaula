@@ -1,15 +1,8 @@
-.container {
-    max-width: 640px;
-}
-
-.form-card {
-    border-radius: 12px;
-}
-
 .form {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
+    padding-top: 8px;
 }
 
 .w100 {
@@ -20,34 +13,97 @@
     width: 50%;
 }
 
-.row-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
+mat-dialog-content {
+    min-width: 520px;
+    max-height: 70vh;
 
-.actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-@media (max-width: 600px) {
-    .row-2 {
-        grid-template-columns: 1fr;
-    }
-
-    .w50 {
+    @media (max-width: 600px) {
+        min-width: unset;
         width: 100%;
     }
+}
 
-    .actions {
-        flex-direction: column;
+.date-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
 
-        button,
-        a {
-            width: 100%;
+    .time-field {
+        width: 130px;
+        flex-shrink: 0;
+    }
+}
+
+.questions-section {
+    margin-top: 8px;
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+}
+
+.questions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    span {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+}
+
+.question-block {
+    background: #F8F9FF;
+    border: 1px solid #E3E8FF;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+
+    .question-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+
+        .q-num {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1565C0;
+        }
+    }
+
+    .q-meta-row {
+        display: flex;
+        gap: 12px;
+
+        .tipo-field {
+            flex: 1;
+        }
+
+        .pts-field {
+            width: 100px;
+            flex-shrink: 0;
+        }
+    }
+}
+
+.options-list {
+    margin-top: 4px;
+}
+
+.option-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+
+    .opt-field {
+        flex: 1;
+
+        .mat-mdc-form-field-infix {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
         }
     }
 }

@@ -5,35 +5,30 @@ export const DASHBOARD_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./dashboard-redirect')
-        .then(c => c.DashboardRedirectComponent),
+      import('./dashboard-redirect').then(c => c.DashboardRedirect),
   },
   {
     path: 'alumno',
     canActivate: [roleGuard(['alumno'])],
     loadComponent: () =>
-      import('./alumno/alumno-dashboard/alumno-dashboard')
-        .then(c => c.AlumnoDashboardComponent),
+      import('./alumno/alumno-dashboard/alumno-dashboard').then(c => c.AlumnoDashboard),
   },
   {
     path: 'docente',
     canActivate: [roleGuard(['docente'])],
     loadComponent: () =>
-      import('./docente/docente-dashboard/docente-dashboard')
-        .then(c => c.DocenteDashboardComponent),
+      import('./docente/docente-dashboard/docente-dashboard').then(c => c.DocenteDashboard),
   },
   {
     path: 'admin',
     canActivate: [roleGuard(['admin'])],
     loadComponent: () =>
-      import('./admin/admin-dashboard/admin-dashboard')
-        .then(c => c.AdminDashboardComponent),
+      import('./admin/admin-dashboard/admin-dashboard').then(c => c.AdminDashboard),
   },
   {
     path: 'padre',
     canActivate: [roleGuard(['padre'])],
     loadComponent: () =>
-      import('./padre/padre-dashboard/padre-dashboard')
-        .then(c => c.PadreDashboardComponent),
+      import('./padre/padre-dashboard/padre-dashboard').then(c => c.PadreDashboard),
   },
 ];

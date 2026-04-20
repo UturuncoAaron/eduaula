@@ -14,7 +14,6 @@ import { LoadingSkeleton } from '../../../../shared/components/loading-skeleton/
 
 @Component({
   selector: 'app-exam-list',
-  standalone: true,
   imports: [
     MatCardModule, MatIconModule, MatButtonModule, MatChipsModule,
     DatePipe, RouterLink, PageHeader, EmptyState, LoadingSkeleton,
@@ -30,18 +29,9 @@ export class ExamList implements OnInit {
   loading = signal(true);
 
   ngOnInit() {
-    this.examSvc.getExams().subscribe({
-      next: r => { this.exams.set(r.data); this.loading.set(false); },
-      error: () => {
-        const now = new Date();
-        const future = new Date(now.getTime() + 7200000);
-        this.exams.set([
-          { id: '1', curso_id: '1', curso: 'Matemáticas', titulo: 'Examen Bimestral 1', descripcion: 'Capítulos 1 al 3', fecha_inicio: now.toISOString(), fecha_fin: future.toISOString(), puntos_total: 20, activo: true },
-          { id: '2', curso_id: '2', curso: 'Comunicación', titulo: 'Práctica calificada', descripcion: 'Redacción y comprensión', fecha_inicio: now.toISOString(), fecha_fin: future.toISOString(), puntos_total: 10, activo: false },
-        ]);
-        this.loading.set(false);
-      },
-    });
+    // TODO: cuando JWT esté activo, obtener cursos del usuario y cargar exámenes de cada uno
+    // Por ahora carga mock
+    this.loading.set(false);
   }
 
   isActive(e: Exam): boolean {

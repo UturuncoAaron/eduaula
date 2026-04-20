@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth';
 
 @Component({ selector: 'app-dashboard-redirect', standalone: true, template: '' })
-export class DashboardRedirectComponent implements OnInit {
+export class DashboardRedirect implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
 

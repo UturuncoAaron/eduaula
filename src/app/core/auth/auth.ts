@@ -1,10 +1,10 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { User, LoginPayload, LoginResponse } from '../models/user';
 import { environment } from '../../../environments/environment';
-
+import { throwError } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -38,6 +38,10 @@ export class AuthService {
         localStorage.setItem('user', JSON.stringify(user));
         this._token.set(token);
         this._user.set(user);
+      }),
+      catchError(err => {
+        const msg = err.error?.message || 'Error al conectar con el servidor';
+        return throwError(() => msg);
       })
     );
   }

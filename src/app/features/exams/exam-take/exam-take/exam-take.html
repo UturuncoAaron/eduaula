@@ -1,22 +1,30 @@
 <app-page-header title="Rendir examen" backRoute="/examenes" />
 
 @if (loading()) {
-<p>Cargando preguntas...</p>
+<div class="loading-center">
+    <mat-spinner diameter="40" />
+    <p>Iniciando examen...</p>
+</div>
 } @else {
 <div class="progress-bar">
-    <span>{{ objectKeys(answers()).length }} / {{ questions().length }} respondidas</span>
+    <div class="progress-info">
+        <span>{{ objectKeys(answers()).length }} / {{ questions().length }} respondidas</span>
+        <span>{{ progress }}%</span>
+    </div>
     <mat-progress-bar mode="determinate" [value]="progress" />
 </div>
 
 <div class="questions-list">
     @for (q of questions(); track q.id; let i = $index) {
-    <mat-card class="question-card">
+    <mat-card class="question-card" [class.answered]="answers()[q.id]">
         <mat-card-content>
             <p class="question-text">
-                <strong>{{ i + 1 }}.</strong> {{ q.enunciado }}
+                <span class="q-num">{{ i + 1 }}</span>
+                {{ q.enunciado }}
                 <span class="pts">({{ q.puntos }} pt)</span>
             </p>
-            <mat-radio-group [value]="answers()[q.id]" (change)="selectAnswer(q.id, $event.value)">
+            <mat-radio-group [value]="answers()[q.id]" (change)="selectAnswer(q.id, $event.value)"
+                class="options-group">
                 @for (o of q.opciones ?? []; track o.id) {
                 <mat-radio-button [value]="o.id" class="option">
                     {{ o.texto }}
@@ -29,8 +37,12 @@
 </div>
 
 <div class="submit-area">
-    <button mat-flat-button color="primary" (click)="submit()" [disabled]="submitting()">
-        {{ submitting() ? 'Enviando...' : 'Enviar examen' }}
-    </button>
+    <span class="submit-hint">
+        @if (objectKeys(answers()).length < questions().length) { Faltan {{ questions().length -
+            objectKeys(answers()).length }} preguntas } @else { ¡Todo respondido! Puedes enviar. } </span>
+            <button mat-flat-button color="primary" (click)="submit()" [disabled]="submitting()">
+                <mat-icon>send</mat-icon>
+                {{ submitting() ? 'Enviando...' : 'Enviar examen' }}
+            </button>
 </div>
 }

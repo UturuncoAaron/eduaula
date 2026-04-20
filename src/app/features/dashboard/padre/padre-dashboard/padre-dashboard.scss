@@ -1,0 +1,36 @@
+.dashboard {
+    .greeting {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 4px;
+    }
+
+    .subtitle {
+        color: #666;
+        margin: 0 0 24px;
+    }
+}
+
+.children-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.child-card {
+    border-radius: 12px;
+
+    .child-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1565C0;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+    }
+}
