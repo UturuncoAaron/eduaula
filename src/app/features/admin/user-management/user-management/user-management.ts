@@ -1,28 +1,31 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { TitleCasePipe, UpperCasePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '../../../../core/services/api';
 import { User } from '../../../../core/models/user';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
-import { DocTypePipe } from '../../../../shared/pipes/doc-type-pipe';
-import { TitleCasePipe } from '@angular/common';
+import { ResetPasswordDialog } from '../../../../shared/components/reset-password-dialog/reset-password-dialog';
+import { CreateUserDialog } from '../../create-user-dialog/create-user-dialog/create-user-dialog';
 
 @Component({
   selector: 'app-user-management',
-  standalone: true,
   imports: [
-    ReactiveFormsModule, MatTableModule, MatCardModule, MatButtonModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule, MatIconModule,
-    MatSnackBarModule, MatChipsModule, PageHeader, DocTypePipe,
-    TitleCasePipe,
+     TitleCasePipe, UpperCasePipe,
+    MatTableModule, MatButtonModule, MatIconModule,
+    MatSnackBarModule, MatChipsModule, MatTabsModule,
+    MatPaginatorModule, MatProgressSpinnerModule,
+    MatFormFieldModule, MatInputModule,
+    PageHeader,
   ],
   templateUrl: './user-management.html',
   styleUrl: './user-management.scss',
@@ -30,59 +33,138 @@ import { TitleCasePipe } from '@angular/common';
 export class UserManagement implements OnInit {
   private api = inject(ApiService);
   private snack = inject(MatSnackBar);
-  private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
 
-  users = signal<any[]>([]);
+  allUsers = signal<User[]>([]);
   loading = signal(true);
-  showForm = signal(false);
-  cols = ['nombre', 'documento', 'rol', 'estado', 'acciones'];
+  selectedTab = signal(0);
+  searchQuery = signal('');
+  pageSize = signal(10);
+  pageIndex = signal(0);
 
-  form = this.fb.group({
-    tipo_documento: ['dni', Validators.required],
-    numero_documento: ['', [Validators.required, Validators.minLength(6)]],
-    nombre: ['', [Validators.required, Validators.minLength(2)]],
-    apellido_paterno: ['', [Validators.required, Validators.minLength(2)]],
-    apellido_materno: [''],
-    email: ['', Validators.email],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    rol: ['alumno', Validators.required],
+  cols = ['nombre', 'documento', 'extra', 'estado', 'acciones'];
+
+  tabs = [
+    { rol: 'todos', label: 'Todos', icon: 'people' },
+    { rol: 'alumno', label: 'Alumnos', icon: 'school' },
+    { rol: 'docente', label: 'Docentes', icon: 'person' },
+    { rol: 'padre', label: 'Padres', icon: 'family_restroom' },
+    { rol: 'admin', label: 'Admins', icon: 'admin_panel_settings' },
+  ];
+
+  totalUsuarios = computed(() => this.allUsers().length);
+
+  currentRol = computed(() => this.tabs[this.selectedTab()].rol);
+
+  roleStats = computed(() => [
+    { rol: 'alumno', label: 'Alumnos', icon: 'school', count: this.getCount('alumno'), index: 1 },
+    { rol: 'docente', label: 'Docentes', icon: 'person', count: this.getCount('docente'), index: 2 },
+    { rol: 'padre', label: 'Padres', icon: 'family_restroom', count: this.getCount('padre'), index: 3 },
+    { rol: 'admin', label: 'Admins', icon: 'admin_panel_settings', count: this.getCount('admin'), index: 4 },
+  ]);
+
+  filteredUsers = computed(() => {
+    let list = this.allUsers();
+    if (this.currentRol() !== 'todos') {
+      list = list.filter(u => u.rol === this.currentRol());
+    }
+    const q = this.searchQuery().trim().toLowerCase();
+    if (q) {
+      list = list.filter(u =>
+        `${u.nombre} ${u.apellido_paterno}`.toLowerCase().includes(q) ||
+        u.numero_documento.includes(q)
+      );
+    }
+    return list;
+  });
+
+  paginatedUsers = computed(() => {
+    const start = this.pageIndex() * this.pageSize();
+    return this.filteredUsers().slice(start, start + this.pageSize());
   });
 
   ngOnInit() {
+    this.loadUsers();
+  }
+
+  loadUsers() {
+    this.loading.set(true);
     this.api.get<User[]>('admin/users').subscribe({
-      next: r => { this.users.set(r.data); this.loading.set(false); },
-      error: () => {
-        this.users.set([
-          { id: '1', tipo_documento: 'dni', numero_documento: '12345678', nombre: 'Carlos', apellido_paterno: 'García', rol: 'alumno', activo: true },
-          { id: '2', tipo_documento: 'dni', numero_documento: '87654321', nombre: 'Prof. María', apellido_paterno: 'López', rol: 'docente', activo: true },
-          { id: '3', tipo_documento: 'dni', numero_documento: '11111111', nombre: 'Admin', apellido_paterno: 'Sistema', rol: 'admin', activo: true },
-        ]);
-        this.loading.set(false);
-      },
+      next: r => { this.allUsers.set(r.data); this.loading.set(false); },
+      error: () => { this.allUsers.set([]); this.loading.set(false); },
     });
   }
 
-  createUser() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.api.post<User>('admin/users', this.form.value).subscribe({
-      next: r => {
-        this.users.update(u => [r.data, ...u]);
-        this.form.reset({ tipo_documento: 'dni', rol: 'alumno' });
-        this.showForm.set(false);
-        this.snack.open('Usuario creado correctamente', 'OK', { duration: 3000 });
-      },
-      error: () => this.snack.open('Error al crear usuario', 'OK', { duration: 3000 }),
+  getCount(rol: string): number {
+    if (rol === 'todos') return this.allUsers().length;
+    return this.allUsers().filter(u => u.rol === rol).length;
+  }
+
+  setTab(index: number) {
+    this.selectedTab.set(index);
+    this.pageIndex.set(0);
+  }
+
+  onTabChange(index: number) {
+    this.selectedTab.set(index);
+    this.pageIndex.set(0);
+  }
+
+  onSearch(value: string) {
+    this.searchQuery.set(value);
+    this.pageIndex.set(0);
+  }
+
+  clearSearch() {
+    this.searchQuery.set('');
+    this.pageIndex.set(0);
+  }
+
+  onPage(event: PageEvent) {
+    this.pageSize.set(event.pageSize);
+    this.pageIndex.set(event.pageIndex);
+  }
+
+  openCreateUser() {
+    const ref = this.dialog.open(CreateUserDialog, {
+      width: '680px',
+      maxHeight: '90vh',
+      disableClose: false,
+    });
+    ref.afterClosed().subscribe(newUser => {
+      if (newUser) {
+        this.allUsers.update(u => [newUser, ...u]);
+        this.snack.open('Usuario creado correctamente', 'OK', { duration: 2000 });
+      }
     });
   }
 
-  toggleActive(user: any) {
+  toggleActive(user: User) {
     this.api.patch(`admin/users/${user.id}`, { activo: !user.activo }).subscribe({
       next: () => {
-        this.users.update(list =>
+        this.allUsers.update(list =>
           list.map(u => u.id === user.id ? { ...u, activo: !u.activo } : u)
+        );
+        this.snack.open(
+          user.activo ? 'Usuario desactivado' : 'Usuario activado',
+          'OK', { duration: 2000 }
         );
       },
       error: () => this.snack.open('Error al actualizar', 'OK', { duration: 2000 }),
+    });
+  }
+
+  resetPassword(user: User) {
+    const ref = this.dialog.open(ResetPasswordDialog, {
+      data: { userName: `${user.nombre} ${user.apellido_paterno}` },
+      width: '400px',
+    });
+    ref.afterClosed().subscribe(newPass => {
+      if (!newPass) return;
+      this.api.patch(`admin/users/${user.id}/reset-password`, { password: newPass }).subscribe({
+        next: () => this.snack.open('Contraseña actualizada', 'OK', { duration: 2000 }),
+        error: () => this.snack.open('Error al resetear contraseña', 'OK', { duration: 2000 }),
+      });
     });
   }
 }

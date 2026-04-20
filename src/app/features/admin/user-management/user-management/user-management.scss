@@ -3,31 +3,139 @@
     margin-bottom: 20px;
 }
 
-.table-card {
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.table-wrapper {
-    overflow-x: auto;
-}
-
 .form {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
+    padding-top: 8px;
 }
 
-.row-2 {
+.row-3 {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 12px;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
 }
 
-.actions {
+.form-actions {
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
     margin-top: 8px;
+}
+
+.stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    flex: 1;
+    min-width: 140px;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+
+    mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+    }
+
+    .stat-num {
+        display: block;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    &.stat-alumno {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+
+    &.stat-docente {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    &.stat-padre {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+
+    &.stat-admin {
+        background: #F3E5F5;
+        color: #6A1B9A;
+    }
+}
+
+.search-bar {
+    margin-bottom: 16px;
+
+    .search-field {
+        width: 100%;
+        max-width: 480px;
+    }
+}
+
+.tab-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.tab-count {
+    background: #E3F2FD;
+    color: #1565C0;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 99px;
+    margin-left: 6px;
+}
+
+.loading-center {
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+}
+
+.empty-tab {
+    text-align: center;
+    padding: 48px;
+    color: #bbb;
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        display: block;
+        margin: 0 auto 12px;
+    }
+}
+
+.table-container {
+    overflow-x: auto;
 }
 
 table {
@@ -38,26 +146,81 @@ th.mat-mdc-header-cell {
     font-weight: 600;
     color: #1A237E;
     white-space: nowrap;
+    background: #F8F9FF;
+}
+
+.table-row {
+    transition: background 0.1s;
+
+    &:hover {
+        background: #F5F9FF;
+    }
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0;
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #1565C0;
+        color: white;
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .user-name {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .user-email {
+        font-size: 12px;
+        color: #888;
+    }
+}
+
+.doc-badge {
+    font-size: 10px;
+    background: #EEE;
+    color: #555;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-right: 4px;
+    font-weight: 600;
+}
+
+.extra-info {
+    font-size: 13px;
+    color: #555;
 }
 
 .tag {
     font-size: 12px;
-    padding: 2px 10px;
+    padding: 3px 10px;
     border-radius: 99px;
-}
+    font-weight: 500;
 
-.active {
-    background: #E8F5E9;
-    color: #2E7D32;
-}
-
-.inactive {
-    background: #FFEBEE;
-    color: #C62828;
-}
-
-@media (max-width: 600px) {
-    .row-2 {
-        grid-template-columns: 1fr;
+    &.active {
+        background: #E8F5E9;
+        color: #2E7D32;
     }
+
+    &.inactive {
+        background: #FFEBEE;
+        color: #C62828;
+    }
+}
+
+.actions-cell {
+    display: flex;
+    gap: 4px;
 }

@@ -1,105 +1,139 @@
-<app-page-header title="Gestión de usuarios" [subtitle]="users().length + ' usuarios registrados'">
-    <button mat-flat-button color="primary" (click)="showForm.update(v => !v)">
-        <mat-icon>{{ showForm() ? 'close' : 'person_add' }}</mat-icon>
-        {{ showForm() ? 'Cancelar' : 'Crear usuario' }}
+<app-page-header title="Gestión de usuarios" [subtitle]="totalUsuarios() + ' usuarios registrados'">
+    <button mat-flat-button color="primary" (click)="openCreateUser()">
+        <mat-icon>person_add</mat-icon> Crear usuario
     </button>
 </app-page-header>
 
-@if (showForm()) {
-<mat-card class="form-card">
-    <mat-card-header><mat-card-title>Nuevo usuario</mat-card-title></mat-card-header>
-    <mat-card-content>
-        <form [formGroup]="form" (ngSubmit)="createUser()" class="form">
-            <div class="row-2">
-                <mat-form-field appearance="outline">
-                    <mat-label>Tipo de documento</mat-label>
-                    <mat-select formControlName="tipo_documento">
-                        <mat-option value="dni">DNI</mat-option>
-                        <mat-option value="ce">Carné de Extranjería</mat-option>
-                        <mat-option value="pasaporte">Pasaporte</mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                    <mat-label>Número de documento</mat-label>
-                    <input matInput formControlName="numero_documento" />
-                </mat-form-field>
-            </div>
-            <div class="row-2">
-                <mat-form-field appearance="outline">
-                    <mat-label>Nombre</mat-label>
-                    <input matInput formControlName="nombre" />
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                    <mat-label>Apellido paterno</mat-label>
-                    <input matInput formControlName="apellido_paterno" />
-                </mat-form-field>
-            </div>
-            <div class="row-2">
-                <mat-form-field appearance="outline">
-                    <mat-label>Rol</mat-label>
-                    <mat-select formControlName="rol">
-                        <mat-option value="alumno">Alumno</mat-option>
-                        <mat-option value="docente">Docente</mat-option>
-                        <mat-option value="padre">Padre</mat-option>
-                        <mat-option value="admin">Administrador</mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                    <mat-label>Contraseña inicial</mat-label>
-                    <input matInput type="password" formControlName="password" />
-                </mat-form-field>
-            </div>
-            <div class="actions">
-                <button mat-flat-button color="primary" type="submit">
-                    <mat-icon>save</mat-icon> Crear usuario
-                </button>
-            </div>
-        </form>
-    </mat-card-content>
-</mat-card>
-}
-
-@if (loading()) {
-<p>Cargando usuarios...</p>
-} @else {
-<mat-card class="table-card">
-    <div class="table-wrapper">
-        <table mat-table [dataSource]="users()">
-            <ng-container matColumnDef="nombre">
-                <th mat-header-cell *matHeaderCellDef>Nombre</th>
-                <td mat-cell *matCellDef="let u">{{ u.nombre }} {{ u.apellido_paterno }}</td>
-            </ng-container>
-            <ng-container matColumnDef="documento">
-                <th mat-header-cell *matHeaderCellDef>Documento</th>
-                <td mat-cell *matCellDef="let u">{{ u.tipo_documento | docType }} {{ u.numero_documento }}</td>
-            </ng-container>
-            <ng-container matColumnDef="rol">
-                <th mat-header-cell *matHeaderCellDef>Rol</th>
-                <td mat-cell *matCellDef="let u">
-                    <mat-chip>{{ u.rol | titlecase }}</mat-chip>
-                </td>
-            </ng-container>
-            <ng-container matColumnDef="estado">
-                <th mat-header-cell *matHeaderCellDef>Estado</th>
-                <td mat-cell *matCellDef="let u">
-                    @if (u.activo) {
-                    <span class="tag active">Activo</span>
-                    } @else {
-                    <span class="tag inactive">Inactivo</span>
-                    }
-                </td>
-            </ng-container>
-            <ng-container matColumnDef="acciones">
-                <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let u">
-                    <button mat-icon-button (click)="toggleActive(u)" [title]="u.activo ? 'Desactivar' : 'Activar'">
-                        <mat-icon>{{ u.activo ? 'person_off' : 'person' }}</mat-icon>
-                    </button>
-                </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="cols"></tr>
-            <tr mat-row *matRowDef="let row; columns: cols;"></tr>
-        </table>
+<!-- Stats -->
+<div class="stats-row">
+    @for (s of roleStats(); track s.rol) {
+    <div class="stat-chip" [class]="'stat-' + s.rol" (click)="setTab(s.index)">
+        <mat-icon>{{ s.icon }}</mat-icon>
+        <div>
+            <span class="stat-num">{{ s.count }}</span>
+            <span class="stat-label">{{ s.label }}</span>
+        </div>
     </div>
-</mat-card>
-}
+    }
+</div>
+
+<!-- Búsqueda -->
+<div class="search-bar">
+    <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar por nombre o documento</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [value]="searchQuery()" (input)="onSearch($any($event.target).value)"
+            placeholder="Ej: García, 12345678..." />
+        @if (searchQuery()) {
+        <button matSuffix mat-icon-button (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+        </button>
+        }
+    </mat-form-field>
+</div>
+
+<!-- Tabs -->
+<mat-tab-group [selectedIndex]="selectedTab()" (selectedIndexChange)="onTabChange($event)" animationDuration="200ms">
+
+    @for (tab of tabs; track tab.rol) {
+    <mat-tab>
+        <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">{{ tab.icon }}</mat-icon>
+            {{ tab.label }}
+            <span class="tab-count">{{ getCount(tab.rol) }}</span>
+        </ng-template>
+
+        @if (loading()) {
+        <div class="loading-center"><mat-spinner diameter="36" /></div>
+        } @else if (filteredUsers().length === 0) {
+        <div class="empty-tab">
+            <mat-icon>person_search</mat-icon>
+            <p>No se encontraron usuarios</p>
+        </div>
+        } @else {
+        <div class="table-container">
+            <table mat-table [dataSource]="paginatedUsers()">
+
+                <ng-container matColumnDef="nombre">
+                    <th mat-header-cell *matHeaderCellDef>Nombre completo</th>
+                    <td mat-cell *matCellDef="let u">
+                        <div class="user-cell">
+                            <div class="user-avatar">
+                                {{ u.nombre[0] }}{{ u.apellido_paterno[0] }}
+                            </div>
+                            <div>
+                                <div class="user-name">
+                                    {{ u.apellido_paterno }} {{ u.apellido_materno }},
+                                    {{ u.nombre }}
+                                </div>
+                                @if (u.email) {
+                                <div class="user-email">{{ u.email }}</div>
+                                }
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="documento">
+                    <th mat-header-cell *matHeaderCellDef>Documento</th>
+                    <td mat-cell *matCellDef="let u">
+                        <span class="doc-badge">{{ u.tipo_documento | uppercase }}</span>
+                        {{ u.numero_documento }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="extra">
+                    <th mat-header-cell *matHeaderCellDef>Info adicional</th>
+                    <td mat-cell *matCellDef="let u">
+                        @if (u.rol === 'alumno' && u.codigo_estudiante) {
+                        <span class="extra-info">Cód: {{ u.codigo_estudiante }}</span>
+                        }
+                        @if (u.rol === 'docente' && u.especialidad) {
+                        <span class="extra-info">{{ u.especialidad }}</span>
+                        }
+                        @if (u.rol === 'padre' && u.relacion_familiar) {
+                        <span class="extra-info">{{ u.relacion_familiar | titlecase }}</span>
+                        }
+                        @if (u.rol === 'admin' && u.cargo) {
+                        <span class="extra-info">{{ u.cargo }}</span>
+                        }
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="estado">
+                    <th mat-header-cell *matHeaderCellDef>Estado</th>
+                    <td mat-cell *matCellDef="let u">
+                        <span class="tag" [class.active]="u.activo" [class.inactive]="!u.activo">
+                            {{ u.activo ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let u">
+                        <div class="actions-cell">
+                            <button mat-icon-button (click)="resetPassword(u)" title="Resetear contraseña">
+                                <mat-icon>lock_reset</mat-icon>
+                            </button>
+                            <button mat-icon-button [color]="u.activo ? 'warn' : 'primary'" (click)="toggleActive(u)"
+                                [title]="u.activo ? 'Desactivar' : 'Activar'">
+                                <mat-icon>{{ u.activo ? 'person_off' : 'person' }}</mat-icon>
+                            </button>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="cols"></tr>
+                <tr mat-row *matRowDef="let row; columns: cols;" class="table-row"></tr>
+            </table>
+
+            <mat-paginator [length]="filteredUsers().length" [pageSize]="pageSize()" [pageIndex]="pageIndex()"
+                [pageSizeOptions]="[10, 25, 50]" (page)="onPage($event)" showFirstLastButtons>
+            </mat-paginator>
+        </div>
+        }
+    </mat-tab>
+    }
+
+</mat-tab-group>

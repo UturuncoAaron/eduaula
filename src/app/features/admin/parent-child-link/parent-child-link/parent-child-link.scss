@@ -1,26 +1,162 @@
+.layout {
+    display: grid;
+    grid-template-columns: 480px 1fr;
+    gap: 20px;
+    align-items: start;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+}
+
 .form-card {
-    max-width: 480px;
-    border-radius: 12px;
+    border-radius: 16px !important;
+    position: relative;
+    overflow: visible;
+
+    .card-icon {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #1565C0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+            color: white;
+            font-size: 24px;
+        }
+    }
+
+    mat-card-content {
+        padding-top: 32px !important;
+    }
 }
 
 .form {
     display: flex;
     flex-direction: column;
+    gap: 8px;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
     gap: 4px;
+
+    .field-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #444;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            color: #1565C0;
+        }
+    }
+}
+
+.link-arrow {
+    display: flex;
+    justify-content: center;
+    color: #1565C0;
+    margin: 4px 0;
+}
+
+.hint-success {
+    color: #2E7D32 !important;
+    font-weight: 500;
 }
 
 .w100 {
     width: 100%;
 }
 
-.actions {
-    display: flex;
-    justify-content: flex-end;
+.submit-btn {
+    width: 100%;
     margin-top: 8px;
+    padding: 12px !important;
+    font-size: 15px;
 }
 
-@media (max-width: 480px) {
-    .actions button {
-        width: 100%;
+.links-card {
+    border-radius: 16px !important;
+}
+
+.empty-links {
+    text-align: center;
+    padding: 32px;
+    color: #bbb;
+
+    mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        display: block;
+        margin: 0 auto 8px;
+    }
+
+    p {
+        font-size: 14px;
+    }
+}
+
+.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.link-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #F8F9FF;
+    border: 1px solid #E3E8FF;
+}
+
+.link-user {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    span:last-child {
+        font-size: 13px;
+        font-weight: 500;
+    }
+}
+
+.link-icon {
+    color: #1565C0;
+    flex-shrink: 0;
+}
+
+.role-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 99px;
+
+    &.padre {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+
+    &.alumno {
+        background: #E3F2FD;
+        color: #1565C0;
     }
 }

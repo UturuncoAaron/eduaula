@@ -1,33 +1,101 @@
-<div class="dashboard">
-    <h2 class="greeting">Panel de Administración</h2>
-    <p class="subtitle">Gestiona toda la plataforma del colegio</p>
+<div class="dashboard-container">
 
-    <div class="stats-grid">
-        <mat-card class="stat-card">
-            <mat-icon>school</mat-icon>
-            <div><span class="num">{{ stats().alumnos }}</span><span class="lbl">Alumnos</span></div>
-        </mat-card>
-        <mat-card class="stat-card">
-            <mat-icon>person</mat-icon>
-            <div><span class="num">{{ stats().docentes }}</span><span class="lbl">Docentes</span></div>
-        </mat-card>
-        <mat-card class="stat-card">
-            <mat-icon>menu_book</mat-icon>
-            <div><span class="num">{{ stats().cursos }}</span><span class="lbl">Cursos</span></div>
-        </mat-card>
-        <mat-card class="stat-card">
-            <mat-icon>family_restroom</mat-icon>
-            <div><span class="num">{{ stats().padres }}</span><span class="lbl">Padres</span></div>
-        </mat-card>
-    </div>
+    <header class="welcome-banner">
+        <div class="banner-content">
+            <h1 class="greeting">¡Hola, Administrador!</h1>
+            <p class="subtitle">Resumen general y accesos de EduAula al día de hoy.</p>
+        </div>
+        <div class="banner-decoration">
+            <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+    </header>
 
-    <h3 class="section-title">Accesos rápidos</h3>
-    <div class="quick-grid">
-        @for (q of quickAccess; track q.route) {
-        <a mat-flat-button [routerLink]="q.route" class="quick-btn">
-            <mat-icon>{{ q.icon }}</mat-icon>
-            {{ q.label }}
-        </a>
-        }
+    <section class="stats-section">
+        <div class="stat-card students">
+            <div class="icon-wrapper"><mat-icon>school</mat-icon></div>
+            <div class="stat-info">
+                <span class="lbl">Total Alumnos</span>
+                <span class="num">{{ stats().alumnos }}</span>
+                <span class="trend positive"><mat-icon>trending_up</mat-icon> +12% este mes</span>
+            </div>
+        </div>
+
+        <div class="stat-card teachers">
+            <div class="icon-wrapper"><mat-icon>badge</mat-icon></div>
+            <div class="stat-info">
+                <span class="lbl">Docentes Activos</span>
+                <span class="num">{{ stats().docentes }}</span>
+                <span class="trend neutral"><mat-icon>drag_handle</mat-icon> Sin cambios</span>
+            </div>
+        </div>
+
+        <div class="stat-card parents">
+            <div class="icon-wrapper"><mat-icon>family_restroom</mat-icon></div>
+            <div class="stat-info">
+                <span class="lbl">Padres / Apoderados</span>
+                <span class="num">{{ stats().padres }}</span>
+                <span class="trend positive"><mat-icon>trending_up</mat-icon> +5% este mes</span>
+            </div>
+        </div>
+
+        <div class="stat-card courses">
+            <div class="icon-wrapper"><mat-icon>menu_book</mat-icon></div>
+            <div class="stat-info">
+                <span class="lbl">Cursos Registrados</span>
+                <span class="num">{{ stats().cursos }}</span>
+                <span class="trend neutral"><mat-icon>drag_handle</mat-icon> Ciclo actual</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="dashboard-grid">
+        <section class="main-column">
+            <div class="section-header">
+                <h2>Accesos Rápidos</h2>
+                <button mat-button color="primary">Ver todo</button>
+            </div>
+
+            <div class="quick-grid">
+                @for (q of quickAccess; track q.route) {
+                <a [routerLink]="q.route" class="quick-action-card" [ngClass]="q.color">
+                    <div class="action-icon">
+                        <mat-icon>{{ q.icon }}</mat-icon>
+                    </div>
+                    <div class="action-texts">
+                        <h3>{{ q.label }}</h3>
+                        <p>{{ q.desc }}</p>
+                    </div>
+                    <mat-icon class="arrow-icon">chevron_right</mat-icon>
+                </a>
+                }
+            </div>
+        </section>
+
+        <aside class="side-column">
+            <div class="section-header">
+                <h2>Actividad Reciente</h2>
+            </div>
+
+            <mat-card class="activity-card">
+                <div class="activity-list">
+                    @for (act of recentActivity(); track act.id) {
+                    <div class="activity-item">
+                        <div class="act-icon" [ngClass]="act.tipo">
+                            <mat-icon>
+                                {{ act.tipo === 'user' ? 'person_add' : (act.tipo === 'alert' ? 'warning' : 'settings')
+                                }}
+                            </mat-icon>
+                        </div>
+                        <div class="act-details">
+                            <p>{{ act.mensaje }}</p>
+                            <span>{{ act.fecha | date:'shortTime' }}</span>
+                        </div>
+                    </div>
+                    } @empty {
+                    <p class="empty-msg">No hay actividad reciente.</p>
+                    }
+                </div>
+            </mat-card>
+        </aside>
     </div>
 </div>

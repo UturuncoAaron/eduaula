@@ -9,6 +9,7 @@ import { Course } from '../../../../core/models/course';
 
 @Component({
   selector: 'app-docente-dashboard',
+  standalone: true,
   imports: [MatCardModule, MatIconModule, MatButtonModule, RouterLink],
   templateUrl: './docente-dashboard.html',
   styleUrl: './docente-dashboard.scss'

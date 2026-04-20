@@ -1,35 +1,53 @@
-<div class="dashboard">
-    <h2 class="greeting">Bienvenido, {{ auth.currentUser()?.nombre }} 👋</h2>
-    <p class="subtitle">Sigue el progreso académico de tu hijo</p>
+<div class="dashboard-container">
+
+    <header class="welcome-banner">
+        <div class="banner-content">
+            <h1 class="greeting">¡Hola, {{ auth.currentUser()?.nombre ?? 'Familia' }}! 👋</h1>
+            <p class="subtitle">Sigue el progreso académico y la asistencia de tus hijos.</p>
+        </div>
+        <div class="banner-decoration">
+            <mat-icon>family_restroom</mat-icon>
+        </div>
+    </header>
+
+    <div class="section-header">
+        <h2 class="section-title">Estudiantes vinculados</h2>
+    </div>
 
     @if (loading()) {
-    <p>Cargando...</p>
+    <div class="loading-state">
+        <p>Cargando información familiar...</p>
+    </div>
     } @else {
     <div class="children-grid">
         @for (child of children(); track child.id) {
-        <mat-card class="child-card">
-            <mat-card-header>
-                <div mat-card-avatar class="child-avatar">
+        <div class="child-card">
+            <div class="card-body">
+                <div class="child-avatar">
                     {{ child.nombre[0] }}{{ child.apellido_paterno[0] }}
                 </div>
-                <mat-card-title>{{ child.nombre }} {{ child.apellido_paterno }}</mat-card-title>
-                <mat-card-subtitle>{{ child.grado }} — Sección {{ child.seccion }}</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-actions>
-                <a mat-button color="primary" [routerLink]="['/portal-padres', child.id, 'notas']">
+                <div class="child-info">
+                    <h3>{{ child.nombre }} {{ child.apellido_paterno }}</h3>
+                    <p class="grade-badge">{{ child.grado }} — Sec. {{ child.seccion }}</p>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <a mat-flat-button class="btn-primary w-full" [routerLink]="['/portal-padres', child.id, 'notas']">
                     <mat-icon>grade</mat-icon> Ver notas
                 </a>
-                <a mat-button [routerLink]="['/portal-padres', child.id, 'asistencia']">
+                <a mat-stroked-button class="btn-outline w-full"
+                    [routerLink]="['/portal-padres', child.id, 'asistencia']">
                     <mat-icon>event_available</mat-icon> Asistencia
                 </a>
-            </mat-card-actions>
-        </mat-card>
+            </div>
+        </div>
         } @empty {
-        <mat-card>
-            <mat-card-content>
-                <p>No hay hijos vinculados aún. Contacta al administrador del colegio.</p>
-            </mat-card-content>
-        </mat-card>
+        <div class="empty-state">
+            <mat-icon>escalator_warning</mat-icon>
+            <h3>Sin estudiantes vinculados</h3>
+            <p>No hay hijos vinculados aún. Contacta al administrador del colegio.</p>
+        </div>
         }
     </div>
     }

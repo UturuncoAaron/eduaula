@@ -1,50 +1,79 @@
-<div class="dashboard">
-    <h2 class="greeting">¡Hola, Prof. {{ auth.currentUser()?.apellido_paterno }}! 👋</h2>
-    <p class="subtitle">Tienes alertas pendientes</p>
+<div class="dashboard-container">
 
-    <!-- Alertas -->
-    <div class="alerts-grid">
-        <mat-card class="alert-card orange">
-            <mat-icon>assignment_late</mat-icon>
-            <div>
-                <span class="alert-num">{{ alerts().sinCalificar }}</span>
-                <span class="alert-label">Entregas sin calificar</span>
+    <header class="welcome-banner">
+        <div class="banner-content">
+            <h1 class="greeting">¡Hola, Prof. {{ auth.currentUser()?.apellido_paterno ?? 'Docente' }}!</h1>
+            <p class="subtitle">Este es el estado de tus clases y tareas pendientes para hoy.</p>
+        </div>
+        <div class="banner-decoration">
+            <mat-icon>history_edu</mat-icon>
+        </div>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card orange">
+            <div class="icon-wrapper"><mat-icon>assignment_late</mat-icon></div>
+            <div class="stat-info">
+                <span class="stat-label">Entregas sin calificar</span>
+                <span class="stat-num">{{ alerts().sinCalificar }}</span>
             </div>
-        </mat-card>
-        <mat-card class="alert-card red">
-            <mat-icon>grade</mat-icon>
-            <div>
-                <span class="alert-num">{{ alerts().notasPendientes }}</span>
-                <span class="alert-label">Notas bimestrales pendientes</span>
+        </div>
+
+        <div class="stat-card red">
+            <div class="icon-wrapper"><mat-icon>notification_important</mat-icon></div>
+            <div class="stat-info">
+                <span class="stat-label">Notas bimestrales pend.</span>
+                <span class="stat-num">{{ alerts().notasPendientes }}</span>
             </div>
-        </mat-card>
-        <mat-card class="alert-card blue">
-            <mat-icon>quiz</mat-icon>
-            <div>
-                <span class="alert-num">{{ alerts().examenes }}</span>
-                <span class="alert-label">Exámenes activos hoy</span>
+        </div>
+
+        <div class="stat-card blue">
+            <div class="icon-wrapper"><mat-icon>quiz</mat-icon></div>
+            <div class="stat-info">
+                <span class="stat-label">Exámenes activos hoy</span>
+                <span class="stat-num">{{ alerts().examenes }}</span>
             </div>
-        </mat-card>
+        </div>
     </div>
 
-    <h3 class="section-title">Mis cursos asignados</h3>
+    <div class="section-header">
+        <h2 class="section-title">Mis cursos asignados</h2>
+    </div>
 
     @if (loading()) {
-    <p>Cargando...</p>
+    <div class="loading-state">
+        <p>Cargando tus cursos...</p>
+    </div>
     } @else {
     <div class="courses-grid">
         @for (c of courses(); track c.id) {
-        <mat-card class="course-card">
-            <mat-card-header>
-                <mat-icon mat-card-avatar>menu_book</mat-icon>
-                <mat-card-title>{{ c.nombre }}</mat-card-title>
-                <mat-card-subtitle>{{ c.descripcion }}</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-actions>
-                <a mat-button color="primary" [routerLink]="['/cursos', c.id]">Gestionar</a>
-                <a mat-button [routerLink]="['/notas', 'registrar']">Notas</a>
-            </mat-card-actions>
-        </mat-card>
+        <div class="course-card">
+            <div class="card-header">
+                <div class="course-icon">
+                    <mat-icon>co_present</mat-icon>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <h3>{{ c.nombre }}</h3>
+                <p>{{ c.descripcion }}</p>
+            </div>
+
+            <div class="card-footer">
+                <a mat-stroked-button class="btn-outline w-full" [routerLink]="['/notas', 'registrar']">
+                    <mat-icon>grading</mat-icon> Notas
+                </a>
+                <a mat-flat-button class="btn-primary w-full" [routerLink]="['/cursos', c.id]">
+                    Gestionar
+                </a>
+            </div>
+        </div>
+        } @empty {
+        <div class="empty-state">
+            <mat-icon>co_present</mat-icon>
+            <h3>Sin cursos asignados</h3>
+            <p>No tienes cursos asignados para este periodo académico.</p>
+        </div>
         }
     </div>
     }

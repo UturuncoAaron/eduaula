@@ -1,33 +1,90 @@
-<app-page-header title="Vincular padre con hijo" subtitle="Ingresa los documentos para crear el vínculo" />
+<app-page-header title="Vincular Padre — Hijo" subtitle="Ingresa los documentos para crear el vínculo familiar" />
 
-<mat-card class="form-card">
-    <mat-card-content>
-        <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+<div class="layout">
+    <mat-card class="form-card">
+        <div class="card-icon">
+            <mat-icon>family_restroom</mat-icon>
+        </div>
+        <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="submit()" class="form">
 
-            <mat-form-field appearance="outline" class="w100">
-                <mat-label>N° de documento del PADRE</mat-label>
-                <mat-icon matPrefix>person</mat-icon>
-                <input matInput formControlName="padre_doc" placeholder="DNI del padre/madre/tutor" />
-                @if (form.controls.padre_doc.invalid && form.controls.padre_doc.touched) {
-                <mat-error>Ingresa el documento del padre</mat-error>
-                }
-            </mat-form-field>
+                <div class="field-group">
+                    <span class="field-label">
+                        <mat-icon>person</mat-icon> Padre / Madre / Tutor
+                    </span>
+                    <mat-form-field appearance="outline" class="w100">
+                        <mat-label>N° de documento del padre</mat-label>
+                        <input matInput formControlName="padre_doc" placeholder="Ej: 12345678" />
+                        @if (form.controls.padre_doc.invalid && form.controls.padre_doc.touched) {
+                        <mat-error>Ingresa el documento del padre</mat-error>
+                        }
+                        @if (padreInfo()) {
+                        <mat-hint class="hint-success">
+                            ✓ {{ padreInfo() }}
+                        </mat-hint>
+                        }
+                    </mat-form-field>
+                </div>
 
-            <mat-form-field appearance="outline" class="w100">
-                <mat-label>N° de documento del ALUMNO</mat-label>
-                <mat-icon matPrefix>school</mat-icon>
-                <input matInput formControlName="alumno_doc" placeholder="DNI del alumno" />
-                @if (form.controls.alumno_doc.invalid && form.controls.alumno_doc.touched) {
-                <mat-error>Ingresa el documento del alumno</mat-error>
-                }
-            </mat-form-field>
+                <div class="link-arrow">
+                    <mat-icon>arrow_downward</mat-icon>
+                </div>
 
-            <div class="actions">
-                <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+                <div class="field-group">
+                    <span class="field-label">
+                        <mat-icon>school</mat-icon> Alumno
+                    </span>
+                    <mat-form-field appearance="outline" class="w100">
+                        <mat-label>N° de documento del alumno</mat-label>
+                        <input matInput formControlName="alumno_doc" placeholder="Ej: 87654321" />
+                        @if (form.controls.alumno_doc.invalid && form.controls.alumno_doc.touched) {
+                        <mat-error>Ingresa el documento del alumno</mat-error>
+                        }
+                        @if (alumnoInfo()) {
+                        <mat-hint class="hint-success">
+                            ✓ {{ alumnoInfo() }}
+                        </mat-hint>
+                        }
+                    </mat-form-field>
+                </div>
+
+                <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="loading()">
                     <mat-icon>link</mat-icon>
                     {{ loading() ? 'Vinculando...' : 'Crear vínculo' }}
                 </button>
+
+            </form>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Lista de vínculos recientes -->
+    <mat-card class="links-card">
+        <mat-card-header>
+            <mat-card-title>Vínculos recientes</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            @if (recentLinks().length === 0) {
+            <div class="empty-links">
+                <mat-icon>link_off</mat-icon>
+                <p>Sin vínculos creados aún</p>
             </div>
-        </form>
-    </mat-card-content>
-</mat-card>
+            } @else {
+            <div class="links-list">
+                @for (l of recentLinks(); track l.id) {
+                <div class="link-row">
+                    <div class="link-user">
+                        <span class="role-badge padre">Padre</span>
+                        <span>{{ l.padre }}</span>
+                    </div>
+                    <mat-icon class="link-icon">link</mat-icon>
+                    <div class="link-user">
+                        <span class="role-badge alumno">Alumno</span>
+                        <span>{{ l.alumno }}</span>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </mat-card-content>
+    </mat-card>
+</div>

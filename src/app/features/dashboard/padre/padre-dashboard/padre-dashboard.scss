@@ -1,36 +1,250 @@
-.dashboard {
-    .greeting {
-        font-size: 22px;
-        font-weight: 600;
-        margin: 0 0 4px;
+/* ==========================================================================
+   VARIABLES (Consistencia Visual EduAula)
+   ========================================================================== */
+$bg-color: transparent;
+$text-main: #1e293b;
+$text-muted: #64748b;
+$border-light: #e2e8f0;
+
+/* Color Semántico Apoderado (Teal) */
+$c-parent: #0f766e;
+$c-parent-light: #ccfbf1;
+
+.dashboard-container {
+    padding: 0 32px 40px 32px;
+    font-family: 'Inter', sans-serif;
+    max-width: 1600px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+        padding: 0 16px 24px;
+    }
+}
+
+/* ==========================================================================
+   BANNER DE BIENVENIDA (Estilo "Clean & Bright")
+   ========================================================================== */
+.welcome-banner {
+    background: #ffffff;
+    background-image: radial-gradient(circle at top right, #f0fdfa 0%, #ffffff 60%);
+    border: 1px solid $border-light;
+    border-left: 6px solid $c-parent;
+    border-radius: 16px;
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    position: relative;
+    overflow: hidden;
+
+    .banner-content {
+        z-index: 2;
+
+        .greeting {
+            font-size: 28px;
+            font-weight: 700;
+            color: $text-main;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: $text-muted;
+            margin: 0;
+        }
     }
 
-    .subtitle {
-        color: #666;
-        margin: 0 0 24px;
+    .banner-decoration {
+        position: absolute;
+        right: 40px;
+        top: 50%;
+        transform: translateY(-50%) rotate(5deg);
+        opacity: 0.04;
+        color: $c-parent;
+        pointer-events: none;
+
+        mat-icon {
+            font-size: 160px;
+            width: 160px;
+            height: 160px;
+        }
+    }
+}
+
+/* ==========================================================================
+   TARJETAS DE HIJOS (Estudiantes)
+   ========================================================================== */
+.section-header {
+    margin-bottom: 20px;
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0;
     }
 }
 
 .children-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
 }
 
 .child-card {
-    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid $border-light;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 
-    .child-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #1565C0;
-        color: white;
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -8px rgba($c-parent, 0.15);
+        border-color: #5eead4;
+        /* Teal claro */
+    }
+
+    /* Cuerpo con Avatar e Información */
+    .card-body {
+        padding: 24px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-weight: 700;
+        gap: 16px;
+        flex: 1;
+
+        .child-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #14b8a6 0%, $c-parent 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+        }
+
+        .child-info {
+            h3 {
+                font-size: 18px;
+                font-weight: 600;
+                color: $text-main;
+                margin: 0 0 6px 0;
+            }
+
+            .grade-badge {
+                display: inline-block;
+                background: $c-parent-light;
+                color: darken($c-parent, 10%);
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                margin: 0;
+            }
+        }
+    }
+
+    /* Pie con Botones Verticales/Horizontales */
+    .card-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #f8fafc;
+        background: #fafaf9;
+        /* Fondo súper tenue para diferenciar acciones */
+        display: flex;
+        gap: 12px;
+
+        @media (max-width: 400px) {
+            flex-direction: column;
+            /* Se apilan en pantallas muy pequeñas */
+        }
+
+        .w-full {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            border-radius: 8px;
+            padding: 0 8px;
+        }
+
+        .btn-primary {
+            background: $c-parent;
+            color: white;
+
+            mat-icon {
+                margin-right: 6px;
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+            }
+
+            &:hover {
+                background: darken($c-parent, 5%);
+            }
+        }
+
+        .btn-outline {
+            border: 1px solid #cbd5e1;
+            color: $text-main;
+            background: #ffffff;
+
+            mat-icon {
+                margin-right: 6px;
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+                color: $text-muted;
+            }
+
+            &:hover {
+                background: #f1f5f9;
+            }
+        }
+    }
+}
+
+/* ==========================================================================
+   ESTADOS GLOBALES
+   ========================================================================== */
+.loading-state,
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #ffffff;
+    border: 1px dashed $border-light;
+    border-radius: 16px;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        color: #cbd5e1;
+        margin-bottom: 12px;
+    }
+
+    h3 {
         font-size: 16px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0 0 4px 0;
+    }
+
+    p {
+        font-size: 14px;
+        margin: 0;
     }
 }

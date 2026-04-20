@@ -1,67 +1,378 @@
-.dashboard {
-    .greeting {
-        font-size: 22px;
-        font-weight: 600;
-        margin: 0 0 4px;
-    }
+/* ==========================================================================
+   VARIABLES
+   ========================================================================== */
+$bg-color: transparent;
+$text-main: #1e293b;
+$text-muted: #64748b;
+$border-light: #e2e8f0;
 
-    .subtitle {
-        color: #666;
-        margin: 0 0 24px;
-    }
+/* Colores para las tarjetas */
+$c-blue: #2563eb;
+$c-purple: #9333ea;
+$c-green: #059669;
+$c-orange: #ea580c;
 
-    .section-title {
-        font-size: 16px;
-        font-weight: 600;
-        margin: 24px 0 12px;
+.dashboard-container {
+    padding: 0 32px 40px 32px;
+    font-family: 'Inter', sans-serif;
+    max-width: 1600px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+        padding: 0 16px 24px;
     }
 }
 
-.stats-grid {
+/* ==========================================================================
+   BANNER DE BIENVENIDA (Rediseño Luminoso)
+   ========================================================================== */
+.welcome-banner {
+    background: #ffffff;
+    /* Un gradiente radial súper sutil en la esquina superior derecha */
+    background-image: radial-gradient(circle at top right, #eff6ff 0%, #ffffff 60%);
+    border: 1px solid $border-light;
+    border-left: 6px solid $c-blue;
+    /* Acento corporativo */
+    border-radius: 16px;
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    position: relative;
+    overflow: hidden;
+
+    .banner-content {
+        z-index: 2;
+
+        .greeting {
+            font-size: 28px;
+            font-weight: 700;
+            color: $text-main;
+            /* Texto oscuro principal */
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: $text-muted;
+            /* Texto gris sutil */
+            margin: 0;
+        }
+    }
+
+    .banner-decoration {
+        position: absolute;
+        right: 40px;
+        top: 50%;
+        transform: translateY(-50%) rotate(-5deg);
+        opacity: 0.04;
+        /* Ícono como marca de agua casi invisible */
+        color: $c-blue;
+        pointer-events: none;
+
+        mat-icon {
+            font-size: 160px;
+            width: 160px;
+            height: 160px;
+        }
+    }
+}
+
+/* ==========================================================================
+   TARJETAS DE ESTADÍSTICAS
+   ========================================================================== */
+.stats-section {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
-    margin-bottom: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
 }
 
 .stat-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    border-radius: 12px;
-    border-left: 4px solid #1565C0;
+    align-items: flex-start;
+    gap: 16px;
+    border: 1px solid $border-light;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s, box-shadow 0.2s;
 
-    mat-icon {
-        font-size: 28px;
-        width: 28px;
-        height: 28px;
-        color: #1565C0;
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.08);
     }
 
-    .num {
-        display: block;
-        font-size: 24px;
-        font-weight: 700;
+    .icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 28px;
+            width: 28px;
+            height: 28px;
+        }
     }
 
-    .lbl {
-        font-size: 12px;
-        color: #555;
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+
+        .lbl {
+            font-size: 13px;
+            color: $text-muted;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .num {
+            font-size: 32px;
+            font-weight: 700;
+            color: $text-main;
+            line-height: 1.2;
+            margin: 4px 0;
+        }
+
+        .trend {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+
+            mat-icon {
+                font-size: 14px;
+                width: 14px;
+                height: 14px;
+            }
+
+            &.positive {
+                color: $c-green;
+            }
+
+            &.neutral {
+                color: $text-muted;
+            }
+        }
+    }
+
+    /* Colores Específicos por Tarjeta */
+    &.students .icon-wrapper {
+        background: rgba($c-blue, 0.1);
+        color: $c-blue;
+    }
+
+    &.teachers .icon-wrapper {
+        background: rgba($c-purple, 0.1);
+        color: $c-purple;
+    }
+
+    &.parents .icon-wrapper {
+        background: rgba($c-orange, 0.1);
+        color: $c-orange;
+    }
+
+    &.courses .icon-wrapper {
+        background: rgba($c-green, 0.1);
+        color: $c-green;
     }
 }
 
+/* ==========================================================================
+   GRILLA PRINCIPAL (Izquierda Accesos / Derecha Actividad)
+   ========================================================================== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+        /* Se apila en pantallas más pequeñas */
+    }
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h2 {
+        font-size: 18px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0;
+    }
+}
+
+/* ==========================================================================
+   ACCESOS RÁPIDOS
+   ========================================================================== */
 .quick-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
 }
 
-.quick-btn {
+.quick-action-card {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    border-radius: 10px;
-    font-weight: 500;
+    background: #ffffff;
+    border: 1px solid $border-light;
+    padding: 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s;
+    gap: 16px;
+
+    .action-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+        }
+    }
+
+    .action-texts {
+        flex: 1;
+
+        h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: $text-main;
+            margin: 0 0 4px 0;
+        }
+
+        p {
+            font-size: 13px;
+            color: $text-muted;
+            margin: 0;
+        }
+    }
+
+    .arrow-icon {
+        color: #cbd5e1;
+        transition: transform 0.2s;
+    }
+
+    &:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+        .arrow-icon {
+            transform: translateX(4px);
+            color: $text-main;
+        }
+    }
+
+    /* Temas de color para los botones */
+    &.blue .action-icon {
+        background: rgba($c-blue, 0.1);
+        color: $c-blue;
+    }
+
+    &.purple .action-icon {
+        background: rgba($c-purple, 0.1);
+        color: $c-purple;
+    }
+
+    &.green .action-icon {
+        background: rgba($c-green, 0.1);
+        color: $c-green;
+    }
+
+    &.orange .action-icon {
+        background: rgba($c-orange, 0.1);
+        color: $c-orange;
+    }
+}
+
+/* ==========================================================================
+   ACTIVIDAD RECIENTE
+   ========================================================================== */
+.activity-card {
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid $border-light;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-item {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    border-bottom: 1px solid #f1f5f9;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .act-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+
+        &.user {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        &.system {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        &.alert {
+            background: #fef3c7;
+            color: #d97706;
+        }
+    }
+
+    .act-details {
+        p {
+            font-size: 14px;
+            color: $text-main;
+            margin: 0 0 4px 0;
+            line-height: 1.4;
+        }
+
+        span {
+            font-size: 12px;
+            color: $text-muted;
+        }
+    }
 }
