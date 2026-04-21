@@ -1,0 +1,74 @@
+<div class="tab-content">
+
+    <div class="section-toolbar">
+        <span class="section-count">{{ periodos().length }} periodos registrados</span>
+        <button mat-flat-button color="primary" (click)="openCreatePeriodo()">
+            <mat-icon>add</mat-icon> Nuevo Periodo
+        </button>
+    </div>
+
+    @if (loading()) {
+    <div class="loading-state">
+        <mat-spinner diameter="36" />
+        <p>Cargando periodos...</p>
+    </div>
+    } @else {
+    <table mat-table [dataSource]="periodos()" class="periodos-table">
+
+        <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let p">{{ p.nombre }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="anio">
+            <th mat-header-cell *matHeaderCellDef>Año</th>
+            <td mat-cell *matCellDef="let p">{{ p.anio }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="bimestre">
+            <th mat-header-cell *matHeaderCellDef>Bimestre</th>
+            <td mat-cell *matCellDef="let p">{{ p.bimestre }}°</td>
+        </ng-container>
+
+        <ng-container matColumnDef="fechas">
+            <th mat-header-cell *matHeaderCellDef>Fechas</th>
+            <td mat-cell *matCellDef="let p">
+                {{ p.fecha_inicio | date:'dd/MM/yyyy' }} — {{ p.fecha_fin | date:'dd/MM/yyyy' }}
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let p">
+                @if (p.activo) {
+                <span class="badge badge-active">Activo</span>
+                } @else {
+                <span class="badge badge-inactive">Inactivo</span>
+                }
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let p">
+                @if (!p.activo) {
+                <button mat-stroked-button color="primary" (click)="activarPeriodo(p.id)">
+                    <mat-icon>check_circle</mat-icon> Activar
+                </button>
+                } @else {
+                <span class="active-label">
+                    <mat-icon>verified</mat-icon> Periodo en curso
+                </span>
+                }
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="cols"></tr>
+        <tr mat-row *matRowDef="let row; columns: cols;"></tr>
+        <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data" colspan="6">Sin periodos registrados</td>
+        </tr>
+    </table>
+    }
+
+</div>

@@ -1,0 +1,55 @@
+<h2 mat-dialog-title>Asignar Docente</h2>
+<p class="subtitle">{{ data.cursoNombre }}</p>
+
+<mat-dialog-content>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Buscar docente</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput [(ngModel)]="searchQuery" placeholder="Nombre o apellido..." />
+  </mat-form-field>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <mat-progress-spinner diameter="32" mode="indeterminate" />
+    </div>
+  } @else {
+    <div class="docentes-list">
+      @for (d of docentesFiltrados(); track d.id) {
+        <div class="docente-item"
+             [class.selected]="selectedId() === d.id"
+             (click)="select(d.id)">
+          <div class="docente-avatar">
+            {{ d.nombre[0] }}{{ d.apellido_paterno[0] }}
+          </div>
+          <div class="docente-info">
+            <span class="docente-name">{{ d.nombre }} {{ d.apellido_paterno }}</span>
+            <span class="docente-esp">{{ d.especialidad ?? 'Sin especialidad' }}</span>
+          </div>
+          @if (selectedId() === d.id) {
+            <mat-icon class="check-icon">check_circle</mat-icon>
+          }
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <mat-icon>person_off</mat-icon>
+          <p>No se encontraron docentes</p>
+        </div>
+      }
+    </div>
+  }
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancel()">Cancelar</button>
+  <button mat-flat-button color="primary"
+          (click)="submit()"
+          [disabled]="!selectedId() || saving()">
+    @if (saving()) {
+      <mat-progress-spinner diameter="18" mode="indeterminate" />
+    } @else {
+      Asignar
+    }
+  </button>
+</mat-dialog-actions>

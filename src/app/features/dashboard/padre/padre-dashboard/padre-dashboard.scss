@@ -1,250 +1,190 @@
-/* ==========================================================================
-   VARIABLES (Consistencia Visual EduAula)
-   ========================================================================== */
-$bg-color: transparent;
-$text-main: #1e293b;
-$text-muted: #64748b;
-$border-light: #e2e8f0;
-
-/* Color Semántico Apoderado (Teal) */
-$c-parent: #0f766e;
-$c-parent-light: #ccfbf1;
-
-.dashboard-container {
-    padding: 0 32px 40px 32px;
-    font-family: 'Inter', sans-serif;
-    max-width: 1600px;
-    margin: 0 auto;
-
-    @media (max-width: 768px) {
-        padding: 0 16px 24px;
-    }
+.padre-container {
+    padding: 24px;
+    max-width: 900px;
 }
 
-/* ==========================================================================
-   BANNER DE BIENVENIDA (Estilo "Clean & Bright")
-   ========================================================================== */
+// ── Banner ────────────────────────────────────────────────────────
 .welcome-banner {
-    background: #ffffff;
-    background-image: radial-gradient(circle at top right, #f0fdfa 0%, #ffffff 60%);
-    border: 1px solid $border-light;
-    border-left: 6px solid $c-parent;
+    background: linear-gradient(135deg, #1a5276 0%, #2e86c1 100%);
     border-radius: 16px;
-    padding: 32px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 16px;
+    padding: 28px 32px;
     margin-bottom: 32px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    color: #fff;
+    overflow: hidden;
     position: relative;
-    overflow: hidden;
-
-    .banner-content {
-        z-index: 2;
-
-        .greeting {
-            font-size: 28px;
-            font-weight: 700;
-            color: $text-main;
-            margin: 0 0 8px 0;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            font-size: 15px;
-            color: $text-muted;
-            margin: 0;
-        }
-    }
-
-    .banner-decoration {
-        position: absolute;
-        right: 40px;
-        top: 50%;
-        transform: translateY(-50%) rotate(5deg);
-        opacity: 0.04;
-        color: $c-parent;
-        pointer-events: none;
-
-        mat-icon {
-            font-size: 160px;
-            width: 160px;
-            height: 160px;
-        }
-    }
 }
 
-/* ==========================================================================
-   TARJETAS DE HIJOS (Estudiantes)
-   ========================================================================== */
-.section-header {
-    margin-bottom: 20px;
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 600;
-        color: $text-main;
-        margin: 0;
-    }
-}
-
-.children-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
-}
-
-.child-card {
+.banner-content {
     display: flex;
-    flex-direction: column;
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid $border-light;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-
-    &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px -8px rgba($c-parent, 0.15);
-        border-color: #5eead4;
-        /* Teal claro */
-    }
-
-    /* Cuerpo con Avatar e Información */
-    .card-body {
-        padding: 24px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex: 1;
-
-        .child-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #14b8a6 0%, $c-parent 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 20px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            flex-shrink: 0;
-            box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
-        }
-
-        .child-info {
-            h3 {
-                font-size: 18px;
-                font-weight: 600;
-                color: $text-main;
-                margin: 0 0 6px 0;
-            }
-
-            .grade-badge {
-                display: inline-block;
-                background: $c-parent-light;
-                color: darken($c-parent, 10%);
-                padding: 4px 10px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                margin: 0;
-            }
-        }
-    }
-
-    /* Pie con Botones Verticales/Horizontales */
-    .card-footer {
-        padding: 16px 24px;
-        border-top: 1px solid #f8fafc;
-        background: #fafaf9;
-        /* Fondo súper tenue para diferenciar acciones */
-        display: flex;
-        gap: 12px;
-
-        @media (max-width: 400px) {
-            flex-direction: column;
-            /* Se apilan en pantallas muy pequeñas */
-        }
-
-        .w-full {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            border-radius: 8px;
-            padding: 0 8px;
-        }
-
-        .btn-primary {
-            background: $c-parent;
-            color: white;
-
-            mat-icon {
-                margin-right: 6px;
-                font-size: 18px;
-                width: 18px;
-                height: 18px;
-            }
-
-            &:hover {
-                background: darken($c-parent, 5%);
-            }
-        }
-
-        .btn-outline {
-            border: 1px solid #cbd5e1;
-            color: $text-main;
-            background: #ffffff;
-
-            mat-icon {
-                margin-right: 6px;
-                font-size: 18px;
-                width: 18px;
-                height: 18px;
-                color: $text-muted;
-            }
-
-            &:hover {
-                background: #f1f5f9;
-            }
-        }
-    }
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* ==========================================================================
-   ESTADOS GLOBALES
-   ========================================================================== */
-.loading-state,
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    background: #ffffff;
-    border: 1px dashed $border-light;
-    border-radius: 16px;
-    color: $text-muted;
-
-    mat-icon {
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
-        color: #cbd5e1;
-        margin-bottom: 12px;
-    }
-
-    h3 {
-        font-size: 16px;
-        font-weight: 600;
-        color: $text-main;
-        margin: 0 0 4px 0;
+.banner-text {
+    h1 {
+        margin: 0 0 6px;
+        font-size: 1.6rem;
+        font-weight: 700;
     }
 
     p {
-        font-size: 14px;
         margin: 0;
+        opacity: 0.85;
+        font-size: 0.95rem;
+    }
+}
+
+.banner-icon {
+    mat-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        opacity: 0.2;
+    }
+}
+
+// ── Section ───────────────────────────────────────────────────────
+.section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface, #1a1a1a);
+    margin: 0 0 16px;
+}
+
+// ── Children grid ─────────────────────────────────────────────────
+.children-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.child-card {
+    background: var(--mat-sys-surface, #fff);
+    border-radius: 16px;
+    border: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.card-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.child-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a5276, #2e86c1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.child-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.child-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface, #1a1a1a);
+}
+
+.child-grade {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.82rem;
+    color: var(--mat-sys-on-surface-variant, #666);
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.child-code {
+    font-size: 0.75rem;
+    color: var(--mat-sys-on-surface-variant, #888);
+}
+
+.card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.85rem;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+}
+
+// ── Loading ───────────────────────────────────────────────────────
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px;
+    gap: 12px;
+    color: var(--mat-sys-on-surface-variant, #666);
+}
+
+// ── Empty ─────────────────────────────────────────────────────────
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px;
+    gap: 8px;
+    color: var(--mat-sys-on-surface-variant, #999);
+    border: 2px dashed var(--mat-sys-outline-variant, #e0e0e0);
+    border-radius: 16px;
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+    }
+
+    h3 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.85rem;
+        text-align: center;
     }
 }

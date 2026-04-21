@@ -1,26 +1,28 @@
-<app-page-header title="Estructura académica" />
-<mat-tab-group>
-    <mat-tab label="Grados">
-        <div class="tab-content">
-            @for (g of grados(); track g.nombre) {
-            <div class="item-row">
-                <mat-icon>school</mat-icon>
-                <span>{{ g.nombre }}</span>
-                <span class="nivel-tag">{{ g.nivel }}</span>
-            </div>
-            }
-            <p class="hint">Conectar al backend para gestión completa.</p>
-        </div>
-    </mat-tab>
-    <mat-tab label="Períodos">
-        <div class="tab-content">
-            @for (p of periodos(); track p.nombre) {
-            <div class="item-row">
-                <mat-icon>calendar_today</mat-icon>
-                <span>{{ p.nombre }}</span>
-                @if (p.activo) { <span class="active-tag">Activo</span> }
-            </div>
-            }
-        </div>
-    </mat-tab>
-</mat-tab-group>
+<div class="academic-container">
+
+    <div class="page-header">
+        <h1 class="page-title">Estructura Académica</h1>
+        <p class="page-subtitle">Gestiona grados, secciones y periodos del colegio</p>
+    </div>
+
+    <mat-tab-group animationDuration="200ms" class="academic-tabs">
+
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon>stairs</mat-icon>
+                <span>Grados y Cursos</span>
+            </ng-template>
+            <app-grados-tab />
+        </mat-tab>
+
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon>calendar_month</mat-icon>
+                <span>Periodos</span>
+            </ng-template>
+            <app-periodos-tab />
+        </mat-tab>
+
+    </mat-tab-group>
+
+</div>

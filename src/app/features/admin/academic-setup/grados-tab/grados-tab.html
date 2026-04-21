@@ -1,0 +1,162 @@
+<div class="tab-content">
+
+    <!-- ── NIVEL 1: Grid de Grados ── -->
+    @if (loadingGrados()) {
+    <div class="loading-state">
+        <mat-spinner diameter="36" />
+        <p>Cargando grados...</p>
+    </div>
+    } @else {
+    <div class="section-toolbar">
+        <span class="section-count">{{ grados().length }} grados de secundaria</span>
+    </div>
+
+    <div class="grades-grid">
+        @for (g of grados(); track g.id) {
+        <div class="grade-card" (click)="selectGrado(g)" [class.selected]="selectedGrado()?.id === g.id">
+            <div class="grade-icon">
+                <mat-icon>school</mat-icon>
+            </div>
+            <div class="grade-info">
+                <span class="grade-name">{{ g.nombre }}</span>
+                <span class="grade-sections">{{ getSeccionCount(g.id) }} secciones</span>
+            </div>
+            <mat-icon class="grade-arrow">
+                {{ selectedGrado()?.id === g.id ? 'expand_more' : 'chevron_right' }}
+            </mat-icon>
+        </div>
+        }
+    </div>
+
+    <!-- ── NIVEL 2: Secciones del Grado seleccionado ── -->
+    @if (selectedGrado()) {
+    <div class="sections-panel">
+        <div class="sections-header">
+            <div class="breadcrumb">
+                <mat-icon>school</mat-icon>
+                <span>{{ selectedGrado()!.nombre }}</span>
+                @if (selectedSeccion()) {
+                <mat-icon>chevron_right</mat-icon>
+                <span class="breadcrumb-active">Sección "{{ selectedSeccion()!.nombre }}"</span>
+                }
+            </div>
+            <button mat-flat-button color="primary" (click)="openCreateSeccion()">
+                <mat-icon>add</mat-icon> Nueva Sección
+            </button>
+        </div>
+
+        @if (loadingSecciones()) {
+        <div class="loading-state small">
+            <mat-spinner diameter="24" />
+        </div>
+        } @else {
+        <div class="sections-list">
+            @for (s of seccionesDelGrado(); track s.id) {
+            <div class="section-card" (click)="selectSeccion(s)" [class.selected]="selectedSeccion()?.id === s.id">
+                <div class="section-letter">{{ s.nombre }}</div>
+                <div class="section-info">
+                    <span class="section-name">Sección {{ s.nombre }}</span>
+                    <span class="section-cap">Cap. {{ s.capacidad }} alumnos</span>
+                </div>
+                @if (s.tutor_id) {
+                <mat-icon class="tutor-badge" matTooltip="Tiene tutor">verified</mat-icon>
+                }
+                <mat-icon class="section-arrow">
+                    {{ selectedSeccion()?.id === s.id ? 'expand_more' : 'chevron_right' }}
+                </mat-icon>
+            </div>
+            } @empty {
+            <div class="empty-state">
+                <mat-icon>folder_open</mat-icon>
+                <p>Sin secciones. Crea la primera.</p>
+            </div>
+            }
+        </div>
+        }
+
+        <!-- ── NIVEL 3: Cursos de la Sección seleccionada ── -->
+        @if (selectedSeccion()) {
+        <div class="courses-panel">
+            <div class="courses-header">
+                <h4 class="courses-title">
+                    Cursos de {{ selectedGrado()!.nombre }} — Sección "{{ selectedSeccion()!.nombre }}"
+                </h4>
+            </div>
+
+            @if (loadingCursos()) {
+            <div class="loading-state small">
+                <mat-spinner diameter="24" />
+                <p>Cargando cursos...</p>
+            </div>
+            } @else {
+            <table mat-table [dataSource]="cursosDeSeccion()" class="courses-table">
+
+                <ng-container matColumnDef="nombre">
+                    <th mat-header-cell *matHeaderCellDef>Curso</th>
+                    <td mat-cell *matCellDef="let c">
+                        <div class="course-name-cell">
+                            <span class="color-dot" [style.background]="c.color ?? '#6B7280'"></span>
+                            <span [class.muted]="!c.activo">{{ c.nombre }}</span>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="docente">
+                    <th mat-header-cell *matHeaderCellDef>Docente</th>
+                    <td mat-cell *matCellDef="let c">
+                        @if (c.docente) {
+                        <div class="docente-cell">
+                            <div class="docente-avatar-sm">
+                                {{ c.docente.nombre[0] }}{{ c.docente.apellido_paterno[0] }}
+                            </div>
+                            <span>{{ c.docente.nombre }} {{ c.docente.apellido_paterno }}</span>
+                        </div>
+                        } @else {
+                        <span class="no-docente">
+                            <mat-icon>warning</mat-icon> Sin asignar
+                        </span>
+                        }
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="estado">
+                    <th mat-header-cell *matHeaderCellDef>Estado</th>
+                    <td mat-cell *matCellDef="let c">
+                        @if (c.activo) {
+                        <span class="badge badge-active">Activo</span>
+                        } @else {
+                        <span class="badge badge-inactive">Inactivo</span>
+                        }
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let c">
+                        <button mat-icon-button color="primary" (click)="openAssignDocente(c)"
+                            matTooltip="Asignar docente">
+                            <mat-icon>person_add</mat-icon>
+                        </button>
+                        <button mat-icon-button [color]="c.activo ? 'warn' : 'primary'" (click)="toggleCurso(c)"
+                            [matTooltip]="c.activo ? 'Desactivar' : 'Activar'">
+                            <mat-icon>{{ c.activo ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="cursoCols"></tr>
+                <tr mat-row *matRowDef="let row; columns: cursoCols;" [class.inactive-row]="!row.activo"></tr>
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell no-data" colspan="4">
+                        Sin cursos. Asegúrate de tener un periodo activo.
+                    </td>
+                </tr>
+            </table>
+            }
+        </div>
+        }
+    </div>
+    }
+    }
+
+</div>

@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>Nuevo Periodo</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="form">
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre (ej: I Bimestre 2026)</mat-label>
+            <input matInput formControlName="nombre" />
+            @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+            <mat-error>El nombre es obligatorio</mat-error>
+            }
+        </mat-form-field>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Año</mat-label>
+                <input matInput type="number" formControlName="anio" />
+                @if (form.get('anio')?.invalid && form.get('anio')?.touched) {
+                <mat-error>Año inválido</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Bimestre</mat-label>
+                <mat-select formControlName="bimestre">
+                    @for (b of bimestres; track b.value) {
+                    <mat-option [value]="b.value">{{ b.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Fecha inicio</mat-label>
+                <input matInput type="date" formControlName="fecha_inicio" />
+                @if (form.get('fecha_inicio')?.hasError('required') && form.get('fecha_inicio')?.touched) {
+                <mat-error>Requerido</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Fecha fin</mat-label>
+                <input matInput type="date" formControlName="fecha_fin" />
+                @if (form.get('fecha_fin')?.hasError('required') && form.get('fecha_fin')?.touched) {
+                <mat-error>Requerido</mat-error>
+                }
+            </mat-form-field>
+        </div>
+
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-stroked-button (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="saving()">
+        @if (saving()) {
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+        } @else {
+        Crear Periodo
+        }
+    </button>
+</mat-dialog-actions>

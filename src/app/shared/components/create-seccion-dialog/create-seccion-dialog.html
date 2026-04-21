@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>Nueva Sección — {{ data.gradoNombre }}</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="form">
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre de la sección (ej: A, B, C)</mat-label>
+            <input matInput formControlName="nombre" maxlength="10" />
+            @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+            <mat-error>El nombre es obligatorio</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Capacidad de alumnos</mat-label>
+            <input matInput type="number" formControlName="capacidad" min="1" max="50" />
+            @if (form.get('capacidad')?.hasError('required') && form.get('capacidad')?.touched) {
+            <mat-error>La capacidad es obligatoria</mat-error>
+            }
+        </mat-form-field>
+
+        <div class="info-box">
+            <mat-icon>auto_awesome</mat-icon>
+            <span>Se generarán automáticamente los {{ 11 }} cursos del grado según el CNEB si hay un periodo
+                activo.</span>
+        </div>
+
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-stroked-button (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="saving()">
+        @if (saving()) {
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+        } @else {
+        Crear Sección
+        }
+    </button>
+</mat-dialog-actions>

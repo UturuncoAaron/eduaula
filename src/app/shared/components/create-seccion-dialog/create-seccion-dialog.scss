@@ -1,0 +1,21 @@
+.full-width {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--mat-sys-primary-container, #eaddff);
+    color: var(--mat-sys-on-primary-container, #21005d);
+    font-size: 0.85rem;
+    margin-top: 4px;
+
+    mat-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+}

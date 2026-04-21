@@ -1,162 +1,320 @@
-.layout {
-    display: grid;
-    grid-template-columns: 480px 1fr;
-    gap: 20px;
-    align-items: start;
+:host {
+    display: block;
+    padding: 24px;
+    background-color: #f4f7fa;
+    /* Fondo gris muy suave para que resalten las tarjetas blancas */
+    min-height: calc(100vh - 64px);
+}
 
-    @media (max-width: 900px) {
+.modern-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    align-items: start;
+    max-width: 1400px;
+    margin: 0 auto;
+
+    @media (max-width: 1024px) {
         grid-template-columns: 1fr;
     }
 }
 
-.form-card {
-    border-radius: 16px !important;
-    position: relative;
-    overflow: visible;
+/* --- MOTOR DE VINCULACIÓN (Izquierda) --- */
+.linking-engine {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    padding: 32px;
+}
 
-    .card-icon {
-        position: absolute;
-        top: -20px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 48px;
-        height: 48px;
+.entities-wrapper {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
+}
+
+.entity-card {
+    flex: 1;
+    background: #fafbfc;
+    border: 1px solid #eef0f4;
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        border-color: #d1d9e6;
+        background: #ffffff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+}
+
+.entity-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    p {
+        margin: 0;
+        font-size: 12px;
+        color: #64748b;
+    }
+}
+
+.avatar-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+        color: white;
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
+    }
+
+    &.padre-bg {
+        background: linear-gradient(135deg, #FF9800, #F57C00);
+    }
+
+    &.alumno-bg {
+        background: linear-gradient(135deg, #2196F3, #1565C0);
+    }
+}
+
+/* NODO CENTRAL RESPONSIVO */
+.connection-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+
+    .line {
+        flex: 1;
+        width: 2px;
+        background-color: #e2e8f0;
+        border-radius: 2px;
+        transition: background-color 0.3s ease;
+    }
+
+    .link-circle {
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
-        background: #1565C0;
+        background: #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: center;
+        margin: 8px 0;
+        color: #94a3b8;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
 
-        mat-icon {
-            color: white;
-            font-size: 24px;
+    /* Animación de estado listo */
+    &.is-ready {
+        .line {
+            background-color: #4CAF50;
+        }
+
+        .link-circle {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+            color: #4CAF50;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
         }
     }
 
-    mat-card-content {
-        padding-top: 32px !important;
+    @media (max-width: 768px) {
+        flex-direction: row;
+        width: 100%;
+        height: 60px;
+
+        .line {
+            height: 2px;
+            width: auto;
+        }
+
+        .link-circle {
+            margin: 0 8px;
+            transform: rotate(90deg);
+        }
     }
 }
 
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+/* ESTILOS DE INPUTS MATERIAL */
+.w-100 {
+    width: 100%;
 }
 
-.field-group {
+.prefix-icon {
+    color: #94a3b8;
+    margin-right: 8px;
+}
+
+.spinner-suffix {
+    margin-right: 8px;
+}
+
+.clear-btn {
+    color: #64748b;
+    transform: scale(0.85);
+    margin-right: 0;
+}
+
+::ng-deep .modern-input .mdc-text-field--outlined {
+    border-radius: 12px;
+    background-color: white;
+}
+
+/* OPCIONES AUTOCOMPLETADO */
+.custom-option {
+    height: auto !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    line-height: 1.2;
+
+    .doc-badge {
+        font-size: 11px;
+        font-weight: 700;
+        color: #1565C0;
+        letter-spacing: 0.5px;
+    }
+
+    .name-text {
+        font-size: 14px;
+        color: #334155;
+    }
+}
+
+/* FOOTER Y BOTÓN */
+.action-footer {
+    margin-top: 32px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-create-link {
+    height: 48px;
+    border-radius: 12px !important;
+    padding: 0 32px !important;
+    font-size: 15px;
+    font-weight: 600;
+    background-color: #1565C0 !important;
+    color: white !important;
+
+    mat-icon {
+        margin-right: 8px;
+    }
+
+    &:disabled {
+        background-color: #e2e8f0 !important;
+        color: #94a3b8 !important;
+    }
+}
+
+/* --- HISTORIAL RECIENTE (Derecha) --- */
+.recent-history {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+
+    .history-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        color: #1e293b;
+
+        mat-icon {
+            color: #1565C0;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+
+    .fallback-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        opacity: 0.5;
+        margin-bottom: 16px;
+    }
+
+    p {
+        font-size: 13px;
+        margin: 0;
+    }
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 4px;
 
-    .field-label {
+    .hist-person {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         font-size: 13px;
-        font-weight: 600;
-        color: #444;
+        color: #334155;
+        font-weight: 500;
 
         mat-icon {
             font-size: 16px;
             width: 16px;
             height: 16px;
-            color: #1565C0;
+            color: #64748b;
         }
     }
-}
 
-.link-arrow {
-    display: flex;
-    justify-content: center;
-    color: #1565C0;
-    margin: 4px 0;
-}
-
-.hint-success {
-    color: #2E7D32 !important;
-    font-weight: 500;
-}
-
-.w100 {
-    width: 100%;
-}
-
-.submit-btn {
-    width: 100%;
-    margin-top: 8px;
-    padding: 12px !important;
-    font-size: 15px;
-}
-
-.links-card {
-    border-radius: 16px !important;
-}
-
-.empty-links {
-    text-align: center;
-    padding: 32px;
-    color: #bbb;
-
-    mat-icon {
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
-        display: block;
-        margin: 0 auto 8px;
-    }
-
-    p {
-        font-size: 14px;
-    }
-}
-
-.links-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.link-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: #F8F9FF;
-    border: 1px solid #E3E8FF;
-}
-
-.link-user {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-
-    span:last-child {
-        font-size: 13px;
-        font-weight: 500;
-    }
-}
-
-.link-icon {
-    color: #1565C0;
-    flex-shrink: 0;
-}
-
-.role-badge {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 1px 8px;
-    border-radius: 99px;
-
-    &.padre {
-        background: #FFF3E0;
-        color: #E65100;
-    }
-
-    &.alumno {
-        background: #E3F2FD;
-        color: #1565C0;
+    .hist-arrow {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-left: 12px;
+        color: #cbd5e1;
     }
 }
