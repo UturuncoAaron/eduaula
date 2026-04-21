@@ -1,58 +1,57 @@
 <header class="navbar">
-
-    <!-- IZQUIERDA: toggle + breadcrumb -->
     <div class="navbar-left">
-        <button class="menu-btn" (click)="onToggleSidebar()" matTooltip="Menú">
+        <button class="menu-btn" (click)="onToggleSidebar()"
+            [matTooltip]="sidebarCollapsed() ? 'Expandir menú' : 'Contraer menú'">
             <mat-icon>menu</mat-icon>
         </button>
         <div class="app-title">
             <span class="title-main">IE JPVG</span>
             <span class="title-divider">/</span>
-            <span class="title-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
+            <span class="title-role" [style.color]="roleColor()">
+                <span class="role-dot" [style.background]="roleColor()"></span>
+                {{ roleLabel() }}
+            </span>
         </div>
     </div>
 
-    <!-- DERECHA: acciones + perfil -->
     <div class="navbar-right">
-
-        <!-- Notificaciones (placeholder) -->
         <button mat-icon-button matTooltip="Notificaciones" class="icon-btn">
             <mat-icon>notifications_none</mat-icon>
+            <span class="notification-badge"></span>
         </button>
 
-        <!-- Avatar + menú -->
+        <div class="divider-vertical"></div>
+
         <button class="avatar-btn" [matMenuTriggerFor]="userMenu">
             <div class="avatar" [style.background]="roleColor()">
                 {{ initials() }}
             </div>
             <div class="avatar-info">
                 <span class="avatar-name">{{ user()?.nombre }} {{ user()?.apellido_paterno }}</span>
-                <span class="avatar-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
+                <span class="avatar-role">{{ roleLabel() }}</span>
             </div>
             <mat-icon class="chevron">expand_more</mat-icon>
         </button>
 
-        <!-- Menú desplegable -->
-        <mat-menu #userMenu="matMenu" xPosition="before">
+        <mat-menu #userMenu="matMenu" xPosition="before" class="modern-menu">
             <div class="menu-header">
                 <strong>{{ user()?.nombre }} {{ user()?.apellido_paterno }}</strong>
-                <small>{{ roleLabel() }}</small>
+                <small>Usuario del sistema</small>
             </div>
-            <mat-divider />
+            <mat-divider></mat-divider>
             <button mat-menu-item>
                 <mat-icon>person_outline</mat-icon>
-                Mi perfil
+                <span>Mi perfil</span>
             </button>
             <button mat-menu-item>
                 <mat-icon>settings</mat-icon>
-                Configuración
+                <span>Configuración</span>
             </button>
-            <mat-divider />
+            <mat-divider></mat-divider>
             <button mat-menu-item class="logout-item" (click)="onLogout()">
                 <mat-icon>logout</mat-icon>
-                Cerrar sesión
+                <span>Cerrar sesión</span>
             </button>
         </mat-menu>
-
     </div>
 </header>

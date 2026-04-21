@@ -1,4 +1,4 @@
-import { Component, inject, input, output, computed } from '@angular/core';
+import { Component, inject, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,6 +6,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../../core/auth/auth';
+import { UserRole } from '../sidebar/navigation.config';
+
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -15,8 +17,9 @@ import { AuthService } from '../../../core/auth/auth';
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NavbarComponent {
+export class Navbar {
   private auth = inject(AuthService);
   private router = inject(Router);
 
@@ -35,24 +38,28 @@ export class NavbarComponent {
       .slice(0, 2).join('').toUpperCase();
   });
 
+  private roleLabels: Record<UserRole, string> = {
+    alumno: 'Estudiante',
+    docente: 'Docente',
+    admin: 'Administrador',
+    padre: 'Padre / Tutor',
+  };
+
+  private roleColors: Record<UserRole, string> = {
+    alumno: '#10b981', // Emerald 500
+    docente: '#f59e0b', // Amber 500
+    admin: '#ef4444',   // Red 500
+    padre: '#8b5cf6',   // Violet 500
+  };
+
   roleLabel = computed(() => {
-    const map: Record<string, string> = {
-      alumno: 'Estudiante',
-      docente: 'Docente',
-      admin: 'Administrador',
-      padre: 'Padre / Tutor',
-    };
-    return map[this.user()?.rol ?? ''] ?? '';
+    const rol = this.user()?.rol as UserRole;
+    return rol ? this.roleLabels[rol] : '';
   });
 
   roleColor = computed(() => {
-    const map: Record<string, string> = {
-      alumno: '#4caf50',
-      docente: '#ff9800',
-      admin: '#f44336',
-      padre: '#9c27b0',
-    };
-    return map[this.user()?.rol ?? ''] ?? '#90a4ae';
+    const rol = this.user()?.rol as UserRole;
+    return rol ? this.roleColors[rol] : '#64748b'; // Slate 500
   });
 
   onToggleSidebar() {

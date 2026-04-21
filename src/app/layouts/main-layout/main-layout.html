@@ -10,4 +10,8 @@
         </main>
     </div>
 
+    @if (!collapsed()) {
+    <div class="mobile-overlay" (click)="closeSidebarOnMobile()"></div>
+    }
+
 </div>

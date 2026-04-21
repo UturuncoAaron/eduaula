@@ -1,8 +1,11 @@
 .layout {
     display: flex;
     height: 100vh;
+    width: 100vw;
     overflow: hidden;
-    background: var(--c-bg);
+    /* Usa tu variable, pero dejé un color de respaldo elegante (Slate 50) */
+    background: var(--c-bg, #f8fafc);
+    position: relative;
 }
 
 .layout-body {
@@ -11,17 +14,46 @@
     flex-direction: column;
     overflow: hidden;
     min-width: 0;
+    /* TRUCO PRO: Evita que el contenido rompa el flexbox hacia la derecha */
+    position: relative;
 }
 
 .page-content {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 28px 32px;
-    background: var(--c-bg);
+    background: var(--c-bg, #f8fafc);
+
+    /* Scrollbar estético para el contenido principal */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+    }
 }
 
+/* OVERLAY PARA MÓVILES (Oculto por defecto en PC) */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.4);
+    /* Slate 900 semi-transparente */
+    backdrop-filter: blur(2px);
+    z-index: 40;
+    /* Debe estar debajo del Sidebar pero encima del Navbar/Contenido */
+}
+
+/* RESPONSIVE */
 @media (max-width: 768px) {
     .page-content {
         padding: 16px;
+    }
+    .mobile-overlay {
+        display: block;
     }
 }
