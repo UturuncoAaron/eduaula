@@ -32,27 +32,30 @@ export class AdminDashboard implements OnInit {
   private api = inject(ApiService);
 
   stats = signal<AdminStats>({ alumnos: 0, docentes: 0, cursos: 0, padres: 0 });
+  loadingStats = signal<boolean>(true);
+  errorStats = signal<boolean>(false);
 
-  // Simulamos actividad reciente para darle vida al dashboard
-  recentActivity = signal<Activity[]>([
-    { id: 1, tipo: 'user', mensaje: 'Nuevo docente registrado: Carlos Mendoza', fecha: new Date() },
-    { id: 2, tipo: 'system', mensaje: 'Copia de seguridad del sistema completada', fecha: new Date(Date.now() - 3600000) },
-    { id: 3, tipo: 'alert', mensaje: '3 pagos de pensiones pendientes de revisión', fecha: new Date(Date.now() - 7200000) },
-  ]);
+  recentActivity = signal<Activity[]>([]);
 
   ngOnInit() {
     this.api.get<AdminStats>('admin/users/stats').subscribe({
-      next: res => this.stats.set(res.data),
+      next: res => {
+        this.stats.set(res.data);
+        this.loadingStats.set(false);
+      },
       error: () => {
-        this.stats.set({ alumnos: 428, docentes: 35, cursos: 24, padres: 310 });
+        // En lugar de cargar datos falsos, encendemos la bandera de error
+        this.errorStats.set(true);
+        this.loadingStats.set(false);
       }
     });
   }
 
+
   readonly quickAccess = [
-    { label: 'Gestionar usuarios', desc: 'Altas, bajas y roles', icon: 'people', route: '/admin/usuarios', color: 'blue' },
-    { label: 'Estructura académica', desc: 'Grados, secciones y cursos', icon: 'account_tree', route: '/admin/academico', color: 'purple' },
-    { label: 'Vincular familias', desc: 'Relación padre-hijo', icon: 'family_restroom', route: '/admin/padre-hijo', color: 'green' },
-    { label: 'Exportar reportes', desc: 'Métricas y excel', icon: 'analytics', route: '/admin/reportes', color: 'orange' },
+    { label: 'Gestionar usuarios', desc: 'Altas, bajas y roles', icon: 'people', route: '/admin/user-management', color: 'blue' },
+    { label: 'Estructura académica', desc: 'Grados, secciones y cursos', icon: 'account_tree', route: '/admin/academic-setup', color: 'purple' },
+    { label: 'Vincular familias', desc: 'Relación padre-hijo', icon: 'family_restroom', route: '/admin/parent-child-link', color: 'green' },
+    { label: 'Exportar reportes', desc: 'Métricas y excel', icon: 'analytics', route: '/admin/reports', color: 'orange' },
   ];
 }

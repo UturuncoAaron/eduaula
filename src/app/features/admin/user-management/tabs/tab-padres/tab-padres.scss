@@ -1,0 +1,96 @@
+.table-container {
+    min-height: 300px;
+    position: relative;
+    overflow-x: auto;
+}
+
+.custom-table {
+    width: 100%;
+
+    th {
+        font-weight: 600;
+        color: #475569;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    td {
+        color: #1e293b;
+        font-size: 14px;
+    }
+
+    .doc-badge {
+        background: #f1f5f9;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-right: 8px;
+        color: #64748b;
+    }
+
+    .name-cell strong {
+        color: #0f172a;
+    }
+
+    .align-right {
+        text-align: right;
+    }
+
+    .row-hover:hover {
+        background: #f8fafc;
+    }
+
+    .empty-search {
+        text-align: center;
+        padding: 32px;
+        color: #64748b;
+        font-style: italic;
+    }
+}
+
+.tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-weight: 500;
+
+    &.active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    &.inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+}
+
+.loading-state,
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: #94a3b8;
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .spinner {
+        animation: spin 1s linear infinite;
+    }
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}

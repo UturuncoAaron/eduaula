@@ -19,7 +19,7 @@ import { AuthService } from '../../../core/auth/auth';
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
-export class LoginComponent {
+export class Login {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
@@ -35,12 +35,12 @@ export class LoginComponent {
   });
 
   get maxLength(): number {
-    const t = this.form.value.tipo_documento as string;  // ← cast corregido
+    const t = this.form.value.tipo_documento as string;
     return t === 'dni' ? 8 : t === 'ce' ? 12 : 20;
   }
 
   get docPlaceholder(): string {
-    const t = this.form.value.tipo_documento as string;  // ← cast corregido
+    const t = this.form.value.tipo_documento as string;
     return t === 'dni' ? '8 dígitos' : t === 'ce' ? 'Hasta 12 caracteres' : 'Hasta 20 caracteres';
   }
 
@@ -58,7 +58,29 @@ export class LoginComponent {
     this.error.set('');
 
     this.auth.login(this.form.value as any).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => {
+        const user = this.auth.currentUser();
+
+        if (!user || !user.rol) {
+          this.error.set('Error de integridad: Cuenta sin rol asignado.');
+          this.loading.set(false);
+          this.auth.logout();
+          return;
+        }
+
+        // Redirección escalable
+        switch (user.rol) {
+          case 'alumno': this.router.navigate(['/dashboard/alumno']); break;
+          case 'docente': this.router.navigate(['/dashboard/docente']); break;
+          case 'padre': this.router.navigate(['/dashboard/padre']); break;
+          case 'admin': this.router.navigate(['/dashboard/admin']); break;
+          default:
+            this.error.set('Rol no reconocido por el sistema');
+            this.loading.set(false);
+            this.auth.logout();
+            break;
+        }
+      },
       error: (msg: string) => {
         this.error.set(msg || 'Documento o contraseña incorrectos');
         this.loading.set(false);

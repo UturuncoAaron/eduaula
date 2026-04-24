@@ -42,35 +42,34 @@ export class CreateUserDialog {
     telefono: [''],
     password: ['', [Validators.required, Validators.minLength(6)]],
     rol: ['alumno', Validators.required],
-    // alumno
     codigo_estudiante: [''],
     fecha_nacimiento: [null as Date | null],
-    // docente
     especialidad: [''],
     titulo_profesional: [''],
-    // padre
-    relacion_familiar: [''],
-    // admin
+    relacion: [''],
     cargo: [''],
   });
 
   onRolChange() {
-    // limpiar campos específicos al cambiar rol
     this.form.patchValue({
       codigo_estudiante: '',
       fecha_nacimiento: null,
       especialidad: '',
       titulo_profesional: '',
-      relacion_familiar: '',
+      relacion: '',
       cargo: '',
     });
   }
 
   submit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.creating.set(true);
 
     const v = this.form.value;
+
     const payload: any = {
       tipo_documento: v.tipo_documento,
       numero_documento: v.numero_documento,
@@ -83,31 +82,43 @@ export class CreateUserDialog {
       rol: v.rol,
     };
 
-    if (v.rol === 'alumno') {
-      if (v.codigo_estudiante) payload.codigo_estudiante = v.codigo_estudiante;
-      if (v.fecha_nacimiento) payload.fecha_nacimiento = (v.fecha_nacimiento as Date).toISOString().split('T')[0];
-    }
-    if (v.rol === 'docente') {
-      if (v.especialidad) payload.especialidad = v.especialidad;
-      if (v.titulo_profesional) payload.titulo_profesional = v.titulo_profesional;
-    }
-    if (v.rol === 'padre') {
-      if (v.relacion_familiar) payload.relacion_familiar = v.relacion_familiar;
-    }
-    if (v.rol === 'admin') {
-      if (v.cargo) payload.cargo = v.cargo;
+    switch (v.rol) {
+     case 'alumno':
+        payload.codigo_estudiante = v.codigo_estudiante?.trim() ? v.codigo_estudiante : `EST-${v.numero_documento}`;
+        
+        if (v.fecha_nacimiento) payload.fecha_nacimiento = (v.fecha_nacimiento as Date).toISOString().split('T')[0];
+        break;
+      case 'docente':
+        if (v.especialidad) payload.especialidad = v.especialidad;
+        if (v.titulo_profesional) payload.titulo_profesional = v.titulo_profesional;
+        break;
+      case 'padre':
+        if (v.relacion) payload.relacion = v.relacion;
+        break;
+      case 'admin':
+        if (v.cargo) payload.cargo = v.cargo;
+        break;
     }
 
-    this.api.post<User>('admin/users', payload).subscribe({
+    const roleEndpoints: Record<string, string> = {
+      alumno: 'admin/users/alumnos',
+      docente: 'admin/users/docentes',
+      padre: 'admin/users/padres',
+      admin: 'admin/users/admins'
+    };
+
+    const targetEndpoint = roleEndpoints[v.rol as string];
+
+    this.api.post<User>(targetEndpoint, payload).subscribe({
       next: r => {
-        this.snack.open('Usuario creado correctamente', 'OK', { duration: 3000 });
+        this.snack.open('Usuario creado exitosamente', 'Cerrar', { duration: 3000, panelClass: 'success-snackbar' });
         this.dialogRef.close(r.data);
         this.creating.set(false);
       },
       error: (err) => {
         this.snack.open(
-          err?.error?.message ?? 'Error al crear usuario',
-          'OK', { duration: 3000 }
+          err?.error?.message ?? 'Error de integridad al crear usuario',
+          'Cerrar', { duration: 4000 }
         );
         this.creating.set(false);
       },

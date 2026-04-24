@@ -6,11 +6,11 @@ $text-main: #1e293b;
 $text-muted: #64748b;
 $border-light: #e2e8f0;
 
-/* Colores para las tarjetas */
 $c-blue: #2563eb;
 $c-purple: #9333ea;
 $c-green: #059669;
 $c-orange: #ea580c;
+$c-red: #dc2626;
 
 .dashboard-container {
     padding: 0 32px 40px 32px;
@@ -24,15 +24,41 @@ $c-orange: #ea580c;
 }
 
 /* ==========================================================================
-   BANNER DE BIENVENIDA (Rediseño Luminoso)
+   ALERTAS Y CARGA
+   ========================================================================== */
+.error-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fef2f2;
+    color: $c-red;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 24px;
+    border: 1px solid #fee2e2;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.loading-text {
+    font-size: 16px;
+    color: $text-muted;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   BANNER DE BIENVENIDA
    ========================================================================== */
 .welcome-banner {
     background: #ffffff;
-    /* Un gradiente radial súper sutil en la esquina superior derecha */
     background-image: radial-gradient(circle at top right, #eff6ff 0%, #ffffff 60%);
     border: 1px solid $border-light;
     border-left: 6px solid $c-blue;
-    /* Acento corporativo */
     border-radius: 16px;
     padding: 32px 40px;
     display: flex;
@@ -44,6 +70,10 @@ $c-orange: #ea580c;
     position: relative;
     overflow: hidden;
 
+    @media (max-width: 768px) {
+        padding: 24px;
+    }
+
     .banner-content {
         z-index: 2;
 
@@ -51,15 +81,17 @@ $c-orange: #ea580c;
             font-size: 28px;
             font-weight: 700;
             color: $text-main;
-            /* Texto oscuro principal */
             margin: 0 0 8px 0;
             letter-spacing: -0.5px;
+
+            @media (max-width: 768px) {
+                font-size: 24px;
+            }
         }
 
         .subtitle {
             font-size: 15px;
             color: $text-muted;
-            /* Texto gris sutil */
             margin: 0;
         }
     }
@@ -70,9 +102,18 @@ $c-orange: #ea580c;
         top: 50%;
         transform: translateY(-50%) rotate(-5deg);
         opacity: 0.04;
-        /* Ícono como marca de agua casi invisible */
         color: $c-blue;
         pointer-events: none;
+
+        @media (max-width: 768px) {
+            right: 10px;
+
+            mat-icon {
+                font-size: 100px;
+                width: 100px;
+                height: 100px;
+            }
+        }
 
         mat-icon {
             font-size: 160px;
@@ -127,6 +168,8 @@ $c-orange: #ea580c;
     .stat-info {
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        height: 100%;
 
         .lbl {
             font-size: 13px;
@@ -142,32 +185,11 @@ $c-orange: #ea580c;
             color: $text-main;
             line-height: 1.2;
             margin: 4px 0;
-        }
-
-        .trend {
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: 500;
-
-            mat-icon {
-                font-size: 14px;
-                width: 14px;
-                height: 14px;
-            }
-
-            &.positive {
-                color: $c-green;
-            }
-
-            &.neutral {
-                color: $text-muted;
-            }
+            min-height: 38px;
+            /* Evita saltos de altura al cargar */
         }
     }
 
-    /* Colores Específicos por Tarjeta */
     &.students .icon-wrapper {
         background: rgba($c-blue, 0.1);
         color: $c-blue;
@@ -190,7 +212,7 @@ $c-orange: #ea580c;
 }
 
 /* ==========================================================================
-   GRILLA PRINCIPAL (Izquierda Accesos / Derecha Actividad)
+   GRILLA PRINCIPAL
    ========================================================================== */
 .dashboard-grid {
     display: grid;
@@ -199,7 +221,7 @@ $c-orange: #ea580c;
 
     @media (max-width: 1024px) {
         grid-template-columns: 1fr;
-        /* Se apila en pantallas más pequeñas */
+        /* Apila todo en una columna en tablet/móvil */
     }
 }
 
@@ -244,6 +266,7 @@ $c-orange: #ea580c;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
 
         mat-icon {
             font-size: 24px;
@@ -284,7 +307,6 @@ $c-orange: #ea580c;
         }
     }
 
-    /* Temas de color para los botones */
     &.blue .action-icon {
         background: rgba($c-blue, 0.1);
         color: $c-blue;
@@ -314,6 +336,7 @@ $c-orange: #ea580c;
     padding: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
     border: 1px solid $border-light;
+    overflow: hidden;
 }
 
 .activity-list {
@@ -374,5 +397,24 @@ $c-orange: #ea580c;
             font-size: 12px;
             color: $text-muted;
         }
+    }
+}
+
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+
+    p {
+        margin: 0;
+        font-size: 14px;
     }
 }

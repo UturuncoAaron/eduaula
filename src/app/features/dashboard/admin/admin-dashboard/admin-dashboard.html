@@ -10,13 +10,22 @@
         </div>
     </header>
 
+    @if (errorStats()) {
+    <div class="error-banner">
+        <mat-icon>cloud_off</mat-icon>
+        <span>No se pudieron cargar las estadísticas desde la base de datos. Verifica tu conexión.</span>
+    </div>
+    }
+
     <section class="stats-section">
         <div class="stat-card students">
             <div class="icon-wrapper"><mat-icon>school</mat-icon></div>
             <div class="stat-info">
                 <span class="lbl">Total Alumnos</span>
-                <span class="num">{{ stats().alumnos }}</span>
-                <span class="trend positive"><mat-icon>trending_up</mat-icon> +12% este mes</span>
+                <span class="num">
+                    @if (loadingStats()) { <span class="loading-text">Cargando...</span> }
+                    @else { {{ stats().alumnos }} }
+                </span>
             </div>
         </div>
 
@@ -24,8 +33,10 @@
             <div class="icon-wrapper"><mat-icon>badge</mat-icon></div>
             <div class="stat-info">
                 <span class="lbl">Docentes Activos</span>
-                <span class="num">{{ stats().docentes }}</span>
-                <span class="trend neutral"><mat-icon>drag_handle</mat-icon> Sin cambios</span>
+                <span class="num">
+                    @if (loadingStats()) { <span class="loading-text">Cargando...</span> }
+                    @else { {{ stats().docentes }} }
+                </span>
             </div>
         </div>
 
@@ -33,8 +44,10 @@
             <div class="icon-wrapper"><mat-icon>family_restroom</mat-icon></div>
             <div class="stat-info">
                 <span class="lbl">Padres / Apoderados</span>
-                <span class="num">{{ stats().padres }}</span>
-                <span class="trend positive"><mat-icon>trending_up</mat-icon> +5% este mes</span>
+                <span class="num">
+                    @if (loadingStats()) { <span class="loading-text">Cargando...</span> }
+                    @else { {{ stats().padres }} }
+                </span>
             </div>
         </div>
 
@@ -42,8 +55,10 @@
             <div class="icon-wrapper"><mat-icon>menu_book</mat-icon></div>
             <div class="stat-info">
                 <span class="lbl">Cursos Registrados</span>
-                <span class="num">{{ stats().cursos }}</span>
-                <span class="trend neutral"><mat-icon>drag_handle</mat-icon> Ciclo actual</span>
+                <span class="num">
+                    @if (loadingStats()) { <span class="loading-text">Cargando...</span> }
+                    @else { {{ stats().cursos }} }
+                </span>
             </div>
         </div>
     </section>
@@ -52,7 +67,6 @@
         <section class="main-column">
             <div class="section-header">
                 <h2>Accesos Rápidos</h2>
-                <button mat-button color="primary">Ver todo</button>
             </div>
 
             <div class="quick-grid">
@@ -92,7 +106,10 @@
                         </div>
                     </div>
                     } @empty {
-                    <p class="empty-msg">No hay actividad reciente.</p>
+                    <div class="empty-state">
+                        <mat-icon>history</mat-icon>
+                        <p>No hay actividad reciente para mostrar.</p>
+                    </div>
                     }
                 </div>
             </mat-card>
