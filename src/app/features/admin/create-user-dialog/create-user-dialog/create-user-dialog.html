@@ -4,13 +4,20 @@
         <p class="subtitle">Complete los datos de la nueva cuenta institucional.</p>
     </div>
     <div class="header-icon">
-        <mat-icon>person_add_alt_1</mat-icon>
+        <mat-icon>{{ roleMeta().icon }}</mat-icon>
     </div>
 </div>
 
 <mat-dialog-content class="custom-scrollbar">
     <form [formGroup]="form" class="form">
 
+        <!-- ── Rol (solo display, no editable) ─────────────────── -->
+        <div class="role-badge">
+            <mat-icon>{{ roleMeta().icon }}</mat-icon>
+            <span>{{ roleMeta().label }}</span>
+        </div>
+
+        <!-- ── Identidad y acceso ───────────────────────────────── -->
         <div class="section-title">
             <mat-icon>vpn_key</mat-icon> Identidad y Acceso
         </div>
@@ -45,13 +52,14 @@
             </mat-form-field>
         </div>
 
+        <!-- ── Datos personales ─────────────────────────────────── -->
         <div class="section-title">
             <mat-icon>badge</mat-icon> Datos Personales
         </div>
 
         <div class="row-3">
             <mat-form-field appearance="outline">
-                <mat-label>Nombres</mat-label>
+                <mat-label>Nombres*</mat-label>
                 <input matInput formControlName="nombre" />
                 @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
                 <mat-error>Requerido</mat-error>
@@ -59,7 +67,7 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-                <mat-label>Apellido paterno</mat-label>
+                <mat-label>Apellido paterno*</mat-label>
                 <input matInput formControlName="apellido_paterno" />
                 @if (form.controls.apellido_paterno.invalid && form.controls.apellido_paterno.touched) {
                 <mat-error>Requerido</mat-error>
@@ -89,88 +97,81 @@
             </mat-form-field>
         </div>
 
-        <div class="section-title highlight-section">
-            <mat-icon>assignment_ind</mat-icon> Asignación de Rol
-        </div>
+        <!-- ── Campos dinámicos según rol ──────────────────────── -->
 
-        <div class="row-1">
-            <mat-form-field appearance="outline" class="role-selector">
-                <mat-label>Rol en la institución</mat-label>
-                <mat-select formControlName="rol" (selectionChange)="onRolChange()">
-                    <mat-option value="alumno">Alumno Regular</mat-option>
-                    <mat-option value="docente">Docente / Profesor</mat-option>
-                    <mat-option value="padre">Padre / Tutor / Apoderado</mat-option>
-                    <mat-option value="admin">Administrador del Sistema</mat-option>
+        @if (data.rol === 'alumno') {
+        <div class="section-title fade-in">
+            <mat-icon>school</mat-icon> Datos del Alumno
+        </div>
+        <div class="row-2 fade-in">
+            <mat-form-field appearance="outline">
+                <mat-label>Código de estudiante</mat-label>
+                <input matInput formControlName="codigo_estudiante" placeholder="Dejar en blanco para autogenerar" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Fecha de nacimiento</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="fecha_nacimiento" readonly
+                    (click)="picker.open()" />
+                <mat-datepicker-toggle matIconSuffix [for]="picker" />
+                <mat-datepicker #picker />
+            </mat-form-field>
+        </div>
+        }
+
+        @if (data.rol === 'docente') {
+        <div class="section-title fade-in">
+            <mat-icon>school</mat-icon> Datos del Docente
+        </div>
+        <div class="row-2 fade-in">
+            <mat-form-field appearance="outline">
+                <mat-label>Especialidad</mat-label>
+                <input matInput formControlName="especialidad" placeholder="Ej. Matemáticas, Letras..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Título profesional</mat-label>
+                <input matInput formControlName="titulo_profesional" placeholder="Ej. Licenciado en Educación" />
+            </mat-form-field>
+        </div>
+        }
+
+        @if (data.rol === 'padre') {
+        <div class="section-title fade-in">
+            <mat-icon>family_restroom</mat-icon> Datos del Tutor
+        </div>
+        <div class="row-2 fade-in">
+            <mat-form-field appearance="outline">
+                <mat-label>Relación familiar*</mat-label>
+                <mat-select formControlName="relacion">
+                    <mat-option value="padre">Padre</mat-option>
+                    <mat-option value="madre">Madre</mat-option>
+                    <mat-option value="tutor">Tutor Legal</mat-option>
+                    <mat-option value="apoderado">Apoderado Registrado</mat-option>
                 </mat-select>
             </mat-form-field>
         </div>
+        }
 
-        <div class="dynamic-fields-container">
-            @if (form.value.rol === 'alumno') {
-            <div class="row-2 fade-in">
-                <mat-form-field appearance="outline">
-                    <mat-label>Código de estudiante</mat-label>
-                    <input matInput formControlName="codigo_estudiante"
-                        placeholder="Dejar en blanco para autogenerar" />
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                    <mat-label>Fecha de nacimiento</mat-label>
-                    <input matInput [matDatepicker]="picker" formControlName="fecha_nacimiento" readonly
-                        (click)="picker.open()" />
-                    <mat-datepicker-toggle matIconSuffix [for]="picker" />
-                    <mat-datepicker #picker />
-                </mat-form-field>
-            </div>
-            }
-
-            @if (form.value.rol === 'docente') {
-            <div class="row-2 fade-in">
-                <mat-form-field appearance="outline">
-                    <mat-label>Especialidad</mat-label>
-                    <input matInput formControlName="especialidad" placeholder="Ej. Matemáticas, Letras..." />
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                    <mat-label>Título profesional</mat-label>
-                    <input matInput formControlName="titulo_profesional" placeholder="Ej. Licenciado en Educación" />
-                </mat-form-field>
-            </div>
-            }
-
-            @if (form.value.rol === 'padre') {
-            <div class="row-2 fade-in">
-                <mat-form-field appearance="outline">
-                    <mat-label>Relación familiar</mat-label>
-                    <mat-select formControlName="relacion">
-                        <mat-option value="padre">Padre</mat-option>
-                        <mat-option value="madre">Madre</mat-option>
-                        <mat-option value="tutor">Tutor Legal</mat-option>
-                        <mat-option value="apoderado">Apoderado Registrado</mat-option>
-                    </mat-select>
-                </mat-form-field>
-            </div>
-            }
-
-            @if (form.value.rol === 'admin') {
-            <div class="row-2 fade-in">
-                <mat-form-field appearance="outline">
-                    <mat-label>Cargo Oficial</mat-label>
-                    <input matInput formControlName="cargo" placeholder="Ej. Director, Coordinador..." />
-                </mat-form-field>
-            </div>
-            }
+        @if (data.rol === 'admin') {
+        <div class="section-title fade-in">
+            <mat-icon>admin_panel_settings</mat-icon> Datos del Administrador
         </div>
+        <div class="row-2 fade-in">
+            <mat-form-field appearance="outline">
+                <mat-label>Cargo Oficial</mat-label>
+                <input matInput formControlName="cargo" placeholder="Ej. Director, Coordinador..." />
+            </mat-form-field>
+        </div>
+        }
 
     </form>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="dialog-footer">
     <button mat-button mat-dialog-close [disabled]="creating()">Cancelar</button>
-
     <button mat-flat-button color="primary" (click)="submit()" [disabled]="creating()">
         @if (!creating()) {
         <mat-icon>check_circle</mat-icon>
         }
-
         <span>{{ creating() ? 'Guardando...' : 'Confirmar Registro' }}</span>
     </button>
 </mat-dialog-actions>

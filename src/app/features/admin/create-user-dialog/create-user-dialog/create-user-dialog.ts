@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -8,12 +9,29 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../../../core/services/api';
-import { User } from '../../../../core/models/user';
+import { UserRole } from '../../../../shared/components/sidebar/navigation.config';
+
+export interface CreateUserDialogData {
+  rol: UserRole;
+}
+
+interface RoleMeta {
+  label: string;
+  icon: string;
+  endpoint: string;
+}
+
+const ROLE_META: Record<UserRole, RoleMeta> = {
+  admin: { label: 'Administrador del Sistema', icon: 'admin_panel_settings', endpoint: 'admin/users/admins' },
+  alumno: { label: 'Alumno Regular', icon: 'school', endpoint: 'admin/users/alumnos' },
+  docente: { label: 'Docente / Profesor', icon: 'badge', endpoint: 'admin/users/docentes' },
+  padre: { label: 'Padre / Tutor / Apoderado', icon: 'family_restroom', endpoint: 'admin/users/padres' },
+};
 
 @Component({
   selector: 'app-create-user-dialog',
+  standalone: true,
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatButtonModule, MatIconModule,
@@ -29,97 +47,102 @@ export class CreateUserDialog {
   private snack = inject(MatSnackBar);
   private dialogRef = inject(MatDialogRef<CreateUserDialog>);
 
+  /** Rol recibido desde el tab activo */
+  data: CreateUserDialogData = inject(MAT_DIALOG_DATA);
+
   creating = signal(false);
   showPass = signal(false);
 
+  /** Metadatos reactivos según el rol */
+  roleMeta = computed<RoleMeta>(() => ROLE_META[this.data.rol]);
+
   form = this.fb.group({
+    // ── Campos comunes ──────────────────────────────────────────
     tipo_documento: ['dni', Validators.required],
     numero_documento: ['', [Validators.required, Validators.maxLength(20)]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_paterno: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_materno: [''],
     email: ['', Validators.email],
     telefono: [''],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    rol: ['alumno', Validators.required],
+
+    // ── Campos por rol ──────────────────────────────────────────
+    // alumno
     codigo_estudiante: [''],
     fecha_nacimiento: [null as Date | null],
+
+    // docente
     especialidad: [''],
     titulo_profesional: [''],
+
+    // padre
     relacion: [''],
+
+    // admin
     cargo: [''],
   });
-
-  onRolChange() {
-    this.form.patchValue({
-      codigo_estudiante: '',
-      fecha_nacimiento: null,
-      especialidad: '',
-      titulo_profesional: '',
-      relacion: '',
-      cargo: '',
-    });
-  }
 
   submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    this.creating.set(true);
 
+    this.creating.set(true);
     const v = this.form.value;
 
-    const payload: any = {
+    // ── Payload base (campos comunes a todos los roles) ─────────
+    const base: Record<string, unknown> = {
       tipo_documento: v.tipo_documento,
       numero_documento: v.numero_documento,
+      password: v.password,
       nombre: v.nombre,
       apellido_paterno: v.apellido_paterno,
-      apellido_materno: v.apellido_materno || undefined,
-      email: v.email || undefined,
-      telefono: v.telefono || undefined,
-      password: v.password,
-      rol: v.rol,
+      ...(v.apellido_materno?.trim() && { apellido_materno: v.apellido_materno }),
+      ...(v.email?.trim() && { email: v.email }),
+      ...(v.telefono?.trim() && { telefono: v.telefono }),
     };
 
-    switch (v.rol) {
-     case 'alumno':
-        payload.codigo_estudiante = v.codigo_estudiante?.trim() ? v.codigo_estudiante : `EST-${v.numero_documento}`;
-        
-        if (v.fecha_nacimiento) payload.fecha_nacimiento = (v.fecha_nacimiento as Date).toISOString().split('T')[0];
-        break;
-      case 'docente':
-        if (v.especialidad) payload.especialidad = v.especialidad;
-        if (v.titulo_profesional) payload.titulo_profesional = v.titulo_profesional;
-        break;
-      case 'padre':
-        if (v.relacion) payload.relacion = v.relacion;
-        break;
-      case 'admin':
-        if (v.cargo) payload.cargo = v.cargo;
-        break;
-    }
-
-    const roleEndpoints: Record<string, string> = {
-      alumno: 'admin/users/alumnos',
-      docente: 'admin/users/docentes',
-      padre: 'admin/users/padres',
-      admin: 'admin/users/admins'
+    // ── Campos extra según rol ──────────────────────────────────
+    const extras: Record<UserRole, Record<string, unknown>> = {
+      alumno: {
+        codigo_estudiante: v.codigo_estudiante?.trim()
+          ? v.codigo_estudiante
+          : `EST-${v.numero_documento}`,
+        ...(v.fecha_nacimiento && {
+          fecha_nacimiento: (v.fecha_nacimiento as Date).toISOString().split('T')[0],
+        }),
+      },
+      docente: {
+        ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
+        ...(v.titulo_profesional?.trim() && { titulo_profesional: v.titulo_profesional }),
+      },
+      padre: {
+        ...(v.relacion && { relacion: v.relacion }),
+      },
+      admin: {
+        ...(v.cargo?.trim() && { cargo: v.cargo }),
+      },
     };
 
-    const targetEndpoint = roleEndpoints[v.rol as string];
+    const payload = { ...base, ...extras[this.data.rol] };
+    const endpoint = ROLE_META[this.data.rol].endpoint;
 
-    this.api.post<User>(targetEndpoint, payload).subscribe({
-      next: r => {
-        this.snack.open('Usuario creado exitosamente', 'Cerrar', { duration: 3000, panelClass: 'success-snackbar' });
-        this.dialogRef.close(r.data);
+    this.api.post(endpoint, payload).subscribe({
+      next: () => {
+        this.snack.open('Usuario creado exitosamente', 'Cerrar', {
+          duration: 3000,
+          panelClass: 'success-snackbar',
+        });
+        this.dialogRef.close(true); // true = se creó algo, recargar
         this.creating.set(false);
       },
       error: (err) => {
-        this.snack.open(
-          err?.error?.message ?? 'Error de integridad al crear usuario',
-          'Cerrar', { duration: 4000 }
-        );
+        const msg = Array.isArray(err?.error?.message)
+          ? err.error.message.join(', ')
+          : (err?.error?.message ?? 'Error al crear usuario');
+        this.snack.open(msg, 'Cerrar', { duration: 5000 });
         this.creating.set(false);
       },
     });

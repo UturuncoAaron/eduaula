@@ -9,72 +9,82 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../../../core/services/api';
 import { CreateUserDialog } from '../../create-user-dialog/create-user-dialog/create-user-dialog';
-
-// Importamos todos los componentes hijos (rutas relativas estandarizadas)
 import { TabAlumnos } from '../tabs/tab-alumnos/tab-alumnos';
 import { TabDocentes } from '../tabs/tab-docentes/tab-docentes';
 import { TabPadres } from '../tabs/tab-padres/tab-padres';
-import { TabAdmins } from '../tabs/tab-admins/tab-admins'; // <-- ¡Aquí está el nuevo tab!
+import { TabAdmins } from '../tabs/tab-admins/tab-admins';
 
-// Agregamos "admins" a la interfaz para coincidir con la BD
-interface UserStats {
+export type UserRole = 'admin' | 'alumno' | 'docente' | 'padre';
+
+export interface UserStats {
   alumnos: number;
   docentes: number;
   padres: number;
-  admins: number; 
+  admins: number;
 }
+
+const TAB_ROLES: UserRole[] = ['admin', 'alumno', 'docente', 'padre'];
 
 @Component({
   selector: 'app-user-management',
-  standalone: true,
   imports: [
     ReactiveFormsModule, MatCardModule, MatIconModule, MatButtonModule,
     MatInputModule, MatFormFieldModule, MatTabsModule, MatDialogModule,
-    TabAlumnos, TabDocentes, TabPadres, TabAdmins // <-- Registramos TabAdmins aquí
+    TabAlumnos, TabDocentes, TabPadres, TabAdmins,
   ],
   templateUrl: './user-management.html',
-  styleUrl: './user-management.scss'
+  styleUrl: './user-management.scss',
 })
 export class UserManagement implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
 
-  // Inicializamos todos los contadores en 0
   stats = signal<UserStats>({ alumnos: 0, docentes: 0, padres: 0, admins: 0 });
   searchControl = new FormControl('');
-  
-  // Señal reactiva que pasaremos a los hijos
   searchQuery = signal<string>('');
+
+  /** Índice del tab activo (0=admins, 1=alumnos, 2=docentes, 3=padres) */
+  activeTabIndex = signal<number>(0);
+
+  /** Helpers para pasar [active] a cada tab hijo */
+  isTabActive = (index: number) => this.activeTabIndex() === index;
 
   ngOnInit() {
     this.loadStats();
-
-    // Actualizamos la señal reactiva cada vez que el usuario escribe
     this.searchControl.valueChanges.subscribe(val => {
-      this.searchQuery.set(val?.trim().toLowerCase() || '');
+      this.searchQuery.set(val?.trim().toLowerCase() ?? '');
     });
   }
 
   loadStats() {
     this.api.get<UserStats>('admin/users/stats').subscribe({
       next: (res) => this.stats.set(res.data),
-      error: () => console.error('Error cargando estadísticas')
+      error: () => console.error('Error cargando estadísticas'),
     });
+  }
+
+  onTabChange(index: number) {
+    this.activeTabIndex.set(index);
+  }
+
+  get activeRole(): UserRole {
+    return TAB_ROLES[this.activeTabIndex()];
   }
 
   openCreateUser() {
     const dialogRef = this.dialog.open(CreateUserDialog, {
-      width: '700px',
-      disableClose: true
+      width: '680px',
+      disableClose: true,
+      data: { rol: this.activeRole },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // Recargar stats y forzar a los hijos a actualizarse si es necesario
+    dialogRef.afterClosed().subscribe((created: boolean) => {
+      if (created) {
         this.loadStats();
-        // Un pequeño hack reactivo para forzar el refresh en las tablas hijas:
-        this.searchQuery.set(this.searchQuery() + ' '); 
-        setTimeout(() => this.searchQuery.set(this.searchQuery().trim()), 50);
+        // Forzar recarga del tab activo re-emitiendo el índice
+        const current = this.activeTabIndex();
+        this.activeTabIndex.set(-1);
+        setTimeout(() => this.activeTabIndex.set(current), 0);
       }
     });
   }

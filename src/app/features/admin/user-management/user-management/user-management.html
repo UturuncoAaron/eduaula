@@ -8,11 +8,12 @@
             <mat-icon>person_add</mat-icon> Crear usuario
         </button>
     </div>
+
     <div class="stats-grid">
         <div class="stat-card admins">
             <mat-icon>admin_panel_settings</mat-icon>
             <div class="stat-info">
-                <h3>{{ stats().admins || 0 }}</h3>
+                <h3>{{ stats().admins }}</h3>
                 <p>Admins</p>
             </div>
         </div>
@@ -47,34 +48,49 @@
     </div>
 
     <mat-card class="table-card">
-        <mat-tab-group animationDuration="0ms">
+        <mat-tab-group animationDuration="0ms" (selectedIndexChange)="onTabChange($event)">
+
             <mat-tab>
-                <ng-template mat-tab-label><mat-icon class="tab-icon">admin_panel_settings</mat-icon>
-                    Admins</ng-template>
+                <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">admin_panel_settings</mat-icon> Admins
+                </ng-template>
                 <div class="tab-content">
-                    <app-tab-admins [searchTerm]="searchQuery()"></app-tab-admins>
-                </div>
-            </mat-tab>
-            <mat-tab>
-                <ng-template mat-tab-label><mat-icon class="tab-icon">school</mat-icon> Alumnos</ng-template>
-                <div class="tab-content">
-                    <app-tab-alumnos [searchTerm]="searchQuery()"></app-tab-alumnos>
+                    <!-- active=true cuando es el tab 0 → dispara loadData() -->
+                    <app-tab-admins [active]="isTabActive(0)" [searchTerm]="searchQuery()">
+                    </app-tab-admins>
                 </div>
             </mat-tab>
 
             <mat-tab>
-                <ng-template mat-tab-label><mat-icon class="tab-icon">badge</mat-icon> Docentes</ng-template>
+                <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">school</mat-icon> Alumnos
+                </ng-template>
                 <div class="tab-content">
-                    <app-tab-docentes [searchTerm]="searchQuery()"></app-tab-docentes>
+                    <app-tab-alumnos [active]="isTabActive(1)" [searchTerm]="searchQuery()">
+                    </app-tab-alumnos>
                 </div>
             </mat-tab>
 
             <mat-tab>
-                <ng-template mat-tab-label><mat-icon class="tab-icon">family_restroom</mat-icon> Padres</ng-template>
+                <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">badge</mat-icon> Docentes
+                </ng-template>
                 <div class="tab-content">
-                    <app-tab-padres [searchTerm]="searchQuery()"></app-tab-padres>
+                    <app-tab-docentes [active]="isTabActive(2)" [searchTerm]="searchQuery()">
+                    </app-tab-docentes>
                 </div>
             </mat-tab>
+
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">family_restroom</mat-icon> Padres
+                </ng-template>
+                <div class="tab-content">
+                    <app-tab-padres [active]="isTabActive(3)" [searchTerm]="searchQuery()">
+                    </app-tab-padres>
+                </div>
+            </mat-tab>
+
         </mat-tab-group>
     </mat-card>
 </div>
