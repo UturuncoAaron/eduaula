@@ -51,11 +51,13 @@ export class AssignDocenteDialog implements OnInit {
   });
 
   ngOnInit() {
-    // Preseleccionar docente actual si existe
     this.selectedId.set(this.data.docenteActualId ?? null);
 
-    this.api.get<Docente[]>('admin/users', { rol: 'docente' }).subscribe({
-      next: r => { this.docentes.set(r.data); this.loading.set(false); },
+    this.api.get<Docente[]>('admin/users/docentes').subscribe({
+      next: r => {
+        this.docentes.set(r.data ?? []);
+        this.loading.set(false);
+      },
       error: () => this.loading.set(false),
     });
   }

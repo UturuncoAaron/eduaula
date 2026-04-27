@@ -1,349 +1,648 @@
 .tab-content {
-    padding: 24px 0;
+    padding-bottom: 24px;
 }
 
-// ── Toolbar ───────────────────────────────────────────────────────
+// ── Toolbar ───────────────────────────────────────────────────
 .section-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .section-count {
+        font-size: 13px;
+        color: #757575;
+        font-weight: 500;
+    }
 }
 
-.section-count {
-    font-size: 0.85rem;
-    color: var(--mat-sys-on-surface-variant, #666);
+.no-periodo-warning {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #e65100;
+    background: #fff3e0;
+    padding: 4px 10px;
+    border-radius: 6px;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
 }
 
-// ── Grados grid ───────────────────────────────────────────────────
+// ── Loading / Empty ───────────────────────────────────────────
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 24px;
+    color: #9e9e9e;
+
+    p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    &.small {
+        flex-direction: row;
+        padding: 16px 0;
+        gap: 8px;
+        font-size: 13px;
+    }
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 32px 16px;
+    color: #bdbdbd;
+    text-align: center;
+
+    mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+    }
+
+    p {
+        margin: 0;
+        font-size: 13px;
+        color: #9e9e9e;
+    }
+
+    &.small {
+        padding: 16px 0;
+    }
+}
+
+// ── Grades grid ───────────────────────────────────────────────
 .grades-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .grade-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 2px solid #e0e0e0;
     border-radius: 12px;
-    border: 2px solid var(--mat-sys-outline-variant, #e0e0e0);
-    background: var(--mat-sys-surface, #fff);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s;
+    background: #fff;
     user-select: none;
 
     &:hover {
-        border-color: var(--mat-sys-primary, #6750a4);
-        background: var(--mat-sys-primary-container, #eaddff);
+        border-color: #9fa8da;
+        background: #f8f9ff;
     }
 
     &.selected {
-        border-color: var(--mat-sys-primary, #6750a4);
-        background: var(--mat-sys-primary-container, #eaddff);
+        border-color: #5c6bc0;
+        background: #ede7f6;
+    }
 
-        .grade-icon mat-icon {
-            color: var(--mat-sys-primary, #6750a4);
+    .grade-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: #e8eaf6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        mat-icon {
+            color: #5c6bc0;
+            font-size: 18px;
         }
     }
-}
 
-.grade-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: var(--mat-sys-secondary-container, #e8def8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    .grade-info {
+        flex: 1;
+        min-width: 0;
+    }
 
-    mat-icon {
-        color: var(--mat-sys-secondary, #625b71);
-        font-size: 20px;
+    .grade-name {
+        display: block;
+        font-weight: 600;
+        font-size: 13px;
+        color: #212121;
+    }
+
+    .grade-sections {
+        display: block;
+        font-size: 11px;
+        color: #9e9e9e;
+        margin-top: 1px;
+    }
+
+    .grade-arrow {
+        color: #bdbdbd;
+        font-size: 18px;
+        flex-shrink: 0;
     }
 }
 
-.grade-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.grade-name {
-    font-weight: 600;
-    font-size: 0.88rem;
-    color: var(--mat-sys-on-surface, #1a1a1a);
-}
-
-.grade-sections {
-    font-size: 0.75rem;
-    color: var(--mat-sys-on-surface-variant, #666);
-}
-
-.grade-arrow {
-    color: var(--mat-sys-on-surface-variant, #999);
-    font-size: 18px;
-    transition: transform 0.2s ease;
-}
-
-// ── Secciones panel ───────────────────────────────────────────────
+// ── Sections panel ────────────────────────────────────────────
 .sections-panel {
-    background: var(--mat-sys-surface-variant, #f5f5f5);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 8px;
+    border: 1px solid #e8eaf6;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fafafa;
 }
 
 .sections-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 8px;
 }
 
 .breadcrumb {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--mat-sys-on-surface, #1a1a1a);
+    font-size: 13px;
+    color: #757575;
 
     mat-icon {
-        font-size: 18px;
-        color: var(--mat-sys-on-surface-variant, #666);
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .breadcrumb-active {
+        color: #5c6bc0;
+        font-weight: 600;
     }
 }
 
-.breadcrumb-active {
-    color: var(--mat-sys-primary, #6750a4);
-}
-
-// ── Secciones list ────────────────────────────────────────────────
 .sections-list {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 4px;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .section-card {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 16px;
-    border-radius: 12px;
-    background: var(--mat-sys-surface, #fff);
-    border: 2px solid var(--mat-sys-outline-variant, #e0e0e0);
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.15s;
     user-select: none;
-    min-width: 160px;
 
     &:hover {
-        border-color: var(--mat-sys-primary, #6750a4);
+        border-color: #9fa8da;
+        background: #f8f9ff;
     }
 
     &.selected {
-        border-color: var(--mat-sys-primary, #6750a4);
-        background: var(--mat-sys-primary-container, #eaddff);
+        border-color: #5c6bc0;
+        background: #ede7f6;
+    }
+
+    .section-letter {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #5c6bc0;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .section-info {
+        flex: 1;
+    }
+
+    .section-name {
+        display: block;
+        font-weight: 500;
+        font-size: 13px;
+    }
+
+    .section-cap {
+        display: block;
+        font-size: 11px;
+        color: #9e9e9e;
+    }
+
+    .tutor-badge {
+        color: #43a047;
+        font-size: 16px;
+    }
+
+    .section-arrow {
+        color: #bdbdbd;
+        font-size: 18px;
     }
 }
 
-.section-letter {
-    width: 36px;
-    height: 36px;
+// ── Split layout ──────────────────────────────────────────────
+.split-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    margin-top: 16px;
+    border-top: 1px solid #e8eaf6;
+    padding-top: 16px;
+    align-items: start;
+}
+
+// ── Courses panel ─────────────────────────────────────────────
+.courses-panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+
+    .panel-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #757575;
+    }
+}
+
+.courses-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.course-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.1s;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: #fafafa;
+    }
+
+    &.inactive {
+        opacity: 0.5;
+    }
+
+    .color-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .course-name {
+        flex: 1;
+        font-size: 13px;
+        color: #212121;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .course-name.muted {
+        color: #9e9e9e;
+    }
+
+    .course-docente {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        color: #757575;
+        min-width: 100px;
+
+        .mini-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #7e57c2;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+    }
+
+    .no-docente {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        color: #ef6c00;
+        font-size: 11px;
+
+        mat-icon {
+            font-size: 13px;
+            width: 13px;
+            height: 13px;
+        }
+    }
+
+    .course-actions {
+        display: flex;
+        gap: 0;
+        flex-shrink: 0;
+    }
+}
+
+// ── Alumnos panel ─────────────────────────────────────────────
+.alumnos-panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    position: sticky;
+    top: 16px;
+}
+
+.alumnos-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.alumnos-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .alumnos-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #757575;
+    }
+
+    .alumnos-count {
+        font-size: 11px;
+        font-weight: 700;
+        background: #e8eaf6;
+        color: #3949ab;
+        padding: 2px 7px;
+        border-radius: 10px;
+    }
+}
+
+.btn-matricular {
+    font-size: 12px !important;
+    height: 32px !important;
+    padding: 0 10px !important;
+}
+
+// ── Capacity ──────────────────────────────────────────────────
+.capacity-track {
+    height: 4px;
+    background: #e0e0e0;
+    margin: 0;
+}
+
+.capacity-fill {
+    height: 100%;
+    background: #42a5f5;
+    transition: width 0.4s ease;
+
+    &.warn {
+        background: #ffa726;
+    }
+
+    &.full {
+        background: #ef5350;
+    }
+}
+
+.capacity-text {
+    font-size: 11px;
+    color: #9e9e9e;
+    margin: 4px 12px 0;
+    padding-bottom: 4px;
+}
+
+// ── Search ────────────────────────────────────────────────────
+.alumno-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .search-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #9e9e9e;
+        flex-shrink: 0;
+    }
+
+    .alumno-search-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 13px;
+        color: #212121;
+        background: transparent;
+
+        &::placeholder {
+            color: #bdbdbd;
+        }
+    }
+
+    .clear-search {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+
+        mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+            color: #9e9e9e;
+        }
+    }
+}
+
+// ── Alumnos list ──────────────────────────────────────────────
+.alumnos-list {
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.alumno-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.1s;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: #fafafa;
+    }
+
+    &.inactive {
+        opacity: 0.55;
+    }
+}
+
+.alumno-avatar {
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: var(--mat-sys-primary, #6750a4);
+    background: #26a69a;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 10px;
     font-weight: 700;
-    font-size: 1rem;
     flex-shrink: 0;
 }
 
-.section-info {
+.alumno-info {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
+    min-width: 0;
 
-.section-name {
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--mat-sys-on-surface, #1a1a1a);
-}
-
-.section-cap {
-    font-size: 0.73rem;
-    color: var(--mat-sys-on-surface-variant, #888);
-}
-
-.tutor-badge {
-    font-size: 16px;
-    color: #22c55e;
-}
-
-.section-arrow {
-    font-size: 16px;
-    color: var(--mat-sys-on-surface-variant, #999);
-}
-
-// ── Cursos panel ──────────────────────────────────────────────────
-.courses-panel {
-    margin-top: 20px;
-    background: var(--mat-sys-surface, #fff);
-    border-radius: 12px;
-    border: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
-    overflow: hidden;
-}
-
-.courses-header {
-    padding: 16px 20px 12px;
-    border-bottom: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
-}
-
-.courses-title {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--mat-sys-on-surface, #1a1a1a);
-}
-
-.courses-table {
-    width: 100%;
-
-    .mat-mdc-header-row {
-        background: var(--mat-sys-surface-variant, #f5f5f5);
+    .alumno-name {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: #212121;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .no-data {
-        text-align: center;
-        padding: 32px;
-        color: var(--mat-sys-on-surface-variant, #999);
-        font-size: 0.9rem;
+    .alumno-code {
+        display: block;
+        font-size: 10px;
+        color: #9e9e9e;
+        font-family: monospace;
     }
 }
 
-.inactive-row {
-    opacity: 0.45;
-    background: var(--mat-sys-surface-variant, #f5f5f5);
-}
-
-// ── Course cells ──────────────────────────────────────────────────
-.course-name-cell {
+.alumno-actions {
     display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.color-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    gap: 0;
     flex-shrink: 0;
-}
 
-.muted {
-    opacity: 0.5;
-    text-decoration: line-through;
-}
+    .action-btn {
+        width: 28px !important;
+        height: 28px !important;
+        line-height: 28px !important;
+    }
 
-.docente-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.docente-avatar-sm {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--mat-sys-secondary-container, #e8def8);
-    color: var(--mat-sys-on-secondary-container, #1d192b);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.7rem;
-    flex-shrink: 0;
-}
-
-.no-docente {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #f59e0b;
-    font-size: 0.85rem;
-
-    mat-icon {
+    .notes-btn mat-icon {
         font-size: 16px;
+        color: #5c6bc0;
+    }
+
+    .remove-btn {
+        opacity: 0.4;
+        transition: opacity 0.15s;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    .remove-btn mat-icon {
+        font-size: 16px;
+        color: #ef5350;
     }
 }
 
-// ── Badges ────────────────────────────────────────────────────────
-.badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.73rem;
-    font-weight: 600;
+.alumnos-paginator {
+    border-top: 1px solid #f0f0f0;
 
-    &-active {
-        background: #dcfce7;
-        color: #166534;
+    ::ng-deep .mat-mdc-paginator-container {
+        min-height: 40px;
+        padding: 0 4px;
     }
 
-    &-inactive {
-        background: #f1f5f9;
-        color: #64748b;
+    ::ng-deep .mat-mdc-paginator-range-label {
+        font-size: 11px;
     }
 }
 
-// ── Loading ───────────────────────────────────────────────────────
-.loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 48px;
-    gap: 12px;
-    color: var(--mat-sys-on-surface-variant, #666);
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 900px) {
+    .split-layout {
+        grid-template-columns: 1fr;
+    }
 
-    &.small {
-        padding: 20px;
-        flex-direction: row;
-        justify-content: center;
-        gap: 8px;
-        font-size: 0.85rem;
+    .alumnos-panel {
+        position: static;
     }
 }
 
-// ── Empty ─────────────────────────────────────────────────────────
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 32px;
-    gap: 8px;
-    color: var(--mat-sys-on-surface-variant, #999);
-    width: 100%;
-
-    mat-icon {
-        font-size: 36px;
+@media (max-width: 600px) {
+    .grades-grid {
+        grid-template-columns: 1fr 1fr;
     }
 
-    p {
-        margin: 0;
-        font-size: 0.9rem;
+    .sections-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .course-docente {
+        display: none;
+    }
+}
+
+@media (max-width: 400px) {
+    .grades-grid {
+        grid-template-columns: 1fr;
     }
 }

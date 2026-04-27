@@ -5,6 +5,7 @@
 
         <div class="entities-wrapper">
 
+            <!-- ── Padre ─────────────────────────────────────────── -->
             <div class="entity-card padre-card">
                 <div class="entity-header">
                     <div class="avatar-icon padre-bg">
@@ -17,7 +18,7 @@
                 </div>
 
                 <mat-form-field appearance="outline" class="w-100 modern-input">
-                    <mat-label>Buscar por DNI o Apellidos</mat-label>
+                    <mat-label>Buscar por DNI o Apellidos*</mat-label>
                     <mat-icon matPrefix class="prefix-icon">search</mat-icon>
                     <input type="text" matInput formControlName="padre" [matAutocomplete]="autoPadre"
                         placeholder="Ej. 09876543" />
@@ -32,18 +33,29 @@
                     }
 
                     <mat-autocomplete #autoPadre="matAutocomplete" [displayWith]="displayFn">
-                        @for (p of padresSugeridos(); track p.documento) {
+                        @for (p of padresSugeridos(); track p.id) {
                         <mat-option [value]="p" class="custom-option">
                             <div class="option-content">
-                                <span class="doc-badge">{{ p.documento }}</span>
-                                <span class="name-text">{{ p.nombres }} {{ p.apellidos }}</span>
+                                <span class="doc-badge">
+                                    {{ p.numero_documento ?? '—' }}
+                                </span>
+                                <span class="name-text">
+                                    {{ p.nombre }} {{ p.apellido_paterno }}
+                                    {{ p.apellido_materno ?? '' }}
+                                </span>
                             </div>
+                        </mat-option>
+                        }
+                        @if (padresSugeridos().length === 0 && !isSearchingPadre()) {
+                        <mat-option disabled class="no-results">
+                            <mat-icon>search_off</mat-icon> Sin resultados
                         </mat-option>
                         }
                     </mat-autocomplete>
                 </mat-form-field>
             </div>
 
+            <!-- ── Conector ──────────────────────────────────────── -->
             <div class="connection-node" [class.is-ready]="isValidForm()">
                 <div class="line"></div>
                 <div class="link-circle">
@@ -52,6 +64,7 @@
                 <div class="line"></div>
             </div>
 
+            <!-- ── Alumno ────────────────────────────────────────── -->
             <div class="entity-card alumno-card">
                 <div class="entity-header">
                     <div class="avatar-icon alumno-bg">
@@ -64,7 +77,7 @@
                 </div>
 
                 <mat-form-field appearance="outline" class="w-100 modern-input">
-                    <mat-label>Buscar por DNI o Apellidos</mat-label>
+                    <mat-label>Buscar por DNI o Apellidos*</mat-label>
                     <mat-icon matPrefix class="prefix-icon">search</mat-icon>
                     <input type="text" matInput formControlName="alumno" [matAutocomplete]="autoAlumno"
                         placeholder="Ej. 12345678" />
@@ -79,12 +92,22 @@
                     }
 
                     <mat-autocomplete #autoAlumno="matAutocomplete" [displayWith]="displayFn">
-                        @for (a of alumnosSugeridos(); track a.documento) {
+                        @for (a of alumnosSugeridos(); track a.id) {
                         <mat-option [value]="a" class="custom-option">
                             <div class="option-content">
-                                <span class="doc-badge">{{ a.documento }}</span>
-                                <span class="name-text">{{ a.nombres }} {{ a.apellidos }}</span>
+                                <span class="doc-badge">
+                                    {{ a.codigo_estudiante ?? a.numero_documento ?? '—' }}
+                                </span>
+                                <span class="name-text">
+                                    {{ a.nombre }} {{ a.apellido_paterno }}
+                                    {{ a.apellido_materno ?? '' }}
+                                </span>
                             </div>
+                        </mat-option>
+                        }
+                        @if (alumnosSugeridos().length === 0 && !isSearchingAlumno()) {
+                        <mat-option disabled class="no-results">
+                            <mat-icon>search_off</mat-icon> Sin resultados
                         </mat-option>
                         }
                     </mat-autocomplete>
@@ -92,6 +115,7 @@
             </div>
         </div>
 
+        <!-- ── Acción ────────────────────────────────────────────── -->
         <div class="action-footer">
             <button mat-flat-button class="btn-create-link" type="submit" [disabled]="loading() || !isValidForm()">
                 <mat-icon>family_restroom</mat-icon>
@@ -100,6 +124,7 @@
         </div>
     </form>
 
+    <!-- ── Historial reciente ─────────────────────────────────────── -->
     <aside class="recent-history">
         <div class="history-header">
             <mat-icon>history</mat-icon>
@@ -109,8 +134,8 @@
         <div class="history-list">
             @if (recentLinks().length === 0) {
             <div class="empty-state">
-                <img src="assets/images/empty-links.svg" alt="" onerror="this.style.display='none'">
-                <mat-icon class="fallback-icon">info_outline</mat-icon>
+                <!-- SVG eliminado — reemplazado por ícono Material -->
+                <mat-icon class="empty-icon">people_outline</mat-icon>
                 <p>Los vínculos creados aparecerán aquí</p>
             </div>
             } @else {

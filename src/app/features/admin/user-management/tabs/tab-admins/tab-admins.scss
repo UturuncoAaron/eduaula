@@ -1,0 +1,19 @@
+.status-chip {
+    &.active {
+        background: #e8f5e9;
+        color: #2e7d32;
+
+        .status-dot {
+            background: #4caf50;
+        }
+    }
+
+    &.inactive {
+        background: #ffebee;
+        color: #c62828;
+
+        .status-dot {
+            background: #ef5350;
+        }
+    }
+}

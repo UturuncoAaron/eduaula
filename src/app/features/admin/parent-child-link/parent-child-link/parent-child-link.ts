@@ -15,16 +15,40 @@ import { of } from 'rxjs';
 import { ApiService } from '../../../../core/services/api';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 
+// Estructura real que devuelve el backend
 export interface UserSearchResult {
-  documento: string;
-  nombres: string;
-  apellidos: string;
+  id: string;
+  numero_documento?: string;  // alumnos no tienen este campo directo — viene de cuenta
+  codigo_estudiante?: string;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno?: string;
 }
 
 interface RecentLink {
   id: string;
   padre: string;
   alumno: string;
+}
+
+// Normaliza la respuesta del backend al formato que usa el template
+function normalizeUser(u: any): UserSearchResult {
+  return {
+    id: u.id,
+    numero_documento: u.numero_documento ?? u.codigo_estudiante ?? u.id,
+    codigo_estudiante: u.codigo_estudiante,
+    nombre: u.nombre,
+    apellido_paterno: u.apellido_paterno,
+    apellido_materno: u.apellido_materno,
+  };
+}
+
+// Extrae el array de resultados sin importar el nivel de anidamiento
+function extractArray(res: any): any[] {
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.data?.data)) return res.data.data;
+  return [];
 }
 
 @Component({
@@ -37,7 +61,7 @@ interface RecentLink {
   ],
   templateUrl: './parent-child-link.html',
   styleUrl: './parent-child-link.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ParentChildLink {
   private fb = inject(FormBuilder);
@@ -50,53 +74,60 @@ export class ParentChildLink {
   recentLinks = signal<RecentLink[]>([]);
 
   form = this.fb.group({
-    padre: this.fb.control<UserSearchResult | string | null>(null, [Validators.required]),
-    alumno: this.fb.control<UserSearchResult | string | null>(null, [Validators.required]),
+    padre: this.fb.control<UserSearchResult | string | null>(null, Validators.required),
+    alumno: this.fb.control<UserSearchResult | string | null>(null, Validators.required),
   });
 
-  // 🐛 AQUÍ ESTÁ LA SOLUCIÓN AL BOTÓN: Convertimos los cambios del form a una Señal
   formValues = toSignal(this.form.valueChanges, { initialValue: this.form.value });
 
-  // Validamos leyendo la señal reactiva
   isValidForm = computed(() => {
-    const vals = this.formValues();
-    const p = vals.padre as any;
-    const a = vals.alumno as any;
-    return !!(p && typeof p === 'object' && p.documento && a && typeof a === 'object' && a.documento);
+    const { padre, alumno } = this.formValues();
+    return !!(
+      padre && typeof padre === 'object' && (padre as UserSearchResult).id &&
+      alumno && typeof alumno === 'object' && (alumno as UserSearchResult).id
+    );
   });
 
   padresSugeridos = toSignal(
     this.form.controls.padre.valueChanges.pipe(
-      filter(val => typeof val === 'string' && val.trim().length >= 3),
+      filter(val => typeof val === 'string' && val.trim().length >= 2),
       tap(() => this.isSearchingPadre.set(true)),
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap(query => this.api.get<any>(`admin/users/padres/search?q=${query}`).pipe(
-        map(res => Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.data) ? res.data.data : []))),
-        catchError(() => of([]))
-      )),
-      tap(() => this.isSearchingPadre.set(false))
+      switchMap(query =>
+        this.api.get<any>(`admin/users/padres/search?q=${encodeURIComponent(query as string)}`).pipe(
+          map(res => extractArray(res).map(normalizeUser)),
+          catchError(() => of([])),
+        )
+      ),
+      tap(() => this.isSearchingPadre.set(false)),
     ),
-    { initialValue: [] }
+    { initialValue: [] as UserSearchResult[] },
   );
 
   alumnosSugeridos = toSignal(
     this.form.controls.alumno.valueChanges.pipe(
-      filter(val => typeof val === 'string' && val.trim().length >= 3),
+      filter(val => typeof val === 'string' && val.trim().length >= 2),
       tap(() => this.isSearchingAlumno.set(true)),
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap(query => this.api.get<any>(`admin/users/alumnos/search?q=${query}`).pipe(
-        map(res => Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.data) ? res.data.data : []))),
-        catchError(() => of([]))
-      )),
-      tap(() => this.isSearchingAlumno.set(false))
+      switchMap(query =>
+        this.api.get<any>(`admin/users/alumnos/search?q=${encodeURIComponent(query as string)}`).pipe(
+          map(res => extractArray(res).map(normalizeUser)),
+          catchError(() => of([])),
+        )
+      ),
+      tap(() => this.isSearchingAlumno.set(false)),
     ),
-    { initialValue: [] }
+    { initialValue: [] as UserSearchResult[] },
   );
 
+  /** Texto que muestra el input cuando se selecciona una opción */
   displayFn(user: UserSearchResult | null): string {
-    return user ? `${user.documento} — ${user.nombres} ${user.apellidos}` : '';
+    if (!user || typeof user !== 'object') return '';
+    const doc = user.numero_documento ?? user.codigo_estudiante ?? '';
+    const nombre = `${user.nombre} ${user.apellido_paterno}${user.apellido_materno ? ' ' + user.apellido_materno : ''}`;
+    return doc ? `${doc} — ${nombre}` : nombre;
   }
 
   limpiarCampo(campo: 'padre' | 'alumno', event: Event) {
@@ -106,26 +137,32 @@ export class ParentChildLink {
 
   submit() {
     if (!this.isValidForm()) return;
-
     this.loading.set(true);
-    const padreDoc = (this.form.controls.padre.value as UserSearchResult).documento;
-    const alumnoDoc = (this.form.controls.alumno.value as UserSearchResult).documento;
+
+    const padre = this.form.controls.padre.value as UserSearchResult;
+    const alumno = this.form.controls.alumno.value as UserSearchResult;
 
     this.api.post<{ padre: string; alumno: string }>('admin/users/parent-child', {
-      padre_doc: padreDoc,
-      alumno_doc: alumnoDoc
+      padre_doc: padre.numero_documento ?? padre.id,
+      alumno_doc: alumno.numero_documento ?? alumno.codigo_estudiante ?? alumno.id,
     }).subscribe({
       next: (r) => {
         this.recentLinks.update(links => [
-          { id: Date.now().toString(), padre: r.data.padre, alumno: r.data.alumno },
+          {
+            id: Date.now().toString(),
+            padre: `${padre.nombre} ${padre.apellido_paterno}`,
+            alumno: `${alumno.nombre} ${alumno.apellido_paterno}`,
+          },
           ...links.slice(0, 9),
         ]);
-        this.snack.open(`Vínculo exitoso: ${r.data.padre} y ${r.data.alumno}`, 'Cerrar', { duration: 4000 });
+        this.snack.open('Vínculo creado exitosamente', 'Cerrar', {
+          duration: 4000, panelClass: 'success-snackbar',
+        });
         this.form.reset();
         this.loading.set(false);
       },
       error: (err) => {
-        this.snack.open(err?.error?.message ?? 'Ocurrió un error al vincular.', 'Cerrar', { duration: 3000 });
+        this.snack.open(err?.error?.message ?? 'Error al vincular', 'Cerrar', { duration: 3000 });
         this.loading.set(false);
       },
     });

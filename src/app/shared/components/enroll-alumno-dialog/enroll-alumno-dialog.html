@@ -1,0 +1,83 @@
+<div class="dialog-header">
+    <div class="header-icon">
+        <mat-icon>person_add</mat-icon>
+    </div>
+    <div class="header-text">
+        <h2 mat-dialog-title>Matricular Alumno</h2>
+        <p class="subtitle">{{ data.gradoNombre }} — Sección "{{ data.seccionNombre }}"</p>
+    </div>
+</div>
+
+<mat-dialog-content>
+
+    <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Buscar por nombre, apellido o DNI</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [formControl]="searchCtrl" placeholder="Escribe al menos 2 caracteres..." />
+        @if (searching()) {
+        <mat-spinner matSuffix diameter="18"></mat-spinner>
+        }
+    </mat-form-field>
+
+    <div class="results-container">
+
+        @if (searchCtrl.value && searchCtrl.value.length >= 2 && !searching() && results().length === 0) {
+        <div class="empty-state">
+            <mat-icon>person_search</mat-icon>
+            <p>No se encontraron alumnos disponibles</p>
+            <span class="hint">El alumno puede ya estar matriculado en esta sección</span>
+        </div>
+        }
+
+        @if (searching()) {
+        <div class="searching-state">
+            <p>Buscando...</p>
+        </div>
+        }
+
+        @for (a of results(); track a.id) {
+        <div class="alumno-item" [class.selected]="selectedId() === a.id" (click)="select(a.id)">
+            <div class="alumno-avatar">
+                {{ a.nombre.charAt(0) }}{{ a.apellido_paterno.charAt(0) }}
+            </div>
+            <div class="alumno-info">
+                <span class="alumno-name">
+                    {{ a.apellido_paterno }}
+                    {{ a.apellido_materno ?? '' }},
+                    {{ a.nombre }}
+                </span>
+                <span class="alumno-meta">
+                    {{ a.codigo_estudiante }}
+                    @if (a.numero_documento) { · {{ a.numero_documento }} }
+                </span>
+            </div>
+            @if (selectedId() === a.id) {
+            <mat-icon class="check-icon">check_circle</mat-icon>
+            }
+        </div>
+        }
+
+    </div>
+
+    @if (selectedAlumno()) {
+    <div class="selected-summary">
+        <mat-icon>info_outline</mat-icon>
+        <span>
+            Se matriculará a
+            <strong>{{ selectedAlumno()!.nombre }} {{ selectedAlumno()!.apellido_paterno }}</strong>
+            en {{ data.gradoNombre }} sección "{{ data.seccionNombre }}"
+        </span>
+    </div>
+    }
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-button type="button" (click)="cancel()" [disabled]="saving()">
+        Cancelar
+    </button>
+    <button mat-flat-button color="primary" type="button" (click)="submit()" [disabled]="!selectedId() || saving()">
+        <mat-icon>{{ saving() ? 'sync' : 'how_to_reg' }}</mat-icon>
+        {{ saving() ? 'Matriculando...' : 'Confirmar matrícula' }}
+    </button>
+</mat-dialog-actions>

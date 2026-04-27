@@ -1,32 +1,81 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ApiService } from '../../../core/services/api';
+
+export interface ResetPasswordDialogData {
+  id: string;
+  nombre: string;
+}
 
 @Component({
   selector: 'app-reset-password-dialog',
+  standalone: true,
   imports: [
-    ReactiveFormsModule, MatDialogModule, MatButtonModule,
-    MatFormFieldModule, MatInputModule, MatIconModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSnackBarModule,
   ],
   templateUrl: './reset-password-dialog.html',
+  styleUrl: './reset-password-dialog.scss',
 })
 export class ResetPasswordDialog {
-  private fb = inject(FormBuilder);
-  private dialogRef = inject(MatDialogRef<ResetPasswordDialog>);
-  readonly data = inject<{ userName: string }>(MAT_DIALOG_DATA);
+  readonly data: ResetPasswordDialogData = inject(MAT_DIALOG_DATA);
+  private ref = inject(MatDialogRef<ResetPasswordDialog>);
+  private api = inject(ApiService);
+  private snack = inject(MatSnackBar);
 
-  showPass = signal(false);
+  show = signal(false);
+  loading = signal(false);
 
-  form = this.fb.group({
-    password: ['', [Validators.required, Validators.minLength(6)]],
-  });
+  passwordCtrl = new FormControl('', [
+    Validators.required,
+    Validators.minLength(6),
+  ]);
 
-  submit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.dialogRef.close(this.form.value.password);
+  toggleShow() {
+    this.show.update(v => !v);
+  }
+
+  confirm() {
+    if (this.passwordCtrl.invalid) {
+      this.passwordCtrl.markAsTouched();
+      return;
+    }
+
+    this.loading.set(true);
+
+    this.api.patch(`admin/users/${this.data.id}/reset-password`, {
+      password: this.passwordCtrl.value,
+    }).subscribe({
+      next: () => {
+        this.snack.open('Contraseña actualizada correctamente', 'Cerrar', {
+          duration: 3000,
+          panelClass: 'success-snackbar',
+        });
+        this.ref.close(true);
+      },
+      error: (err) => {
+        this.snack.open(
+          err?.error?.message ?? 'Error al actualizar la contraseña',
+          'Cerrar',
+          { duration: 4000 },
+        );
+        this.loading.set(false);
+      },
+    });
+  }
+
+  cancel() {
+    this.ref.close(false);
   }
 }

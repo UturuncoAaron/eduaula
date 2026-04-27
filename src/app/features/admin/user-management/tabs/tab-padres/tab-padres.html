@@ -1,64 +1,105 @@
-<div class="table-container">
+<div class="tab-table-container">
+
     @if (loading()) {
     <div class="loading-state">
-        <mat-icon class="spinner">autorenew</mat-icon>
-        <p>Cargando lista de padres/tutores...</p>
+        <div class="spinner-ring"></div>
+        <p>Cargando padres/tutores...</p>
     </div>
+
     } @else if (dataSource.data.length === 0) {
     <div class="empty-state">
         <mat-icon>person_search</mat-icon>
-        <p>No hay padres registrados en el sistema.</p>
+        <p>No hay padres o tutores registrados.</p>
     </div>
+
     } @else {
-    <table mat-table [dataSource]="dataSource" class="custom-table">
+    <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource" class="users-table">
 
-        <ng-container matColumnDef="documento">
-            <th mat-header-cell *matHeaderCellDef> Documento </th>
-            <td mat-cell *matCellDef="let user">
-                <span class="doc-badge">{{ user.tipo_documento }}</span>
-                {{ user.numero_documento }}
-            </td>
-        </ng-container>
+            <ng-container matColumnDef="documento">
+                <th mat-header-cell *matHeaderCellDef>Documento</th>
+                <td mat-cell *matCellDef="let row">
+                    @if (row.numero_documento) {
+                    <span class="doc-type-chip">{{ row.tipo_documento }}</span>
+                    <span class="doc-number">{{ row.numero_documento }}</span>
+                    } @else { <span class="text-muted">—</span> }
+                </td>
+            </ng-container>
 
-        <ng-container matColumnDef="nombre">
-            <th mat-header-cell *matHeaderCellDef> Nombre Completo </th>
-            <td mat-cell *matCellDef="let user" class="name-cell">
-                <strong>{{ user.apellido_paterno }} {{ user.apellido_materno }}</strong>, {{ user.nombre }}
-            </td>
-        </ng-container>
+            <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+                <td mat-cell *matCellDef="let row" class="name-cell">
+                    <div class="avatar-name">
+                        <div class="avatar-circle padre">
+                            {{ row.nombre.charAt(0) }}{{ row.apellido_paterno.charAt(0) }}
+                        </div>
+                        <div>
+                            <span class="full-name">
+                                {{ row.apellido_paterno }} {{ row.apellido_materno ?? '' }}, {{ row.nombre }}
+                            </span>
+                            @if (row.telefono) { <span class="sub-text">{{ row.telefono }}</span> }
+                        </div>
+                    </div>
+                </td>
+            </ng-container>
 
-        <ng-container matColumnDef="relacion">
-            <th mat-header-cell *matHeaderCellDef> Parentesco </th>
-            <td mat-cell *matCellDef="let user" style="text-transform: capitalize;"> {{ user.relacion || '-' }} </td>
-        </ng-container>
+            <ng-container matColumnDef="relacion">
+                <th mat-header-cell *matHeaderCellDef>Parentesco</th>
+                <td mat-cell *matCellDef="let row">
+                    <span class="relacion-chip relacion-{{ row.relacion }}">
+                        {{ row.apellido_materno }}
+                    </span>
+                </td>
+            </ng-container>
 
-        <ng-container matColumnDef="estado">
-            <th mat-header-cell *matHeaderCellDef> Estado </th>
-            <td mat-cell *matCellDef="let user">
-                <span class="tag" [class.active]="user.activo" [class.inactive]="!user.activo">
-                    {{ user.activo ? 'Activo' : 'Inactivo' }}
-                </span>
-            </td>
-        </ng-container>
+            <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let row">
+                    <span class="status-chip" [class.active]="row.activo !== false"
+                        [class.inactive]="row.activo === false">
+                        <span class="status-dot"></span>
+                        {{ row.activo !== false ? 'Activo' : 'Inactivo' }}
+                    </span>
+                </td>
+            </ng-container>
 
-        <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef class="align-right"> Acciones </th>
-            <td mat-cell *matCellDef="let user" class="align-right">
-                <button mat-icon-button color="primary" title="Ver detalle">
-                    <mat-icon>visibility</mat-icon>
-                </button>
-            </td>
-        </ng-container>
+            <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
+                <td mat-cell *matCellDef="let row" class="col-actions">
+                    <button mat-icon-button [matMenuTriggerFor]="menu" class="menu-trigger">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                        <button mat-menu-item (click)="verDetalle(row)">
+                            <mat-icon color="primary">visibility</mat-icon><span>Ver detalle</span>
+                        </button>
+                        <button mat-menu-item (click)="resetPassword(row)">
+                            <mat-icon>lock_reset</mat-icon><span>Resetear contraseña</span>
+                        </button>
+                        <mat-divider></mat-divider>
+                        @if (row.activo !== false) {
+                        <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
+                            <mat-icon color="warn">block</mat-icon><span>Desactivar cuenta</span>
+                        </button>
+                        } @else {
+                        <button mat-menu-item (click)="toggleEstado(row)" class="success-item">
+                            <mat-icon>check_circle</mat-icon><span>Reactivar cuenta</span>
+                        </button>
+                        }
+                    </mat-menu>
+                </td>
+            </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="row-hover"></tr>
-
-        <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell empty-search" colspan="5">
-                No se encontraron resultados para "{{ searchTerm() }}"
-            </td>
-        </tr>
-    </table>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
+                [class.inactive-row]="row.activo === false"></tr>
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell no-results" colspan="5">
+                    <mat-icon>search_off</mat-icon> Sin resultados para "{{ searchTerm() }}"
+                </td>
+            </tr>
+        </table>
+    </div>
     <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
     }
 </div>

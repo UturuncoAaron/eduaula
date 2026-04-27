@@ -9,14 +9,14 @@
         width: 44px;
         height: 44px;
         border-radius: 12px;
-        background: #e8eaf6;
+        background: #e8f5e9;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
 
         mat-icon {
-            color: #3949ab;
+            color: #2e7d32;
             font-size: 22px;
             width: 22px;
             height: 22px;
@@ -28,23 +28,17 @@
             margin: 0;
             font-size: 18px;
             font-weight: 600;
-            line-height: 1.2;
-            padding: 0; // override mat-dialog-title default
+            padding: 0;
         }
 
         .subtitle {
             margin: 4px 0 0;
             font-size: 13px;
             color: #757575;
-
-            strong {
-                color: #212121;
-            }
         }
     }
 }
 
-// Override mat-dialog-title spacing
 ::ng-deep .mat-mdc-dialog-title {
     padding: 0 !important;
     margin: 0 !important;
@@ -55,35 +49,61 @@ mat-dialog-content {
     padding: 16px 24px !important;
 }
 
-.full-width {
-    width: 100%;
-    margin-top: 4px;
+.course-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-// ── Hint ──────────────────────────────────────────────────────
-.password-hint {
+.full-width {
+    width: 100%;
+}
+
+// ── Color selector ────────────────────────────────────────────
+.color-section {
+    margin-bottom: 12px;
+}
+
+.color-label {
+    display: block;
+    font-size: 12px;
+    color: #757575;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.color-grid {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    background: #fff8e1;
-    border: 1px solid #ffe082;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-top: 4px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.color-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    padding: 0;
+
+    &:hover {
+        transform: scale(1.15);
+    }
+
+    &.selected {
+        border-color: #212121;
+        transform: scale(1.1);
+    }
 
     mat-icon {
         font-size: 16px;
         width: 16px;
         height: 16px;
-        color: #f57f17;
-        flex-shrink: 0;
-        margin-top: 1px;
-    }
-
-    span {
-        font-size: 12px;
-        color: #795548;
-        line-height: 1.4;
+        color: #fff;
     }
 }
 
@@ -91,10 +111,14 @@ mat-dialog-content {
 .dialog-actions {
     padding: 8px 24px 20px !important;
     gap: 8px;
+}
 
-    button[mat-flat-button] {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }

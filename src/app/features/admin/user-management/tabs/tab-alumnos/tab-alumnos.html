@@ -1,66 +1,142 @@
-<div class="table-container">
+<div class="tab-table-container">
+
     @if (loading()) {
     <div class="loading-state">
-        <mat-icon class="spinner">autorenew</mat-icon>
-        <p>Cargando lista de alumnos...</p>
+        <div class="spinner-ring"></div>
+        <p>Cargando alumnos...</p>
     </div>
+
     } @else if (dataSource.data.length === 0) {
     <div class="empty-state">
         <mat-icon>person_search</mat-icon>
         <p>No hay alumnos registrados en el sistema.</p>
     </div>
+
     } @else {
-    <table mat-table [dataSource]="dataSource" class="custom-table">
+    <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource" class="users-table">
 
-        <ng-container matColumnDef="documento">
-            <th mat-header-cell *matHeaderCellDef> Documento </th>
-            <td mat-cell *matCellDef="let user">
-                <span class="doc-badge">{{ user.tipo_documento | uppercase }}</span>
-                {{ user.numero_documento }}
-            </td>
-        </ng-container>
+            <!-- Código estudiante -->
+            <ng-container matColumnDef="codigo">
+                <th mat-header-cell *matHeaderCellDef>Cód. Estudiante</th>
+                <td mat-cell *matCellDef="let row">
+                    <span class="code-badge">{{ row.codigo_estudiante || '—' }}</span>
+                </td>
+            </ng-container>
 
-        <ng-container matColumnDef="nombre">
-            <th mat-header-cell *matHeaderCellDef> Nombre Completo </th>
-            <td mat-cell *matCellDef="let user" class="name-cell">
-                <strong>{{ user.apellido_paterno }} {{ user.apellido_materno }}</strong>, {{ user.nombre }}
-            </td>
-        </ng-container>
+            <!-- Documento -->
+            <ng-container matColumnDef="documento">
+                <th mat-header-cell *matHeaderCellDef>Documento</th>
+                <td mat-cell *matCellDef="let row">
+                    @if (row.numero_documento) {
+                    <span class="doc-type-chip">{{ row.tipo_documento }}</span>
+                    <span class="doc-number">{{ row.numero_documento }}</span>
+                    } @else {
+                    <span class="text-muted">—</span>
+                    }
+                </td>
+            </ng-container>
 
-        <ng-container matColumnDef="codigo">
-            <th mat-header-cell *matHeaderCellDef> Cód. Estudiante </th>
-            <td mat-cell *matCellDef="let user"> {{ user.codigo_estudiante || '-' }} </td>
-        </ng-container>
+            <!-- Nombre -->
+            <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+                <td mat-cell *matCellDef="let row" class="name-cell">
+                    <div class="avatar-name">
+                        <div class="avatar-circle student">
+                            {{ row.nombre.charAt(0) }}{{ row.apellido_paterno.charAt(0) }}
+                        </div>
+                        <span class="full-name">
+                            {{ row.apellido_paterno }}
+                            {{ row.apellido_materno ?? '' }},
+                            {{ row.nombre }}
+                        </span>
+                    </div>
+                </td>
+            </ng-container>
 
-        <ng-container matColumnDef="estado">
-            <th mat-header-cell *matHeaderCellDef> Estado </th>
-            <td mat-cell *matCellDef="let user">
-                <span class="tag" [class.active]="user.activo" [class.inactive]="!user.activo">
-                    {{ user.activo ? 'Activo' : 'Inactivo' }}
-                </span>
-            </td>
-        </ng-container>
+            <!-- Grado / Sección -->
+            <ng-container matColumnDef="grado">
+                <th mat-header-cell *matHeaderCellDef>Grado</th>
+                <td mat-cell *matCellDef="let row">
+                    @if (row.grado) {
+                    <span class="grado-chip">{{ row.grado }} {{ row.seccion }}</span>
+                    } @else {
+                    <span class="text-muted">Sin matrícula</span>
+                    }
+                </td>
+            </ng-container>
 
-        <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef class="align-right"> Acciones </th>
-            <td mat-cell *matCellDef="let user" class="align-right">
-                <button mat-icon-button color="primary" title="Ver detalle">
-                    <mat-icon>visibility</mat-icon>
-                </button>
-            </td>
-        </ng-container>
+            <!-- Fecha nacimiento -->
+            <ng-container matColumnDef="nacimiento">
+                <th mat-header-cell *matHeaderCellDef>Nacimiento</th>
+                <td mat-cell *matCellDef="let row">
+                    {{ row.fecha_nacimiento ? (row.fecha_nacimiento | date:'dd/MM/yyyy') : '—' }}
+                </td>
+            </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="row-hover"></tr>
+            <!-- Teléfono -->
+            <ng-container matColumnDef="telefono">
+                <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+                <td mat-cell *matCellDef="let row">
+                    {{ row.telefono || '—' }}
+                </td>
+            </ng-container>
 
-        <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell empty-search" colspan="5">
-                No se encontraron resultados para "{{ searchTerm() }}"
-            </td>
-        </tr>
-    </table>
+            <!-- Estado -->
+            <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let row">
+                    <span class="status-chip" [class.active]="row.activo !== false"
+                        [class.inactive]="row.activo === false">
+                        <span class="status-dot"></span>
+                        {{ row.activo !== false ? 'Activo' : 'Inactivo' }}
+                    </span>
+                </td>
+            </ng-container>
 
-    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons
-        aria-label="Seleccionar página"></mat-paginator>
+            <!-- Acciones -->
+            <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
+                <td mat-cell *matCellDef="let row" class="col-actions">
+                    <button mat-icon-button [matMenuTriggerFor]="menu" class="menu-trigger">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                        <button mat-menu-item (click)="verDetalle(row)">
+                            <mat-icon color="primary">visibility</mat-icon>
+                            <span>Ver detalle</span>
+                        </button>
+                        <button mat-menu-item (click)="resetPassword(row)">
+                            <mat-icon>lock_reset</mat-icon>
+                            <span>Resetear contraseña</span>
+                        </button>
+                        <mat-divider></mat-divider>
+                        @if (row.activo !== false) {
+                        <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
+                            <mat-icon color="warn">block</mat-icon>
+                            <span>Desactivar cuenta</span>
+                        </button>
+                        } @else {
+                        <button mat-menu-item (click)="toggleEstado(row)" class="success-item">
+                            <mat-icon>check_circle</mat-icon>
+                            <span>Reactivar cuenta</span>
+                        </button>
+                        }
+                    </mat-menu>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
+                [class.inactive-row]="row.activo === false"></tr>
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell no-results" colspan="8">
+                    <mat-icon>search_off</mat-icon>
+                    Sin resultados para "{{ searchTerm() }}"
+                </td>
+            </tr>
+        </table>
+    </div>
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
     }
 </div>

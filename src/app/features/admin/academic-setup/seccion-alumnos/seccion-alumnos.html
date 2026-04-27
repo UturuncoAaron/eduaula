@@ -1,0 +1,75 @@
+<div class="alumnos-panel">
+
+    <div class="panel-header">
+        <div class="panel-title">
+            <span>Alumnos matriculados</span>
+            <span class="count-badge">
+                {{ matriculadosCount() }} / {{ capacidad() }}
+            </span>
+        </div>
+        <button mat-stroked-button color="primary" (click)="openMatricular()"
+            [disabled]="matriculadosCount() >= capacidad()">
+            <mat-icon>person_add</mat-icon>
+            Matricular alumno
+        </button>
+    </div>
+
+    <!-- Barra de capacidad -->
+    <div class="capacity-bar-container">
+        <div class="capacity-bar">
+            <div class="capacity-fill" [style.width.%]="porcentaje()" [class.full]="porcentaje() >= 100"
+                [class.warning]="porcentaje() >= 80 && porcentaje() < 100">
+            </div>
+        </div>
+        <span class="capacity-label">
+            {{ capacidad() - matriculadosCount() }} lugares disponibles
+        </span>
+    </div>
+
+    @if (loading()) {
+    <div class="loading-state">
+        <mat-spinner diameter="24"></mat-spinner>
+        <p>Cargando alumnos...</p>
+    </div>
+
+    } @else if (alumnos().length === 0) {
+    <div class="empty-state">
+        <mat-icon>group</mat-icon>
+        <p>Sin alumnos matriculados</p>
+        <span>Usa "Matricular alumno" para agregar estudiantes a esta sección</span>
+    </div>
+
+    } @else {
+    <div class="alumnos-list">
+        @for (a of alumnos(); track a.id) {
+        <div class="alumno-row" [class.inactive]="!a.activo">
+
+            <div class="alumno-avatar">
+                {{ getInitials(a.nombre, a.apellido_paterno) }}
+            </div>
+
+            <div class="alumno-info">
+                <span class="alumno-name">
+                    {{ a.apellido_paterno }}
+                    {{ a.apellido_materno ? a.apellido_materno : '' }},
+                    {{ a.nombre }}
+                </span>
+                <span class="alumno-code">{{ a.codigo_estudiante }}</span>
+            </div>
+
+            <span class="status-chip" [class.active]="a.activo" [class.inactive]="!a.activo">
+                <span class="dot"></span>
+                {{ a.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+
+            <button mat-icon-button class="remove-btn" (click)="retirarAlumno(a)" matTooltip="Retirar de la sección"
+                color="warn">
+                <mat-icon>person_remove</mat-icon>
+            </button>
+
+        </div>
+        }
+    </div>
+    }
+
+</div>
