@@ -71,7 +71,7 @@ export class ParentChildLink {
       tap(() => this.isSearchingPadre.set(true)),
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap(query => this.api.get<any>(`admin/users/search?q=${query}&role=padre`).pipe(
+      switchMap(query => this.api.get<any>(`admin/users/padres/search?q=${query}`).pipe(
         map(res => Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.data) ? res.data.data : []))),
         catchError(() => of([]))
       )),
@@ -86,7 +86,7 @@ export class ParentChildLink {
       tap(() => this.isSearchingAlumno.set(true)),
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap(query => this.api.get<any>(`admin/users/search?q=${query}&role=alumno`).pipe(
+      switchMap(query => this.api.get<any>(`admin/users/alumnos/search?q=${query}`).pipe(
         map(res => Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.data) ? res.data.data : []))),
         catchError(() => of([]))
       )),

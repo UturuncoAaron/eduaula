@@ -21,7 +21,6 @@ export interface PadreRow {
 
 @Component({
   selector: 'app-tab-padres',
-  standalone: true,
   imports: [MatTableModule, MatPaginatorModule, MatIconModule, MatButtonModule],
   templateUrl: './tab-padres.html',
 })
