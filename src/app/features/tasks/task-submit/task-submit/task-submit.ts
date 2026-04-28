@@ -39,7 +39,12 @@ export class TaskSubmit {
   submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading.set(true);
-    this.api.post(`tasks/${this.taskId}/submit`, this.form.value).subscribe({
+    const respuesta = (this.form.value.respuesta_texto ?? '').trim();
+    const urlArchivo = (this.form.value.url_archivo ?? '').trim();
+    const payload: Record<string, unknown> = {};
+    if (respuesta) payload['respuesta_texto'] = respuesta;
+    if (urlArchivo) payload['storage_key'] = urlArchivo;
+    this.api.post(`tasks/${this.taskId}/submit`, payload).subscribe({
       next: () => {
         this.snack.open('Tarea entregada correctamente', 'OK', { duration: 3000 });
         this.router.navigate(['/tareas']);

@@ -1,0 +1,256 @@
+:host {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.submissions-pane {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.header-icon {
+    color: #2563eb;
+    flex-shrink: 0;
+}
+
+.header-text {
+    min-width: 0;
+
+    h2 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 60ch;
+    }
+
+    .subtitle {
+        font-size: 12px;
+        color: #64748b;
+    }
+}
+
+.header-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.pane-body {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 16px 20px;
+
+    &.center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.state-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 24px;
+    color: #64748b;
+    text-align: center;
+
+    .big-icon {
+        font-size: 56px;
+        width: 56px;
+        height: 56px;
+        color: #94a3b8;
+    }
+
+    h3 {
+        margin: 0;
+        color: #1e293b;
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.submissions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 920px;
+    margin: 0 auto;
+}
+
+.sub-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sub-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .alumno {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        mat-icon {
+            color: #475569;
+        }
+
+        strong {
+            display: block;
+            color: #0f172a;
+            font-size: 14px;
+        }
+
+        .codigo {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+        }
+    }
+
+    .meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .fecha {
+            color: #64748b;
+            font-size: 12px;
+        }
+    }
+}
+
+.chip-retraso {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+.chip-ok {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+.chip-final {
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .respuesta {
+        margin: 0;
+        padding: 10px 12px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        color: #1e293b;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+}
+
+.archivo-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #eff6ff;
+    border-radius: 8px;
+    color: #1d4ed8;
+    text-decoration: none;
+    font-size: 13px;
+    width: fit-content;
+    max-width: 100%;
+
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 600px;
+    }
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover {
+        background: #dbeafe;
+    }
+
+    &.disabled {
+        color: #64748b;
+        background: #f1f5f9;
+        cursor: default;
+    }
+}
+
+.grade-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+
+    .grade-field {
+        width: 220px;
+    }
+}
+
+.full {
+    width: 100%;
+}
+
+.sub-actions {
+    display: flex;
+    justify-content: flex-end;
+}

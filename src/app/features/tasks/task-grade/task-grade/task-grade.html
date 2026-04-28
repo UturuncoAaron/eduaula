@@ -11,7 +11,7 @@
     <mat-card class="sub-card">
         <mat-card-header>
             <mat-icon mat-card-avatar>person</mat-icon>
-            <mat-card-title>{{ s.alumno }}</mat-card-title>
+            <mat-card-title>{{ nombreAlumno(s) }}</mat-card-title>
             <mat-card-subtitle>
                 {{ s.con_retraso ? '⚠ Con retraso' : 'A tiempo' }}
                 · {{ s.fecha_entrega | slice:0:10 }}
@@ -21,8 +21,8 @@
         <mat-card-content>
             <p class="response">{{ s.respuesta_texto }}</p>
 
-            @if (s.url_archivo) {
-            <a [href]="s.url_archivo" target="_blank" class="file-link">
+            @if (s.storage_key) {
+            <a [href]="s.storage_key" target="_blank" class="file-link">
                 <mat-icon>attach_file</mat-icon> Ver archivo adjunto
             </a>
             }
@@ -30,16 +30,16 @@
             <div class="grade-row">
                 <mat-form-field appearance="outline" class="grade-field">
                     <mat-label>Nota (0-20)</mat-label>
-                    <input matInput type="number" min="0" max="20" [(ngModel)]="s.calificacion" />
+                    <input matInput type="number" min="0" max="20" [(ngModel)]="s.calificacion_manual" />
                 </mat-form-field>
-                @if (s.calificacion != null) {
-                <app-grade-badge [nota]="s.calificacion" />
+                @if (s.calificacion_manual != null) {
+                <app-grade-badge [nota]="s.calificacion_manual" />
                 }
             </div>
 
             <mat-form-field appearance="outline" class="w100">
                 <mat-label>Comentario de retroalimentación (opcional)</mat-label>
-                <textarea matInput rows="2" [(ngModel)]="s.comentario"></textarea>
+                <textarea matInput rows="2" [(ngModel)]="s.comentario_docente"></textarea>
             </mat-form-field>
         </mat-card-content>
 

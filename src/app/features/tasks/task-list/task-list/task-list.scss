@@ -28,3 +28,39 @@
         }
     }
 }
+
+.chips-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.chip {
+    font-size: 12px;
+
+    &.chip-pendiente {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
+    }
+
+    &.chip-vencida {
+        background: #e2e8f0 !important;
+        color: #475569 !important;
+    }
+
+    &.chip-entregada {
+        background: #dbeafe !important;
+        color: #1d4ed8 !important;
+    }
+
+    &.chip-calificada {
+        background: #dcfce7 !important;
+        color: #166534 !important;
+    }
+
+    &.chip-retraso {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+    }
+}

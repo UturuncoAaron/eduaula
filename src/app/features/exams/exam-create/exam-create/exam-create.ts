@@ -1,4 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit, Optional } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -11,6 +13,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ExamService } from '../../stores/exam';
+import { ApiService } from '../../../../core/services/api';
+import { Course } from '../../../../core/models/course';
 
 @Component({
   selector: 'app-exam-create',
@@ -27,12 +31,19 @@ export class ExamCreate {
   private fb = inject(FormBuilder);
   private examSvc = inject(ExamService);
   private snack = inject(MatSnackBar);
-  private dialogRef = inject(MatDialogRef<ExamCreate>);
-  private courseId = inject<string>(MAT_DIALOG_DATA);
+  private dialogRef = inject(MatDialogRef<ExamCreate>, { optional: true });
+  private dialogData = inject<string | null>(MAT_DIALOG_DATA, { optional: true });
+  private api = inject(ApiService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private location = inject(Location);
 
   loading = signal(false);
+  courses = signal<Course[]>([]);
+  courseId = '';
 
   form = this.fb.group({
+    curso_id: ['', Validators.required],
     titulo: ['', [Validators.required, Validators.minLength(3)]],
     descripcion: [''],
     fecha_inicio: [null as Date | null, Validators.required],
@@ -43,20 +54,39 @@ export class ExamCreate {
     preguntas: this.fb.array([]),
   });
 
+  ngOnInit() {
+    if (this.dialogData) {
+      this.courseId = this.dialogData;
+      this.form.patchValue({ curso_id: this.courseId });
+    } else {
+      this.api.get<Course[]>('courses').subscribe({
+        next: r => this.courses.set(r.data),
+        error: () => this.courses.set([]),
+      });
+    }
+  }
+
+  get isDialog(): boolean { return !!this.dialogRef; }
+
   get preguntasArray(): FormArray {
     return this.form.get('preguntas') as FormArray;
   }
 
-  getPreguntaGroup(i: number): FormGroup {
-    return this.preguntasArray.at(i) as FormGroup;
+  getPreguntaGroup(i: number): FormGroup | null {
+    const c = this.preguntasArray.at(i);
+    return (c as FormGroup) ?? null;
   }
 
-  getOpcionesArray(i: number): FormArray {
-    return this.getPreguntaGroup(i).get('opciones') as FormArray;
+  getOpcionesArray(i: number): FormArray | null {
+    const g = this.getPreguntaGroup(i);
+    return g ? (g.get('opciones') as FormArray) : null;
   }
 
-  getOpcionGroup(pi: number, oi: number): FormGroup {
-    return this.getOpcionesArray(pi).at(oi) as FormGroup;
+  getOpcionGroup(pi: number, oi: number): FormGroup | null {
+    const arr = this.getOpcionesArray(pi);
+    if (!arr) return null;
+    const c = arr.at(oi);
+    return (c as FormGroup) ?? null;
   }
 
   addPregunta() {
@@ -79,17 +109,18 @@ export class ExamCreate {
   }
 
   addOpcion(pi: number) {
-    this.getOpcionesArray(pi).push(this.newOpcion(''));
+    this.getOpcionesArray(pi)?.push(this.newOpcion(''));
   }
 
   removeOpcion(pi: number, oi: number) {
-    this.getOpcionesArray(pi).removeAt(oi);
+    this.getOpcionesArray(pi)?.removeAt(oi);
   }
 
   onTipoChange(pi: number) {
     const grupo = this.getPreguntaGroup(pi);
-    const tipo = grupo.value.tipo;
     const opciones = this.getOpcionesArray(pi);
+    if (!grupo || !opciones) return;
+    const tipo = grupo.value.tipo;
     opciones.clear();
     if (tipo === 'verdadero_falso') {
       opciones.push(this.newOpcion('Verdadero', true));
@@ -130,13 +161,12 @@ export class ExamCreate {
     const v = this.form.value;
     const payload = {
       titulo: v.titulo,
-      descripcion: v.descripcion,
-      fecha_inicio: this.buildDateTime(v.fecha_inicio!, v.hora_inicio!),
-      fecha_fin: this.buildDateTime(v.fecha_fin!, v.hora_fin!),
-      puntos_total: v.puntos_total,
+      instrucciones: v.descripcion || undefined,
+      fecha_limite: this.buildDateTime(v.fecha_fin!, v.hora_fin!),
+      puntos_max: v.puntos_total,
+      permite_alternativas: true,
       preguntas: v.preguntas!.map((p: any, i: number) => ({
         enunciado: p.enunciado,
-        tipo: p.tipo,
         puntos: p.puntos,
         orden: i,
         opciones: p.opciones.map((o: any, j: number) => ({
@@ -147,15 +177,25 @@ export class ExamCreate {
       })),
     };
 
-    this.examSvc.createExam(this.courseId, payload).subscribe({
+    const cursoId = this.dialogData ?? this.form.value.curso_id ?? '';
+    this.examSvc.createExam(cursoId, payload).subscribe({
       next: () => {
         this.snack.open('Examen creado correctamente', 'OK', { duration: 3000 });
-        this.dialogRef.close(true);
+        if (this.dialogRef) {
+          this.dialogRef.close(true);
+        } else {
+          this.router.navigate(['/examenes']);
+        }
       },
       error: () => {
         this.snack.open('Error al crear el examen', 'OK', { duration: 3000 });
         this.loading.set(false);
       },
     });
+  }
+
+  cancel() {
+    if (this.dialogRef) this.dialogRef.close(false);
+    else this.location.back();
   }
 }

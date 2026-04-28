@@ -10,13 +10,36 @@ export interface Course {
     activo: boolean;
 }
 
+export type TipoMaterial = 'pdf' | 'video' | 'link' | 'grabacion' | 'otro';
+
 export interface Material {
     id: string;
     curso_id: string;
     titulo: string;
-    tipo: 'pdf' | 'video' | 'link' | 'grabacion' | 'otro';
+    tipo: TipoMaterial;
     url: string;
-    descripcion?: string;
+    storage_key?: string | null;
+    nombre_original?: string | null;
+    mime_type?: string | null;
+    size_bytes?: number | null;
+    descripcion?: string | null;
+    bimestre?: number | null;
+    semana?: number | null;
     orden: number;
+    activo?: boolean;
     created_at: string;
+    updated_at?: string;
+}
+
+export interface MaterialDownload {
+    url: string;
+    filename: string;
+    kind: 'file' | 'link';
+}
+
+export interface MaterialPreviewInfo {
+    url: string;
+    filename: string;
+    mime_type: string | null;
+    kind: 'file' | 'link';
 }

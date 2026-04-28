@@ -13,7 +13,7 @@ import { DatePipe, TitleCasePipe } from '@angular/common';
 
 interface LiveClass {
   id: string;
-  curso: string;
+  curso?: { id: string; nombre: string } | null;
   titulo: string;
   descripcion?: string;
   fecha_hora: string;
@@ -45,7 +45,7 @@ export class LiveClassList implements OnInit {
       error: () => {
         const d1 = new Date(); d1.setDate(d1.getDate() + 1);
         this.classes.set([
-          { id: '1', curso: 'Matemáticas', titulo: 'Clase: Funciones cuadráticas', descripcion: 'Veremos gráficas e interpretación', fecha_hora: d1.toISOString(), duracion_min: 60, link_reunion: 'https://meet.google.com/abc-def-ghi', estado: 'programada' },
+          { id: '1', curso: { id: '1', nombre: 'Matemáticas' }, titulo: 'Clase: Funciones cuadráticas', descripcion: 'Veremos gráficas e interpretación', fecha_hora: d1.toISOString(), duracion_min: 60, link_reunion: 'https://meet.google.com/abc-def-ghi', estado: 'programada' },
         ]);
         this.loading.set(false);
       },

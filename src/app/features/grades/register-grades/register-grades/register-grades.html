@@ -14,8 +14,17 @@
 
 @if (loading()) {
 <div class="loading-center"><mat-spinner diameter="40" /></div>
+} @else if (!cursoId) {
+<div class="pick-course">
+    <app-empty-state icon="menu_book" title="Elegí un curso"
+        message="Entrá desde el listado de Notas para elegir un curso y un bimestre." />
+    <a mat-flat-button color="primary" [routerLink]="['/notas']">
+        <mat-icon>list_alt</mat-icon> Ir al listado
+    </a>
+</div>
 } @else if (grades().length === 0) {
-<app-empty-state icon="people" title="Sin alumnos" message="No hay alumnos matriculados en este curso." />
+<app-empty-state icon="people" title="Sin alumnos"
+    message="No hay alumnos matriculados en este curso para el periodo seleccionado." />
 } @else {
 <mat-card class="table-card">
     <mat-card-header>

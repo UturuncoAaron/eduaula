@@ -37,20 +37,20 @@ export class TaskGrade implements OnInit {
   ngOnInit() {
     this.api.get<Submission[]>(`tasks/${this.taskId}/submissions`).subscribe({
       next: r => { this.submissions.set(r.data); this.loading.set(false); },
-      error: () => {
-        this.submissions.set([
-          { id: '1', tarea_id: this.taskId, alumno_id: 'a1', alumno: 'García, Carlos', respuesta_texto: 'Resolví los ejercicios aplicando la fórmula del área...', fecha_entrega: new Date().toISOString(), con_retraso: false },
-          { id: '2', tarea_id: this.taskId, alumno_id: 'a2', alumno: 'López, María', respuesta_texto: 'Mi respuesta completa del ejercicio 3...', fecha_entrega: new Date().toISOString(), con_retraso: true },
-        ]);
-        this.loading.set(false);
-      },
+      error: () => { this.submissions.set([]); this.loading.set(false); },
     });
   }
 
+  nombreAlumno(sub: Submission): string {
+    const a = sub.alumno;
+    if (!a) return 'Alumno';
+    return `${a.apellido_paterno}${a.apellido_materno ? ' ' + a.apellido_materno : ''}, ${a.nombre}`;
+  }
+
   saveGrade(sub: Submission) {
-    this.api.patch(`tasks/${this.taskId}/submissions/${sub.id}/grade`, {
-      calificacion: sub.calificacion,
-      comentario: sub.comentario,
+    this.api.patch(`submissions/${sub.id}/grade`, {
+      calificacion_manual: sub.calificacion_manual,
+      comentario_docente: sub.comentario_docente,
     }).subscribe({
       next: () => this.snack.open('Nota guardada', 'OK', { duration: 2000 }),
       error: () => this.snack.open('Error al guardar', 'OK', { duration: 2000 }),

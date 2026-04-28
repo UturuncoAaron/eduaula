@@ -6,6 +6,18 @@
             <form [formGroup]="form" (ngSubmit)="submit()" class="form">
 
                 <mat-form-field appearance="outline" class="w100">
+                    <mat-label>Curso</mat-label>
+                    <mat-select formControlName="curso_id">
+                        @for (c of cursos(); track c.id) {
+                        <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                    @if (form.controls.curso_id.invalid && form.controls.curso_id.touched) {
+                    <mat-error>Selecciona un curso</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w100">
                     <mat-label>Título de la clase</mat-label>
                     <input matInput formControlName="titulo" placeholder="Ej: Clase: Funciones cuadráticas" />
                 </mat-form-field>

@@ -1,0 +1,77 @@
+<div class="preview-dialog">
+    <header class="preview-header">
+        <div class="header-info">
+            <mat-icon class="header-icon">visibility</mat-icon>
+            <div class="header-text">
+                <h2>{{ data.material.titulo }}</h2>
+                <span class="subtitle">{{ filename() }}</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button mat-icon-button (click)="abrirEnNuevaPestana()" matTooltip="Abrir en nueva pestaña"
+                [disabled]="loading() || !previewUrl()">
+                <mat-icon>open_in_new</mat-icon>
+            </button>
+            <button mat-icon-button (click)="descargar()" matTooltip="Descargar" [disabled]="loading()">
+                <mat-icon>download</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cerrar()" matTooltip="Cerrar">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+    </header>
+
+    <div class="preview-body" [class.center]="loading() || errorMsg() || kind() === 'unsupported' || kind() === 'audio'">
+        @if (loading()) {
+        <div class="state-block">
+            <mat-spinner diameter="42"></mat-spinner>
+            <p>Cargando vista previa…</p>
+        </div>
+        } @else if (errorMsg()) {
+        <div class="state-block error">
+            <mat-icon>error_outline</mat-icon>
+            <p>{{ errorMsg() }}</p>
+        </div>
+        } @else {
+        @switch (kind()) {
+        @case ('pdf') {
+        <iframe class="viewer-iframe" [src]="safeUrl()" title="Vista previa PDF"></iframe>
+        }
+        @case ('image') {
+        <div class="viewer-image">
+            <img [src]="previewUrl() ?? ''" [alt]="data.material.titulo" />
+        </div>
+        }
+        @case ('video') {
+        <video class="viewer-video" [src]="previewUrl() ?? ''" controls preload="metadata" autoplay></video>
+        }
+        @case ('audio') {
+        <div class="viewer-audio">
+            <audio [src]="previewUrl() ?? ''" controls></audio>
+        </div>
+        }
+        @case ('office') {
+        <iframe class="viewer-iframe" [src]="safeUrl()" title="Vista previa Office"></iframe>
+        }
+        @case ('youtube') {
+        <iframe class="viewer-iframe" [src]="safeUrl()" title="YouTube"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        }
+        @case ('iframe') {
+        <iframe class="viewer-iframe" [src]="safeUrl()" title="Recurso externo"></iframe>
+        }
+        @default {
+        <div class="state-block">
+            <mat-icon class="big-icon">insert_drive_file</mat-icon>
+            <h3>Este formato no se puede previsualizar</h3>
+            <p>Podés descargarlo y abrirlo en tu equipo.</p>
+            <button mat-flat-button color="primary" (click)="descargar()">
+                <mat-icon>download</mat-icon> Descargar archivo
+            </button>
+        </div>
+        }
+        }
+        }
+    </div>
+</div>

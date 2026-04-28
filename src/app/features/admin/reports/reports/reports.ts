@@ -65,7 +65,7 @@ export class Reports {
       return;
     }
     this.uploadingLib.set(true);
-    this.api.post('admin/libretas', {
+    this.api.post('libretas', {
       alumno_doc: this.libretaAlumno(),
       url_pdf: this.libretaUrl(),
       periodo: this.libretaPeriodo() || '2025',

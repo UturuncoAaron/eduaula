@@ -18,19 +18,12 @@ export class ExamService {
     return this.api.post<Exam>(`courses/${courseId}/exams`, d);
   }
 
-  toggleExam(courseId: string, examId: string) {
-    return this.api.patch<Exam>(`courses/${courseId}/exams/${examId}/toggle`, {});
+  toggleExam(courseId: string, examId: string, activo: boolean) {
+    return this.api.patch<Exam>(`courses/${courseId}/exams/${examId}/toggle`, { activo });
   }
 
-  startAttempt(courseId: string, examId: string) {
-    return this.api.post<Attempt>(`courses/${courseId}/exams/${examId}/start`, {});
-  }
-
-  submitAttempt(courseId: string, examId: string, attemptId: string, respuestas: Answer[]) {
-    return this.api.post<Attempt>(`courses/${courseId}/exams/${examId}/submit`, {
-      attempt_id: attemptId,
-      respuestas,
-    });
+  submitAttempt(courseId: string, examId: string, _attemptId: string, respuestas: Answer[]) {
+    return this.api.post<Attempt>(`courses/${courseId}/exams/${examId}/submit`, { respuestas });
   }
 
   getResults(courseId: string, examId: string) {

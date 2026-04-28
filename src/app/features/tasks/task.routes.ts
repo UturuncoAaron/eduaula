@@ -6,6 +6,10 @@ export const TASKS_ROUTES: Routes = [
     loadComponent: () => import('./task-list/task-list/task-list').then(c => c.TaskList),
   },
   {
+    path: 'crear',
+    loadComponent: () => import('./task-create/task-create').then(c => c.TaskCreate),
+  },
+  {
     path: ':id/entregar',
     loadComponent: () => import('./task-submit/task-submit/task-submit').then(c => c.TaskSubmit),
   },

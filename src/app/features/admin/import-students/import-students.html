@@ -1,0 +1,88 @@
+<app-page-header title="Importar alumnos">
+    <button mat-stroked-button (click)="descargarPlantilla()">
+        <mat-icon>download</mat-icon> Descargar plantilla CSV
+    </button>
+</app-page-header>
+
+<mat-card class="form-card">
+    <mat-card-header>
+        <mat-icon mat-card-avatar style="color:#1565C0">upload_file</mat-icon>
+        <mat-card-title>Carga masiva desde CSV</mat-card-title>
+        <mat-card-subtitle>Cada fila se crea como alumno y se matricula en la sección/período seleccionados</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+        <form [formGroup]="form" class="form">
+            <div class="row-2">
+                <mat-form-field appearance="outline">
+                    <mat-label>Sección</mat-label>
+                    <mat-select formControlName="seccion_id">
+                        @for (s of secciones(); track s.id) {
+                        <mat-option [value]="s.id">{{ s.grado?.nombre || '' }} {{ s.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Período</mat-label>
+                    <mat-select formControlName="periodo_id">
+                        @for (p of periodos(); track p.id) {
+                        <mat-option [value]="p.id">{{ p.nombre }} {{ p.activo ? '(activo)' : '' }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="file-row">
+                <input type="file" id="csvFile" accept=".csv" (change)="pickFile($event)" hidden />
+                <label for="csvFile" class="file-btn">
+                    <mat-icon>attach_file</mat-icon>
+                    {{ archivo()?.name || 'Seleccionar archivo CSV' }}
+                </label>
+                @if (archivo()) {
+                <span class="file-info">{{ (archivo()!.size / 1024).toFixed(1) }} KB</span>
+                }
+            </div>
+
+            @if (uploading()) {
+            <mat-progress-bar mode="indeterminate" />
+            }
+
+            <div class="actions">
+                <button mat-flat-button color="primary" type="button" (click)="importar()" [disabled]="uploading()">
+                    <mat-icon>cloud_upload</mat-icon>
+                    {{ uploading() ? 'Importando...' : 'Iniciar importación' }}
+                </button>
+            </div>
+        </form>
+    </mat-card-content>
+</mat-card>
+
+@if (resultado(); as r) {
+<mat-card class="result-card">
+    <mat-card-header>
+        <mat-icon mat-card-avatar style="color:#2E7D32">check_circle</mat-icon>
+        <mat-card-title>Resumen de importación</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <div class="counters">
+            <mat-chip class="chip-info">Total: {{ r.total }}</mat-chip>
+            <mat-chip class="chip-ok">Creados: {{ r.creados }}</mat-chip>
+            <mat-chip class="chip-ok">Matriculados: {{ r.matriculados }}</mat-chip>
+            <mat-chip class="chip-warn">Omitidos: {{ r.omitidos }}</mat-chip>
+            @if (r.errores.length) {
+            <mat-chip class="chip-error">Errores: {{ r.errores.length }}</mat-chip>
+            }
+        </div>
+
+        @if (r.errores.length) {
+        <h4>Filas con error</h4>
+        <ul class="error-list">
+            @for (e of r.errores; track e.fila) {
+            <li><strong>Fila {{ e.fila }}</strong> ({{ e.numero_documento }}): {{ e.motivo }}</li>
+            }
+        </ul>
+        }
+    </mat-card-content>
+</mat-card>
+}

@@ -45,21 +45,16 @@ export class ExamTake implements OnInit {
   }
 
   ngOnInit() {
-    this.examSvc.startAttempt(this.courseId, this.examId).subscribe({
-      next: res => {
-        this.attemptId.set(res.data.id);
-        this.examSvc.getExamWithQuestions(this.courseId, this.examId).subscribe({
-          next: r => {
-            this.questions.set((r.data as any).preguntas ?? []);
-            this.loading.set(false);
-          },
-          error: () => this.loading.set(false),
-        });
+    this.examSvc.getExamWithQuestions(this.courseId, this.examId).subscribe({
+      next: r => {
+        this.questions.set((r.data as any).preguntas ?? []);
+        this.loading.set(false);
       },
       error: () => {
-        this.snack.open('No se puede iniciar el examen ahora', 'OK', { duration: 3000 });
+        this.snack.open('No se pudo cargar el examen', 'OK', { duration: 3000 });
+        this.loading.set(false);
         this.router.navigate(['/examenes']);
-      }
+      },
     });
   }
 
@@ -78,9 +73,9 @@ export class ExamTake implements OnInit {
     const respuestas: Answer[] = Object.entries(this.answers())
       .map(([pregunta_id, opcion_id]) => ({ pregunta_id, opcion_id }));
 
-    this.examSvc.submitAttempt(this.courseId, this.examId, this.attemptId()!, respuestas).subscribe({
+    this.examSvc.submitAttempt(this.courseId, this.examId, '', respuestas).subscribe({
       next: r => {
-        this.snack.open(`Examen enviado. Puntaje: ${r.data.puntaje ?? '—'}`, 'OK', { duration: 4000 });
+        this.snack.open(`Examen enviado. Puntaje: ${(r.data as any).calificacion_auto ?? r.data.puntaje ?? '—'}`, 'OK', { duration: 4000 });
         this.router.navigate(['/examenes']);
       },
       error: () => {

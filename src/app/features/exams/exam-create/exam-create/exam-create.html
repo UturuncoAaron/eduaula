@@ -1,7 +1,25 @@
+@if (isDialog) {
 <h2 mat-dialog-title>Crear examen</h2>
+} @else {
+<h1 class="page-title">Nuevo examen</h1>
+}
 
-<mat-dialog-content>
+<div [class.dialog-content]="isDialog" mat-dialog-content>
     <form [formGroup]="form" class="form">
+
+        @if (!isDialog) {
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Curso</mat-label>
+            <mat-select formControlName="curso_id">
+                @for (c of courses(); track c.id) {
+                <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
+                }
+            </mat-select>
+            @if (form.controls.curso_id.invalid && form.controls.curso_id.touched) {
+            <mat-error>Selecciona un curso</mat-error>
+            }
+        </mat-form-field>
+        }
 
         <mat-form-field appearance="outline" class="w100">
             <mat-label>Título del examen</mat-label>
@@ -69,11 +87,12 @@
                 </button>
             </div>
 
-            @for (pGroup of preguntasArray.controls; track $index) {
-            <div class="question-block" [formGroup]="getPreguntaGroup($index)">
+            @for (pGroup of preguntasArray.controls; track pi; let pi = $index) {
+            @if (getPreguntaGroup(pi); as pregGroup) {
+            <div class="question-block" [formGroup]="pregGroup">
                 <div class="question-header">
-                    <span class="q-num">Pregunta {{ $index + 1 }}</span>
-                    <button mat-icon-button type="button" color="warn" (click)="removePregunta($index)">
+                    <span class="q-num">Pregunta {{ pi + 1 }}</span>
+                    <button mat-icon-button type="button" color="warn" (click)="removePregunta(pi)">
                         <mat-icon>delete</mat-icon>
                     </button>
                 </div>
@@ -86,7 +105,7 @@
                 <div class="q-meta-row">
                     <mat-form-field appearance="outline" class="tipo-field">
                         <mat-label>Tipo</mat-label>
-                        <mat-select formControlName="tipo" (selectionChange)="onTipoChange($index)">
+                        <mat-select formControlName="tipo" (selectionChange)="onTipoChange(pi)">
                             <mat-option value="multiple">Opción múltiple</mat-option>
                             <mat-option value="verdadero_falso">Verdadero / Falso</mat-option>
                         </mat-select>
@@ -99,36 +118,39 @@
 
                 <!-- Opciones -->
                 <div class="options-list">
-                    @for (oGroup of getOpcionesArray($index).controls; track oi; let oi = $index) {
-                    <div class="option-row" [formGroup]="getOpcionGroup($index, oi)">
+                    @for (oGroup of (getOpcionesArray(pi)?.controls ?? []); track oi; let oi = $index) {
+                    @if (getOpcionGroup(pi, oi); as optGroup) {
+                    <div class="option-row" [formGroup]="optGroup">
                         <mat-checkbox formControlName="es_correcta" />
                         <mat-form-field appearance="outline" class="opt-field">
                             <input matInput formControlName="texto" placeholder="Texto de la opción" />
                         </mat-form-field>
-                        @if (getPreguntaGroup($index).value.tipo === 'multiple') {
-                        <button mat-icon-button type="button" color="warn" (click)="removeOpcion($index, oi)">
+                        @if (pregGroup.value.tipo === 'multiple') {
+                        <button mat-icon-button type="button" color="warn" (click)="removeOpcion(pi, oi)">
                             <mat-icon>close</mat-icon>
                         </button>
                         }
                     </div>
                     }
-                    @if (getPreguntaGroup($index).value.tipo === 'multiple') {
-                    <button mat-button type="button" (click)="addOpcion($index)">
+                    }
+                    @if (pregGroup.value.tipo === 'multiple') {
+                    <button mat-button type="button" (click)="addOpcion(pi)">
                         <mat-icon>add</mat-icon> Agregar opción
                     </button>
                     }
                 </div>
             </div>
             }
+            }
         </div>
 
     </form>
-</mat-dialog-content>
+</div>
 
-<mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close [disabled]="loading()">Cancelar</button>
+<div [class.dialog-actions]="isDialog" class="actions-row" align="end">
+    <button mat-button (click)="cancel()" [disabled]="loading()">Cancelar</button>
     <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading()">
         <mat-icon>save</mat-icon>
         {{ loading() ? 'Guardando...' : 'Crear examen' }}
     </button>
-</mat-dialog-actions>
+</div>

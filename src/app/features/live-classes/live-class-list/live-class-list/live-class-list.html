@@ -17,7 +17,7 @@
         <mat-card-header>
             <mat-icon mat-card-avatar style="color:#1565C0">videocam</mat-icon>
             <mat-card-title>{{ c.titulo }}</mat-card-title>
-            <mat-card-subtitle>{{ c.curso }} · {{ c.duracion_min }} min</mat-card-subtitle>
+            <mat-card-subtitle>{{ c.curso?.nombre || 'Curso' }} · {{ c.duracion_min }} min</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>

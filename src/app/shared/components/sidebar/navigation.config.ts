@@ -20,4 +20,6 @@ export const NAV_ITEMS: NavItem[] = [
     { label: 'Académico', icon: 'school', route: '/admin/academico', roles: ['admin'] },
     { label: 'Padre-Hijo', icon: 'link', route: '/admin/padre-hijo', roles: ['admin'] },
     { label: 'Reportes', icon: 'bar_chart', route: '/admin/reportes', roles: ['admin'] },
+    { label: 'Comunicados', icon: 'campaign', route: '/admin/comunicados', roles: ['admin'] },
+    { label: 'Importar alumnos', icon: 'upload_file', route: '/admin/importar', roles: ['admin'] },
 ];

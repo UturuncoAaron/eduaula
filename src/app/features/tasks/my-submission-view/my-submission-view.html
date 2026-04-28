@@ -1,0 +1,127 @@
+<div class="mysub-pane">
+    <header class="pane-header">
+        <div class="header-info">
+            <mat-icon class="header-icon">assignment_ind</mat-icon>
+            <div class="header-text">
+                <h2>{{ task.titulo }}</h2>
+                <span class="subtitle">
+                    {{ task.curso ?? 'Curso' }} ·
+                    Entrega {{ task.fecha_limite | date:'dd/MM/yyyy HH:mm' }} ·
+                    {{ task.puntos_max }} pts
+                </span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button mat-icon-button (click)="cerrar()" matTooltip="Cerrar">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+    </header>
+
+    <div class="pane-body">
+        @if (!submission()) {
+        <div class="state-block">
+            <mat-icon class="big-icon">assignment_late</mat-icon>
+            <h3>{{ vencida() ? 'Plazo vencido' : 'Tarea pendiente' }}</h3>
+            <p>
+                {{ vencida()
+                ? 'No llegaste a entregar esta tarea.'
+                : 'Todavía no entregaste esta tarea.' }}
+            </p>
+            @if (!vencida()) {
+            <button mat-flat-button color="primary" (click)="reenviar()">
+                <mat-icon>upload</mat-icon> Entregar tarea
+            </button>
+            }
+        </div>
+        } @else {
+        <div class="content">
+            <div class="chips-row">
+                <mat-chip class="chip chip-{{ estado() }}" disabled>{{ estadoLabel() }}</mat-chip>
+                @if (submission()?.con_retraso) {
+                <mat-chip class="chip chip-retraso" disabled>Con retraso</mat-chip>
+                }
+                <span class="fecha">
+                    Entregado el {{ submission()!.fecha_entrega | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+            </div>
+
+            @if (task.instrucciones) {
+            <section class="block">
+                <h4>Instrucciones</h4>
+                <p class="plain">{{ task.instrucciones }}</p>
+            </section>
+            }
+
+            @if (submission()?.respuesta_texto) {
+            <section class="block">
+                <h4>Tu respuesta</h4>
+                <p class="plain">{{ submission()!.respuesta_texto }}</p>
+            </section>
+            }
+
+            @if (submission()?.storage_key) {
+            <section class="block">
+                <h4>Tu archivo</h4>
+                @switch (mediaKind()) {
+                @case ('image') {
+                <img class="media-img" [src]="submission()!.storage_key" alt="archivo" />
+                }
+                @case ('video') {
+                <video class="media-video" controls [src]="submission()!.storage_key"></video>
+                }
+                @case ('audio') {
+                <audio class="media-audio" controls [src]="submission()!.storage_key"></audio>
+                }
+                @case ('pdf') {
+                <iframe class="media-iframe" [src]="safeIframe()"></iframe>
+                }
+                @case ('youtube') {
+                <iframe class="media-iframe" [src]="safeIframe()" allow="autoplay; encrypted-media"
+                    allowfullscreen></iframe>
+                }
+                @case ('drive') {
+                <iframe class="media-iframe" [src]="safeIframe()" allow="autoplay" allowfullscreen></iframe>
+                }
+                @default {
+                <a class="media-link" [href]="submission()!.storage_key" target="_blank" rel="noopener">
+                    <mat-icon>open_in_new</mat-icon>
+                    <span>{{ submission()!.nombre_archivo ?? submission()!.storage_key }}</span>
+                </a>
+                }
+                }
+                <div class="media-actions">
+                    <button mat-stroked-button (click)="abrirExterno()">
+                        <mat-icon>open_in_new</mat-icon> Abrir en nueva pestaña
+                    </button>
+                </div>
+            </section>
+            }
+
+            @if (estado() === 'calificada') {
+            <section class="block graded">
+                <h4>Calificación del docente</h4>
+                <div class="grade-row">
+                    <span class="big-grade">{{ submission()!.calificacion_final }}</span>
+                    <span class="over">/ {{ task.puntos_max }}</span>
+                </div>
+                @if (submission()!.comentario_docente) {
+                <p class="comentario">{{ submission()!.comentario_docente }}</p>
+                } @else {
+                <p class="comentario muted">Sin comentario del docente.</p>
+                }
+            </section>
+            }
+
+            @if (puedeReenviar()) {
+            <div class="reenviar-row">
+                <button mat-flat-button color="primary" (click)="reenviar()">
+                    <mat-icon>refresh</mat-icon> Reenviar entrega
+                </button>
+                <span class="hint">Podés actualizar tu entrega hasta la fecha límite.</span>
+            </div>
+            }
+        </div>
+        }
+    </div>
+</div>

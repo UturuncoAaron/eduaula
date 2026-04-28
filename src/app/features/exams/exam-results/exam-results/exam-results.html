@@ -14,21 +14,21 @@
         <ng-container matColumnDef="puntaje">
             <th mat-header-cell *matHeaderCellDef>Puntaje</th>
             <td mat-cell *matCellDef="let r">
-                <strong>{{ r.puntaje ?? '—' }}</strong>
+                <strong>{{ (r.calificacion_final ?? r.calificacion_auto) ?? '—' }}</strong>
             </td>
         </ng-container>
 
         <ng-container matColumnDef="escala">
             <th mat-header-cell *matHeaderCellDef>Escala</th>
             <td mat-cell *matCellDef="let r">
-                <app-grade-badge [nota]="r.puntaje" />
+                <app-grade-badge [nota]="(r.calificacion_final ?? r.calificacion_auto)" />
             </td>
         </ng-container>
 
         <ng-container matColumnDef="fecha">
             <th mat-header-cell *matHeaderCellDef>Fecha</th>
             <td mat-cell *matCellDef="let r">
-                {{ r.fecha_inicio | slice:0:10 }}
+                {{ r.fecha_entrega | slice:0:10 }}
             </td>
         </ng-container>
 

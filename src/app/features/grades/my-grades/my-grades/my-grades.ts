@@ -59,15 +59,8 @@ export class MyGrades implements OnInit {
 
   loadMyGrades() {
     this.api.get<Grade[]>('grades/my').subscribe({
-      next: r => { this.grades.set(r.data); this.loading.set(false); },
-      error: () => {
-        this.grades.set([
-          { id: '1', alumno_id: '', curso_id: '1', curso: 'Matemáticas', periodo_id: 1, bimestre: 1, nota_examenes: 17, nota_tareas: 18, nota_participacion: 16, nota_final: 17, escala: 'A' },
-          { id: '2', alumno_id: '', curso_id: '2', curso: 'Comunicación', periodo_id: 1, bimestre: 1, nota_examenes: 19, nota_tareas: 20, nota_participacion: 18, nota_final: 19, escala: 'AD' },
-          { id: '3', alumno_id: '', curso_id: '1', curso: 'Matemáticas', periodo_id: 1, bimestre: 2, nota_examenes: 16, nota_tareas: 17, nota_participacion: 15, nota_final: 16, escala: 'A' },
-        ]);
-        this.loading.set(false);
-      },
+      next: r => { this.grades.set(r.data ?? []); this.loading.set(false); },
+      error: () => { this.grades.set([]); this.loading.set(false); },
     });
   }
 }

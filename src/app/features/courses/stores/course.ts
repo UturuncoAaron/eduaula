@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { tap } from 'rxjs';
 import { ApiService } from '../../../core/services/api';
-import { Course, Material } from '../../../core/models/course';
+import { Course, Material, MaterialDownload, MaterialPreviewInfo } from '../../../core/models/course';
 
 @Injectable({ providedIn: 'root' })
 export class CourseService {
@@ -37,17 +37,27 @@ export class CourseService {
     return this.api.get<Material[]>(`courses/${courseId}/materials`);
   }
 
-  uploadMaterial(courseId: string, data: Partial<Material>) {
-    return this.api.post<Material>(`courses/${courseId}/materials`, data);
+  addMaterial(courseId: string, body: Partial<Material>) {
+    return this.api.post<Material>(`courses/${courseId}/materials`, body);
   }
 
-  addMaterial(id: string, d: Partial<Material>) {
-    return this.api.post<Material>(`courses/${id}/materials`, d);
-  }
   addMaterialFile(courseId: string, formData: FormData) {
     return this.api.postForm<Material>(`courses/${courseId}/materials`, formData);
   }
-  deleteMaterial(materialId: string) {
-    return this.api.delete<void>(`materials/${materialId}`);
+
+  updateMaterial(courseId: string, materialId: string, body: Partial<Material>) {
+    return this.api.patch<Material>(`courses/${courseId}/materials/${materialId}`, body);
+  }
+
+  deleteMaterial(courseId: string, materialId: string) {
+    return this.api.delete<{ message: string }>(`courses/${courseId}/materials/${materialId}`);
+  }
+
+  getMaterialDownload(courseId: string, materialId: string) {
+    return this.api.get<MaterialDownload>(`courses/${courseId}/materials/${materialId}/download`);
+  }
+
+  getMaterialPreview(courseId: string, materialId: string) {
+    return this.api.get<MaterialPreviewInfo>(`courses/${courseId}/materials/${materialId}/preview`);
   }
 }

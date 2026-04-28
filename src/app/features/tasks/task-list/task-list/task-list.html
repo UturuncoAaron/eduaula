@@ -1,15 +1,15 @@
 <app-page-header title="Tareas">
     @if (auth.isDocente()) {
-    <button mat-flat-button color="primary">
+    <a mat-flat-button color="primary" routerLink="/tareas/crear">
         <mat-icon>add</mat-icon> Nueva tarea
-    </button>
+    </a>
     }
 </app-page-header>
 
 @if (loading()) {
 <app-loading-skeleton [count]="3" />
 } @else if (tasks().length === 0) {
-<app-empty-state icon="assignment" title="Sin tareas" message="No hay tareas pendientes." />
+<app-empty-state icon="assignment" title="Sin tareas" message="No hay tareas registradas." />
 } @else {
 <div class="tasks-list">
     @for (t of tasks(); track t.id) {
@@ -23,30 +23,48 @@
         </mat-card-header>
 
         <mat-card-content>
-            @if (t.descripcion) {
-            <p class="desc">{{ t.descripcion }}</p>
+            @if (t.instrucciones) {
+            <p class="desc">{{ t.instrucciones }}</p>
             }
             <div class="deadline">
                 <mat-icon>event</mat-icon>
-                <span>Entrega: {{ t.fecha_entrega | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span>Entrega: {{ t.fecha_limite | date:'dd/MM/yyyy HH:mm' }}</span>
             </div>
-            @if (isPending(t)) {
-            <mat-chip color="warn" selected>Pendiente</mat-chip>
+
+            @if (auth.isAlumno()) {
+            <div class="chips-row">
+                <mat-chip class="chip chip-{{ estadoAlumno(t) }}" disabled>
+                    {{ estadoLabel(t) }}
+                </mat-chip>
+                @if (miEntrega(t)?.con_retraso) {
+                <mat-chip class="chip chip-retraso" disabled>Con retraso</mat-chip>
+                }
+            </div>
             } @else {
-            <mat-chip>Vencida</mat-chip>
+            @if (isPending(t)) {
+            <mat-chip class="chip chip-pendiente" disabled>Pendiente</mat-chip>
+            } @else {
+            <mat-chip class="chip chip-vencida" disabled>Vencida</mat-chip>
+            }
             }
         </mat-card-content>
 
         <mat-card-actions>
             @if (auth.isAlumno()) {
+            @if (miEntrega(t)) {
+            <button mat-flat-button color="primary" (click)="abrirMiEntrega(t)">
+                <mat-icon>visibility</mat-icon> Ver mi entrega
+            </button>
+            } @else {
             <a mat-flat-button color="primary" [routerLink]="['/tareas', t.id, 'entregar']">
                 Entregar tarea
             </a>
             }
+            }
             @if (auth.isDocente()) {
-            <a mat-button [routerLink]="['/tareas', t.id, 'calificar']">
-                Calificar entregas
-            </a>
+            <button mat-flat-button color="primary" (click)="abrirEntregas(t)">
+                <mat-icon>visibility</mat-icon> Ver entregas
+            </button>
             }
         </mat-card-actions>
     </mat-card>

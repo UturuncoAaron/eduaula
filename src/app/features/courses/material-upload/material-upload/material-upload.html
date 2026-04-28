@@ -17,23 +17,35 @@
         <mat-form-field appearance="outline" class="w100">
             <mat-label>Tipo de material</mat-label>
             <mat-select formControlName="tipo" (selectionChange)="onTipoChange()">
-                <mat-option value="pdf">
-                    <mat-icon>picture_as_pdf</mat-icon> PDF
-                </mat-option>
-                <mat-option value="video">
-                    <mat-icon>play_circle</mat-icon> Video (YouTube)
-                </mat-option>
-                <mat-option value="link">
-                    <mat-icon>link</mat-icon> Link externo
-                </mat-option>
-                <mat-option value="grabacion">
-                    <mat-icon>videocam</mat-icon> Grabación de clase
-                </mat-option>
-                <mat-option value="otro">
-                    <mat-icon>attach_file</mat-icon> Otro archivo
-                </mat-option>
+                <mat-option value="pdf">PDF</mat-option>
+                <mat-option value="video">Video (YouTube)</mat-option>
+                <mat-option value="link">Link externo</mat-option>
+                <mat-option value="grabacion">Grabación de clase</mat-option>
+                <mat-option value="otro">Otro archivo</mat-option>
             </mat-select>
         </mat-form-field>
+
+        <div class="row-2">
+            <mat-form-field appearance="outline">
+                <mat-label>Bimestre</mat-label>
+                <mat-select formControlName="bimestre">
+                    <mat-option [value]="null">— Sin asignar —</mat-option>
+                    @for (b of bimestres; track b) {
+                    <mat-option [value]="b">Bimestre {{ b }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Semana</mat-label>
+                <mat-select formControlName="semana">
+                    <mat-option [value]="null">— Sin asignar —</mat-option>
+                    @for (s of semanas; track s) {
+                    <mat-option [value]="s">Semana {{ s }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
 
         @if (tipoAceptaArchivo()) {
         <div class="upload-section">
@@ -48,13 +60,17 @@
             </div>
 
             @if (modoSubida() === 'archivo') {
-            <div class="drop-zone" [class.has-file]="archivoSeleccionado()" (click)="fileInput.click()"
-                (dragover)="$event.preventDefault()" (drop)="onDrop($event)">
-                @if (!archivoSeleccionado()) {
+            <div class="drop-zone" [class.has-file]="archivoSeleccionado()" [class.has-error]="archivoError()"
+                (click)="fileInput.click()" (dragover)="$event.preventDefault()" (drop)="onDrop($event)">
+                @if (archivoError()) {
+                <mat-icon class="drop-icon error">error</mat-icon>
+                <p class="drop-title">{{ archivoError() }}</p>
+                <p class="drop-sub">Selecciona otro archivo</p>
+                } @else if (!archivoSeleccionado()) {
                 <mat-icon class="drop-icon">cloud_upload</mat-icon>
                 <p class="drop-title">Arrastra tu archivo aquí</p>
                 <p class="drop-sub">o haz clic para seleccionar</p>
-                <span class="drop-hint">PDF, imágenes hasta 10MB</span>
+                <span class="drop-hint">PDF, imágenes, Office o TXT — hasta 10 MB</span>
                 } @else {
                 <mat-icon class="drop-icon success">check_circle</mat-icon>
                 <p class="drop-title">{{ archivoSeleccionado()!.name }}</p>
@@ -73,9 +89,6 @@
                 <mat-icon matPrefix>link</mat-icon>
                 <input matInput formControlName="url" placeholder="https://..." />
                 <mat-hint>{{ urlHint() }}</mat-hint>
-                @if (form.controls.url.invalid && form.controls.url.touched) {
-                <mat-error>Ingresa una URL válida (debe empezar con https://)</mat-error>
-                }
             </mat-form-field>
             }
         </div>
@@ -85,9 +98,6 @@
             <mat-icon matPrefix>link</mat-icon>
             <input matInput formControlName="url" placeholder="https://..." />
             <mat-hint>{{ urlHint() }}</mat-hint>
-            @if (form.controls.url.invalid && form.controls.url.touched) {
-            <mat-error>Ingresa una URL válida (debe empezar con https://)</mat-error>
-            }
         </mat-form-field>
         }
 
@@ -100,14 +110,13 @@
     </form>
 </mat-dialog-content>
 
-<button mat-flat-button color="primary" (click)="submit()" [disabled]="loading() || !puedeEnviar()">
-    @if (loading()) {
-    <ng-container>
-        <mat-icon>hourglass_empty</mat-icon> Subiendo...
-    </ng-container>
-    } @else {
-    <ng-container>
-        <mat-icon>upload</mat-icon> Subir material
-    </ng-container>
-    }
-</button>
+<mat-dialog-actions class="dialog-actions" align="end">
+    <button mat-stroked-button type="button" (click)="cancelar()" [disabled]="loading()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading() || !puedeEnviar()">
+        @if (loading()) {
+        <ng-container><mat-icon>hourglass_empty</mat-icon> Subiendo...</ng-container>
+        } @else {
+        <ng-container><mat-icon>upload</mat-icon> Subir material</ng-container>
+        }
+    </button>
+</mat-dialog-actions>

@@ -1,0 +1,105 @@
+import { Component, inject, signal, computed } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { ApiService } from '../../../core/services/api';
+import { Submission, Task } from '../../../core/models/task';
+
+export interface TaskSubmissionsPaneData {
+  task: Task;
+}
+
+@Component({
+  selector: 'app-task-submissions-pane',
+  imports: [
+    CommonModule, FormsModule,
+    MatButtonModule, MatIconModule, MatTooltipModule,
+    MatProgressSpinnerModule, MatFormFieldModule, MatInputModule,
+    MatChipsModule, MatSnackBarModule, MatDialogModule,
+    DatePipe,
+  ],
+  templateUrl: './task-submissions-pane.html',
+  styleUrl: './task-submissions-pane.scss',
+})
+export class TaskSubmissionsPane {
+  private api = inject(ApiService);
+  private snack = inject(MatSnackBar);
+  private ref = inject<MatDialogRef<TaskSubmissionsPane>>(MatDialogRef);
+  readonly data = inject<TaskSubmissionsPaneData>(MAT_DIALOG_DATA);
+
+  loading = signal(true);
+  submissions = signal<Submission[]>([]);
+  saving = signal<string | null>(null);
+
+  count = computed(() => this.submissions().length);
+
+  ngOnInit() {
+    this.cargar();
+  }
+
+  private cargar() {
+    this.loading.set(true);
+    this.api.get<Submission[]>(`tasks/${this.data.task.id}/submissions`).subscribe({
+      next: r => { this.submissions.set(r.data ?? []); this.loading.set(false); },
+      error: () => { this.submissions.set([]); this.loading.set(false); },
+    });
+  }
+
+  nombreAlumno(sub: Submission): string {
+    const a = sub.alumno;
+    if (!a) return 'Alumno';
+    const mat = a.apellido_materno ? ' ' + a.apellido_materno : '';
+    return `${a.apellido_paterno}${mat}, ${a.nombre}`;
+  }
+
+  codigoAlumno(sub: Submission): string {
+    return sub.alumno?.codigo_estudiante ?? sub.alumno_id.slice(0, 8);
+  }
+
+  esUrlExterna(key?: string | null): boolean {
+    return !!key && /^https?:\/\//i.test(key);
+  }
+
+  guardar(sub: Submission) {
+    const cal = sub.calificacion_manual;
+    if (cal == null || Number.isNaN(Number(cal))) {
+      this.snack.open('Ingresá una calificación válida', 'OK', { duration: 2500 });
+      return;
+    }
+    const max = this.data.task.puntos_max;
+    if (cal < 0 || cal > max) {
+      this.snack.open(`La nota debe estar entre 0 y ${max}`, 'OK', { duration: 2500 });
+      return;
+    }
+    this.saving.set(sub.id);
+    this.api.patch<Submission>(`submissions/${sub.id}/grade`, {
+      calificacion_manual: cal,
+      comentario_docente: sub.comentario_docente ?? null,
+    }).subscribe({
+      next: r => {
+        const updated = r.data;
+        this.submissions.update(list =>
+          list.map(s => s.id === sub.id ? { ...s, ...updated } : s),
+        );
+        this.saving.set(null);
+        this.snack.open('Nota guardada', 'OK', { duration: 2000 });
+      },
+      error: () => {
+        this.saving.set(null);
+        this.snack.open('Error al guardar la nota', 'OK', { duration: 2500 });
+      },
+    });
+  }
+
+  cerrar() {
+    this.ref.close();
+  }
+}

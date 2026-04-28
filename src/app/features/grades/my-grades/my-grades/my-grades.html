@@ -19,7 +19,7 @@
                 <div class="course-actions">
                     @for (b of [1,2,3,4]; track b) {
                     <a mat-stroked-button [routerLink]="['/notas/registrar']"
-                        [queryParams]="{ cursoId: c.id, bimestre: b, cursoNombre: c.nombre, periodoId: 1 }">
+                        [queryParams]="{ cursoId: c.id, bimestre: b, cursoNombre: c.nombre, periodoId: c.periodo_id }">
                         B{{ b }}
                     </a>
                     }

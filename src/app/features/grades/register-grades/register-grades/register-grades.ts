@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,7 +18,8 @@ import { EmptyState } from '../../../../shared/components/empty-state/empty-stat
 @Component({
   selector: 'app-register-grades',
   imports: [
-    FormsModule, MatCardModule, MatTableModule, MatFormFieldModule,
+    FormsModule, RouterLink,
+    MatCardModule, MatTableModule, MatFormFieldModule,
     MatSelectModule, MatButtonModule, MatIconModule,
     MatProgressSpinnerModule, MatSnackBarModule,
     GradeBadge, PageHeader, EmptyState,
@@ -47,14 +48,23 @@ export class RegisterGrades implements OnInit {
     this.bimestre = parseInt(this.route.snapshot.queryParamMap.get('bimestre') ?? '1');
     this.periodoId = parseInt(this.route.snapshot.queryParamMap.get('periodoId') ?? '1');
     this.cursoNombre.set(this.route.snapshot.queryParamMap.get('cursoNombre') ?? 'Curso');
+    if (!this.cursoId) { this.loading.set(false); return; }
     this.loadGrades();
   }
 
   loadGrades() {
     this.loading.set(true);
-    this.api.get<Grade[]>(`grades/course/${this.cursoId}?bimestre=${this.bimestre}`).subscribe({
-      next: r => { this.grades.set(r.data); this.loading.set(false); },
-      error: () => { this.grades.set([]); this.loading.set(false); },
+    this.api.get<Grade[]>(`grades/course/${this.cursoId}?periodoId=${this.periodoId}`).subscribe({
+      next: r => { this.grades.set(r.data ?? []); this.loading.set(false); },
+      error: (err) => {
+        console.error('Error al cargar notas', err);
+        this.grades.set([]);
+        this.loading.set(false);
+        this.snack.open(
+          err?.error?.message?.message ?? err?.error?.message ?? 'No se pudieron cargar las notas',
+          'Cerrar', { duration: 4000 },
+        );
+      },
     });
   }
 
@@ -76,7 +86,6 @@ export class RegisterGrades implements OnInit {
       alumno_id: g.alumno_id,
       curso_id: this.cursoId,
       periodo_id: this.periodoId,
-      bimestre: this.bimestre,
       nota_examenes: g.nota_examenes,
       nota_tareas: g.nota_tareas,
       nota_participacion: g.nota_participacion,
@@ -95,7 +104,6 @@ export class RegisterGrades implements OnInit {
         alumno_id: g.alumno_id,
         curso_id: this.cursoId,
         periodo_id: this.periodoId,
-        bimestre: this.bimestre,
         nota_examenes: g.nota_examenes,
         nota_tareas: g.nota_tareas,
         nota_participacion: g.nota_participacion,

@@ -13,8 +13,8 @@
 } @else {
 <div class="exams-list">
     @for (e of exams(); track e.id) {
-    <mat-card class="exam-card" [class.active]="isActive(e)" [class.inactive]="!e.activo">
-        <div class="exam-status-bar" [class.green]="isActive(e)" [class.gray]="!e.activo"></div>
+    <mat-card class="exam-card" [class.active]="isAvailable(e)" [class.inactive]="!e.activo">
+        <div class="exam-status-bar" [class.green]="isAvailable(e)" [class.gray]="!e.activo"></div>
         <mat-card-content class="card-body">
             <div class="exam-main">
                 <div class="exam-icon">
@@ -22,19 +22,18 @@
                 </div>
                 <div class="exam-info">
                     <span class="exam-title">{{ e.titulo }}</span>
-                    @if (e.descripcion) {
-                    <span class="exam-desc">{{ e.descripcion }}</span>
+                    @if (e.instrucciones) {
+                    <span class="exam-desc">{{ e.instrucciones }}</span>
                     }
                     <div class="exam-meta">
                         <span><mat-icon>schedule</mat-icon>
-                            {{ e.fecha_inicio | date:'dd/MM/yyyy HH:mm' }} →
-                            {{ e.fecha_fin | date:'dd/MM/yyyy HH:mm' }}
+                            {{ e.fecha_limite | date:'dd/MM/yyyy HH:mm' }}
                         </span>
-                        <span><mat-icon>star</mat-icon> {{ e.puntos_total }} pts</span>
+                        <span><mat-icon>star</mat-icon> {{ e.puntos_max }} pts</span>
                     </div>
                 </div>
                 <div class="exam-badge">
-                    @if (isActive(e)) {
+                    @if (isAvailable(e)) {
                     <mat-chip class="chip-active">Disponible</mat-chip>
                     } @else if (!e.activo) {
                     <mat-chip class="chip-inactive">No publicado</mat-chip>
@@ -45,7 +44,7 @@
             </div>
         </mat-card-content>
         <mat-card-actions class="card-actions">
-            @if (auth.isAlumno() && isActive(e)) {
+            @if (auth.isAlumno() && isAvailable(e)) {
             <a mat-flat-button color="primary" [routerLink]="['/examenes', e.id, 'tomar']"
                 [queryParams]="{ courseId: e.curso_id }">
                 <mat-icon>play_arrow</mat-icon> Rendir examen

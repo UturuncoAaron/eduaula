@@ -23,51 +23,297 @@
 
             <mat-tab>
                 <ng-template mat-tab-label>
+                    <div class="tab-label"><mat-icon>view_module</mat-icon> Contenido</div>
+                </ng-template>
+
+                <div class="tab-body">
+                    <h2 class="content-title">Contenido del curso</h2>
+
+                    <mat-accordion class="bb-accordion" multi>
+
+                        <mat-expansion-panel class="bb-panel">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <mat-icon class="bb-panel-icon">menu_book</mat-icon>
+                                    INFORMACIÓN GENERAL DEL CURSO
+                                </mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <div class="bb-panel-body">
+                                @if (course(); as c) {
+                                <dl class="info-grid">
+                                    <div>
+                                        <dt>Nombre</dt>
+                                        <dd>{{ c.nombre }}</dd>
+                                    </div>
+                                    @if (c.descripcion) {
+                                    <div>
+                                        <dt>Descripción</dt>
+                                        <dd>{{ c.descripcion }}</dd>
+                                    </div>
+                                    }
+                                    @if (c.docente?.nombre) {
+                                    <div>
+                                        <dt>Docente</dt>
+                                        <dd>{{ c.docente?.nombre }} {{ c.docente?.apellido_paterno }}</dd>
+                                    </div>
+                                    }
+                                    @if (c.seccion?.nombre) {
+                                    <div>
+                                        <dt>Sección</dt>
+                                        <dd>{{ c.seccion?.nombre }}</dd>
+                                    </div>
+                                    }
+                                </dl>
+                                }
+                            </div>
+                        </mat-expansion-panel>
+
+                        @for (s of semanasRange; track s) {
+                        @let mats = materialesEnSemana(s);
+                        <mat-expansion-panel class="bb-panel">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <mat-icon class="bb-panel-icon">calendar_view_week</mat-icon>
+                                    SEMANA {{ s }}
+                                    <span class="bim-tag">Bim {{ bimestreDeSemana(s) }}</span>
+                                </mat-panel-title>
+                                <mat-panel-description>
+                                    @if (mats.length > 0) {
+                                    <span class="bb-count">{{ mats.length }} {{ mats.length === 1 ? 'recurso' :
+                                        'recursos' }}</span>
+                                    } @else {
+                                    <span class="bb-count empty">Sin contenido</span>
+                                    }
+                                </mat-panel-description>
+                            </mat-expansion-panel-header>
+                            <div class="bb-panel-body">
+                                @if (mats.length === 0) {
+                                <p class="bb-empty">
+                                    @if (auth.isDocente()) {
+                                    Aún no hay materiales. Subí uno desde la pestaña Materiales y asignále semana {{ s
+                                    }}.
+                                    } @else {
+                                    El docente todavía no publicó material para esta semana.
+                                    }
+                                </p>
+                                } @else {
+                                <div class="material-list">
+                                    @for (m of mats; track m.id) {
+                                    <div class="material-row" (click)="abrirPreview(m)" role="button" tabindex="0">
+                                        <div class="resource-icon"
+                                            [style.background]="materialColors[m.tipo] || '#94a3b8'">
+                                            <mat-icon>{{ materialIcons[m.tipo] || 'insert_drive_file' }}</mat-icon>
+                                        </div>
+                                        <div class="material-info">
+                                            <div class="material-title-row">
+                                                <h4>{{ m.titulo }}</h4>
+                                                @if (esNuevo(m)) { <span class="new-badge">Nuevo</span> }
+                                            </div>
+                                            @if (m.descripcion) {
+                                            <p class="material-desc">{{ m.descripcion }}</p>
+                                            }
+                                            <span class="meta-data">
+                                                <span class="tag">{{ m.tipo | uppercase }}</span>
+                                                @if (m.size_bytes) { <span class="dot">•</span>{{
+                                                formatSize(m.size_bytes) }} }
+                                                <span class="dot">•</span>
+                                                {{ m.created_at | date:'dd MMM yyyy' }}
+                                            </span>
+                                        </div>
+                                        <div class="material-actions" (click)="$event.stopPropagation()">
+                                            <button mat-flat-button class="btn-primary" (click)="abrirPreview(m)"
+                                                matTooltip="Vista previa">
+                                                <mat-icon>visibility</mat-icon> Ver
+                                            </button>
+                                            <button mat-stroked-button (click)="descargar(m)" matTooltip="Descargar">
+                                                <mat-icon>{{ esArchivo(m) ? 'download' : 'open_in_new' }}</mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                                }
+                            </div>
+                        </mat-expansion-panel>
+                        }
+
+                        <mat-expansion-panel class="bb-panel">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <mat-icon class="bb-panel-icon">fact_check</mat-icon>
+                                    EVALUACIONES DEL CURSO
+                                </mat-panel-title>
+                                <mat-panel-description>
+                                    @if (exams().length > 0) {
+                                    <span class="bb-count">{{ exams().length }} {{ exams().length === 1 ? 'examen' :
+                                        'exámenes' }}</span>
+                                    } @else {
+                                    <span class="bb-count empty">Sin evaluaciones</span>
+                                    }
+                                </mat-panel-description>
+                            </mat-expansion-panel-header>
+                            <div class="bb-panel-body">
+                                @if (exams().length === 0) {
+                                <p class="bb-empty">No hay evaluaciones programadas todavía.</p>
+                                } @else {
+                                <div class="material-list">
+                                    @for (e of exams(); track e.id) {
+                                    <div class="material-row">
+                                        <div class="resource-icon" style="background:#9333ea">
+                                            <mat-icon>history_edu</mat-icon>
+                                        </div>
+                                        <div class="material-info">
+                                            <h4>{{ e.titulo }}</h4>
+                                            <span class="meta-data">
+                                                <mat-icon class="sm-icon">schedule</mat-icon>
+                                                {{ e.fecha_limite | date:'dd MMM HH:mm' }}
+                                                <span class="dot">•</span>
+                                                {{ e.puntos_max }} pts
+                                            </span>
+                                        </div>
+                                        <div class="material-actions">
+                                            @if (e.activo && auth.isAlumno()) {
+                                            <a mat-flat-button color="primary"
+                                                [routerLink]="['/examenes', e.id, 'tomar']"
+                                                [queryParams]="{ courseId: courseId }">Rendir</a>
+                                            }
+                                            @if (auth.isDocente()) {
+                                            <a mat-stroked-button [routerLink]="['/examenes', e.id, 'resultados']"
+                                                [queryParams]="{ courseId: courseId }">Resultados</a>
+                                            }
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                                }
+                            </div>
+                        </mat-expansion-panel>
+
+                    </mat-accordion>
+                </div>
+            </mat-tab>
+
+            <mat-tab>
+                <ng-template mat-tab-label>
                     <div class="tab-label"><mat-icon>folder_open</mat-icon> Materiales</div>
                 </ng-template>
 
-                @if (loadingMaterials()) {
-                <div class="custom-loader-wrapper">
-                    <p class="loader-text">Cargando materiales...</p>
-                </div>
-                } @else {
                 <div class="tab-body">
-                    @if (auth.isDocente()) {
-                    <div class="action-bar">
+                    <div class="materials-toolbar">
+                        <mat-form-field appearance="outline" class="search-field">
+                            <mat-icon matPrefix>search</mat-icon>
+                            <input matInput placeholder="Buscar material..." [ngModel]="searchTerm()"
+                                (ngModelChange)="searchTerm.set($event)" />
+                        </mat-form-field>
+
+                        <mat-chip-listbox [hideSingleSelectionIndicator]="true">
+                            <mat-chip-option [selected]="filtroBimestre() === 'todos'"
+                                (click)="filtroBimestre.set('todos')">Todos</mat-chip-option>
+                            @for (b of bimestresDisponibles(); track b) {
+                            <mat-chip-option [selected]="filtroBimestre() === b" (click)="filtroBimestre.set(b)">
+                                Bim {{ b }}
+                            </mat-chip-option>
+                            }
+                        </mat-chip-listbox>
+
+                        @if (auth.isDocente()) {
+                        <span class="toolbar-spacer"></span>
                         <button mat-flat-button class="btn-primary" (click)="openUploadDialog()">
                             <mat-icon>add</mat-icon> Nuevo material
                         </button>
-                    </div>
-                    }
-
-                    <div class="resource-grid">
-                        @for (m of materials(); track m.id) {
-                        <div class="resource-card" (click)="openMaterial(m.url)" role="button">
-                            <div class="resource-icon" [style.background]="materialColors[m.tipo] || '#94a3b8'">
-                                <mat-icon>{{ materialIcons[m.tipo] || 'insert_drive_file' }}</mat-icon>
-                            </div>
-                            <div class="resource-info">
-                                <h3>{{ m.titulo }}</h3>
-                                <span class="meta-data">
-                                    <span class="tag">{{ m.tipo | uppercase }}</span>
-                                    <span class="dot">•</span>
-                                    Subido el {{ m.created_at | date:'dd MMM yyyy' }}
-                                </span>
-                            </div>
-                            <div class="resource-actions">
-                                <mat-icon class="icon-action">open_in_new</mat-icon>
-                            </div>
-                        </div>
-                        } @empty {
-                        <div class="empty-state">
-                            <div class="empty-icon"><mat-icon>inventory_2</mat-icon></div>
-                            <h3>Aún no hay materiales</h3>
-                            <p>Los recursos de estudio aparecerán aquí.</p>
-                        </div>
                         }
                     </div>
+
+                    @if (loadingMaterials()) {
+                    <div class="skeleton-list">
+                        @for (i of [1,2,3]; track i) {
+                        <div class="skeleton-card"></div>
+                        }
+                    </div>
+                    } @else if (groupedMaterials().length === 0) {
+                    <div class="empty-state">
+                        <div class="empty-icon"><mat-icon>inventory_2</mat-icon></div>
+                        <h3>
+                            @if (materials().length === 0) { Aún no hay materiales }
+                            @else { Sin resultados para tu búsqueda }
+                        </h3>
+                        <p>
+                            @if (materials().length === 0) { Los recursos de estudio aparecerán aquí. }
+                            @else { Probá con otro término o cambiá el filtro de bimestre. }
+                        </p>
+                    </div>
+                    } @else {
+                    <mat-accordion class="materials-accordion" multi>
+                        @for (g of groupedMaterials(); track g.label) {
+                        <mat-expansion-panel expanded class="group-panel">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <mat-icon class="panel-icon">folder</mat-icon>
+                                    {{ g.label }}
+                                </mat-panel-title>
+                                <mat-panel-description>
+                                    {{ g.materials.length }}
+                                    {{ g.materials.length === 1 ? 'recurso' : 'recursos' }}
+                                </mat-panel-description>
+                            </mat-expansion-panel-header>
+
+                            <div class="material-list">
+                                @for (m of g.materials; track m.id) {
+                                <div class="material-row" (click)="abrirPreview(m)" role="button" tabindex="0">
+                                    <div class="resource-icon" [style.background]="materialColors[m.tipo] || '#94a3b8'">
+                                        <mat-icon>{{ materialIcons[m.tipo] || 'insert_drive_file' }}</mat-icon>
+                                    </div>
+
+                                    <div class="material-info">
+                                        <div class="material-title-row">
+                                            <h4>{{ m.titulo }}</h4>
+                                            @if (esNuevo(m)) {
+                                            <span class="new-badge">Nuevo</span>
+                                            }
+                                        </div>
+                                        @if (m.descripcion) {
+                                        <p class="material-desc">{{ m.descripcion }}</p>
+                                        }
+                                        <span class="meta-data">
+                                            <span class="tag">{{ m.tipo | uppercase }}</span>
+                                            @if (m.size_bytes) {
+                                            <span class="dot">•</span>{{ formatSize(m.size_bytes) }}
+                                            }
+                                            <span class="dot">•</span>
+                                            {{ m.created_at | date:'dd MMM yyyy' }}
+                                        </span>
+                                    </div>
+
+                                    <div class="material-actions" (click)="$event.stopPropagation()">
+                                        <button mat-flat-button class="btn-primary" (click)="abrirPreview(m)"
+                                            matTooltip="Vista previa">
+                                            <mat-icon>visibility</mat-icon> Ver
+                                        </button>
+                                        <button mat-stroked-button (click)="descargar(m)" matTooltip="Descargar">
+                                            <mat-icon>{{ esArchivo(m) ? 'download' : 'open_in_new' }}</mat-icon>
+                                        </button>
+                                        @if (auth.isDocente() || auth.isAdmin()) {
+                                        <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Más acciones">
+                                            <mat-icon>more_vert</mat-icon>
+                                        </button>
+                                        <mat-menu #menu="matMenu">
+                                            <button mat-menu-item (click)="openEditDialog(m)">
+                                                <mat-icon>edit</mat-icon><span>Editar</span>
+                                            </button>
+                                            <button mat-menu-item (click)="confirmDelete(m)" class="danger">
+                                                <mat-icon>delete</mat-icon><span>Eliminar</span>
+                                            </button>
+                                        </mat-menu>
+                                        }
+                                    </div>
+                                </div>
+                                }
+                            </div>
+                        </mat-expansion-panel>
+                        }
+                    </mat-accordion>
+                    }
                 </div>
-                }
             </mat-tab>
 
             <mat-tab>
@@ -91,7 +337,7 @@
 
                     <div class="resource-grid">
                         @for (t of tasks(); track t.id) {
-                        <div class="resource-card task-card" [class.is-pending]="isPending(t.fecha_entrega)">
+                        <div class="resource-card task-card" [class.is-pending]="isPending(t.fecha_limite)">
                             <div class="resource-icon outline-icon">
                                 <mat-icon>fact_check</mat-icon>
                             </div>
@@ -99,19 +345,36 @@
                                 <h3>{{ t.titulo }}</h3>
                                 <span class="meta-data">
                                     <mat-icon class="sm-icon">event</mat-icon>
-                                    Entrega: {{ t.fecha_entrega | date:'dd/MM/yyyy HH:mm' }}
+                                    Entrega: {{ t.fecha_limite | date:'dd/MM/yyyy HH:mm' }}
                                     <span class="dot">•</span>
                                     <mat-icon class="sm-icon">stars</mat-icon> {{ t.puntos_max }} pts
                                 </span>
+                                @if (auth.isAlumno()) {
+                                <div class="task-chips">
+                                    <mat-chip class="chip chip-{{ estadoAlumno(t) }}" disabled>
+                                        {{ estadoLabel(t) }}
+                                    </mat-chip>
+                                    @if (miEntrega(t)?.con_retraso) {
+                                    <mat-chip class="chip chip-retraso" disabled>Con retraso</mat-chip>
+                                    }
+                                </div>
+                                }
                             </div>
                             <div class="resource-actions">
                                 @if (auth.isAlumno()) {
+                                @if (miEntrega(t)) {
+                                <button mat-flat-button class="btn-primary" (click)="abrirMiEntrega(t)">
+                                    <mat-icon>visibility</mat-icon> Ver mi entrega
+                                </button>
+                                } @else {
                                 <a mat-flat-button class="btn-primary"
                                     [routerLink]="['/tareas', t.id, 'entregar']">Entregar</a>
                                 }
+                                }
                                 @if (auth.isDocente()) {
-                                <a mat-stroked-button class="btn-outline"
-                                    [routerLink]="['/tareas', t.id, 'calificar']">Calificar</a>
+                                <button mat-flat-button class="btn-primary" (click)="abrirEntregasDocente(t)">
+                                    <mat-icon>visibility</mat-icon> Ver entregas
+                                </button>
                                 }
                             </div>
                         </div>
@@ -158,9 +421,9 @@
                                 </div>
                                 <span class="meta-data">
                                     <mat-icon class="sm-icon">schedule</mat-icon>
-                                    {{ e.fecha_inicio | date:'dd MMM' }} al {{ e.fecha_fin | date:'dd MMM HH:mm' }}
+                                    {{ e.fecha_limite | date:'dd MMM HH:mm' }}
                                     <span class="dot">•</span>
-                                    {{ e.puntos_total }} pts
+                                    {{ e.puntos_max }} pts
                                 </span>
                             </div>
                             <div class="resource-actions">

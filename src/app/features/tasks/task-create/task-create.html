@@ -1,3 +1,4 @@
+@if (isDialog) {
 <div class="dialog-header">
     <div class="title-wrapper">
         <div class="icon-box">
@@ -5,13 +6,30 @@
         </div>
         <h2 mat-dialog-title>Crear nueva tarea</h2>
     </div>
-    <button mat-icon-button mat-dialog-close class="btn-close" aria-label="Cerrar modal">
+    <button mat-icon-button (click)="cancel()" class="btn-close" aria-label="Cerrar modal">
         <mat-icon>close</mat-icon>
     </button>
 </div>
+} @else {
+<h1 class="page-title">Nueva tarea</h1>
+}
 
-<mat-dialog-content class="dialog-body">
+<div [class.dialog-body]="isDialog" mat-dialog-content>
     <form [formGroup]="form" class="custom-form">
+
+        @if (!isDialog) {
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Curso</mat-label>
+            <mat-select formControlName="curso_id">
+                @for (c of courses(); track c.id) {
+                <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
+                }
+            </mat-select>
+            @if (form.controls.curso_id.invalid && form.controls.curso_id.touched) {
+            <mat-error>Selecciona un curso</mat-error>
+            }
+        </mat-form-field>
+        }
 
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Título de la tarea</mat-label>
@@ -57,12 +75,12 @@
         </div>
 
     </form>
-</mat-dialog-content>
+</div>
 
-<mat-dialog-actions align="end" class="dialog-footer">
-    <button mat-button mat-dialog-close [disabled]="loading()" class="btn-cancel">Cancelar</button>
+<div [class.dialog-footer]="isDialog" class="dialog-footer" align="end">
+    <button mat-button (click)="cancel()" [disabled]="loading()" class="btn-cancel">Cancelar</button>
     <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading()" class="btn-submit">
         <mat-icon>check_circle</mat-icon>
         {{ loading() ? 'Guardando...' : 'Crear tarea' }}
     </button>
-</mat-dialog-actions>
+</div>

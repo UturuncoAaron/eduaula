@@ -22,4 +22,16 @@ export const ADMIN_ROUTES: Routes = [
     path: 'reportes',
     loadComponent: () => import('./reports/reports/reports').then(c => c.Reports),
   },
+  {
+    path: 'comunicados',
+    loadComponent: () => import('./announcements-admin/announcements-admin').then(c => c.AnnouncementsAdmin),
+  },
+  {
+    path: 'importar',
+    loadComponent: () => import('./import-students/import-students').then(c => c.ImportStudents),
+  },
+  {
+    path: 'usuarios/:tipo/:id',
+    loadComponent: () => import('./user-detail/user-detail').then(c => c.UserDetail),
+  },
 ];

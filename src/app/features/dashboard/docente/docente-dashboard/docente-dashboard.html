@@ -60,7 +60,8 @@
             </div>
 
             <div class="card-footer">
-                <a mat-stroked-button class="btn-outline w-full" [routerLink]="['/notas', 'registrar']">
+                <a mat-stroked-button class="btn-outline w-full" [routerLink]="['/notas', 'registrar']"
+                    [queryParams]="{ cursoId: c.id, cursoNombre: c.nombre, bimestre: 1, periodoId: c.periodo_id }">
                     <mat-icon>grading</mat-icon> Notas
                 </a>
                 <a mat-flat-button class="btn-primary w-full" [routerLink]="['/cursos', c.id]">

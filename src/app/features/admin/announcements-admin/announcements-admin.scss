@@ -1,0 +1,53 @@
+.announcements-grid {
+    display: grid;
+    grid-template-columns: minmax(360px, 460px) 1fr;
+    gap: 24px;
+    align-items: start;
+
+    @media (max-width: 980px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-card {
+    position: sticky;
+    top: 12px;
+
+    .form {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .w100 { width: 100%; }
+
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+}
+
+.list-section {
+    .section-title {
+        margin: 4px 0 12px;
+        color: #555;
+        font-weight: 500;
+    }
+
+    .list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+.ann-card {
+    .ann-body { white-space: pre-wrap; color: #333; }
+
+    .chip-target {
+        background: #E3F2FD;
+        color: #0D47A1;
+        font-size: 11px;
+        height: 22px;
+    }
+}

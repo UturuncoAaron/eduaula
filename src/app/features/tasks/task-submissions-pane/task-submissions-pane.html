@@ -1,0 +1,113 @@
+<div class="submissions-pane">
+    <header class="pane-header">
+        <div class="header-info">
+            <mat-icon class="header-icon">assignment_turned_in</mat-icon>
+            <div class="header-text">
+                <h2>{{ data.task.titulo }}</h2>
+                <span class="subtitle">
+                    {{ data.task.curso ?? 'Curso' }} ·
+                    Entrega {{ data.task.fecha_limite | date:'dd/MM/yyyy HH:mm' }} ·
+                    {{ data.task.puntos_max }} pts ·
+                    {{ count() }} entrega{{ count() === 1 ? '' : 's' }}
+                </span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button mat-icon-button (click)="cerrar()" matTooltip="Cerrar">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+    </header>
+
+    <div class="pane-body" [class.center]="loading() || submissions().length === 0">
+        @if (loading()) {
+        <div class="state-block">
+            <mat-spinner diameter="42"></mat-spinner>
+            <p>Cargando entregas…</p>
+        </div>
+        } @else if (submissions().length === 0) {
+        <div class="state-block">
+            <mat-icon class="big-icon">inbox</mat-icon>
+            <h3>Sin entregas todavía</h3>
+            <p>Ningún alumno ha entregado esta tarea aún.</p>
+        </div>
+        } @else {
+        <div class="submissions-list">
+            @for (s of submissions(); track s.id) {
+            <article class="sub-card">
+                <div class="sub-head">
+                    <div class="alumno">
+                        <mat-icon>person</mat-icon>
+                        <div>
+                            <strong>{{ nombreAlumno(s) }}</strong>
+                            <span class="codigo">{{ codigoAlumno(s) }}</span>
+                        </div>
+                    </div>
+                    <div class="meta">
+                        @if (s.con_retraso) {
+                        <mat-chip class="chip-retraso" disabled>Con retraso</mat-chip>
+                        } @else {
+                        <mat-chip class="chip-ok" disabled>A tiempo</mat-chip>
+                        }
+                        <span class="fecha">{{ s.fecha_entrega | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                </div>
+
+                @if (s.respuesta_texto) {
+                <div class="field">
+                    <label>Respuesta</label>
+                    <p class="respuesta">{{ s.respuesta_texto }}</p>
+                </div>
+                }
+
+                @if (s.storage_key) {
+                <div class="field">
+                    <label>Archivo</label>
+                    @if (esUrlExterna(s.storage_key)) {
+                    <a class="archivo-link" [href]="s.storage_key" target="_blank" rel="noopener">
+                        <mat-icon>open_in_new</mat-icon>
+                        <span>{{ s.nombre_archivo ?? s.storage_key }}</span>
+                    </a>
+                    } @else {
+                    <span class="archivo-link disabled">
+                        <mat-icon>attach_file</mat-icon>
+                        <span>{{ s.nombre_archivo ?? s.storage_key }}</span>
+                    </span>
+                    }
+                </div>
+                }
+
+                <div class="grade-row">
+                    <mat-form-field appearance="outline" class="grade-field">
+                        <mat-label>Calificación (0 a {{ data.task.puntos_max }})</mat-label>
+                        <input matInput type="number" min="0" [max]="data.task.puntos_max"
+                            [(ngModel)]="s.calificacion_manual" />
+                    </mat-form-field>
+                    @if (s.calificacion_final != null) {
+                    <mat-chip class="chip-final" disabled>
+                        Nota final: {{ s.calificacion_final }}/{{ data.task.puntos_max }}
+                    </mat-chip>
+                    }
+                </div>
+
+                <mat-form-field appearance="outline" class="full">
+                    <mat-label>Comentario de retroalimentación (opcional)</mat-label>
+                    <textarea matInput rows="2" [(ngModel)]="s.comentario_docente"></textarea>
+                </mat-form-field>
+
+                <div class="sub-actions">
+                    <button mat-flat-button color="primary" (click)="guardar(s)" [disabled]="saving() === s.id">
+                        @if (saving() === s.id) {
+                        <mat-spinner diameter="18"></mat-spinner>
+                        } @else {
+                        <mat-icon>save</mat-icon>
+                        }
+                        Guardar nota
+                    </button>
+                </div>
+            </article>
+            }
+        </div>
+        }
+    </div>
+</div>

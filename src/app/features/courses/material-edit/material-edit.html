@@ -1,0 +1,78 @@
+<h2 mat-dialog-title class="dialog-title">
+    <mat-icon>edit</mat-icon>
+    Editar material
+</h2>
+
+<mat-dialog-content class="dialog-content">
+    <form [formGroup]="form" class="form">
+
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="titulo" />
+            @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
+            <mat-error>Mínimo 3 caracteres</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Tipo</mat-label>
+            <mat-select formControlName="tipo" [disabled]="esArchivo">
+                <mat-option value="pdf">PDF</mat-option>
+                <mat-option value="video">Video</mat-option>
+                <mat-option value="link">Link externo</mat-option>
+                <mat-option value="grabacion">Grabación de clase</mat-option>
+                <mat-option value="otro">Otro archivo</mat-option>
+            </mat-select>
+            @if (esArchivo) {
+            <mat-hint>El tipo no se puede cambiar en materiales con archivo subido</mat-hint>
+            }
+        </mat-form-field>
+
+        <div class="row-2">
+            <mat-form-field appearance="outline">
+                <mat-label>Bimestre</mat-label>
+                <mat-select formControlName="bimestre">
+                    <mat-option [value]="null">— Sin asignar —</mat-option>
+                    @for (b of bimestres; track b) {
+                    <mat-option [value]="b">Bimestre {{ b }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Semana</mat-label>
+                <mat-select formControlName="semana">
+                    <mat-option [value]="null">— Sin asignar —</mat-option>
+                    @for (s of semanas; track s) {
+                    <mat-option [value]="s">Semana {{ s }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        @if (!esArchivo) {
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>URL</mat-label>
+            <mat-icon matPrefix>link</mat-icon>
+            <input matInput formControlName="url" placeholder="https://..." />
+        </mat-form-field>
+        }
+
+        <mat-form-field appearance="outline" class="w100">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="descripcion" rows="2"></textarea>
+        </mat-form-field>
+
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions" align="end">
+    <button mat-stroked-button type="button" (click)="cancelar()" [disabled]="loading()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading() || form.invalid">
+        @if (loading()) {
+        <ng-container><mat-icon>hourglass_empty</mat-icon> Guardando...</ng-container>
+        } @else {
+        <ng-container><mat-icon>save</mat-icon> Guardar cambios</ng-container>
+        }
+    </button>
+</mat-dialog-actions>
