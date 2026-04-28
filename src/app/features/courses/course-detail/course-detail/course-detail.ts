@@ -12,13 +12,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/auth/auth';
 import { CourseService } from '../../stores/course';
 import { ApiService } from '../../../../core/services/api';
-import { Course, Material } from '../../../../core/models/course';
+import { Course, Material, LiveClass, CourseProgressEntry } from '../../../../core/models/course';
 import { Task, Submission } from '../../../../core/models/task';
 import { Exam } from '../../../../core/models/exam';
 import { Forum } from '../../../../core/models/forum';
@@ -30,6 +31,7 @@ import { ExamCreate } from '../../../exams/exam-create/exam-create/exam-create';
 import { ForumCreate } from '../../../forum/forum-create/forum-create';
 import { TaskSubmissionsPane } from '../../../tasks/task-submissions-pane/task-submissions-pane';
 import { MySubmissionView } from '../../../tasks/my-submission-view/my-submission-view';
+import { LiveClassFormDialog } from '../live-class-form-dialog/live-class-form-dialog';
 
 interface MaterialGroup {
   bimestre: number | null;
@@ -44,6 +46,7 @@ interface MaterialGroup {
     MatCardModule, MatIconModule, MatButtonModule, MatTabsModule,
     MatChipsModule, MatDividerModule, MatExpansionModule,
     MatFormFieldModule, MatInputModule, MatMenuModule, MatTooltipModule,
+    MatProgressBarModule,
     UpperCasePipe, DatePipe, RouterLink, FormsModule,
   ],
   templateUrl: './course-detail.html',
@@ -64,12 +67,15 @@ export class CourseDetail implements OnInit {
   tasks = signal<Task[]>([]);
   exams = signal<Exam[]>([]);
   forums = signal<Forum[]>([]);
+  liveClasses = signal<LiveClass[]>([]);
+  progress = signal<CourseProgressEntry[]>([]);
   submissionByTask = signal<Record<string, Submission>>({});
 
   loadingMaterials = signal(true);
   loadingTasks = signal(true);
   loadingExams = signal(true);
   loadingForums = signal(true);
+  loadingLiveClasses = signal(true);
 
   searchTerm = signal('');
   filtroBimestre = signal<number | 'todos'>('todos');
@@ -86,7 +92,6 @@ export class CourseDetail implements OnInit {
     link: '#16a34a', grabacion: '#9333ea', otro: '#4b5563',
   };
 
-  /** Materiales filtrados por buscador y bimestre. */
   filteredMaterials = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const bim = this.filtroBimestre();
@@ -98,7 +103,6 @@ export class CourseDetail implements OnInit {
     });
   });
 
-  /** Materiales agrupados por (bimestre, semana). */
   groupedMaterials = computed<MaterialGroup[]>(() => {
     const groups = new Map<string, MaterialGroup>();
     for (const m of this.filteredMaterials()) {
@@ -133,7 +137,6 @@ export class CourseDetail implements OnInit {
 
   readonly semanasRange = Array.from({ length: 16 }, (_, i) => i + 1);
 
-  /** Map de semana -> materiales para la vista de Contenido. */
   materialsPorSemana = computed(() => {
     const map = new Map<number, Material[]>();
     for (const m of this.materials()) {
@@ -152,6 +155,27 @@ export class CourseDetail implements OnInit {
     return Math.ceil(n / 4);
   }
 
+  /** Progreso (vistos/total) para la semana N. Solo aplica a alumno. */
+  progresoSemana(n: number): { vistos: number; total: number; pct: number } {
+    const mats = this.materialesEnSemana(n);
+    const total = mats.length;
+    if (!this.auth.isAlumno() || total === 0) return { vistos: 0, total, pct: 0 };
+    const vistos = mats.filter(m => m.visto).length;
+    return { vistos, total, pct: Math.round((vistos / total) * 100) };
+  }
+
+  proximasClases = computed(() => {
+    const now = Date.now();
+    return this.liveClasses().filter(c => new Date(c.fecha_hora).getTime() >= now - 30 * 60_000);
+  });
+
+  iniciales(d?: { nombre?: string; apellido_paterno?: string } | null): string {
+    if (!d) return 'D';
+    const n = (d.nombre ?? '').trim()[0] ?? '';
+    const a = (d.apellido_paterno ?? '').trim()[0] ?? '';
+    return (n + a).toUpperCase() || 'D';
+  }
+
   ngOnInit() {
     this.courseId = this.route.snapshot.paramMap.get('id')!;
     this.loadCourse();
@@ -159,6 +183,7 @@ export class CourseDetail implements OnInit {
     this.loadTasks();
     this.loadExams();
     this.loadForums();
+    this.loadLiveClasses();
   }
 
   loadCourse() {
@@ -177,6 +202,20 @@ export class CourseDetail implements OnInit {
     this.csSvc.getMaterials(this.courseId).subscribe({
       next: res => { this.materials.set(res.data); this.loadingMaterials.set(false); },
       error: () => { this.materials.set([]); this.loadingMaterials.set(false); }
+    });
+  }
+
+  loadLiveClasses() {
+    this.loadingLiveClasses.set(true);
+    this.csSvc.getLiveClasses(this.courseId).subscribe({
+      next: res => {
+        const ordered = [...res.data].sort((a, b) =>
+          new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime()
+        );
+        this.liveClasses.set(ordered);
+        this.loadingLiveClasses.set(false);
+      },
+      error: () => { this.liveClasses.set([]); this.loadingLiveClasses.set(false); },
     });
   }
 
@@ -301,7 +340,10 @@ export class CourseDetail implements OnInit {
 
   descargar(material: Material) {
     this.csSvc.getMaterialDownload(this.courseId, material.id).subscribe({
-      next: res => window.open(res.data.url, '_blank'),
+      next: res => {
+        window.open(res.data.url, '_blank');
+        this.markVisto(material.id);
+      },
       error: () => window.open(material.url, '_blank'),
     });
   }
@@ -322,6 +364,22 @@ export class CourseDetail implements OnInit {
       enterAnimationDuration: 0,
       exitAnimationDuration: 0,
     });
+    this.markVisto(material.id);
+  }
+
+  /** Solo alumno; idempotente. Actualiza el material local sin recargar. */
+  private markVisto(materialId: string) {
+    if (!this.auth.isAlumno()) return;
+    const current = this.materials().find(m => m.id === materialId);
+    if (current?.visto) return;
+    this.csSvc.markMaterialViewed(this.courseId, materialId).subscribe({
+      next: () => {
+        this.materials.update(list =>
+          list.map(m => m.id === materialId ? { ...m, visto: true } : m),
+        );
+      },
+      error: () => { /* silencioso */ },
+    });
   }
 
   esNuevo(material: Material): boolean {
@@ -340,6 +398,49 @@ export class CourseDetail implements OnInit {
   esArchivo(material: Material): boolean {
     if (material.storage_key) return true;
     return !!(material.url && !material.url.startsWith('http'));
+  }
+
+  // ── Videoconferencias ───────────────────────────────────────
+  abrirCrearLiveClass() {
+    const ref = this.dialog.open(LiveClassFormDialog, {
+      data: { courseId: this.courseId },
+      width: '600px', maxHeight: '90vh',
+    });
+    ref.afterClosed().subscribe(r => { if (r) this.loadLiveClasses(); });
+  }
+
+  abrirEditarLiveClass(lc: LiveClass) {
+    const ref = this.dialog.open(LiveClassFormDialog, {
+      data: { courseId: this.courseId, liveClass: lc },
+      width: '600px', maxHeight: '90vh',
+    });
+    ref.afterClosed().subscribe(r => { if (r) this.loadLiveClasses(); });
+  }
+
+  eliminarLiveClass(lc: LiveClass) {
+    const ok = window.confirm(`¿Eliminar "${lc.titulo}"?`);
+    if (!ok) return;
+    this.csSvc.deleteLiveClass(lc.id).subscribe({
+      next: () => {
+        this.snack.open('Videoconferencia eliminada', 'OK', { duration: 3000 });
+        this.liveClasses.update(list => list.filter(c => c.id !== lc.id));
+      },
+      error: err => {
+        const msg = err?.error?.message ?? 'No se pudo eliminar';
+        this.snack.open(msg, 'Cerrar', { duration: 4000 });
+      },
+    });
+  }
+
+  unirseClase(lc: LiveClass) { window.open(lc.link_reunion, '_blank'); }
+
+  estadoClase(lc: LiveClass): 'proxima' | 'en-vivo' | 'finalizada' {
+    const inicio = new Date(lc.fecha_hora).getTime();
+    const fin = inicio + lc.duracion_min * 60_000;
+    const ahora = Date.now();
+    if (ahora < inicio - 15 * 60_000) return 'proxima';
+    if (ahora > fin) return 'finalizada';
+    return 'en-vivo';
   }
 
   openCreateTask() {

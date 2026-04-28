@@ -1,0 +1,48 @@
+<div class="lc-dialog">
+  <header class="lc-header">
+    <h2>
+      <mat-icon>video_call</mat-icon>
+      {{ isEdit ? 'Editar videoconferencia' : 'Programar videoconferencia' }}
+    </h2>
+    <button mat-icon-button (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="lc-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Título</mat-label>
+      <input matInput formControlName="titulo" placeholder="Ej. Repaso de funciones cuadráticas" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Descripción (opcional)</mat-label>
+      <textarea matInput formControlName="descripcion" rows="2"></textarea>
+    </mat-form-field>
+
+    <div class="row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha y hora</mat-label>
+        <input matInput type="datetime-local" formControlName="fecha_hora" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Duración (min)</mat-label>
+        <input matInput type="number" min="10" step="5" formControlName="duracion_min" />
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Enlace de reunión (Meet, Zoom, Teams)</mat-label>
+      <input matInput formControlName="link_reunion" placeholder="https://meet.google.com/..." />
+    </mat-form-field>
+
+    <footer class="lc-actions">
+      <button mat-stroked-button type="button" (click)="cerrar()" [disabled]="loading()">Cancelar</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+        <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
+        {{ isEdit ? 'Guardar cambios' : 'Programar' }}
+      </button>
+    </footer>
+  </form>
+</div>
