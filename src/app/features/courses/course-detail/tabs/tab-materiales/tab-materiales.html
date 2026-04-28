@@ -1,0 +1,106 @@
+<div class="tab-body">
+
+    <div class="materials-toolbar">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput placeholder="Buscar material..." [ngModel]="searchTerm()"
+                (ngModelChange)="searchTerm.set($event)" />
+        </mat-form-field>
+
+        <mat-chip-listbox [hideSingleSelectionIndicator]="true">
+            <mat-chip-option [selected]="filtroBimestre() === 'todos'" (click)="filtroBimestre.set('todos')">
+                Todos
+            </mat-chip-option>
+            @for (b of bimestresDisponibles(); track b) {
+            <mat-chip-option [selected]="filtroBimestre() === b" (click)="filtroBimestre.set(b)">
+                Bim {{ b }}
+            </mat-chip-option>
+            }
+        </mat-chip-listbox>
+
+        @if (auth.isDocente()) {
+        <span class="toolbar-spacer"></span>
+        <button mat-flat-button class="btn-primary" (click)="openUploadDialog()">
+            <mat-icon>add</mat-icon> Nuevo material
+        </button>
+        }
+    </div>
+
+    @if (loadingMaterials()) {
+    <div class="skeleton-list">
+        @for (i of [1,2,3]; track i) { <div class="skeleton-card"></div> }
+    </div>
+
+    } @else if (groupedMaterials().length === 0) {
+    <div class="empty-state">
+        <div class="empty-icon"><mat-icon>inventory_2</mat-icon></div>
+        <h3>@if (materials().length === 0) { Aún no hay materiales } @else { Sin resultados }</h3>
+        <p>@if (materials().length === 0) { Los recursos aparecerán aquí. } @else { Cambia el filtro o término de
+            búsqueda. }</p>
+    </div>
+
+    } @else {
+    <mat-accordion class="materials-accordion" multi>
+        @for (g of groupedMaterials(); track g.label) {
+        <mat-expansion-panel expanded class="group-panel">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <mat-icon class="panel-icon">folder</mat-icon>{{ g.label }}
+                </mat-panel-title>
+                <mat-panel-description>
+                    {{ g.materials.length }} {{ g.materials.length === 1 ? 'recurso' : 'recursos' }}
+                </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="material-list">
+                @for (m of g.materials; track m.id) {
+                <div class="material-row" [class.is-viewed]="m.visto" (click)="abrirPreview(m)" role="button"
+                    tabindex="0">
+                    <div class="resource-icon" [style.background]="materialColors[m.tipo] || '#94a3b8'">
+                        <mat-icon>{{ materialIcons[m.tipo] || 'insert_drive_file' }}</mat-icon>
+                    </div>
+                    <div class="material-info">
+                        <div class="material-title-row">
+                            <h4>{{ m.titulo }}</h4>
+                            @if (esNuevo(m)) { <span class="new-badge">Nuevo</span> }
+                            @if (auth.isAlumno() && m.visto) {
+                            <span class="viewed-badge"><mat-icon>check_circle</mat-icon></span>
+                            }
+                        </div>
+                        @if (m.descripcion) { <p class="material-desc">{{ m.descripcion }}</p> }
+                        <span class="meta-data">
+                            <span class="tag">{{ m.tipo | uppercase }}</span>
+                            @if (m.size_bytes) { <span class="dot">•</span>{{ formatSize(m.size_bytes) }} }
+                            <span class="dot">•</span>{{ m.created_at | date:'dd MMM yyyy' }}
+                        </span>
+                    </div>
+                    <div class="material-actions" (click)="$event.stopPropagation()">
+                        <button mat-flat-button class="btn-primary" (click)="abrirPreview(m)">
+                            <mat-icon>visibility</mat-icon> Ver
+                        </button>
+                        <button mat-stroked-button (click)="descargar(m)">
+                            <mat-icon>{{ esArchivo(m) ? 'download' : 'open_in_new' }}</mat-icon>
+                        </button>
+                        @if (auth.isDocente() || auth.isAdmin()) {
+                        <button mat-icon-button [matMenuTriggerFor]="menu">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu">
+                            <button mat-menu-item (click)="openEditDialog(m)">
+                                <mat-icon>edit</mat-icon><span>Editar</span>
+                            </button>
+                            <button mat-menu-item (click)="confirmDelete(m)" class="danger">
+                                <mat-icon>delete</mat-icon><span>Eliminar</span>
+                            </button>
+                        </mat-menu>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+        </mat-expansion-panel>
+        }
+    </mat-accordion>
+    }
+
+</div>

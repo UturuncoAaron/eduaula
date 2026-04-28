@@ -1,0 +1,37 @@
+<div class="tab-body">
+    @if (auth.isDocente()) {
+    <div class="action-bar">
+        <button mat-flat-button class="btn-primary" (click)="openCreateForum()">
+            <mat-icon>add</mat-icon> Crear foro
+        </button>
+    </div>
+    }
+
+    @if (loading()) {
+    <div class="custom-loader-wrapper">
+        <p class="loader-text">Cargando foros...</p>
+    </div>
+    } @else {
+    <div class="resource-grid">
+        @for (f of forums(); track f.id) {
+        <div class="resource-card" [routerLink]="['/foro', f.id]" role="button">
+            <div class="resource-icon" style="background: #1565C0"><mat-icon>forum</mat-icon></div>
+            <div class="resource-info">
+                <h3>{{ f.titulo }}</h3>
+                @if (f.descripcion) { <span class="meta-data">{{ f.descripcion }}</span> }
+                <span class="meta-data">{{ f.created_at | date:'dd MMM yyyy' }}</span>
+            </div>
+            <div class="resource-actions">
+                <mat-icon class="icon-action">chevron_right</mat-icon>
+            </div>
+        </div>
+        } @empty {
+        <div class="empty-state">
+            <div class="empty-icon"><mat-icon>forum</mat-icon></div>
+            <h3>Sin foros creados</h3>
+            <p>El docente puede crear foros de debate aquí.</p>
+        </div>
+        }
+    </div>
+    }
+</div>

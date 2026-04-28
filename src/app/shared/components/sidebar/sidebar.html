@@ -1,28 +1,12 @@
 <aside class="sidebar" [class.collapsed]="collapsed()">
+
     <div class="sidebar-brand">
         <div class="brand-logo-container">
-            <img ngSrc="logo.png" width="32" height="32" alt="Logo IE" class="brand-logo" priority />
+            <img ngSrc="logo.png" width="64" height="64" alt="Logo IE" class="brand-logo" priority />
         </div>
         <div class="brand-text">
             <span class="brand-name">EduAula</span>
             <span class="brand-sub">IE Juan Pablo V.G.</span>
-        </div>
-        <button class="collapse-btn" (click)="onToggle()" [matTooltip]="collapsed() ? 'Expandir' : 'Colapsar'">
-            <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-        </button>
-    </div>
-
-    <div class="sidebar-profile">
-        <div class="profile-avatar" [style.background]="user()?.foto_url ? 'transparent' : roleColor()">
-            @if (user()?.foto_url) {
-            <img [ngSrc]="user()!.foto_url!" width="36" height="36" alt="foto" class="profile-photo" />
-            } @else {
-            {{ user()?.nombre?.charAt(0) }}{{ user()?.apellido_paterno?.charAt(0) }}
-            }
-        </div>
-        <div class="profile-info">
-            <span class="profile-name">{{ user()?.nombre }}</span>
-            <span class="profile-role" [style.color]="roleColor()">{{ roleLabel() }}</span>
         </div>
     </div>
 
@@ -30,11 +14,14 @@
         <div class="nav-section-title" [class.hidden]="collapsed()">Menú Principal</div>
 
         @for (item of visibleItems(); track item.route) {
-        <div class="nav-item" [class.active]="isActive(item.route)" (click)="navigate(item.route)" matRipple
+        <a [routerLink]="[item.route]" routerLinkActive="active" class="nav-item" matRipple
             [matTooltip]="collapsed() ? item.label : ''" matTooltipPosition="right">
+
             <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
             <span class="nav-label">{{ item.label }}</span>
-        </div>
+        </a>
         }
     </nav>
+
+ 
 </aside>

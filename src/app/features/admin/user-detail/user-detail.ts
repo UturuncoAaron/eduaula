@@ -22,7 +22,7 @@ type Tipo = 'alumnos' | 'docentes' | 'padres' | 'admins';
   selector: 'app-user-detail',
   standalone: true,
   imports: [
-    ReactiveFormsModule, DatePipe, RouterLink,
+    ReactiveFormsModule, DatePipe, 
     MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatChipsModule, MatDividerModule,
     MatDialogModule, MatSnackBarModule,

@@ -35,7 +35,7 @@ export interface AlumnoRow {
   selector: 'app-tab-alumnos',
   imports: [
     MatTableModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatMenuModule, MatDialogModule, MatSnackBarModule, MatDivider, UpperCasePipe, DatePipe
+    MatButtonModule, MatMenuModule, MatDialogModule, MatSnackBarModule, MatDivider,  DatePipe
   ],
   templateUrl: './tab-alumnos.html',
   styleUrl: './tab-alumnos.scss',

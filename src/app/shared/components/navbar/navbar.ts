@@ -1,7 +1,6 @@
 import { Component, inject, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
@@ -12,8 +11,10 @@ import { UserRole } from '../sidebar/navigation.config';
   selector: 'app-navbar',
   standalone: true,
   imports: [
-    MatIconModule, MatButtonModule, MatMenuModule,
-    MatTooltipModule, MatDividerModule,
+    MatIconModule,
+    MatMenuModule,
+    MatTooltipModule,
+    MatDividerModule,
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
@@ -30,12 +31,10 @@ export class Navbar {
 
   initials = computed(() => {
     const u = this.user();
-    const nombre = u?.nombre ?? '';
-    const apellido = u?.apellido_paterno ?? '';
-    return `${nombre} ${apellido}`.trim()
-      .split(' ').filter(Boolean)
-      .map((n: string) => n[0])
-      .slice(0, 2).join('').toUpperCase();
+    if (!u) return 'U';
+    const first = u.nombre?.charAt(0) || '';
+    const second = u.apellido_paterno?.charAt(0) || '';
+    return (first + second).toUpperCase() || 'U';
   });
 
   private roleLabels: Record<UserRole, string> = {
@@ -46,20 +45,20 @@ export class Navbar {
   };
 
   private roleColors: Record<UserRole, string> = {
-    alumno: '#10b981', // Emerald 500
-    docente: '#f59e0b', // Amber 500
-    admin: '#ef4444',   // Red 500
-    padre: '#8b5cf6',   // Violet 500
+    alumno: '#10b981',
+    docente: '#f59e0b',
+    admin: '#ef4444',
+    padre: '#8b5cf6',
   };
 
   roleLabel = computed(() => {
     const rol = this.user()?.rol as UserRole;
-    return rol ? this.roleLabels[rol] : '';
+    return rol ? this.roleLabels[rol] : 'Usuario';
   });
 
   roleColor = computed(() => {
     const rol = this.user()?.rol as UserRole;
-    return rol ? this.roleColors[rol] : '#64748b'; // Slate 500
+    return rol ? this.roleColors[rol] : '#64748b';
   });
 
   onToggleSidebar() {

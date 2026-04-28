@@ -1,5 +1,5 @@
-import { Component, inject, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, input, computed, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -9,18 +9,23 @@ import { NAV_ITEMS, UserRole } from './navigation.config';
 
 @Component({
   selector: 'app-sidebar',
-  standalone: true,
-  imports: [MatIconModule, MatRippleModule, MatTooltipModule, NgOptimizedImage],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    MatIconModule,
+    MatRippleModule,
+    MatTooltipModule,
+    NgOptimizedImage
+  ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
   private auth = inject(AuthService);
-  private router = inject(Router);
 
+  // La señal recibe el estado desde el componente padre (el Layout/Header)
   collapsed = input<boolean>(false);
-  toggleCollapse = output<void>();
 
   user = computed(() => this.auth.currentUser());
 
@@ -49,14 +54,4 @@ export class Sidebar {
     const rol = this.user()?.rol as UserRole;
     return rol ? this.roleColors[rol] : '#64748b';
   });
-
-  isActive(route: string): boolean {
-    return this.router.isActive(route, {
-      paths: 'subset', queryParams: 'ignored',
-      fragment: 'ignored', matrixParams: 'ignored',
-    });
-  }
-
-  navigate(route: string) { this.router.navigate([route]); }
-  onToggle() { this.toggleCollapse.emit(); }
 }

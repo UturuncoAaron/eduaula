@@ -6,75 +6,93 @@
 .sidebar {
   display: flex;
   flex-direction: column;
-  width: 260px;
+  width: 280px; // Ligeramente más ancho para respirar mejor
   height: 100%;
-  background-color: #020617; // Slate 950 (Ultra oscuro y elegante)
+  background-color: #0b1120; // Slate 950 muy profundo, estilo SaaS premium
   color: #f8fafc;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   flex-shrink: 0;
   position: relative;
-  border-right: 1px solid #1e293b; // Slate 800
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 
-  // Un acento superior muy sutil y tecnológico
+  // Acento superior decorativo
   &::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%); // Blue to Violet
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
     z-index: 1;
   }
 }
 
+/* =========================================
+   ESTADO COLAPSADO
+========================================= */
 .sidebar.collapsed {
-  width: 76px; // Un poco más ancho para centrar bien los iconos
+  width: 84px;
 
   .brand-text,
   .profile-info,
   .nav-label,
   .nav-section-title {
     display: none;
+    opacity: 0;
   }
 
   .sidebar-brand {
-    padding: 16px 0;
-    justify-content: center;
+    padding: 24px 0 16px;
+
+    .brand-logo-container {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+
+      img {
+        width: 32px;
+        height: 32px;
+      }
+    }
   }
 
   .sidebar-profile {
-    padding: 12px 0;
-    margin: 8px 12px;
+    padding: 20px 0;
     justify-content: center;
   }
 
   .nav-item {
     padding: 12px;
     justify-content: center;
-    margin: 4px 12px;
+    margin: 4px 16px;
   }
 }
 
-// BRAND
+/* =========================================
+   MARCA / LOGO
+========================================= */
 .sidebar-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 20px 20px 16px;
+  gap: 16px;
+  padding: 40px 20px 24px;
+  text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
 
   .brand-logo-container {
-    width: 36px;
-    height: 36px;
+    width: 80px;
+    height: 80px;
     background: #ffffff;
-    border-radius: 8px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
   }
 
   .brand-logo {
@@ -82,98 +100,31 @@
   }
 
   .brand-text {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    gap: 4px;
   }
 
   .brand-name {
-    font-size: 16px;
-    font-weight: 600;
-    white-space: nowrap;
-    color: #f8fafc;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
     letter-spacing: -0.5px;
   }
 
   .brand-sub {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 500;
-    color: #64748b; // Slate 500
-    white-space: nowrap;
-    margin-top: 2px;
-  }
-
-  .collapse-btn {
-    background: transparent;
-    border: none;
-    color: #475569;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s;
-
-    &:hover {
-      color: #f8fafc;
-      background: rgba(255, 255, 255, 0.1);
-    }
+    color: #94a3b8;
   }
 }
 
-// PERFIL (Opcional en Sidebar)
-.sidebar-profile {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  margin: 16px 16px 8px;
-  background: #0f172a; // Slate 900
-  border: 1px solid #1e293b;
-  border-radius: 12px;
-
-  .profile-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 12px;
-    flex-shrink: 0;
-    color: white;
-
-    .profile-photo {
-      object-fit: cover;
-      border-radius: 8px;
-    }
-  }
-
-  .profile-info {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-
-    .profile-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: #e2e8f0;
-      white-space: nowrap;
-    }
-
-    .profile-role {
-      font-size: 11px;
-      font-weight: 500;
-    }
-  }
-}
-
-// NAV
+/* =========================================
+   NAVEGACIÓN
+========================================= */
 .sidebar-nav {
   flex: 1;
-  padding: 12px 16px;
+  padding: 24px 16px;
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -187,76 +138,135 @@
   }
 
   .nav-section-title {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     color: #475569;
-    margin: 16px 0 8px 12px;
-
-    &.hidden {
-      display: none;
-    }
+    margin: 0 0 12px 12px;
   }
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  margin: 4px 0;
-  border-radius: 8px;
-  color: #94a3b8; // Slate 400
+  gap: 14px;
+  padding: 12px 16px;
+  margin: 6px 0;
+  border-radius: 10px;
+  color: #94a3b8;
+  text-decoration: none; // Reset al ser una etiqueta <a>
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-    color: #f1f5f9;
+    color: #f8fafc;
     background: rgba(255, 255, 255, 0.04);
+    transform: translateX(4px); // Efecto sutil de interacción
 
     .nav-icon {
       color: #cbd5e1;
     }
   }
 
+  // Estilo activo controlado por RouterLinkActive
   &.active {
     color: #ffffff;
-    background: #1e293b; // Slate 800
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, transparent 100%);
+    border-left: 3px solid #3b82f6;
     font-weight: 500;
-    border-left: 3px solid #3b82f6; // Acento azul moderno
-    padding-left: 11px; // Compensar el borde
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    padding-left: 13px; // Compensa los 3px del borde izquierdo
 
     .nav-icon {
-      color: #3b82f6; // Acento azul en el icono
+      color: #3b82f6;
     }
   }
 
   .nav-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
     color: #64748b;
     transition: color 0.2s;
   }
 
   .nav-label {
-    font-size: 13.5px;
+    font-size: 14px;
   }
 }
 
+/* =========================================
+   PERFIL DE USUARIO (FOOTER)
+========================================= */
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.6); // Fondo ligeramente distinto al menu
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: auto; // Empuja el perfil hasta abajo
+
+  .profile-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+
+    .profile-photo {
+      object-fit: cover;
+      border-radius: 12px;
+    }
+  }
+
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    &.hidden {
+      display: none;
+    }
+
+    .profile-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f8fafc;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .profile-role {
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 3px;
+    }
+  }
+}
+
+/* =========================================
+   MÓVIL
+========================================= */
 @media (max-width: 768px) {
   .sidebar {
     position: absolute;
     z-index: 50;
+    height: 100vh;
   }
 
   .sidebar.collapsed {
     transform: translateX(-100%);
-    width: 260px; // Mantiene el ancho original pero lo oculta
+    width: 280px;
     border: none;
   }
 }

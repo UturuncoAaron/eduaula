@@ -1,0 +1,61 @@
+<div class="tab-body">
+    @if (auth.isDocente()) {
+    <div class="action-bar">
+        <button mat-flat-button class="btn-primary" (click)="openCreateTask()">
+            <mat-icon>add</mat-icon> Crear tarea
+        </button>
+    </div>
+    }
+
+    @if (loading()) {
+    <div class="custom-loader-wrapper">
+        <p class="loader-text">Cargando tareas...</p>
+    </div>
+    } @else {
+    <div class="resource-grid">
+        @for (t of tasks(); track t.id) {
+        <div class="resource-card task-card" [class.is-pending]="isPending(t.fecha_limite)">
+            <div class="resource-icon outline-icon"><mat-icon>fact_check</mat-icon></div>
+            <div class="resource-info">
+                <h3>{{ t.titulo }}</h3>
+                <span class="meta-data">
+                    <mat-icon class="sm-icon">event</mat-icon>
+                    Entrega: {{ t.fecha_limite | date:'dd/MM/yyyy HH:mm' }}
+                    <span class="dot">•</span>
+                    <mat-icon class="sm-icon">stars</mat-icon> {{ t.puntos_max }} pts
+                </span>
+                @if (auth.isAlumno()) {
+                <div class="task-chips">
+                    <mat-chip class="chip chip-{{ estadoAlumno(t) }}" disabled>{{ estadoLabel(t) }}</mat-chip>
+                    @if (miEntrega(t)?.con_retraso) {
+                    <mat-chip class="chip chip-retraso" disabled>Con retraso</mat-chip>
+                    }
+                </div>
+                }
+            </div>
+            <div class="resource-actions">
+                @if (auth.isAlumno()) {
+                @if (miEntrega(t)) {
+                <button mat-flat-button class="btn-primary" (click)="abrirMiEntrega(t)">
+                    <mat-icon>visibility</mat-icon> Ver mi entrega
+                </button>
+                } @else {
+                <a mat-flat-button class="btn-primary" [routerLink]="['/tareas', t.id, 'entregar']">Entregar</a>
+                }
+                }
+                @if (auth.isDocente()) {
+                <button mat-flat-button class="btn-primary" (click)="abrirEntregasDocente(t)">
+                    <mat-icon>visibility</mat-icon> Ver entregas
+                </button>
+                }
+            </div>
+        </div>
+        } @empty {
+        <div class="empty-state">
+            <div class="empty-icon"><mat-icon>assignment_turned_in</mat-icon></div>
+            <h3>No hay tareas pendientes</h3>
+        </div>
+        }
+    </div>
+    }
+</div>
