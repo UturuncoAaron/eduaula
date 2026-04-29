@@ -1,0 +1,73 @@
+@if (target(); as t) {
+<div class="drawer-content">
+    <header>
+        <button mat-icon-button (click)="onClose()" aria-label="Cerrar">
+            <mat-icon>close</mat-icon>
+        </button>
+        <h2>Subir libreta</h2>
+    </header>
+
+    <section class="meta">
+        <div class="row">
+            <span class="label">{{ t.tipo === 'alumno' ? 'Alumno' : 'Padre' }}</span>
+            <span class="value">{{ t.cuenta_label }}</span>
+        </div>
+        <div class="row">
+            <span class="label">Bimestre</span>
+            <span class="value">{{ t.periodo_label }}</span>
+        </div>
+
+        @if (t.libreta_existente) {
+        <div class="warning">
+            <mat-icon class="warning-icon">warning</mat-icon>
+            <span>
+                Ya existe una libreta para este bimestre
+                @if (t.libreta_existente.nombre_archivo) {
+                ({{ t.libreta_existente.nombre_archivo }})
+                }.
+                Subir un nuevo archivo la reemplazará.
+            </span>
+        </div>
+        }
+    </section>
+
+    <section class="dropzone" [class.has-file]="file() !== null" [class.dragging]="dragging()"
+        (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+        (click)="fileInput.click()">
+        <input #fileInput type="file" accept="application/pdf,.pdf" (change)="onFileSelect($event)" hidden />
+
+        @if (file(); as f) {
+        <mat-icon class="icon ok">picture_as_pdf</mat-icon>
+        <p class="filename">{{ f.name }}</p>
+        <p class="hint">{{ formatBytes(f.size) }}</p>
+        <button mat-button color="primary" type="button" (click)="$event.stopPropagation(); fileInput.click()">
+            Cambiar archivo
+        </button>
+        } @else {
+        <mat-icon class="icon">cloud_upload</mat-icon>
+        <p>Arrastra el PDF aquí</p>
+        <p class="hint">o haz clic para seleccionar</p>
+        }
+    </section>
+
+    <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Observaciones (opcional)</mat-label>
+        <textarea matInput rows="3" [(ngModel)]="observaciones" [disabled]="uploading()"></textarea>
+    </mat-form-field>
+
+    @if (uploading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
+    <footer>
+        <button mat-button type="button" (click)="onClose()" [disabled]="uploading()">
+            Cancelar
+        </button>
+        <button mat-raised-button color="primary" type="button" [disabled]="!file() || uploading()" (click)="submit()">
+            {{ uploading()
+            ? 'Subiendo…'
+            : (t.libreta_existente ? 'Reemplazar' : 'Subir libreta') }}
+        </button>
+    </footer>
+</div>
+}

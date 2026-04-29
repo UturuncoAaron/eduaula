@@ -1,0 +1,58 @@
+<div class="parent-tab">
+    @if ((store.data()?.padres ?? []).length === 0) {
+    <div class="empty-state">
+        <mat-icon>family_restroom</mat-icon>
+        <h3>Aún no hay padres registrados</h3>
+        <p>
+            Cuando los padres se vinculen a los alumnos de tu sección,
+            aparecerán aquí con su información de contacto.
+        </p>
+    </div>
+    } @else {
+    <div class="cards-grid">
+        @for (p of store.data()!.padres; track p.id) {
+        <article class="parent-card">
+            <header class="card-head">
+                <div class="avatar">{{ initials(p) }}</div>
+                <div class="title">
+                    <div class="name">
+                        {{ p.apellido_paterno }} {{ p.apellido_materno }}, {{ p.nombre }}
+                    </div>
+                    <span class="relacion">{{ relacionLabel(p.relacion) }}</span>
+                </div>
+            </header>
+
+            <div class="contact">
+                @if (p.email) {
+                <a class="contact-row" [href]="'mailto:' + p.email">
+                    <mat-icon>mail</mat-icon>
+                    <span>{{ p.email }}</span>
+                </a>
+                }
+                @if (p.telefono) {
+                <a class="contact-row" [href]="'tel:' + p.telefono">
+                    <mat-icon>call</mat-icon>
+                    <span>{{ p.telefono }}</span>
+                </a>
+                }
+                @if (!p.email && !p.telefono) {
+                <p class="muted">Sin contacto registrado</p>
+                }
+            </div>
+
+            <footer class="hijos">
+                <span class="lbl">Hijos en sección:</span>
+                <div class="chips">
+                    @for (h of nombresHijos(p); track h) {
+                    <mat-chip class="chip">
+                        <mat-icon>person</mat-icon>
+                        {{ h }}
+                    </mat-chip>
+                    }
+                </div>
+            </footer>
+        </article>
+        }
+    </div>
+    }
+</div>

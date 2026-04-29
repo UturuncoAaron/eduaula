@@ -1,0 +1,259 @@
+.notebook-tab {
+    height: 100%;
+    background: transparent;
+
+    ::ng-deep .mat-drawer-content {
+        overflow: visible !important;
+    }
+
+    .periodo-bar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+
+        .periodo-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #455a64;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+
+            mat-icon {
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        .periodo-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            position: relative;
+            background: #f5f7fb;
+            border: 1px solid #e0e6f0;
+            color: #455a64;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            &:hover {
+                background: #e8eaf6;
+                color: #3949ab;
+            }
+
+            &.selected {
+                background: linear-gradient(135deg, #5c6bc0, #3f51b5);
+                border-color: transparent;
+                color: white;
+                box-shadow: 0 2px 8px rgba(63, 81, 181, 0.25);
+            }
+
+            .dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #43a047;
+            }
+
+            &.selected .dot {
+                background: white;
+            }
+        }
+    }
+
+    .progress-card {
+        background: linear-gradient(135deg, #f8faff 0%, #eef1fb 100%);
+        border: 1px solid #e0e6f0;
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+
+        .progress-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 160px;
+
+            .lbl {
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: #607d8b;
+            }
+
+            .big {
+                font-size: 26px;
+                font-weight: 800;
+                color: #1a237e;
+                line-height: 1.1;
+                margin-top: 4px;
+
+                span {
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: #78909c;
+                    margin-left: 4px;
+                }
+            }
+        }
+
+        .progress-bar-wrap {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            ::ng-deep mat-progress-bar {
+                flex: 1;
+                height: 10px;
+                border-radius: 5px;
+                overflow: hidden;
+            }
+
+            .pct {
+                font-size: 14px;
+                font-weight: 700;
+                color: #3949ab;
+                min-width: 40px;
+                text-align: right;
+            }
+        }
+    }
+
+    .students-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .student-row {
+        background: #fff;
+        border: 1px solid #e8eaf6;
+        border-radius: 12px;
+        padding: 14px 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.15s ease;
+
+        &:hover {
+            border-color: #c5cae9;
+            box-shadow: 0 2px 8px rgba(57, 73, 171, 0.06);
+        }
+
+        &.cargada {
+            background: linear-gradient(90deg, #f1f8e9 0%, #ffffff 30%);
+            border-color: #c5e1a5;
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+
+            .avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #5c6bc0, #26a69a);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+
+            .text {
+                min-width: 0;
+
+                .name {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #263238;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .code {
+                    font-size: 11px;
+                    color: #90a4ae;
+                    font-family: 'SF Mono', Monaco, monospace;
+                    margin-top: 2px;
+                    letter-spacing: 0.4px;
+                }
+            }
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+
+            mat-icon {
+                font-size: 14px;
+                width: 14px;
+                height: 14px;
+            }
+
+            &.ok {
+                background: #c8e6c9;
+                color: #2e7d32;
+            }
+
+            &.pending {
+                background: #fff3e0;
+                color: #ef6c00;
+            }
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+    }
+
+    mat-sidenav {
+        width: min(440px, 90vw);
+    }
+
+    @media (max-width: 720px) {
+        .student-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+
+            .actions {
+                justify-content: flex-end;
+            }
+        }
+    }
+}

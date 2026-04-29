@@ -19,6 +19,10 @@ export class ApiService {
     return this.http.post<ApiResponse<T>>(`${this.base}/${path}`, body);
   }
 
+  put<T>(path: string, body: unknown): Observable<ApiResponse<T>> {
+    return this.http.put<ApiResponse<T>>(`${this.base}/${path}`, body);
+  }
+
   patch<T>(path: string, body: unknown): Observable<ApiResponse<T>> {
     return this.http.patch<ApiResponse<T>>(`${this.base}/${path}`, body);
   }
@@ -26,6 +30,7 @@ export class ApiService {
   delete<T>(path: string): Observable<ApiResponse<T>> {
     return this.http.delete<ApiResponse<T>>(`${this.base}/${path}`);
   }
+
   postForm<T>(path: string, body: FormData): Observable<ApiResponse<T>> {
     return this.http.post<ApiResponse<T>>(`${this.base}/${path}`, body);
   }

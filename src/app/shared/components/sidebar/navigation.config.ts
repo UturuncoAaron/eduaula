@@ -5,6 +5,7 @@ export interface NavItem {
     icon: string;
     route: string;
     roles: UserRole[];
+    requiresTutor?: boolean;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -15,6 +16,11 @@ export const NAV_ITEMS: NavItem[] = [
     { label: 'Notas', icon: 'grade', route: '/notas', roles: ['alumno', 'docente'] },
     { label: 'Foro', icon: 'forum', route: '/foro', roles: ['alumno', 'docente'] },
     { label: 'Clases en vivo', icon: 'videocam', route: '/clases-vivo', roles: ['alumno', 'docente'] },
+
+    { label: 'Mi Tutoría', icon: 'school', route: '/mi-tutoria', roles: ['docente', 'admin'], requiresTutor: true },
+
+    { label: 'Mis libretas', icon: 'auto_stories', route: '/mis-libretas', roles: ['alumno', 'padre'] },
+
     { label: 'Portal Padres', icon: 'family_restroom', route: '/portal-padres', roles: ['padre'] },
     { label: 'Usuarios', icon: 'manage_accounts', route: '/admin/usuarios', roles: ['admin'] },
     { label: 'Académico', icon: 'school', route: '/admin/academico', roles: ['admin'] },
