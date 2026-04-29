@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>
+    <mat-icon>school</mat-icon>
+    Asignar tutor
+</h2>
+
+<mat-dialog-content class="dialog-body">
+    <p class="subtitle">
+        {{ data.gradoNombre }} · Sección {{ data.seccionNombre }}
+    </p>
+
+    <div class="search-wrap">
+        <mat-icon>search</mat-icon>
+        <input [formControl]="search" placeholder="Buscar docente…" />
+    </div>
+
+    @if (loading()) {
+    <div class="state">
+        <mat-spinner diameter="32"></mat-spinner>
+    </div>
+    } @else if (docentesFiltrados().length === 0) {
+    <div class="state empty">
+        <mat-icon>person_off</mat-icon>
+        <p>No se encontraron docentes.</p>
+    </div>
+    } @else {
+    <div class="docente-list">
+        @for (d of docentesFiltrados(); track d.id) {
+        <button type="button" class="docente-row" [class.selected]="d.id === selectedId()"
+            [class.warn]="isYaTutorDeOtra(d)" (click)="select(d)">
+            <span class="avatar">{{ initials(d) }}</span>
+            <span class="info">
+                <span class="name">
+                    {{ d.apellido_paterno }} {{ d.apellido_materno }}, {{ d.nombre }}
+                </span>
+                @if (isYaTutorDeOtra(d)) {
+                <span class="warn-text">
+                    <mat-icon>warning</mat-icon>
+                    Ya es tutor de {{ d.tutoria_actual!.seccion_label }}
+                </span>
+                } @else if (d.id === data.tutorActualId) {
+                <span class="hint-text">Tutor actual de esta sección</span>
+                }
+            </span>
+            @if (d.id === selectedId()) {
+            <mat-icon class="check">check_circle</mat-icon>
+            }
+        </button>
+        }
+    </div>
+    }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    @if (data.tutorActualId) {
+    <button mat-button color="warn" (click)="quitar()" [disabled]="saving()">
+        <mat-icon>person_remove</mat-icon> Quitar tutor
+    </button>
+    }
+    <span class="spacer"></span>
+    <button mat-button (click)="cancel()" [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="save()"
+        [disabled]="!selectedId() || selectedId() === data.tutorActualId || saving()">
+        {{ saving() ? 'Guardando…' : 'Asignar' }}
+    </button>
+</mat-dialog-actions>

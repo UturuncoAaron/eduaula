@@ -1,0 +1,67 @@
+<div class="student-tab">
+
+    <div class="toolbar">
+        <mat-form-field appearance="outline" class="search">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput placeholder="Buscar por nombre o código" [ngModel]="search()"
+                (ngModelChange)="search.set($event)" />
+            @if (search()) {
+            <button matSuffix mat-icon-button aria-label="Limpiar" (click)="search.set('')">
+                <mat-icon>close</mat-icon>
+            </button>
+            }
+        </mat-form-field>
+
+        <span class="count">
+            {{ alumnosFiltrados().length }}
+            @if (alumnosFiltrados().length === 1) { alumno } @else { alumnos }
+        </span>
+    </div>
+
+    @if (alumnosFiltrados().length === 0) {
+    <div class="empty-state">
+        <mat-icon>group_off</mat-icon>
+        @if (search()) {
+        <p>No se encontraron alumnos con "<strong>{{ search() }}</strong>"</p>
+        } @else {
+        <p>No hay alumnos matriculados en esta sección.</p>
+        }
+    </div>
+    } @else {
+    <div class="cards-grid">
+        @for (a of alumnosFiltrados(); track a.id) {
+        <article class="student-card" [class.completo]="isCompleto(a)">
+            <div class="card-header">
+                <div class="avatar">
+                    @if (a.foto_url) {
+                    <img [src]="a.foto_url" [alt]="a.nombre" />
+                    } @else {
+                    <span>{{ initials(a) }}</span>
+                    }
+                </div>
+                <div class="info">
+                    <div class="name">
+                        {{ a.apellido_paterno }} {{ a.apellido_materno }}
+                    </div>
+                    <div class="firstname">{{ a.nombre }}</div>
+                    <div class="code">{{ a.codigo_estudiante }}</div>
+                </div>
+                @if (isCompleto(a)) {
+                <mat-icon class="check">check_circle</mat-icon>
+                }
+            </div>
+
+            <div class="card-progress">
+                <div class="progress-label">
+                    <span>Libretas</span>
+                    <strong>{{ a.libretas.length }} / {{ store.bimestresHasta() }}</strong>
+                </div>
+                <mat-progress-bar mode="determinate" [value]="progresoAlumno(a)"
+                    [color]="isCompleto(a) ? 'accent' : 'primary'">
+                </mat-progress-bar>
+            </div>
+        </article>
+        }
+    </div>
+    }
+</div>

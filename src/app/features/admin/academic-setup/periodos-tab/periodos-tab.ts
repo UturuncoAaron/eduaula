@@ -8,8 +8,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '../../../../core/services/api';
-import { CreatePeriodoDialog } from '../../../../shared/components/create-periodo-dialog/create-periodo-dialog';
-import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import type { Period } from '../../../../core/models/academic';
 
 @Component({
@@ -32,9 +30,9 @@ export class PeriodosTab implements OnInit {
 
   cols = ['nombre', 'anio', 'bimestre', 'fechas', 'estado', 'acciones'];
 
-  ngOnInit() { this.loadPeriodos(); }
+  ngOnInit(): void { this.loadPeriodos(); }
 
-  loadPeriodos() {
+  loadPeriodos(): void {
     this.loading.set(true);
     this.api.get<Period[]>('academic/periodos').subscribe({
       next: r => { this.periodos.set(r.data ?? []); this.loading.set(false); },
@@ -42,19 +40,24 @@ export class PeriodosTab implements OnInit {
     });
   }
 
-  openCreatePeriodo() {
+  async openCreatePeriodo(): Promise<void> {
+    const { CreatePeriodoDialog } = await import(
+      '../../../../shared/components/create-periodo-dialog/create-periodo-dialog'
+    );
     const ref = this.dialog.open(CreatePeriodoDialog, { width: '520px' });
 
     ref.afterClosed().subscribe(result => {
       if (!result) return;
       this.api.post<Period>('academic/periodos', result).subscribe({
-        next: (r) => {
-          this.periodos.update(list => [...list, r.data].sort((a, b) =>
-            a.anio !== b.anio ? a.anio - b.anio : a.bimestre - b.bimestre
-          ));
+        next: r => {
+          this.periodos.update(list =>
+            [...list, r.data].sort((a, b) =>
+              a.anio !== b.anio ? a.anio - b.anio : a.bimestre - b.bimestre
+            )
+          );
           this.snack.open('Periodo creado correctamente', 'OK', { duration: 3000 });
         },
-        error: (err) => this.snack.open(
+        error: err => this.snack.open(
           err.error?.message ?? 'Error al crear periodo',
           'Cerrar', { duration: 3000 },
         ),
@@ -62,9 +65,12 @@ export class PeriodosTab implements OnInit {
     });
   }
 
-  activarPeriodo(periodo: Period) {
+  async activarPeriodo(periodo: Period): Promise<void> {
     if (periodo.activo) return;
 
+    const { ConfirmDialog } = await import(
+      '../../../../shared/components/confirm-dialog/confirm-dialog'
+    );
     const ref = this.dialog.open(ConfirmDialog, {
       width: '420px',
       data: {
@@ -80,14 +86,10 @@ export class PeriodosTab implements OnInit {
       if (!confirmed) return;
       this.api.patch(`academic/periodos/${periodo.id}/activar`, {}).subscribe({
         next: () => {
-          // Actualiza estado local sin recargar
           this.periodos.update(list =>
             list.map(p => ({ ...p, activo: p.id === periodo.id }))
           );
-          this.snack.open(
-            `"${periodo.nombre}" activado correctamente`,
-            'OK', { duration: 3000 },
-          );
+          this.snack.open(`"${periodo.nombre}" activado correctamente`, 'OK', { duration: 3000 });
         },
         error: () => this.snack.open('Error al activar periodo', 'Cerrar', { duration: 3000 }),
       });

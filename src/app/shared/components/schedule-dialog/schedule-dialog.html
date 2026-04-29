@@ -1,0 +1,131 @@
+<h2 mat-dialog-title class="dialog-title">
+    <mat-icon>schedule</mat-icon>
+    Horario — {{ data.gradoNombre }} · Sección {{ data.seccionNombre }}
+</h2>
+
+<mat-dialog-content class="dialog-content">
+
+    @if (loading()) {
+    <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <p>Cargando cursos...</p>
+    </div>
+
+    } @else if (courses().length === 0) {
+    <div class="empty-state">
+        <mat-icon>menu_book</mat-icon>
+        <p>No hay cursos en esta sección</p>
+        <span>Agrega cursos primero desde la vista de sección</span>
+    </div>
+
+    } @else {
+    <div class="layout">
+
+        <!-- Lista de cursos -->
+        <aside class="courses-sidebar">
+            <p class="sidebar-label">Cursos</p>
+            @for (c of courses(); track c.curso_id) {
+            <button class="course-btn" [class.selected]="c.curso_id === selectedId()"
+                (click)="selectCourse(c.curso_id)">
+                <span class="course-dot" [style.background]="c.color"></span>
+                <span class="course-name">{{ c.curso_nombre }}</span>
+                <span class="slots-badge" [class.has-slots]="c.slots.length > 0">
+                    {{ c.slots.length }}
+                </span>
+            </button>
+            }
+        </aside>
+
+        <!-- Editor de franjas -->
+        <div class="slots-editor">
+            @if (selectedCourse(); as course) {
+
+            <div class="editor-header">
+                <span class="editor-title">
+                    <span class="color-dot" [style.background]="course.color"></span>
+                    {{ course.curso_nombre }}
+                </span>
+                <button mat-stroked-button color="primary" (click)="addSlot()">
+                    <mat-icon>add</mat-icon> Agregar franja
+                </button>
+            </div>
+
+            <form [formGroup]="slotsForm">
+                <div formArrayName="slots" class="slots-list">
+
+                    @if (slotsArray.length === 0) {
+                    <div class="empty-slots">
+                        <mat-icon>event_busy</mat-icon>
+                        <p>Sin franjas horarias. Agrega una.</p>
+                    </div>
+                    }
+
+                    @for (slot of slotsArray.controls; track $index; let i = $index) {
+                    <div class="slot-row" [formGroupName]="i">
+
+                        <mat-form-field appearance="outline" class="field-day">
+                            <mat-label>Día</mat-label>
+                            <mat-select formControlName="dia_semana">
+                                @for (d of weekDays; track d.value) {
+                                <mat-option [value]="d.value">{{ d.label }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="field-time">
+                            <mat-label>Inicio</mat-label>
+                            <mat-select formControlName="hora_inicio">
+                                @for (t of timeOptions; track t) {
+                                <mat-option [value]="t">{{ t }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="field-time">
+                            <mat-label>Fin</mat-label>
+                            <mat-select formControlName="hora_fin">
+                                @for (t of timeOptions; track t) {
+                                <mat-option [value]="t">{{ t }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="field-room">
+                            <mat-label>Aula (opcional)</mat-label>
+                            <input matInput formControlName="aula" placeholder="Ej: 3B, Lab. 1" />
+                        </mat-form-field>
+
+                        <button mat-icon-button color="warn" (click)="removeSlot(i)" matTooltip="Eliminar franja"
+                            class="remove-btn">
+                            <mat-icon>delete_outline</mat-icon>
+                        </button>
+
+                    </div>
+                    }
+                </div>
+            </form>
+
+            @if (slotsArray.length > 0) {
+            <div class="save-bar">
+                <button mat-flat-button color="primary" (click)="save()" [disabled]="saving() || slotsForm.invalid">
+                    @if (saving()) {
+                    <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                    } @else {
+                    <mat-icon>save</mat-icon>
+                    }
+                    Guardar horario
+                </button>
+            </div>
+            }
+
+            }
+        </div>
+
+    </div>
+    }
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-stroked-button (click)="close()">Cerrar</button>
+</mat-dialog-actions>

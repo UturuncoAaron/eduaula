@@ -68,6 +68,13 @@ export const routes: Routes = [
                 loadChildren: () =>
                     import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
             },
+            {
+                path: 'mi-tutoria',
+                canActivate: [roleGuard(['docente', 'admin'])],
+                loadChildren: () =>
+                    import('./features/notebooks/notebooks.routes').then(r => r.NOTEBOOKS_ROUTES),
+            },
+
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
         ],
     },

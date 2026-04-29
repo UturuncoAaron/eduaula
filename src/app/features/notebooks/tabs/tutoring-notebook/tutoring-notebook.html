@@ -1,0 +1,93 @@
+<mat-sidenav-container class="notebook-tab">
+    <mat-sidenav-content>
+
+        <div class="periodo-bar">
+            <div class="periodo-label">
+                <mat-icon>event</mat-icon>
+                Bimestre
+            </div>
+            <div class="periodo-pills">
+                @for (p of store.data()!.periodos; track p.id) {
+                <button class="pill" [class.selected]="store.periodoSeleccionadoId() === p.id" [class.activo]="p.activo"
+                    (click)="selectPeriodo(p.id)">
+                    Bim {{ p.bimestre }}
+                    @if (p.activo) { <span class="dot"></span> }
+                </button>
+                }
+            </div>
+            <span class="bar-spacer"></span>
+            <button mat-flat-button color="primary" class="bulk-btn" (click)="openBulkUpload()"
+                matTooltip="Sube todas las libretas a la vez con auto-asignación por nombre">
+                <mat-icon>cloud_upload</mat-icon>
+                Carga masiva
+            </button>
+        </div>
+
+        <div class="progress-card">
+            <div class="progress-info">
+                <span class="lbl">Progreso del bimestre</span>
+                <strong class="big">
+                    {{ store.progreso().cargadas }}
+                    <span>/ {{ store.progreso().total }} libretas</span>
+                </strong>
+            </div>
+            <div class="progress-bar-wrap">
+                <mat-progress-bar mode="determinate" [value]="progresoPct()"></mat-progress-bar>
+                <span class="pct">{{ progresoPct() }}%</span>
+            </div>
+        </div>
+
+        @if (store.periodoSeleccionadoId() !== null) {
+        <div class="students-list">
+            @for (a of store.data()!.alumnos; track a.id) {
+            <article class="student-row" [class.cargada]="libretaDe(a) !== null">
+                <div class="student-info">
+                    <div class="avatar">{{ initials(a) }}</div>
+                    <div class="text">
+                        <div class="name">
+                            {{ a.apellido_paterno }} {{ a.apellido_materno }}, {{ a.nombre }}
+                        </div>
+                        <div class="code">{{ a.codigo_estudiante }}</div>
+                    </div>
+                </div>
+
+                <div class="status">
+                    @if (libretaDe(a); as l) {
+                    <span class="badge ok">
+                        <mat-icon>check_circle</mat-icon>
+                        Cargada
+                    </span>
+                    } @else {
+                    <span class="badge pending">
+                        <mat-icon>schedule</mat-icon>
+                        Pendiente
+                    </span>
+                    }
+                </div>
+
+                <div class="actions">
+                    @if (libretaDe(a); as l) {
+                    <a mat-stroked-button color="primary" [href]="l.url" target="_blank">
+                        <mat-icon>visibility</mat-icon> Ver
+                    </a>
+                    <button mat-stroked-button (click)="openUpload(a, l)" matTooltip="Reemplazar libreta">
+                        <mat-icon>refresh</mat-icon>
+                    </button>
+                    } @else {
+                    <button mat-flat-button color="primary" (click)="openUpload(a, null)">
+                        <mat-icon>upload</mat-icon> Subir
+                    </button>
+                    }
+                </div>
+            </article>
+            }
+        </div>
+        }
+    </mat-sidenav-content>
+
+    <mat-sidenav #drawer mode="over" position="end" [autoFocus]="false">
+        @if (uploadTarget(); as target) {
+        <app-notebook-upload-drawer [target]="target" (uploaded)="onUploaded()" (cancelled)="closeDrawer()" />
+        }
+    </mat-sidenav>
+</mat-sidenav-container>

@@ -1,0 +1,155 @@
+<div class="bulk-dialog">
+
+    <header class="dlg-head">
+        <div class="title">
+            <mat-icon>cloud_upload</mat-icon>
+            <div>
+                <h2>Carga masiva de libretas</h2>
+                <p>{{ data.periodo_label }} · {{ data.alumnos.length }} alumnos en sección</p>
+            </div>
+        </div>
+        <button mat-icon-button (click)="cancel()" [disabled]="isSubmitting()" aria-label="Cerrar">
+            <mat-icon>close</mat-icon>
+        </button>
+    </header>
+
+    @if (rows().length === 0) {
+    <label class="dropzone" [class.dragging]="isDragging()" (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+        <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" (change)="onFilePick($event)" hidden />
+        <mat-icon class="big">folder_open</mat-icon>
+        <h3>Arrastra los PDFs aquí</h3>
+        <p>o haz click para seleccionar (PDF, JPG, PNG)</p>
+        <span class="hint">
+            Tip: nombra los archivos con el nombre del alumno
+            (ej. <code>Uturunco_Aaron.pdf</code>) para auto-asignar.
+        </span>
+    </label>
+    } @else {
+
+    <div class="stats-bar">
+        <div class="stat-pills">
+            <span class="pill total">
+                <mat-icon>description</mat-icon>
+                {{ stats().total }} archivo(s)
+            </span>
+            @if (stats().high > 0) {
+            <span class="pill ok">
+                <mat-icon>check_circle</mat-icon>
+                {{ stats().high }} match seguro
+            </span>
+            }
+            @if (stats().medium > 0) {
+            <span class="pill warn">
+                <mat-icon>help</mat-icon>
+                {{ stats().medium }} revisar
+            </span>
+            }
+            @if (stats().none > 0) {
+            <span class="pill err">
+                <mat-icon>cancel</mat-icon>
+                {{ stats().none }} sin match
+            </span>
+            }
+        </div>
+
+        <div class="stats-actions">
+            <label class="add-more" [class.disabled]="isSubmitting()">
+                <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" (change)="onFilePick($event)" hidden
+                    [disabled]="isSubmitting()" />
+                <mat-icon>add</mat-icon> Agregar más
+            </label>
+            <button mat-button color="warn" (click)="clearAll()" [disabled]="isSubmitting()">
+                <mat-icon>delete_sweep</mat-icon> Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="rows-scroll">
+        <div class="rows">
+            @for (row of rows(); track row.id) {
+            <article class="row" [class]="classForConfidence(row.confidence) + ' status-' + row.status">
+
+                <div class="col-file">
+                    <mat-icon class="file-icon">picture_as_pdf</mat-icon>
+                    <div class="file-info">
+                        <div class="filename" [matTooltip]="row.file.name">{{ row.file.name }}</div>
+                        <div class="filesize">{{ formatSize(row.file.size) }}</div>
+                    </div>
+                </div>
+
+                <mat-icon class="arrow">arrow_forward</mat-icon>
+
+                <div class="col-alumno">
+                    <mat-form-field appearance="outline" class="alumno-select">
+                        <mat-icon matPrefix [class]="classForConfidence(row.confidence)">
+                            {{ iconForConfidence(row.confidence) }}
+                        </mat-icon>
+                        <mat-select [ngModel]="row.alumno?.id ?? null" (ngModelChange)="onAlumnoChange(row.id, $event)"
+                            [disabled]="row.status !== 'idle'" placeholder="Seleccionar alumno…">
+                            <mat-option [value]="null">— Sin asignar —</mat-option>
+                            @for (a of alumnosDisponibles(row); track a.id) {
+                            <mat-option [value]="a.id">
+                                {{ a.apellido_paterno }} {{ a.apellido_materno }}, {{ a.nombre }}
+                            </mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    @if (row.isReplace && row.status === 'idle') {
+                    <span class="replace-hint" matTooltip="Ya existe libreta para este alumno · se reemplazará">
+                        <mat-icon>swap_horiz</mat-icon> Reemplaza existente
+                    </span>
+                    }
+                </div>
+
+                <div class="col-status">
+                    @switch (row.status) {
+                    @case ('idle') {
+                    @if (row.alumno) {
+                    <span class="status-chip ready"><mat-icon>schedule</mat-icon> Listo</span>
+                    } @else {
+                    <span class="status-chip skip"><mat-icon>not_interested</mat-icon> Sin asignar</span>
+                    }
+                    }
+                    @case ('uploading') {
+                    <div class="uploading">
+                        <mat-progress-bar mode="determinate" [value]="row.progress"></mat-progress-bar>
+                        <span>{{ row.progress }}%</span>
+                    </div>
+                    }
+                    @case ('done') {
+                    <span class="status-chip ok"><mat-icon>check_circle</mat-icon> Cargada</span>
+                    }
+                    @case ('error') {
+                    <span class="status-chip err" [matTooltip]="row.error ?? ''">
+                        <mat-icon>error</mat-icon> Error
+                    </span>
+                    }
+                    }
+                </div>
+
+                <button class="col-remove" mat-icon-button (click)="removeRow(row.id)"
+                    [disabled]="row.status === 'uploading' || row.status === 'done'" aria-label="Quitar archivo">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </article>
+            }
+        </div>
+    </div>
+    }
+
+    <footer class="dlg-footer">
+        <button mat-button (click)="cancel()" [disabled]="isSubmitting()">
+            Cancelar
+        </button>
+        <button mat-flat-button color="primary" (click)="submit()" [disabled]="!canSubmit()">
+            @if (isSubmitting()) {
+            <mat-spinner diameter="18"></mat-spinner>
+            Subiendo…
+            } @else {
+            <mat-icon>cloud_upload</mat-icon>
+            Subir {{ stats().ready }} libreta{{ stats().ready === 1 ? '' : 's' }}
+            }
+        </button>
+    </footer>
+</div>

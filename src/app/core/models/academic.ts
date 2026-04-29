@@ -14,6 +14,15 @@ export interface Section {
     grado_id: number;
     tutor_id: string | null;
     grado?: GradeLevel;
+
+    // Datos del docente que ejerce la tutoría (LEFT JOIN desde el backend).
+    // Es null si la sección no tiene tutor asignado.
+    tutor?: {
+        id: string;
+        nombre: string;
+        apellido_paterno: string;
+        apellido_materno: string | null;
+    } | null;
 }
 
 export interface Period {

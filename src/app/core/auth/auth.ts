@@ -40,7 +40,13 @@ export class AuthService {
         this._user.set(user);
       }),
       catchError(err => {
-        const msg = err.error?.message || 'Error al conectar con el servidor';
+        const body = err.error;
+
+        // El HttpExceptionFilter anida el mensaje: body.message.message
+        const msg =
+          (typeof body?.message === 'object' ? body?.message?.message : body?.message)
+          ?? 'Error al conectar con el servidor';
+
         return throwError(() => msg);
       })
     );

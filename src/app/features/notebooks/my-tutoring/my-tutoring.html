@@ -1,0 +1,79 @@
+<div class="page">
+    @if (store.loading()) {
+    <div class="state">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>Cargando tu tutoría…</p>
+    </div>
+    } @else if (store.error(); as err) {
+    <div class="state error">
+        <mat-icon class="big">error_outline</mat-icon>
+        <h2>No pudimos cargar tu tutoría</h2>
+        <p>{{ err }}</p>
+        <button mat-flat-button color="primary" (click)="store.refresh()">
+            <mat-icon>refresh</mat-icon> Reintentar
+        </button>
+    </div>
+    } @else if (!store.data()) {
+    <div class="state empty">
+        <mat-icon class="big">school</mat-icon>
+        <h2>Aún no tienes una sección asignada como tutor</h2>
+        <p>Cuando Dirección te asigne una sección verás aquí a tus alumnos y sus libretas.</p>
+    </div>
+    } @else {
+
+    <header class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-title">
+                <div class="badge">
+                    <mat-icon>school</mat-icon>
+                    Mi Tutoría
+                </div>
+                <h1>{{ store.data()!.seccion.grado_nombre }}</h1>
+                <p class="subtitle">Sección {{ store.data()!.seccion.nombre }}</p>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <mat-icon>group</mat-icon>
+                    <div>
+                        <span class="num">{{ store.data()!.alumnos.length }}</span>
+                        <span class="lbl">Alumnos</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <mat-icon>family_restroom</mat-icon>
+                    <div>
+                        <span class="num">{{ store.data()!.padres.length }}</span>
+                        <span class="lbl">Padres</span>
+                    </div>
+                </div>
+                @if (store.periodoActivo(); as pa) {
+                <div class="stat-card highlight">
+                    <mat-icon>event_available</mat-icon>
+                    <div>
+                        <span class="num">Bim {{ pa.bimestre }}</span>
+                        <span class="lbl">Activo · {{ pa.anio }}</span>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    </header>
+
+    <nav class="tabs-nav" mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false" mat-align-tabs="start">
+        @for (tab of tabs; track tab.path) {
+        <a mat-tab-link [routerLink]="tab.path" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
+            <mat-icon>{{ tab.icon }}</mat-icon>
+            {{ tab.label }}
+        </a>
+        }
+    </nav>
+
+    <mat-tab-nav-panel #tabPanel>
+        <section class="content-card">
+            <router-outlet></router-outlet>
+        </section>
+    </mat-tab-nav-panel>
+    }
+</div>
