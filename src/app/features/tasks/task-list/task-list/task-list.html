@@ -1,4 +1,4 @@
-<app-page-header title="Tareas">
+<app-page-header title="Tareas" subtitle="Tareas de archivo e interactivas">
     @if (auth.isDocente()) {
     <a mat-flat-button color="primary" routerLink="/tareas/crear">
         <mat-icon>add</mat-icon> Nueva tarea
@@ -8,65 +8,86 @@
 
 @if (loading()) {
 <app-loading-skeleton [count]="3" />
-} @else if (tasks().length === 0) {
+} @else if (!hasData()) {
 <app-empty-state icon="assignment" title="Sin tareas" message="No hay tareas registradas." />
 } @else {
 <div class="tasks-list">
     @for (t of tasks(); track t.id) {
     <mat-card class="task-card">
-        <mat-card-header>
-            <mat-icon mat-card-avatar [style.color]="isPending(t) ? '#E65100' : '#9E9E9E'">
-                assignment
-            </mat-icon>
-            <mat-card-title>{{ t.titulo }}</mat-card-title>
-            <mat-card-subtitle>{{ t.curso }} · {{ t.puntos_max }} puntos</mat-card-subtitle>
-        </mat-card-header>
+        <div class="task-status-bar" [class.green]="t.activo" [class.gray]="!t.activo"></div>
 
-        <mat-card-content>
-            @if (t.instrucciones) {
-            <p class="desc">{{ t.instrucciones }}</p>
-            }
-            <div class="deadline">
-                <mat-icon>event</mat-icon>
-                <span>Entrega: {{ t.fecha_limite | date:'dd/MM/yyyy HH:mm' }}</span>
+        <div class="card-body">
+            <div class="task-main">
+                <div class="task-icon" [class.interactiva]="isInteractiva(t)">
+                    <mat-icon>{{ isInteractiva(t) ? 'quiz' : 'assignment' }}</mat-icon>
+                </div>
+                <div class="task-info">
+                    <span class="task-title">{{ t.titulo }}</span>
+                    @if (t.instrucciones) {
+                    <span class="task-desc">{{ t.instrucciones }}</span>
+                    }
+                    <div class="task-meta">
+                        <span><mat-icon>event</mat-icon> {{ t.fecha_limite | date:'dd/MM/yyyy HH:mm' }}</span>
+                        <span><mat-icon>stars</mat-icon> {{ t.puntos_max }} pts</span>
+                        @if (t.curso) {
+                        <span><mat-icon>menu_book</mat-icon> {{ t.curso }}</span>
+                        }
+                        <span>
+                            <mat-icon>{{ isInteractiva(t) ? 'quiz' : 'attach_file' }}</mat-icon>
+                            {{ isInteractiva(t) ? 'Interactiva' : 'Archivo/Texto' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="task-badge">
+                    @if (auth.isAlumno()) {
+                    <mat-chip class="chip chip-{{ estadoAlumno(t) }}" disabled>
+                        {{ estadoLabel(t) }}
+                    </mat-chip>
+                    } @else {
+                    <mat-chip class="chip" [class.chip-active]="t.activo" [class.chip-inactive]="!t.activo" disabled>
+                        {{ t.activo ? 'Activa' : 'Oculta' }}
+                    </mat-chip>
+                    }
+                </div>
             </div>
+        </div>
 
-            @if (auth.isAlumno()) {
-            <div class="chips-row">
-                <mat-chip class="chip chip-{{ estadoAlumno(t) }}" disabled>
-                    {{ estadoLabel(t) }}
-                </mat-chip>
-                @if (miEntrega(t)?.con_retraso) {
-                <mat-chip class="chip chip-retraso" disabled>Con retraso</mat-chip>
-                }
-            </div>
-            } @else {
-            @if (isPending(t)) {
-            <mat-chip class="chip chip-pendiente" disabled>Pendiente</mat-chip>
-            } @else {
-            <mat-chip class="chip chip-vencida" disabled>Vencida</mat-chip>
-            }
-            }
-        </mat-card-content>
-
-        <mat-card-actions>
+        <div class="card-actions">
             @if (auth.isAlumno()) {
             @if (miEntrega(t)) {
             <button mat-flat-button color="primary" (click)="abrirMiEntrega(t)">
                 <mat-icon>visibility</mat-icon> Ver mi entrega
             </button>
-            } @else {
-            <a mat-flat-button color="primary" [routerLink]="['/tareas', t.id, 'entregar']">
-                Entregar tarea
+            } @else if (isInteractiva(t) && isAvailable(t)) {
+            <a mat-flat-button color="primary" [routerLink]="['/tareas', t.id, 'tomar']">
+                <mat-icon>play_arrow</mat-icon> Resolver
             </a>
-            }
-            }
-            @if (auth.isDocente()) {
-            <button mat-flat-button color="primary" (click)="abrirEntregas(t)">
-                <mat-icon>visibility</mat-icon> Ver entregas
+            } @else if (isAvailable(t)) {
+            <a mat-flat-button color="primary" [routerLink]="['/tareas', t.id, 'entregar']">
+                <mat-icon>upload</mat-icon> Entregar
+            </a>
+            } @else {
+            <button mat-stroked-button disabled>
+                <mat-icon>block</mat-icon> No disponible
             </button>
             }
-        </mat-card-actions>
+            }
+
+            @if (auth.isDocente()) {
+            <button mat-stroked-button (click)="abrirEntregas(t)">
+                <mat-icon>visibility</mat-icon> Ver entregas
+            </button>
+            @if (isInteractiva(t)) {
+            <a mat-stroked-button [routerLink]="['/tareas', t.id, 'resultados']">
+                <mat-icon>leaderboard</mat-icon> Resultados
+            </a>
+            }
+            <button mat-button (click)="toggleActivo(t, $event)">
+                <mat-icon>{{ t.activo ? 'visibility_off' : 'visibility' }}</mat-icon>
+                {{ t.activo ? 'Ocultar' : 'Publicar' }}
+            </button>
+            }
+        </div>
     </mat-card>
     }
 </div>

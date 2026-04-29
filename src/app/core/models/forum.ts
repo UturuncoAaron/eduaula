@@ -3,7 +3,10 @@ export interface Forum {
     curso_id: string;
     titulo: string;
     descripcion: string | null;
+    bimestre?: number | null;
+    semana?: number | null;
     activo: boolean;
+    oculto?: boolean;
     created_at: string;
 }
 

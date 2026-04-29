@@ -1,0 +1,57 @@
+<app-page-header [title]="task()?.titulo ?? 'Tarea interactiva'"
+    [subtitle]="task() ? (task()!.curso ?? '') + ' · ' + task()!.puntos_max + ' pts' : ''" backRoute="/tareas" />
+
+@if (loading()) {
+<div class="loading-center">
+    <mat-spinner diameter="40" />
+    <p>Cargando tarea...</p>
+</div>
+} @else if (task()) {
+@if (task()!.instrucciones) {
+<div class="instrucciones">
+    <mat-icon>info</mat-icon>
+    <p>{{ task()!.instrucciones }}</p>
+</div>
+}
+
+<div class="progress-bar">
+    <div class="progress-info">
+        <span>{{ objectKeys(answers()).length }} / {{ questions().length }} respondidas</span>
+        <span>{{ progress() }}%</span>
+    </div>
+    <mat-progress-bar mode="determinate" [value]="progress()" />
+</div>
+
+<div class="questions-list">
+    @for (q of questions(); track q.id; let i = $index) {
+    <mat-card class="question-card" [class.answered]="answers()[q.id]">
+        <mat-card-content>
+            <p class="question-text">
+                <span class="q-num">{{ i + 1 }}</span>
+                {{ q.enunciado }}
+                <span class="pts">({{ q.puntos }} pt)</span>
+            </p>
+            <mat-radio-group [value]="answers()[q.id]" (change)="selectAnswer(q.id, $event.value)"
+                class="options-group">
+                @for (o of q.opciones ?? []; track o.id) {
+                <mat-radio-button [value]="o.id" class="option">
+                    {{ o.texto }}
+                </mat-radio-button>
+                }
+            </mat-radio-group>
+        </mat-card-content>
+    </mat-card>
+    }
+</div>
+
+<div class="submit-area">
+    <span class="submit-hint">
+        @if (objectKeys(answers()).length < questions().length) { Faltan {{ questions().length -
+            objectKeys(answers()).length }} preguntas } @else { ¡Todo respondido! Puedes enviar. }
+    </span>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="submitting()">
+        <mat-icon>send</mat-icon>
+        {{ submitting() ? 'Enviando...' : 'Enviar tarea' }}
+    </button>
+</div>
+}

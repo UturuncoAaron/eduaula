@@ -17,6 +17,27 @@
 <div [class.dialog-body]="isDialog" mat-dialog-content>
     <form [formGroup]="form" class="custom-form">
 
+        <div class="kind-selector">
+            <label class="kind-label">Tipo de tarea</label>
+            <mat-button-toggle-group class="kind-toggle" [value]="kind()" (change)="selectKind($event.value)">
+                <mat-button-toggle value="archivo">
+                    <mat-icon>attach_file</mat-icon>
+                    <span>Archivo / Texto</span>
+                </mat-button-toggle>
+                <mat-button-toggle value="interactiva">
+                    <mat-icon>quiz</mat-icon>
+                    <span>Interactiva</span>
+                </mat-button-toggle>
+            </mat-button-toggle-group>
+            <span class="kind-hint">
+                @if (kind() === 'archivo') {
+                Los alumnos entregan un archivo, una respuesta en texto o ambos.
+                } @else {
+                Define preguntas dentro de la tarea. Se autocorrige opción múltiple y V/F.
+                }
+            </span>
+        </div>
+
         @if (!isDialog) {
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Curso</mat-label>
@@ -72,15 +93,138 @@
                 <mat-error>Inválido</mat-error>
                 }
             </mat-form-field>
+
+            <mat-form-field appearance="outline" class="grid-item">
+                <mat-label>Bimestre</mat-label>
+                <mat-select formControlName="bimestre">
+                    <mat-option [value]="null">— Sin asignar —</mat-option>
+                    @for (b of [1, 2, 3, 4]; track b) {
+                    <mat-option [value]="b">Bimestre {{ b }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="grid-item">
+                <mat-label>Semana</mat-label>
+                <mat-select formControlName="semana">
+                    <mat-option [value]="null">— Sin asignar —</mat-option>
+                    @for (s of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]; track s) {
+                    <mat-option [value]="s">Semana {{ s }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
         </div>
+
+        @if (kind() === 'archivo') {
+        <section class="section-block">
+            <h3 class="section-title">Material de referencia (opcional)</h3>
+            <p class="section-desc">Adjunta un PDF, imagen o documento para que los alumnos lo descarguen.</p>
+            <div class="file-row">
+                <input #fileInput type="file" class="hidden-file" (change)="onFileSelected($event)"
+                    accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
+                @if (!archivoReferencia()) {
+                <button mat-stroked-button type="button" (click)="fileInput.click()">
+                    <mat-icon>upload_file</mat-icon>
+                    Adjuntar archivo
+                </button>
+                } @else {
+                <div class="file-chip">
+                    <mat-icon>description</mat-icon>
+                    <span class="file-name">{{ archivoReferencia()!.name }}</span>
+                    <button mat-icon-button type="button" (click)="clearFile()" aria-label="Quitar archivo">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+                }
+            </div>
+
+            <h3 class="section-title">¿Qué puede entregar el alumno?</h3>
+            <div class="checkboxes-row">
+                <mat-checkbox formControlName="permite_archivo">Archivo (PDF / imagen / doc)</mat-checkbox>
+                <mat-checkbox formControlName="permite_texto">Respuesta en texto</mat-checkbox>
+            </div>
+        </section>
+        }
+
+        @if (kind() === 'interactiva') {
+        <section class="section-block">
+            <div class="section-header">
+                <h3 class="section-title">Preguntas ({{ preguntasArray.length }})</h3>
+                <button mat-stroked-button type="button" (click)="addPregunta()">
+                    <mat-icon>add</mat-icon> Agregar pregunta
+                </button>
+            </div>
+
+            @for (pGroup of preguntasArray.controls; track pi; let pi = $index) {
+            @if (getPreguntaGroup(pi); as pregGroup) {
+            <div class="question-block" [formGroup]="pregGroup">
+                <div class="question-header">
+                    <span class="q-num">Pregunta {{ pi + 1 }}</span>
+                    <button mat-icon-button type="button" color="warn" (click)="removePregunta(pi)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Enunciado</mat-label>
+                    <textarea matInput formControlName="enunciado" rows="2"></textarea>
+                </mat-form-field>
+
+                <div class="q-meta-row">
+                    <mat-form-field appearance="outline" class="tipo-field">
+                        <mat-label>Tipo</mat-label>
+                        <mat-select formControlName="tipo" (selectionChange)="onTipoChange(pi)">
+                            <mat-option value="multiple">Opción múltiple</mat-option>
+                            <mat-option value="verdadero_falso">Verdadero / Falso</mat-option>
+                            <mat-option value="corta">Respuesta corta</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="pts-field">
+                        <mat-label>Puntos</mat-label>
+                        <input matInput type="number" formControlName="puntos" min="1" />
+                    </mat-form-field>
+                </div>
+
+                <div class="options-list">
+                    @for (oGroup of (getOpcionesArray(pi)?.controls ?? []); track oi; let oi = $index) {
+                    @if (getOpcionGroup(pi, oi); as optGroup) {
+                    <div class="option-row" [formGroup]="optGroup">
+                        <mat-checkbox formControlName="es_correcta" />
+                        <mat-form-field appearance="outline" class="opt-field">
+                            <input matInput formControlName="texto"
+                                [placeholder]="pregGroup.value.tipo === 'corta' ? 'Respuesta esperada' : 'Texto de la opción'" />
+                        </mat-form-field>
+                        @if (pregGroup.value.tipo === 'multiple') {
+                        <button mat-icon-button type="button" color="warn" (click)="removeOpcion(pi, oi)">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                        }
+                    </div>
+                    }
+                    }
+                    @if (pregGroup.value.tipo === 'multiple') {
+                    <button mat-button type="button" (click)="addOpcion(pi)">
+                        <mat-icon>add</mat-icon> Agregar opción
+                    </button>
+                    }
+                </div>
+            </div>
+            }
+            }
+        </section>
+        }
 
     </form>
 </div>
 
 <div [class.dialog-footer]="isDialog" class="dialog-footer" align="end">
-    <button mat-button (click)="cancel()" [disabled]="loading()" class="btn-cancel">Cancelar</button>
-    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading()" class="btn-submit">
+    <button mat-button (click)="cancel()" [disabled]="loading() || uploading()" class="btn-cancel">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading() || uploading()" class="btn-submit">
+        @if (loading() || uploading()) {
+        <mat-spinner diameter="18"></mat-spinner>
+        } @else {
         <mat-icon>check_circle</mat-icon>
-        {{ loading() ? 'Guardando...' : 'Crear tarea' }}
+        }
+        {{ uploading() ? 'Subiendo archivo...' : (loading() ? 'Guardando...' : 'Crear tarea') }}
     </button>
 </div>

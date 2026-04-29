@@ -1,0 +1,22 @@
+.loading-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 64px;
+    gap: 16px;
+    color: #666;
+}
+
+.results-card {
+    border-radius: 12px;
+    overflow: auto;
+    .max { color: #888; font-size: 12px; margin-left: 2px; }
+}
+
+.w100 { width: 100%; }
+
+th.mat-mdc-header-cell { font-weight: 600; color: #1A237E; }
+
+@media (max-width: 600px) {
+    .results-card { font-size: 13px; }
+}

@@ -1,34 +1,86 @@
 <div class="container">
-    <app-page-header title="Entregar tarea" backRoute="/tareas" />
+    <app-page-header [title]="task()?.titulo ?? 'Entregar tarea'"
+        [subtitle]="task() ? (task()!.curso ?? '') + ' · Entrega: ' + (task()!.fecha_limite | date:'dd/MM/yyyy HH:mm') : ''"
+        backRoute="/tareas" />
+
+    @if (loading()) {
+    <div class="loading-center">
+        <mat-spinner diameter="40" />
+        <p>Cargando...</p>
+    </div>
+    } @else if (task()) {
+
+    @if (task()!.instrucciones) {
+    <mat-card class="info-card">
+        <mat-card-content>
+            <h3><mat-icon>description</mat-icon> Instrucciones</h3>
+            <p>{{ task()!.instrucciones }}</p>
+        </mat-card-content>
+    </mat-card>
+    }
+
+    @if (materialUrl()) {
+    <mat-card class="info-card">
+        <mat-card-content>
+            <h3><mat-icon>folder_shared</mat-icon> Material de referencia</h3>
+            <p>{{ materialNombre() ?? 'Archivo adjunto' }}</p>
+            <a mat-stroked-button [href]="materialUrl()" target="_blank" rel="noopener">
+                <mat-icon>open_in_new</mat-icon> Abrir material
+            </a>
+        </mat-card-content>
+    </mat-card>
+    }
 
     <mat-card class="form-card">
         <mat-card-content>
             <form [formGroup]="form" (ngSubmit)="submit()" class="form">
 
+                @if (puedeTexto()) {
                 <mat-form-field appearance="outline" class="w100">
                     <mat-label>Tu respuesta</mat-label>
                     <textarea matInput formControlName="respuesta_texto" rows="6"
                         placeholder="Escribe tu respuesta aquí..."></textarea>
-                    @if (form.controls.respuesta_texto.invalid && form.controls.respuesta_texto.touched) {
-                    <mat-error>Escribe tu respuesta para entregar la tarea</mat-error>
-                    }
                 </mat-form-field>
+                }
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>URL de archivo adjunto (opcional)</mat-label>
-                    <mat-icon matPrefix>link</mat-icon>
-                    <input matInput formControlName="url_archivo" placeholder="https://drive.google.com/..." />
-                </mat-form-field>
+                @if (puedeArchivo()) {
+                <div class="file-block">
+                    <label class="file-label">
+                        <mat-icon>attach_file</mat-icon>
+                        <span>Adjuntar archivo (PDF, imagen, doc, etc.)</span>
+                    </label>
+                    <input #fileInput type="file" class="hidden-file" (change)="onFileSelected($event)"
+                        accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
+                    @if (!selectedFile()) {
+                    <button type="button" mat-stroked-button (click)="fileInput.click()">
+                        <mat-icon>upload_file</mat-icon> Seleccionar archivo
+                    </button>
+                    } @else {
+                    <div class="file-chip">
+                        <mat-icon>description</mat-icon>
+                        <span class="file-name">{{ selectedFile()!.name }}</span>
+                        <button type="button" mat-icon-button (click)="clearFile()" aria-label="Quitar archivo">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </div>
+                    }
+                </div>
+                }
 
                 <div class="actions">
                     <a mat-button routerLink="/tareas">Cancelar</a>
-                    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+                    <button mat-flat-button color="primary" type="submit" [disabled]="sending()">
+                        @if (sending()) {
+                        <mat-spinner diameter="18"></mat-spinner>
+                        } @else {
                         <mat-icon>send</mat-icon>
-                        {{ loading() ? 'Enviando...' : 'Entregar tarea' }}
+                        }
+                        {{ sending() ? 'Enviando...' : 'Entregar tarea' }}
                     </button>
                 </div>
 
             </form>
         </mat-card-content>
     </mat-card>
+    }
 </div>

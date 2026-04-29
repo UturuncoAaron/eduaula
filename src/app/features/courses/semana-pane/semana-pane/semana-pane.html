@@ -1,0 +1,175 @@
+<div class="pane-root">
+
+    <header class="pane-header">
+        <button mat-icon-button class="btn-close" (click)="cerrar()" aria-label="Cerrar panel">
+            <mat-icon>close</mat-icon>
+        </button>
+        <div class="title-block">
+            <h2>SEMANA {{ semana().semana }}</h2>
+            <span class="subtitle">Bimestre {{ semana().bimestre }}</span>
+            @if (semana().oculta) {
+            <span class="hidden-pill"><mat-icon>visibility_off</mat-icon> Oculta</span>
+            }
+        </div>
+        @if (auth.isDocente() || auth.isAdmin()) {
+        <div class="visibility-toggle">
+            <mat-slide-toggle
+                [checked]="!semana().oculta"
+                (change)="toggleSemana(!$event.checked)"
+                color="primary">
+                Visible para alumnos
+            </mat-slide-toggle>
+        </div>
+        }
+    </header>
+
+    @if (auth.isAlumno() && semana().oculta) {
+    <div class="empty-pane">
+        <mat-icon>schedule</mat-icon>
+        <h3>Próximamente</h3>
+        <p>Esta semana aún no está disponible.</p>
+    </div>
+    } @else {
+
+    <mat-tab-group animationDuration="200ms" class="custom-tabs" mat-stretch-tabs="false">
+
+        <!-- Materiales -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <div class="tab-label"><mat-icon>folder_open</mat-icon> Materiales</div>
+            </ng-template>
+            <div class="sub-body">
+                @if (auth.isDocente() || auth.isAdmin()) {
+                <div class="action-bar">
+                    <button mat-flat-button class="btn-primary" (click)="crearMaterial()">
+                        <mat-icon>add</mat-icon> Agregar material
+                    </button>
+                </div>
+                }
+                @if (loadingMaterials()) {
+                <div class="loader"><mat-spinner diameter="32"></mat-spinner></div>
+                } @else if (materialesSemana().length === 0) {
+                <p class="empty-msg">Está vacío o próximamente.</p>
+                } @else {
+                <div class="item-list">
+                    @for (m of materialesSemana(); track m.id) {
+                    <div class="item-row" [class.is-hidden]="m.oculto">
+                        <div class="item-icon" [style.background]="materialColors[m.tipo] || '#94a3b8'">
+                            <mat-icon>{{ materialIcons[m.tipo] || 'insert_drive_file' }}</mat-icon>
+                        </div>
+                        <div class="item-info" (click)="abrirMaterial(m)" role="button" tabindex="0">
+                            <h4>{{ m.titulo }}</h4>
+                            @if (m.descripcion) { <p class="item-desc">{{ m.descripcion }}</p> }
+                            <span class="meta-data">
+                                <span class="tag">{{ m.tipo | uppercase }}</span>
+                                @if (m.size_bytes) { <span class="dot">•</span> {{ formatSize(m.size_bytes) }} }
+                                <span class="dot">•</span> {{ m.created_at | date:'dd MMM yyyy' }}
+                            </span>
+                        </div>
+                        @if (auth.isDocente() || auth.isAdmin()) {
+                        <button mat-icon-button class="btn-eye"
+                            [matTooltip]="m.oculto ? 'Mostrar a alumnos' : 'Ocultar a alumnos'"
+                            (click)="toggleMaterial(m)">
+                            <mat-icon>{{ m.oculto ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+        </mat-tab>
+
+        <!-- Tareas -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <div class="tab-label"><mat-icon>assignment</mat-icon> Tareas</div>
+            </ng-template>
+            <div class="sub-body">
+                @if (auth.isDocente() || auth.isAdmin()) {
+                <div class="action-bar">
+                    <button mat-flat-button class="btn-primary" (click)="crearTarea()">
+                        <mat-icon>add</mat-icon> Agregar tarea
+                    </button>
+                </div>
+                }
+                @if (loadingTasks()) {
+                <div class="loader"><mat-spinner diameter="32"></mat-spinner></div>
+                } @else if (tareasSemana().length === 0) {
+                <p class="empty-msg">Está vacío o próximamente.</p>
+                } @else {
+                <div class="item-list">
+                    @for (t of tareasSemana(); track t.id) {
+                    <div class="item-row" [class.is-hidden]="!t.activo">
+                        <div class="item-icon outline-icon">
+                            <mat-icon>{{ t.permite_alternativas ? 'quiz' : 'fact_check' }}</mat-icon>
+                        </div>
+                        <div class="item-info" (click)="abrirTarea(t)" role="button" tabindex="0">
+                            <h4>{{ t.titulo }}</h4>
+                            <span class="meta-data">
+                                <mat-icon class="sm-icon">event</mat-icon>
+                                {{ t.fecha_limite | date:'dd/MM/yyyy HH:mm' }}
+                                <span class="dot">•</span>
+                                <mat-icon class="sm-icon">stars</mat-icon> {{ t.puntos_max }} pts
+                            </span>
+                        </div>
+                        @if (auth.isDocente() || auth.isAdmin()) {
+                        <button mat-icon-button class="btn-eye"
+                            [matTooltip]="t.activo ? 'Ocultar a alumnos' : 'Mostrar a alumnos'"
+                            (click)="toggleTask(t)">
+                            <mat-icon>{{ t.activo ? 'visibility' : 'visibility_off' }}</mat-icon>
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+        </mat-tab>
+
+        <!-- Foro -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <div class="tab-label"><mat-icon>forum</mat-icon> Foro</div>
+            </ng-template>
+            <div class="sub-body">
+                @if (auth.isDocente() || auth.isAdmin()) {
+                <div class="action-bar">
+                    <button mat-flat-button class="btn-primary" (click)="crearForo()">
+                        <mat-icon>add</mat-icon> Agregar publicación
+                    </button>
+                </div>
+                }
+                @if (loadingForums()) {
+                <div class="loader"><mat-spinner diameter="32"></mat-spinner></div>
+                } @else if (forosSemana().length === 0) {
+                <p class="empty-msg">Está vacío o próximamente.</p>
+                } @else {
+                <div class="item-list">
+                    @for (f of forosSemana(); track f.id) {
+                    <div class="item-row" [class.is-hidden]="f.oculto">
+                        <div class="item-icon" style="background:#1565C0">
+                            <mat-icon>forum</mat-icon>
+                        </div>
+                        <div class="item-info" (click)="abrirForo(f)" role="button" tabindex="0">
+                            <h4>{{ f.titulo }}</h4>
+                            @if (f.descripcion) { <p class="item-desc">{{ f.descripcion }}</p> }
+                            <span class="meta-data">{{ f.created_at | date:'dd MMM yyyy' }}</span>
+                        </div>
+                        @if (auth.isDocente() || auth.isAdmin()) {
+                        <button mat-icon-button class="btn-eye"
+                            [matTooltip]="f.oculto ? 'Mostrar a alumnos' : 'Ocultar a alumnos'"
+                            (click)="toggleForum(f)">
+                            <mat-icon>{{ f.oculto ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+        </mat-tab>
+
+    </mat-tab-group>
+    }
+</div>

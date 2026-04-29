@@ -17,3 +17,9 @@ mat-dialog-content {
         width: 100%;
     }
 }
+
+.row-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}

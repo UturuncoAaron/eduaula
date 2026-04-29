@@ -8,6 +8,7 @@
                     {{ data.task.curso ?? 'Curso' }} ·
                     Entrega {{ data.task.fecha_limite | date:'dd/MM/yyyy HH:mm' }} ·
                     {{ data.task.puntos_max }} pts ·
+                    {{ esInteractiva() ? 'Interactiva' : 'Archivo/Texto' }} ·
                     {{ count() }} entrega{{ count() === 1 ? '' : 's' }}
                 </span>
             </div>
@@ -53,6 +54,31 @@
                     </div>
                 </div>
 
+                @if (esInteractiva()) {
+                @if (s.calificacion_auto != null) {
+                <div class="auto-score">
+                    <mat-icon>auto_awesome</mat-icon>
+                    <span>Auto-calificación: <strong>{{ s.calificacion_auto }}/{{ data.task.puntos_max }}</strong></span>
+                </div>
+                }
+
+                @if (s.respuestas?.length) {
+                <div class="field">
+                    <label>Respuestas</label>
+                    <ol class="answers-list">
+                        @for (r of s.respuestas; track r.id) {
+                        <li [class.correcta]="r.opcion?.es_correcta" [class.incorrecta]="r.opcion?.es_correcta === false">
+                            <p class="q">{{ r.pregunta?.enunciado ?? 'Pregunta' }}</p>
+                            <p class="a">
+                                <mat-icon>{{ r.opcion?.es_correcta ? 'check_circle' : 'cancel' }}</mat-icon>
+                                {{ r.opcion?.texto ?? '—' }}
+                            </p>
+                        </li>
+                        }
+                    </ol>
+                </div>
+                }
+                } @else {
                 @if (s.respuesta_texto) {
                 <div class="field">
                     <label>Respuesta</label>
@@ -63,18 +89,17 @@
                 @if (s.storage_key) {
                 <div class="field">
                     <label>Archivo</label>
-                    @if (esUrlExterna(s.storage_key)) {
-                    <a class="archivo-link" [href]="s.storage_key" target="_blank" rel="noopener">
+                    <button type="button" mat-stroked-button class="archivo-link" (click)="abrirArchivo(s)"
+                        [disabled]="downloading() === s.id">
+                        @if (downloading() === s.id) {
+                        <mat-spinner diameter="16"></mat-spinner>
+                        } @else {
                         <mat-icon>open_in_new</mat-icon>
-                        <span>{{ s.nombre_archivo ?? s.storage_key }}</span>
-                    </a>
-                    } @else {
-                    <span class="archivo-link disabled">
-                        <mat-icon>attach_file</mat-icon>
-                        <span>{{ s.nombre_archivo ?? s.storage_key }}</span>
-                    </span>
-                    }
+                        }
+                        <span>{{ s.nombre_archivo ?? 'Ver archivo' }}</span>
+                    </button>
                 </div>
+                }
                 }
 
                 <div class="grade-row">

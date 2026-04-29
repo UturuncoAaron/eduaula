@@ -1,0 +1,50 @@
+<div class="cp-pane">
+    <header class="cp-header">
+        <div>
+            <h2>Participantes del curso</h2>
+            @if (data.cursoNombre || data.seccionNombre) {
+            <p class="cp-sub">
+                @if (data.cursoNombre) { {{ data.cursoNombre }} }
+                @if (data.cursoNombre && data.seccionNombre) { · }
+                @if (data.seccionNombre) { Sección {{ data.seccionNombre }} }
+            </p>
+            }
+        </div>
+        <button mat-icon-button class="close-btn" (click)="cerrar()" aria-label="Cerrar">
+            <mat-icon>close</mat-icon>
+        </button>
+    </header>
+
+    <div class="cp-body">
+        @if (loading()) {
+        <div class="cp-loading"><mat-spinner diameter="32"></mat-spinner></div>
+        } @else if (alumnos().length === 0) {
+        <div class="cp-empty">
+            <mat-icon>group_off</mat-icon>
+            <h3>Sin alumnos matriculados</h3>
+            <p>Aún no hay alumnos registrados en esta sección.</p>
+        </div>
+        } @else {
+        <p class="cp-count">{{ alumnos().length }} {{ alumnos().length === 1 ? 'alumno' : 'alumnos' }}</p>
+        <ul class="cp-list">
+            @for (a of alumnos(); track a.id) {
+            <li class="cp-row">
+                <div class="cp-avatar">{{ iniciales(a) }}</div>
+                <div class="cp-info">
+                    <strong>{{ a.nombre }} {{ a.apellido_paterno }} {{ a.apellido_materno ?? '' }}</strong>
+                    <span class="cp-meta">
+                        <span class="code">{{ a.codigo_estudiante }}</span>
+                        @if (a.email) { <span class="dot">•</span><span class="mail">{{ a.email }}</span> }
+                    </span>
+                </div>
+                @if (a.email) {
+                <a class="cp-mail" [href]="'mailto:' + a.email" matTooltip="Enviar correo">
+                    <mat-icon>mail</mat-icon>
+                </a>
+                }
+            </li>
+            }
+        </ul>
+        }
+    </div>
+</div>

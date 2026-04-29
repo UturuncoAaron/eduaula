@@ -15,14 +15,19 @@
     <div class="resource-grid">
         @for (t of tasks(); track t.id) {
         <div class="resource-card task-card" [class.is-pending]="isPending(t.fecha_limite)">
-            <div class="resource-icon outline-icon"><mat-icon>fact_check</mat-icon></div>
+            <div class="resource-icon outline-icon">
+                <mat-icon>{{ isInteractiva(t) ? 'quiz' : 'fact_check' }}</mat-icon>
+            </div>
             <div class="resource-info">
                 <h3>{{ t.titulo }}</h3>
                 <span class="meta-data">
                     <mat-icon class="sm-icon">event</mat-icon>
                     Entrega: {{ t.fecha_limite | date:'dd/MM/yyyy HH:mm' }}
-                    <span class="dot">•</span>
+                    <span class="dot">-</span>
                     <mat-icon class="sm-icon">stars</mat-icon> {{ t.puntos_max }} pts
+                    <span class="dot">-</span>
+                    <mat-icon class="sm-icon">{{ isInteractiva(t) ? 'quiz' : 'attach_file' }}</mat-icon>
+                    {{ isInteractiva(t) ? 'Interactiva' : 'Archivo/Texto' }}
                 </span>
                 @if (auth.isAlumno()) {
                 <div class="task-chips">
@@ -39,6 +44,10 @@
                 <button mat-flat-button class="btn-primary" (click)="abrirMiEntrega(t)">
                     <mat-icon>visibility</mat-icon> Ver mi entrega
                 </button>
+                } @else if (isInteractiva(t)) {
+                <a mat-flat-button class="btn-primary" [routerLink]="['/tareas', t.id, 'tomar']">
+                    <mat-icon>play_arrow</mat-icon> Resolver
+                </a>
                 } @else {
                 <a mat-flat-button class="btn-primary" [routerLink]="['/tareas', t.id, 'entregar']">Entregar</a>
                 }

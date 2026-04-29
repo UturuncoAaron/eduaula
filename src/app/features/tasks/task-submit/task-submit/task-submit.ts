@@ -1,58 +1,136 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ApiService } from '../../../../core/services/api';
+import { TaskService } from '../../stores/task';
+import { Task, tipoEntregaTarea } from '../../../../core/models/task';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 
 @Component({
   selector: 'app-task-submit',
-  standalone: true,
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCardModule,
-    MatSnackBarModule, RouterLink, PageHeader,
+    MatProgressSpinnerModule, MatSnackBarModule, RouterLink, PageHeader, DatePipe,
   ],
   templateUrl: './task-submit.html',
   styleUrl: './task-submit.scss',
 })
-export class TaskSubmit {
+export class TaskSubmit implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private api = inject(ApiService);
+  private taskSvc = inject(TaskService);
   private snack = inject(MatSnackBar);
+  private sanitizer = inject(DomSanitizer);
 
-  loading = signal(false);
   taskId = this.route.snapshot.paramMap.get('id')!;
 
+  task = signal<Task | null>(null);
+  loading = signal(true);
+  sending = signal(false);
+  selectedFile = signal<File | null>(null);
+  materialUrl = signal<SafeResourceUrl | null>(null);
+  materialNombre = signal<string | null>(null);
+
+  puedeTexto = computed(() => !!this.task()?.permite_texto);
+  puedeArchivo = computed(() => !!this.task()?.permite_archivo);
+
   form = this.fb.group({
-    respuesta_texto: ['', Validators.required],
-    url_archivo: [''],
+    respuesta_texto: [''],
   });
 
-  submit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.loading.set(true);
-    const respuesta = (this.form.value.respuesta_texto ?? '').trim();
-    const urlArchivo = (this.form.value.url_archivo ?? '').trim();
-    const payload: Record<string, unknown> = {};
-    if (respuesta) payload['respuesta_texto'] = respuesta;
-    if (urlArchivo) payload['storage_key'] = urlArchivo;
-    this.api.post(`tasks/${this.taskId}/submit`, payload).subscribe({
-      next: () => {
-        this.snack.open('Tarea entregada correctamente', 'OK', { duration: 3000 });
-        this.router.navigate(['/tareas']);
+  ngOnInit() {
+    this.taskSvc.getTask(this.taskId).subscribe({
+      next: r => {
+        const t = r.data;
+        this.task.set(t);
+        this.loading.set(false);
+
+        if (tipoEntregaTarea(t) === 'interactiva') {
+          this.router.navigate(['/tareas', t.id, 'tomar']);
+          return;
+        }
+
+        if (t.enunciado_storage_key || t.enunciado_url) {
+          this.taskSvc.getEnunciadoUrl(t.id).subscribe({
+            next: res => {
+              this.materialUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(res.data.url));
+              this.materialNombre.set(res.data.nombre ?? null);
+            },
+            error: () => this.materialUrl.set(null),
+          });
+        }
       },
       error: () => {
-        this.snack.open('Error al entregar la tarea', 'OK', { duration: 3000 });
+        this.snack.open('No se pudo cargar la tarea', 'OK', { duration: 3000 });
         this.loading.set(false);
+        this.router.navigate(['/tareas']);
       },
     });
+  }
+
+  onFileSelected(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    this.selectedFile.set(input.files?.[0] ?? null);
+  }
+
+  clearFile() { this.selectedFile.set(null); }
+
+  submit() {
+    if (this.sending()) return;
+    const t = this.task();
+    if (!t) return;
+
+    const texto = (this.form.value.respuesta_texto ?? '').trim();
+    const file = this.selectedFile();
+
+    if (!texto && !file) {
+      this.snack.open('Debes escribir una respuesta o adjuntar un archivo', 'OK', { duration: 3000 });
+      return;
+    }
+
+    this.sending.set(true);
+
+    if (file) {
+      this.taskSvc.submitFile(this.taskId, file).subscribe({
+        next: () => {
+          if (texto) {
+            this.taskSvc.submitText(this.taskId, texto).subscribe({
+              next: () => this.finishSuccess(),
+              error: () => this.finishSuccess(),
+            });
+          } else {
+            this.finishSuccess();
+          }
+        },
+        error: () => {
+          this.snack.open('Error al subir el archivo', 'OK', { duration: 3000 });
+          this.sending.set(false);
+        },
+      });
+      return;
+    }
+
+    this.taskSvc.submitText(this.taskId, texto).subscribe({
+      next: () => this.finishSuccess(),
+      error: () => {
+        this.snack.open('Error al entregar la tarea', 'OK', { duration: 3000 });
+        this.sending.set(false);
+      },
+    });
+  }
+
+  private finishSuccess() {
+    this.snack.open('Tarea entregada correctamente', 'OK', { duration: 3000 });
+    this.router.navigate(['/tareas']);
   }
 }

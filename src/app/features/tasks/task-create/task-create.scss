@@ -1,6 +1,3 @@
-/* ==========================================================================
-   VARIABLES DE DISEÑO
-   ========================================================================== */
 $primary-blue: #2563eb;
 $primary-hover: #1d4ed8;
 $primary-light: #eff6ff;
@@ -9,9 +6,6 @@ $text-main: #1e293b;
 $text-muted: #64748b;
 $border-color: #e2e8f0;
 
-/* ==========================================================================
-   CABECERA DEL DIALOG
-   ========================================================================== */
 .dialog-header {
     display: flex;
     justify-content: space-between;
@@ -58,15 +52,11 @@ $border-color: #e2e8f0;
 
         &:hover {
             color: #ef4444;
-            /* Rojo suave al hacer hover */
             background: #fef2f2;
         }
     }
 }
 
-/* ==========================================================================
-   CONTENIDO Y FORMULARIO
-   ========================================================================== */
 .dialog-body {
     padding: 24px !important;
     min-width: 500px;
@@ -88,25 +78,19 @@ $border-color: #e2e8f0;
         width: 100%;
     }
 
-    /* Cuadrícula para agrupar inputs pequeños */
     .grid-row {
         display: grid;
         grid-template-columns: 2fr 1fr 1fr;
-        /* Fecha es más ancha, hora y puntos son iguales */
         gap: 16px;
         align-items: flex-start;
 
         @media (max-width: 500px) {
             grid-template-columns: 1fr;
-            /* En móviles muy pequeños, se apilan */
             gap: 12px;
         }
     }
 }
 
-/* ==========================================================================
-   FOOTER Y BOTONES
-   ========================================================================== */
 .dialog-footer {
     padding: 16px 24px 20px 24px;
     border-top: 1px solid #f1f5f9;
@@ -143,9 +127,158 @@ $border-color: #e2e8f0;
     }
 }
 
-/* ==========================================================================
-   SOBREESCRIBIR MATERIAL (Limpieza visual de los inputs)
-   ========================================================================== */
+.kind-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid $border-color;
+    border-radius: 10px;
+
+    .kind-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .kind-toggle {
+        border-radius: 8px;
+        overflow: hidden;
+
+        mat-button-toggle {
+            flex: 1;
+
+            span {
+                margin-left: 6px;
+            }
+        }
+    }
+
+    .kind-hint {
+        font-size: 12px;
+        color: $text-muted;
+    }
+}
+
+.section-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid $border-color;
+    border-radius: 10px;
+    background: #fafafa;
+
+    .section-title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-main;
+    }
+
+    .section-desc {
+        margin: -6px 0 4px;
+        font-size: 12px;
+        color: $text-muted;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .file-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+
+        .hidden-file {
+            display: none;
+        }
+    }
+
+    .file-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        background: $primary-light;
+        border: 1px solid #c7d2fe;
+        border-radius: 8px;
+        color: $primary-blue;
+        max-width: 100%;
+
+        .file-name {
+            max-width: 320px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    .checkboxes-row {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+}
+
+.question-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid $border-color;
+    border-radius: 10px;
+    background: white;
+
+    .question-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .q-num {
+            font-weight: 600;
+            color: $primary-blue;
+            font-size: 13px;
+        }
+    }
+
+    .q-meta-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 12px;
+    }
+
+    .options-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .opt-field {
+                flex: 1;
+            }
+        }
+    }
+}
+
 ::ng-deep .custom-form {
     .mdc-text-field--outlined {
         --mdc-outlined-text-field-focus-outline-color: #2563eb;
@@ -153,7 +286,6 @@ $border-color: #e2e8f0;
         --mdc-outlined-text-field-outline-color: #cbd5e1;
     }
 
-    /* Hacer el input de textarea un poco más limpio */
     textarea.mat-mdc-input-element {
         resize: none;
     }

@@ -25,6 +25,12 @@ const MIME_PERMITIDOS = [
   'text/plain',
 ];
 
+export interface MaterialUploadData {
+  courseId: string;
+  bimestre?: number | null;
+  semana?: number | null;
+}
+
 @Component({
   selector: 'app-material-upload',
   imports: [
@@ -45,10 +51,22 @@ export class MaterialUpload {
   private csSvc = inject(CourseService);
   private snack = inject(MatSnackBar);
   private dialogRef = inject(MatDialogRef<MaterialUpload>);
-  private courseId = inject<string>(MAT_DIALOG_DATA);
+  private dialogData = inject<string | MaterialUploadData>(MAT_DIALOG_DATA);
+
+  private get courseId(): string {
+    return typeof this.dialogData === 'string' ? this.dialogData : this.dialogData.courseId;
+  }
+
+  private get defaultBimestre(): number | null {
+    return typeof this.dialogData === 'string' ? null : this.dialogData.bimestre ?? null;
+  }
+
+  private get defaultSemana(): number | null {
+    return typeof this.dialogData === 'string' ? null : this.dialogData.semana ?? null;
+  }
 
   readonly bimestres = [1, 2, 3, 4];
-  readonly semanas = Array.from({ length: 20 }, (_, i) => i + 1);
+  readonly semanas = Array.from({ length: 16 }, (_, i) => i + 1);
 
   loading = signal(false);
   modoSubida = signal<'archivo' | 'url'>('archivo');
@@ -60,8 +78,8 @@ export class MaterialUpload {
     tipo: ['pdf' as TipoMaterial, Validators.required],
     url: [''],
     descripcion: ['', Validators.maxLength(500)],
-    bimestre: [null as number | null],
-    semana: [null as number | null],
+    bimestre: [this.defaultBimestre as number | null],
+    semana: [this.defaultSemana as number | null],
   });
 
   private formValue = toSignal(this.form.valueChanges, {

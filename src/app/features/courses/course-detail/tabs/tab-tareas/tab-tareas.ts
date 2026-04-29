@@ -7,25 +7,25 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '../../../../../core/services/api';
 import { AuthService } from '../../../../../core/auth/auth';
-import { Task, Submission } from '../../../../../core/models/task';
+import { Task, Submission, tipoEntregaTarea, estadoAlumno as calcEstadoAlumno, EstadoTarea } from '../../../../../core/models/task';
 
 @Component({
   selector: 'app-tab-tareas',
   standalone: true,
   imports: [DatePipe, RouterLink, MatIconModule, MatButtonModule, MatChipsModule],
   templateUrl: './tab-tareas.html',
-  styleUrl:    './tab-tareas.scss',
+  styleUrl: './tab-tareas.scss',
 })
 export class TabTareas implements OnInit {
-  readonly auth  = inject(AuthService);
-  private api    = inject(ApiService);
+  readonly auth = inject(AuthService);
+  private api = inject(ApiService);
   private dialog = inject(MatDialog);
 
   courseId = input.required<string>();
 
-  tasks            = signal<Task[]>([]);
+  tasks = signal<Task[]>([]);
   submissionByTask = signal<Record<string, Submission>>({});
-  loading          = signal(true);
+  loading = signal(true);
 
   ngOnInit() { this.loadTasks(); }
 
@@ -58,18 +58,20 @@ export class TabTareas implements OnInit {
     return this.submissionByTask()[t.id];
   }
 
-  estadoAlumno(t: Task): 'pendiente' | 'vencida' | 'entregada' | 'calificada' {
-    const s = this.miEntrega(t);
-    if (s) return s.calificacion_final != null ? 'calificada' : 'entregada';
-    return this.isPending(t.fecha_limite) ? 'pendiente' : 'vencida';
+  isInteractiva(t: Task): boolean {
+    return tipoEntregaTarea(t) === 'interactiva';
+  }
+
+  estadoAlumno(t: Task): EstadoTarea {
+    return calcEstadoAlumno(t, this.miEntrega(t));
   }
 
   estadoLabel(t: Task): string {
     switch (this.estadoAlumno(t)) {
       case 'calificada': return `Calificada ${this.miEntrega(t)!.calificacion_final}/${t.puntos_max}`;
-      case 'entregada':  return 'Entregada';
-      case 'pendiente':  return 'Pendiente';
-      case 'vencida':    return 'Vencida';
+      case 'entregada': return 'Entregada';
+      case 'pendiente': return 'Pendiente';
+      case 'vencida': return 'Vencida';
     }
   }
 
@@ -106,7 +108,7 @@ export class TabTareas implements OnInit {
     const { TaskCreate } = await import(
       '../../../../tasks/task-create/task-create'
     );
-    const ref = this.dialog.open(TaskCreate, { data: this.courseId(), width: '500px' });
+    const ref = this.dialog.open(TaskCreate, { data: this.courseId(), width: '600px' });
     ref.afterClosed().subscribe(r => { if (r) this.loadTasks(); });
   }
 }

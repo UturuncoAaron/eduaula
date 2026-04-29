@@ -16,6 +16,28 @@
             <textarea matInput formControlName="descripcion" rows="3" placeholder="¿De qué trata este foro?"></textarea>
         </mat-form-field>
 
+        <div class="row-pair">
+            <mat-form-field appearance="outline">
+                <mat-label>Bimestre</mat-label>
+                <mat-select formControlName="bimestre">
+                    <mat-option [value]="null">— Sin asignar —</mat-option>
+                    @for (b of bimestres; track b) {
+                    <mat-option [value]="b">Bimestre {{ b }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Semana</mat-label>
+                <mat-select formControlName="semana">
+                    <mat-option [value]="null">— Sin asignar —</mat-option>
+                    @for (s of semanas; track s) {
+                    <mat-option [value]="s">Semana {{ s }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
     </form>
 </mat-dialog-content>
 

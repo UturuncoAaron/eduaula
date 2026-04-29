@@ -13,67 +13,9 @@
                 }
             </div>
         </div>
-
-        @if (auth.isDocente()) {
-        <!-- Subir material se maneja dentro de TabMateriales -->
-        }
     </header>
 
     <main class="main-content">
-        <mat-tab-group animationDuration="200ms" class="custom-tabs" mat-stretch-tabs="false" mat-align-tabs="start"
-            (selectedIndexChange)="onTabChange($event)">
-
-            <!-- Tab 0: Contenido -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <div class="tab-label"><mat-icon>view_module</mat-icon> Contenido</div>
-                </ng-template>
-                @if (tabLoaded()[0]) {
-                <app-tab-contenido [courseId]="courseId" [course]="course()">
-                </app-tab-contenido>
-                }
-            </mat-tab>
-
-            <!-- Tab 1: Materiales -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <div class="tab-label"><mat-icon>folder_open</mat-icon> Materiales</div>
-                </ng-template>
-                @if (tabLoaded()[1]) {
-                <app-tab-materiales [courseId]="courseId"></app-tab-materiales>
-                }
-            </mat-tab>
-
-            <!-- Tab 2: Tareas -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <div class="tab-label"><mat-icon>assignment</mat-icon> Tareas</div>
-                </ng-template>
-                @if (tabLoaded()[2]) {
-                <app-tab-tareas [courseId]="courseId"></app-tab-tareas>
-                }
-            </mat-tab>
-
-            <!-- Tab 3: Exámenes -->
-            <!-- <mat-tab>
-                <ng-template mat-tab-label>
-                    <div class="tab-label"><mat-icon>quiz</mat-icon> Exámenes</div>
-                </ng-template>
-                @if (tabLoaded()[3]) {
-                <app-tab-examenes [courseId]="courseId"></app-tab-examenes>
-                }
-            </mat-tab> -->
-
-            <!-- Tab 4: Foro -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <div class="tab-label"><mat-icon>forum</mat-icon> Foro</div>
-                </ng-template>
-                @if (tabLoaded()[4]) {
-                <app-tab-foro [courseId]="courseId"></app-tab-foro>
-                }
-            </mat-tab>
-
-        </mat-tab-group>
+        <app-tab-contenido [courseId]="courseId" [course]="course()"></app-tab-contenido>
     </main>
 </div>

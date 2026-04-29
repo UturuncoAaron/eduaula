@@ -39,9 +39,18 @@ export interface Material {
     semana?: number | null;
     orden: number;
     activo?: boolean;
+    oculto?: boolean;
     visto?: boolean;
     created_at: string;
     updated_at?: string;
+}
+
+export interface SemanaResumen {
+    semana: number;
+    bimestre: number;
+    oculta: boolean;
+    descripcion: string | null;
+    config_id: string | null;
 }
 
 export interface MaterialDownload {

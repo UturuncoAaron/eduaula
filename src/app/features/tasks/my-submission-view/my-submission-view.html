@@ -53,6 +53,34 @@
             </section>
             }
 
+            @if (esInteractiva()) {
+            @if (submission()!.calificacion_auto != null) {
+            <section class="block">
+                <h4>Auto-calificación</h4>
+                <p class="plain">
+                    <strong>{{ submission()!.calificacion_auto }}/{{ task.puntos_max }}</strong>
+                    (preguntas de alternativas calificadas automáticamente)
+                </p>
+            </section>
+            }
+
+            @if (submission()!.respuestas?.length) {
+            <section class="block">
+                <h4>Tus respuestas</h4>
+                <ol class="answers-list">
+                    @for (r of submission()!.respuestas; track r.id) {
+                    <li [class.correcta]="r.opcion?.es_correcta" [class.incorrecta]="r.opcion?.es_correcta === false">
+                        <p class="q">{{ r.pregunta?.enunciado ?? 'Pregunta' }}</p>
+                        <p class="a">
+                            <mat-icon>{{ r.opcion?.es_correcta ? 'check_circle' : 'cancel' }}</mat-icon>
+                            {{ r.opcion?.texto ?? '—' }}
+                        </p>
+                    </li>
+                    }
+                </ol>
+            </section>
+            }
+            } @else {
             @if (submission()?.respuesta_texto) {
             <section class="block">
                 <h4>Tu respuesta</h4>
@@ -63,15 +91,21 @@
             @if (submission()?.storage_key) {
             <section class="block">
                 <h4>Tu archivo</h4>
+                @if (downloading()) {
+                <div class="loading-media">
+                    <mat-spinner diameter="24"></mat-spinner>
+                    <span>Cargando vista previa...</span>
+                </div>
+                } @else {
                 @switch (mediaKind()) {
                 @case ('image') {
-                <img class="media-img" [src]="submission()!.storage_key" alt="archivo" />
+                <img class="media-img" [src]="signedUrl() ?? submission()!.storage_key" alt="archivo" />
                 }
                 @case ('video') {
-                <video class="media-video" controls [src]="submission()!.storage_key"></video>
+                <video class="media-video" controls [src]="signedUrl() ?? submission()!.storage_key"></video>
                 }
                 @case ('audio') {
-                <audio class="media-audio" controls [src]="submission()!.storage_key"></audio>
+                <audio class="media-audio" controls [src]="signedUrl() ?? submission()!.storage_key"></audio>
                 }
                 @case ('pdf') {
                 <iframe class="media-iframe" [src]="safeIframe()"></iframe>
@@ -84,18 +118,20 @@
                 <iframe class="media-iframe" [src]="safeIframe()" allow="autoplay" allowfullscreen></iframe>
                 }
                 @default {
-                <a class="media-link" [href]="submission()!.storage_key" target="_blank" rel="noopener">
+                <a class="media-link" [href]="signedUrl() ?? submission()!.storage_key" target="_blank" rel="noopener">
                     <mat-icon>open_in_new</mat-icon>
                     <span>{{ submission()!.nombre_archivo ?? submission()!.storage_key }}</span>
                 </a>
                 }
                 }
+                }
                 <div class="media-actions">
-                    <button mat-stroked-button (click)="abrirExterno()">
+                    <button mat-stroked-button (click)="abrirExterno()" [disabled]="downloading()">
                         <mat-icon>open_in_new</mat-icon> Abrir en nueva pestaña
                     </button>
                 </div>
             </section>
+            }
             }
 
             @if (estado() === 'calificada') {

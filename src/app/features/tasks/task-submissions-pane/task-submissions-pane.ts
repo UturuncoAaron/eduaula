@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,8 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { ApiService } from '../../../core/services/api';
-import { Submission, Task } from '../../../core/models/task';
+import { Submission, Task, tipoEntregaTarea } from '../../../core/models/task';
+import { TaskService } from '../stores/task';
 
 export interface TaskSubmissionsPaneData {
   task: Task;
@@ -29,8 +29,8 @@ export interface TaskSubmissionsPaneData {
   templateUrl: './task-submissions-pane.html',
   styleUrl: './task-submissions-pane.scss',
 })
-export class TaskSubmissionsPane {
-  private api = inject(ApiService);
+export class TaskSubmissionsPane implements OnInit {
+  private taskSvc = inject(TaskService);
   private snack = inject(MatSnackBar);
   private ref = inject<MatDialogRef<TaskSubmissionsPane>>(MatDialogRef);
   readonly data = inject<TaskSubmissionsPaneData>(MAT_DIALOG_DATA);
@@ -38,16 +38,16 @@ export class TaskSubmissionsPane {
   loading = signal(true);
   submissions = signal<Submission[]>([]);
   saving = signal<string | null>(null);
+  downloading = signal<string | null>(null);
 
   count = computed(() => this.submissions().length);
+  esInteractiva = computed(() => tipoEntregaTarea(this.data.task) === 'interactiva');
 
-  ngOnInit() {
-    this.cargar();
-  }
+  ngOnInit() { this.cargar(); }
 
   private cargar() {
     this.loading.set(true);
-    this.api.get<Submission[]>(`tasks/${this.data.task.id}/submissions`).subscribe({
+    this.taskSvc.getSubmissions(this.data.task.id).subscribe({
       next: r => { this.submissions.set(r.data ?? []); this.loading.set(false); },
       error: () => { this.submissions.set([]); this.loading.set(false); },
     });
@@ -68,6 +68,25 @@ export class TaskSubmissionsPane {
     return !!key && /^https?:\/\//i.test(key);
   }
 
+  abrirArchivo(sub: Submission) {
+    if (!sub.storage_key) return;
+    if (this.esUrlExterna(sub.storage_key)) {
+      window.open(sub.storage_key, '_blank', 'noopener');
+      return;
+    }
+    this.downloading.set(sub.id);
+    this.taskSvc.getSubmissionFileUrl(sub.id).subscribe({
+      next: r => {
+        this.downloading.set(null);
+        window.open(r.data.url, '_blank', 'noopener');
+      },
+      error: () => {
+        this.downloading.set(null);
+        this.snack.open('No se pudo descargar el archivo', 'OK', { duration: 2500 });
+      },
+    });
+  }
+
   guardar(sub: Submission) {
     const cal = sub.calificacion_manual;
     if (cal == null || Number.isNaN(Number(cal))) {
@@ -80,7 +99,7 @@ export class TaskSubmissionsPane {
       return;
     }
     this.saving.set(sub.id);
-    this.api.patch<Submission>(`submissions/${sub.id}/grade`, {
+    this.taskSvc.gradeSubmission(sub.id, {
       calificacion_manual: cal,
       comentario_docente: sub.comentario_docente ?? null,
     }).subscribe({

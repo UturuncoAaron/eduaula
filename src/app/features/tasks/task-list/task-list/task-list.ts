@@ -8,24 +8,30 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../../core/auth/auth';
 import { ApiService } from '../../../../core/services/api';
 import { Course } from '../../../../core/models/course';
-import { Task, Submission } from '../../../../core/models/task';
+import {
+  Task,
+  Submission,
+  EstadoTarea,
+  tipoEntregaTarea,
+  estadoAlumno as calcEstadoAlumno,
+} from '../../../../core/models/task';
+import { TaskService } from '../../stores/task';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 import { LoadingSkeleton } from '../../../../shared/components/loading-skeleton/loading-skeleton';
 import { TaskSubmissionsPane } from '../../task-submissions-pane/task-submissions-pane';
 import { MySubmissionView } from '../../my-submission-view/my-submission-view';
 
-type EstadoAlumno = 'pendiente' | 'vencida' | 'entregada' | 'calificada';
-
 @Component({
   selector: 'app-task-list',
-  standalone: true,
   imports: [
     MatCardModule, MatIconModule, MatButtonModule, MatChipsModule,
-    DatePipe, RouterLink, PageHeader, EmptyState, LoadingSkeleton,
+    MatSnackBarModule, DatePipe, RouterLink,
+    PageHeader, EmptyState, LoadingSkeleton,
   ],
   templateUrl: './task-list.html',
   styleUrl: './task-list.scss',
@@ -34,6 +40,8 @@ export class TaskList implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
+  private taskSvc = inject(TaskService);
+  private snack = inject(MatSnackBar);
 
   tasks = signal<Task[]>([]);
   submissionByTask = signal<Record<string, Submission>>({});
@@ -58,7 +66,7 @@ export class TaskList implements OnInit {
       ),
     );
     const mine$ = this.auth.isAlumno()
-      ? this.api.get<Submission[]>('my-submissions').pipe(
+      ? this.taskSvc.getMySubmissions().pipe(
         map(r => r.data ?? []),
         catchError(() => of([] as Submission[])),
       )
@@ -80,14 +88,16 @@ export class TaskList implements OnInit {
     return this.submissionByTask()[t.id];
   }
 
-  isPending(t: Task): boolean {
-    return new Date(t.fecha_limite) > new Date();
+  isInteractiva(t: Task): boolean {
+    return tipoEntregaTarea(t) === 'interactiva';
   }
 
-  estadoAlumno(t: Task): EstadoAlumno {
-    const s = this.miEntrega(t);
-    if (s) return s.calificacion_final != null ? 'calificada' : 'entregada';
-    return this.isPending(t) ? 'pendiente' : 'vencida';
+  isAvailable(t: Task): boolean {
+    return !!t.activo && new Date(t.fecha_limite).getTime() >= Date.now();
+  }
+
+  estadoAlumno(t: Task): EstadoTarea {
+    return calcEstadoAlumno(t, this.miEntrega(t));
   }
 
   estadoLabel(t: Task): string {
@@ -102,31 +112,36 @@ export class TaskList implements OnInit {
     }
   }
 
+  toggleActivo(t: Task, ev: Event) {
+    ev.stopPropagation();
+    this.taskSvc.toggleTask(t.id, !t.activo).subscribe({
+      next: r => {
+        this.tasks.update(list =>
+          list.map(x => x.id === t.id ? { ...x, activo: r.data.activo } : x),
+        );
+        this.snack.open(r.data.activo ? 'Tarea publicada' : 'Tarea oculta', 'OK', { duration: 2000 });
+      },
+      error: () => this.snack.open('No se pudo actualizar la tarea', 'OK', { duration: 2500 }),
+    });
+  }
+
   abrirEntregas(t: Task) {
     this.dialog.open(TaskSubmissionsPane, {
       data: { task: t },
-      width: '92vw',
-      maxWidth: '100vw',
-      height: '100vh',
-      maxHeight: '100vh',
+      width: '92vw', maxWidth: '100vw', height: '100vh', maxHeight: '100vh',
       position: { right: '0', top: '0' },
       panelClass: 'material-preview-pane',
-      enterAnimationDuration: 0,
-      exitAnimationDuration: 0,
+      enterAnimationDuration: 0, exitAnimationDuration: 0,
     });
   }
 
   abrirMiEntrega(t: Task) {
     this.dialog.open(MySubmissionView, {
       data: { task: t, submission: this.miEntrega(t) ?? null },
-      width: '92vw',
-      maxWidth: '100vw',
-      height: '100vh',
-      maxHeight: '100vh',
+      width: '92vw', maxWidth: '100vw', height: '100vh', maxHeight: '100vh',
       position: { right: '0', top: '0' },
       panelClass: 'material-preview-pane',
-      enterAnimationDuration: 0,
-      exitAnimationDuration: 0,
+      enterAnimationDuration: 0, exitAnimationDuration: 0,
     });
   }
 }

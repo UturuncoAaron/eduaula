@@ -3,7 +3,7 @@ import { tap } from 'rxjs';
 import { ApiService } from '../../../core/services/api';
 import {
   Course, Material, MaterialDownload, MaterialPreviewInfo,
-  CourseProgressEntry, LiveClass,
+  CourseProgressEntry, LiveClass, SemanaResumen,
 } from '../../../core/models/course';
 
 @Injectable({ providedIn: 'root' })
@@ -103,5 +103,29 @@ export class CourseService {
 
   deleteLiveClass(id: string) {
     return this.api.delete<{ message: string }>(`live-classes/${id}`);
+  }
+
+  // ── Semanas ────────────────────────────────────────────────
+  getSemanas(courseId: string) {
+    return this.api.get<SemanaResumen[]>(`courses/${courseId}/semanas`);
+  }
+
+  toggleSemana(courseId: string, semana: number, oculta: boolean) {
+    return this.api.patch<SemanaResumen>(
+      `courses/${courseId}/semanas/${semana}/toggle`,
+      { oculta },
+    );
+  }
+
+  updateSemana(courseId: string, semana: number, body: { oculta?: boolean; descripcion?: string }) {
+    return this.api.patch<SemanaResumen>(`courses/${courseId}/semanas/${semana}`, body);
+  }
+
+  toggleMaterial(courseId: string, materialId: string, oculto: boolean) {
+    return this.api.patch<Material>(`courses/${courseId}/materials/${materialId}/toggle`, { oculto });
+  }
+
+  toggleForum(courseId: string, forumId: string, oculto: boolean) {
+    return this.api.patch<unknown>(`courses/${courseId}/forums/${forumId}/toggle`, { oculto });
   }
 }
