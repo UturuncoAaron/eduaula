@@ -8,7 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../core/services/api';
 import { Grade } from '../../../../core/models/grade';
 import { GradeBadge } from '../../../../shared/components/grade-badge/grade-badge';
@@ -21,15 +21,14 @@ import { EmptyState } from '../../../../shared/components/empty-state/empty-stat
     FormsModule, RouterLink,
     MatCardModule, MatTableModule, MatFormFieldModule,
     MatSelectModule, MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, MatSnackBarModule,
-    GradeBadge, PageHeader, EmptyState,
+    MatProgressSpinnerModule, GradeBadge, PageHeader, EmptyState,
   ],
   templateUrl: './register-grades.html',
   styleUrl: './register-grades.scss',
 })
 export class RegisterGrades implements OnInit {
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private route = inject(ActivatedRoute);
 
   grades = signal<Grade[]>([]);
@@ -60,10 +59,7 @@ export class RegisterGrades implements OnInit {
         console.error('Error al cargar notas', err);
         this.grades.set([]);
         this.loading.set(false);
-        this.snack.open(
-          err?.error?.message?.message ?? err?.error?.message ?? 'No se pudieron cargar las notas',
-          'Cerrar', { duration: 4000 },
-        );
+        this.toastr.error(err?.error?.message?.message ?? err?.error?.message ?? 'No se pudieron cargar las notas', 'Error');
       },
     });
   }
@@ -91,8 +87,8 @@ export class RegisterGrades implements OnInit {
       nota_participacion: g.nota_participacion,
       nota_final: g.nota_final,
     }).subscribe({
-      next: () => this.snack.open('Nota guardada', 'OK', { duration: 2000 }),
-      error: () => this.snack.open('Error al guardar', 'OK', { duration: 2000 }),
+      next: () => this.toastr.success('Nota guardada', 'Éxito'),
+      error: () => this.toastr.success('Error al guardar', 'Éxito'),
     });
   }
 
@@ -112,7 +108,7 @@ export class RegisterGrades implements OnInit {
     });
 
     Promise.all(requests).then(() => {
-      this.snack.open('Todas las notas guardadas', 'OK', { duration: 3000 });
+      this.toastr.success('Todas las notas guardadas', 'Éxito');
       this.saving.set(false);
     });
   }

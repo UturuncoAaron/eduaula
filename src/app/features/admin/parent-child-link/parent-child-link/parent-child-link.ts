@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -56,8 +56,7 @@ function extractArray(res: any): any[] {
   standalone: true,
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatCardModule, MatIconModule, MatSnackBarModule,
-    MatAutocompleteModule, MatProgressSpinnerModule, PageHeader,
+    MatButtonModule, MatCardModule, MatIconModule, MatAutocompleteModule, MatProgressSpinnerModule, PageHeader,
   ],
   templateUrl: './parent-child-link.html',
   styleUrl: './parent-child-link.scss',
@@ -66,7 +65,7 @@ function extractArray(res: any): any[] {
 export class ParentChildLink {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   loading = signal(false);
   isSearchingPadre = signal(false);
@@ -155,14 +154,12 @@ export class ParentChildLink {
           },
           ...links.slice(0, 9),
         ]);
-        this.snack.open('Vínculo creado exitosamente', 'Cerrar', {
-          duration: 4000, panelClass: 'success-snackbar',
-        });
+        this.toastr.success('Vínculo creado exitosamente', 'Éxito');
         this.form.reset();
         this.loading.set(false);
       },
       error: (err) => {
-        this.snack.open(err?.error?.message ?? 'Error al vincular', 'Cerrar', { duration: 3000 });
+        this.toastr.error(err?.error?.message ?? 'Error al vincular', 'Error');
         this.loading.set(false);
       },
     });

@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { environment } from '../../../../environments/environment';
@@ -24,7 +24,7 @@ interface ImportResult { total: number; creados: number; matriculados: number; o
     ReactiveFormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatSelectModule, MatProgressBarModule, MatChipsModule,
-    MatSnackBarModule, PageHeader,
+    PageHeader,
   ],
   templateUrl: './import-students.html',
   styleUrl: './import-students.scss',
@@ -32,7 +32,7 @@ interface ImportResult { total: number; creados: number; matriculados: number; o
 export class ImportStudents implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   secciones = signal<Seccion[]>([]);
   periodos = signal<Periodo[]>([]);
@@ -64,7 +64,7 @@ export class ImportStudents implements OnInit {
     const input = ev.target as HTMLInputElement;
     const f = input.files?.[0] ?? null;
     if (f && !f.name.toLowerCase().endsWith('.csv')) {
-      this.snack.open('El archivo debe ser .csv', 'OK', { duration: 3000 });
+      this.toastr.error('El archivo debe ser .csv', 'Error');
       input.value = '';
       return;
     }
@@ -74,7 +74,7 @@ export class ImportStudents implements OnInit {
   importar() {
     if (this.form.invalid || !this.archivo()) {
       this.form.markAllAsTouched();
-      if (!this.archivo()) this.snack.open('Selecciona un CSV', 'OK', { duration: 3000 });
+      if (!this.archivo()) this.toastr.error('Selecciona un CSV', 'Error');
       return;
     }
     const v = this.form.value;
@@ -90,11 +90,11 @@ export class ImportStudents implements OnInit {
       next: r => {
         this.resultado.set(r.data);
         this.uploading.set(false);
-        this.snack.open(`${r.data.creados} alumnos creados, ${r.data.matriculados} matriculados`, 'OK', { duration: 4000 });
+        this.toastr.error(`\$\{r.data.creados\} alumnos creados, \$\{r.data.matriculados\} matriculados`, 'Error');
       },
       error: e => {
         this.uploading.set(false);
-        this.snack.open(e?.error?.message || 'Error en la importación', 'OK', { duration: 4000 });
+        this.toastr.error(e?.error?.message || 'Error en la importación', 'Error');
       },
     });
   }

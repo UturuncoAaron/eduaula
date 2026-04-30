@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import {
   MAT_DIALOG_DATA, MatDialogModule, MatDialogRef,
 } from '@angular/material/dialog';
@@ -28,7 +28,7 @@ export interface LiveClassFormDialogData {
 export class LiveClassFormDialog {
   private fb = inject(FormBuilder);
   private csSvc = inject(CourseService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private ref = inject<MatDialogRef<LiveClassFormDialog>>(MatDialogRef);
   readonly data = inject<LiveClassFormDialogData>(MAT_DIALOG_DATA);
 
@@ -72,15 +72,12 @@ export class LiveClassFormDialog {
 
     obs.subscribe({
       next: res => {
-        this.snack.open(
-          this.isEdit ? 'Videoconferencia actualizada' : 'Videoconferencia programada',
-          'OK', { duration: 3000 },
-        );
+        this.toastr.success(this.isEdit ? 'Videoconferencia actualizada' : 'Videoconferencia programada', 'Éxito');
         this.ref.close(res.data);
       },
       error: err => {
         const msg = err?.error?.message ?? 'No se pudo guardar';
-        this.snack.open(msg, 'Cerrar', { duration: 4000 });
+        this.toastr.error(msg, 'Error');
         this.loading.set(false);
       },
     });

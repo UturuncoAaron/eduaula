@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -17,8 +17,7 @@ import type { GradeLevel, Section, Course } from '../../../../core/models/academ
     selector: 'app-grados-tab',
     standalone: true,
     imports: [
-        MatButtonModule, MatIconModule, MatSnackBarModule,
-        MatProgressSpinnerModule, MatTooltipModule,
+        MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule,
         MatPaginatorModule, MatMenuModule, ReactiveFormsModule,
     ],
     templateUrl: './grados-tab.html',
@@ -26,7 +25,7 @@ import type { GradeLevel, Section, Course } from '../../../../core/models/academ
 })
 export class GradosTab implements OnInit {
     private api = inject(ApiService);
-    private snack = inject(MatSnackBar);
+    private toastr = inject(ToastService);
     private dialog = inject(MatDialog);
 
     // ── Estado ────────────────────────────────────────────────────
@@ -99,7 +98,7 @@ export class GradosTab implements OnInit {
             error: () => {
                 this.loadingGrados.set(false);
                 this.loadingSecciones.set(false);
-                this.snack.open('Error al cargar datos académicos', 'Cerrar', { duration: 3000 });
+                this.toastr.error('Error al cargar datos académicos', 'Error');
             },
         });
 
@@ -233,17 +232,11 @@ export class GradosTab implements OnInit {
                 next: r => {
                     this.reloadSecciones();
                     const c = r.data?.cursos?.creados ?? 0;
-                    this.snack.open(
-                        c > 0
+                    this.toastr.success(c > 0
                             ? `Sección "${result.nombre}" creada · ${c} cursos generados`
-                            : `Sección "${result.nombre}" creada`,
-                        'OK', { duration: 4000 },
-                    );
+                            : `Sección "${result.nombre}" creada`, 'Éxito');
                 },
-                error: err => this.snack.open(
-                    err.error?.message ?? 'Error al crear sección',
-                    'Cerrar', { duration: 3000 },
-                ),
+                error: err => this.toastr.error(err.error?.message ?? 'Error al crear sección', 'Error'),
             });
         });
     }
@@ -253,7 +246,7 @@ export class GradosTab implements OnInit {
         const grado = this.selectedGrado();
         if (!seccion || !grado) return;
         const pid = this.periodoActivo();
-        if (!pid) { this.snack.open('Sin periodo activo', 'Cerrar', { duration: 3000 }); return; }
+        if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
 
         const { AddCourseDialog } = await import(
             '../../../../shared/components/add-course-dialog/add-course-dialog'
@@ -270,7 +263,7 @@ export class GradosTab implements OnInit {
         const grado = this.selectedGrado();
         if (!seccion || !grado) return;
         const pid = this.periodoActivo();
-        if (!pid) { this.snack.open('Sin periodo activo', 'Cerrar', { duration: 3000 }); return; }
+        if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
 
         const { ScheduleDialog } = await import(
             '../../../../shared/components/schedule-dialog/schedule-dialog'
@@ -298,8 +291,8 @@ export class GradosTab implements OnInit {
         ref.afterClosed().subscribe((docenteId: string | undefined) => {
             if (!docenteId) return;
             this.api.patch(`courses/${curso.id}/assign-teacher`, { docente_id: docenteId }).subscribe({
-                next: () => { this.reloadCursos(); this.snack.open('Docente asignado', 'OK', { duration: 2000 }); },
-                error: () => this.snack.open('Error al asignar docente', 'Cerrar', { duration: 3000 }),
+                next: () => { this.reloadCursos(); this.toastr.success('Docente asignado', 'Éxito'); },
+                error: () => this.toastr.error('Error al asignar docente', 'Error'),
             });
         });
     }
@@ -350,7 +343,7 @@ export class GradosTab implements OnInit {
                 next: () => this.cursos.update(list =>
                     list.map(c => c.id === curso.id ? { ...c, activo: !c.activo } : c)
                 ),
-                error: () => this.snack.open('Error al actualizar curso', 'OK', { duration: 2000 }),
+                error: () => this.toastr.error('Error al actualizar curso', 'Error'),
             });
         });
     }
@@ -360,7 +353,7 @@ export class GradosTab implements OnInit {
         const grado = this.selectedGrado();
         if (!seccion || !grado) return;
         const pid = this.periodoActivo();
-        if (!pid) { this.snack.open('Sin periodo activo', 'Cerrar', { duration: 3000 }); return; }
+        if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
 
         const { EnrollAlumnoDialog } = await import(
             '../../../../shared/components/enroll-alumno-dialog/enroll-alumno-dialog'
@@ -397,12 +390,9 @@ export class GradosTab implements OnInit {
             this.api.delete(`courses/enroll/${alumno.id}`).subscribe({
                 next: () => {
                     this.alumnos.update(list => list.filter(a => a.id !== alumno.id));
-                    this.snack.open(
-                        `${alumno.nombre} ${alumno.apellido_paterno} retirado de la sección`,
-                        'OK', { duration: 3000 },
-                    );
+                    this.toastr.success(`${alumno.nombre} ${alumno.apellido_paterno} retirado de la sección`, '�xito');
                 },
-                error: () => this.snack.open('Error al retirar alumno', 'Cerrar', { duration: 3000 }),
+                error: () => this.toastr.error('Error al retirar alumno', 'Error'),
             });
         });
     }

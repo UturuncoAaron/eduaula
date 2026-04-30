@@ -6,7 +6,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth';
@@ -29,7 +29,7 @@ export interface SemanaPaneData {
     DatePipe, UpperCasePipe,
     MatIconModule, MatButtonModule, MatTabsModule,
     MatDialogModule, MatSlideToggleModule, MatTooltipModule,
-    MatSnackBarModule, MatProgressSpinnerModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './semana-pane.html',
   styleUrl: './semana-pane.scss',
@@ -41,7 +41,7 @@ export class SemanaPane implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private dialogRef = inject(MatDialogRef<SemanaPane>);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private router = inject(Router);
   readonly data = inject<SemanaPaneData>(MAT_DIALOG_DATA);
 
@@ -119,12 +119,9 @@ export class SemanaPane implements OnInit {
       next: (r) => {
         this.semana.set(r.data);
         this.touched = true;
-        this.snack.open(
-          oculta ? 'Semana oculta para los alumnos' : 'Semana visible',
-          'OK', { duration: 2500 },
-        );
+        this.toastr.success(oculta ? 'Semana oculta para los alumnos' : 'Semana visible', 'Éxito');
       },
-      error: () => this.snack.open('No se pudo actualizar la semana', 'Cerrar', { duration: 3500 }),
+      error: () => this.toastr.error('No se pudo actualizar la semana', 'Error'),
     });
   }
 
@@ -136,7 +133,7 @@ export class SemanaPane implements OnInit {
         this.materials.update((list) => list.map((x) => x.id === m.id ? { ...x, oculto } : x));
         this.touched = true;
       },
-      error: () => this.snack.open('No se pudo actualizar el material', 'Cerrar', { duration: 3500 }),
+      error: () => this.toastr.error('No se pudo actualizar el material', 'Error'),
     });
   }
 
@@ -147,7 +144,7 @@ export class SemanaPane implements OnInit {
         this.tasks.update((list) => list.map((x) => x.id === t.id ? { ...x, activo } : x));
         this.touched = true;
       },
-      error: () => this.snack.open('No se pudo actualizar la tarea', 'Cerrar', { duration: 3500 }),
+      error: () => this.toastr.error('No se pudo actualizar la tarea', 'Error'),
     });
   }
 
@@ -158,7 +155,7 @@ export class SemanaPane implements OnInit {
         this.forums.update((list) => list.map((x) => x.id === f.id ? { ...x, oculto } : x));
         this.touched = true;
       },
-      error: () => this.snack.open('No se pudo actualizar el foro', 'Cerrar', { duration: 3500 }),
+      error: () => this.toastr.error('No se pudo actualizar el foro', 'Error'),
     });
   }
 

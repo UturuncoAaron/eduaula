@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ExamService } from '../../stores/exam';
 import { ApiService } from '../../../../core/services/api';
@@ -22,7 +22,7 @@ import { Course } from '../../../../core/models/course';
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatSelectModule,
     MatCheckboxModule, MatDatepickerModule, MatNativeDateModule,
-    MatSnackBarModule, MatDialogModule,
+    MatDialogModule,
   ],
   templateUrl: './exam-create.html',
   styleUrl: './exam-create.scss',
@@ -30,7 +30,7 @@ import { Course } from '../../../../core/models/course';
 export class ExamCreate {
   private fb = inject(FormBuilder);
   private examSvc = inject(ExamService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<ExamCreate>, { optional: true });
   private dialogData = inject<string | null>(MAT_DIALOG_DATA, { optional: true });
   private api = inject(ApiService);
@@ -151,7 +151,7 @@ export class ExamCreate {
     if (this.form.invalid || this.preguntasArray.length === 0) {
       this.form.markAllAsTouched();
       if (this.preguntasArray.length === 0) {
-        this.snack.open('Agrega al menos una pregunta', 'OK', { duration: 3000 });
+        this.toastr.success('Agrega al menos una pregunta', 'Éxito');
       }
       return;
     }
@@ -180,7 +180,7 @@ export class ExamCreate {
     const cursoId = this.dialogData ?? this.form.value.curso_id ?? '';
     this.examSvc.createExam(cursoId, payload).subscribe({
       next: () => {
-        this.snack.open('Examen creado correctamente', 'OK', { duration: 3000 });
+        this.toastr.success('Examen creado correctamente', 'Éxito');
         if (this.dialogRef) {
           this.dialogRef.close(true);
         } else {
@@ -188,7 +188,7 @@ export class ExamCreate {
         }
       },
       error: () => {
-        this.snack.open('Error al crear el examen', 'OK', { duration: 3000 });
+        this.toastr.success('Error al crear el examen', 'Éxito');
         this.loading.set(false);
       },
     });

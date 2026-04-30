@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CourseService } from '../stores/course';
 import { Material, TipoMaterial } from '../../../core/models/course';
@@ -24,7 +24,6 @@ export interface MaterialEditData {
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule,
     MatDialogModule,
   ],
   templateUrl: './material-edit.html',
@@ -33,7 +32,7 @@ export interface MaterialEditData {
 export class MaterialEdit {
   private fb = inject(FormBuilder);
   private csSvc = inject(CourseService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<MaterialEdit>);
   private data = inject<MaterialEditData>(MAT_DIALOG_DATA);
 
@@ -76,14 +75,14 @@ export class MaterialEdit {
 
     this.csSvc.updateMaterial(this.data.courseId, this.data.material.id, body).subscribe({
       next: () => {
-        this.snack.open('Material actualizado', 'OK', { duration: 3000 });
+        this.toastr.success('Material actualizado', 'Éxito');
         this.dialogRef.close(true);
       },
       error: (err) => {
         this.loading.set(false);
         const msg = (err as { error?: { message?: string } })?.error?.message
           ?? 'No se pudo actualizar el material';
-        this.snack.open(msg, 'Cerrar', { duration: 4000 });
+        this.toastr.error(msg, 'Error');
       },
     });
   }

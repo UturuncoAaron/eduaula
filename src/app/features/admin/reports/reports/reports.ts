@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../core/services/api';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 
@@ -16,14 +16,14 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
   imports: [
     FormsModule, MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatSelectModule, MatInputModule,
-    MatSnackBarModule, PageHeader,
+    PageHeader,
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })
 export class Reports {
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   bimestre = 1;
   downloading = signal(false);
@@ -61,7 +61,7 @@ export class Reports {
 
   assignLibreta() {
     if (!this.libretaUrl() || !this.libretaAlumno()) {
-      this.snack.open('Ingresa la URL del PDF y el documento del alumno', 'OK', { duration: 3000 });
+      this.toastr.success('Ingresa la URL del PDF y el documento del alumno', 'Exito');
       return;
     }
     this.uploadingLib.set(true);
@@ -71,14 +71,14 @@ export class Reports {
       periodo: this.libretaPeriodo() || '2025',
     }).subscribe({
       next: () => {
-        this.snack.open('Libreta asignada correctamente', 'OK', { duration: 3000 });
+        this.toastr.success('Libreta asignada correctamente', 'Éxito');
         this.libretaUrl.set('');
         this.libretaAlumno.set('');
         this.libretaPeriodo.set('');
         this.uploadingLib.set(false);
       },
       error: () => {
-        this.snack.open('Error al asignar libreta', 'OK', { duration: 3000 });
+        this.toastr.success('Error al asignar libreta', 'Éxito');
         this.uploadingLib.set(false);
       },
     });

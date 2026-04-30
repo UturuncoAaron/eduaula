@@ -9,12 +9,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDivider } from '@angular/material/divider';
+import { UpperCasePipe } from '@angular/common';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../../core/services/api';
 import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
-import { MatDivider } from '@angular/material/divider';
-import { UpperCasePipe } from '@angular/common';
 
 export interface AdminRow {
   id: string;
@@ -34,7 +34,7 @@ export interface AdminRow {
   imports: [
     MatTableModule, MatPaginatorModule, MatIconModule,
     MatButtonModule, MatMenuModule, MatChipsModule,
-    MatDialogModule, MatSnackBarModule, MatDivider, UpperCasePipe
+    MatDialogModule, MatDivider, UpperCasePipe,
   ],
   templateUrl: './tab-admins.html',
   styleUrl: './tab-admins.scss',
@@ -42,7 +42,7 @@ export interface AdminRow {
 export class TabAdmins implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   active = input<boolean>(false);
   searchTerm = input<string>('');
@@ -112,10 +112,13 @@ export class TabAdmins implements OnInit {
         : this.api.patch(`admin/users/${row.id}/reactivar`, {});
       req$.subscribe({
         next: () => {
-          this.snack.open(`Cuenta ${row.activo ? 'desactivada' : 'reactivada'}`, 'Cerrar', { duration: 3000 });
+          this.toastr.success(
+            row.activo ? 'Registro eliminado correctamente' : 'Cambios guardados correctamente',
+            'Éxito',
+          );
           this.loadData();
         },
-        error: () => this.snack.open('Error al cambiar estado', 'Cerrar', { duration: 3000 }),
+        error: () => this.toastr.error('Ocurrió un error, intenta nuevamente', 'Error'),
       });
     });
   }

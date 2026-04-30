@@ -9,12 +9,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDivider } from '@angular/material/divider';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../../core/services/api';
 import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
-import { MatDivider } from '@angular/material/divider';
-import { UpperCasePipe } from '@angular/common';
+
 export interface AlumnoRow {
   id: string;
   codigo_estudiante: string;
@@ -35,7 +35,7 @@ export interface AlumnoRow {
   selector: 'app-tab-alumnos',
   imports: [
     MatTableModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatMenuModule, MatDialogModule, MatSnackBarModule, MatDivider,  DatePipe
+    MatButtonModule, MatMenuModule, MatDialogModule, MatDivider, DatePipe,
   ],
   templateUrl: './tab-alumnos.html',
   styleUrl: './tab-alumnos.scss',
@@ -43,7 +43,7 @@ export interface AlumnoRow {
 export class TabAlumnos implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   active = input<boolean>(false);
   searchTerm = input<string>('');
@@ -110,8 +110,14 @@ export class TabAlumnos implements OnInit {
         ? this.api.delete(`admin/users/${row.id}`)
         : this.api.patch(`admin/users/${row.id}/reactivar`, {});
       req$.subscribe({
-        next: () => { this.snack.open('Estado actualizado', 'Cerrar', { duration: 3000 }); this.loadData(); },
-        error: () => this.snack.open('Error al cambiar estado', 'Cerrar', { duration: 3000 }),
+        next: () => {
+          this.toastr.success(
+            activo ? 'Registro eliminado correctamente' : 'Cambios guardados correctamente',
+            'Éxito',
+          );
+          this.loadData();
+        },
+        error: () => this.toastr.error('Ocurrió un error, intenta nuevamente', 'Error'),
       });
     });
   }

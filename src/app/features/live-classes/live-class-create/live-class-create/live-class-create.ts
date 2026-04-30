@@ -7,7 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../core/services/api';
 import { Course } from '../../../../core/models/course';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
@@ -18,7 +18,7 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButtonModule, MatIconModule, MatCardModule,
-    MatSnackBarModule, RouterLink, PageHeader,
+    RouterLink, PageHeader,
   ],
   templateUrl: './live-class-create.html',
   styleUrl: './live-class-create.scss',
@@ -27,7 +27,7 @@ export class LiveClassCreate implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   loading = signal(false);
   cursos = signal<Course[]>([]);
 
@@ -52,11 +52,11 @@ export class LiveClassCreate implements OnInit {
     this.loading.set(true);
     this.api.post('live-classes', this.form.value).subscribe({
       next: () => {
-        this.snack.open('Clase programada correctamente', 'OK', { duration: 3000 });
+        this.toastr.success('Clase programada correctamente', 'Éxito');
         this.router.navigate(['/clases-vivo']);
       },
       error: () => {
-        this.snack.open('Error al programar la clase', 'OK', { duration: 3000 });
+        this.toastr.success('Error al programar la clase', 'Éxito');
         this.loading.set(false);
       },
     });

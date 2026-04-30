@@ -7,7 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -48,7 +48,7 @@ export class TabContenido implements OnInit {
   private taskSvc = inject(TaskService);
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private router = inject(Router);
 
   courseId = input.required<string>();
@@ -271,12 +271,9 @@ export class TabContenido implements OnInit {
     this.csSvc.toggleSemana(this.courseId(), s.semana, oculta).subscribe({
       next: (r) => {
         this.semanas.update((list) => list.map((x) => x.semana === s.semana ? r.data : x));
-        this.snack.open(
-          oculta ? 'Semana oculta para los alumnos' : 'Semana visible',
-          'OK', { duration: 2200 },
-        );
+        this.toastr.success(oculta ? 'Semana oculta para los alumnos' : 'Semana visible', '�xito');
       },
-      error: () => this.snack.open('No se pudo actualizar la semana', 'Cerrar', { duration: 3500 }),
+      error: () => this.toastr.error('No se pudo actualizar la semana', 'Error'),
     });
   }
 
@@ -286,19 +283,19 @@ export class TabContenido implements OnInit {
       const oculto = !item.oculto;
       this.csSvc.toggleMaterial(this.courseId(), item.id, oculto).subscribe({
         next: () => this.materials.update((list) => list.map((m) => m.id === item.id ? { ...m, oculto } : m)),
-        error: () => this.snack.open('No se pudo actualizar el material', 'Cerrar', { duration: 3500 }),
+        error: () => this.toastr.error('No se pudo actualizar el material', 'Error'),
       });
     } else if (item.kind === 'tarea') {
       const activo = item.oculto; // si estaba oculto, ahora pasa a activo=true
       this.taskSvc.toggleTask(item.id, activo).subscribe({
         next: () => this.tasks.update((list) => list.map((t) => t.id === item.id ? { ...t, activo } : t)),
-        error: () => this.snack.open('No se pudo actualizar la tarea', 'Cerrar', { duration: 3500 }),
+        error: () => this.toastr.error('No se pudo actualizar la tarea', 'Error'),
       });
     } else {
       const oculto = !item.oculto;
       this.csSvc.toggleForum(this.courseId(), item.id, oculto).subscribe({
         next: () => this.forums.update((list) => list.map((f) => f.id === item.id ? { ...f, oculto } : f)),
-        error: () => this.snack.open('No se pudo actualizar el foro', 'Cerrar', { duration: 3500 }),
+        error: () => this.toastr.error('No se pudo actualizar el foro', 'Error'),
       });
     }
   }
@@ -306,16 +303,16 @@ export class TabContenido implements OnInit {
   eliminarItem(item: SemanaItem, ev: Event): void {
     ev.stopPropagation();
     if (item.kind !== 'material') {
-      this.snack.open('Eliminar tareas y foros se implementará pronto', 'OK', { duration: 2500 });
+      this.toastr.success('Eliminar tareas y foros se implementará pronto', '�xito');
       return;
     }
     if (!confirm(`¿Eliminar "${item.titulo}"?`)) return;
     this.csSvc.deleteMaterial(this.courseId(), item.id).subscribe({
       next: () => {
         this.materials.update((list) => list.filter((m) => m.id !== item.id));
-        this.snack.open('Material eliminado', 'OK', { duration: 2500 });
+        this.toastr.success('Material eliminado', 'Éxito');
       },
-      error: () => this.snack.open('No se pudo eliminar', 'Cerrar', { duration: 3500 }),
+      error: () => this.toastr.error('No se pudo eliminar', 'Error'),
     });
   }
 
@@ -391,9 +388,9 @@ export class TabContenido implements OnInit {
     this.csSvc.deleteLiveClass(lc.id).subscribe({
       next: () => {
         this.liveClasses.update((list) => list.filter((c) => c.id !== lc.id));
-        this.snack.open('Videoconferencia eliminada', 'OK', { duration: 3000 });
+        this.toastr.success('Videoconferencia eliminada', '�xito');
       },
-      error: (err) => this.snack.open(err?.error?.message ?? 'Error', 'Cerrar', { duration: 3000 }),
+      error: (err) => this.toastr.error(err?.error?.message ?? 'Error', 'Error'),
     });
   }
 
@@ -408,7 +405,7 @@ export class TabContenido implements OnInit {
   async abrirParticipantes(): Promise<void> {
     const c = this.course();
     if (!c?.seccion_id) {
-      this.snack.open('Este curso no tiene una sección asignada', 'Cerrar', { duration: 3000 });
+      this.toastr.error('Este curso no tiene una sección asignada', 'Error');
       return;
     }
     const { CourseParticipants } = await import(

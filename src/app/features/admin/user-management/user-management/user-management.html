@@ -1,37 +1,40 @@
 <div class="page-container">
     <div class="page-header">
         <div class="header-titles">
-            <h1>Gestión de Usuarios</h1>
-            <p>Administra la comunidad educativa de EduAula.</p>
+            <h1>
+                <mat-icon class="header-icon">{{ meta().icon }}</mat-icon>
+                {{ meta().label }}
+            </h1>
+            <p>{{ meta().sublabel }}</p>
         </div>
         <button mat-flat-button color="primary" (click)="openCreateUser()" class="btn-create">
-            <mat-icon>person_add</mat-icon> Crear usuario
+            <mat-icon>person_add</mat-icon> Crear {{ meta().label.toLowerCase() === 'padres / tutores' ? 'padre / tutor' : meta().label.toLowerCase().slice(0, -1) }}
         </button>
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card admins">
+        <div class="stat-card admins" [class.stat-active]="activeTipo() === 'admins'">
             <mat-icon>admin_panel_settings</mat-icon>
             <div class="stat-info">
                 <h3>{{ stats().admins }}</h3>
                 <p>Admins</p>
             </div>
         </div>
-        <div class="stat-card students">
+        <div class="stat-card students" [class.stat-active]="activeTipo() === 'alumnos'">
             <mat-icon>school</mat-icon>
             <div class="stat-info">
                 <h3>{{ stats().alumnos }}</h3>
                 <p>Alumnos</p>
             </div>
         </div>
-        <div class="stat-card teachers">
+        <div class="stat-card teachers" [class.stat-active]="activeTipo() === 'docentes'">
             <mat-icon>badge</mat-icon>
             <div class="stat-info">
                 <h3>{{ stats().docentes }}</h3>
                 <p>Docentes</p>
             </div>
         </div>
-        <div class="stat-card parents">
+        <div class="stat-card parents" [class.stat-active]="activeTipo() === 'padres'">
             <mat-icon>family_restroom</mat-icon>
             <div class="stat-info">
                 <h3>{{ stats().padres }}</h3>
@@ -48,49 +51,21 @@
     </div>
 
     <mat-card class="table-card">
-        <mat-tab-group animationDuration="0ms" (selectedIndexChange)="onTabChange($event)">
-
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <mat-icon class="tab-icon">admin_panel_settings</mat-icon> Admins
-                </ng-template>
-                <div class="tab-content">
-                    <!-- active=true cuando es el tab 0 → dispara loadData() -->
-                    <app-tab-admins [active]="isTabActive(0)" [searchTerm]="searchQuery()">
-                    </app-tab-admins>
-                </div>
-            </mat-tab>
-
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <mat-icon class="tab-icon">school</mat-icon> Alumnos
-                </ng-template>
-                <div class="tab-content">
-                    <app-tab-alumnos [active]="isTabActive(1)" [searchTerm]="searchQuery()">
-                    </app-tab-alumnos>
-                </div>
-            </mat-tab>
-
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <mat-icon class="tab-icon">badge</mat-icon> Docentes
-                </ng-template>
-                <div class="tab-content">
-                    <app-tab-docentes [active]="isTabActive(2)" [searchTerm]="searchQuery()">
-                    </app-tab-docentes>
-                </div>
-            </mat-tab>
-
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <mat-icon class="tab-icon">family_restroom</mat-icon> Padres
-                </ng-template>
-                <div class="tab-content">
-                    <app-tab-padres [active]="isTabActive(3)" [searchTerm]="searchQuery()">
-                    </app-tab-padres>
-                </div>
-            </mat-tab>
-
-        </mat-tab-group>
+        <div class="tab-content">
+            @switch (activeTipo()) {
+                @case ('admins') {
+                    <app-tab-admins [active]="true" [searchTerm]="searchQuery()" />
+                }
+                @case ('alumnos') {
+                    <app-tab-alumnos [active]="true" [searchTerm]="searchQuery()" />
+                }
+                @case ('docentes') {
+                    <app-tab-docentes [active]="true" [searchTerm]="searchQuery()" />
+                }
+                @case ('padres') {
+                    <app-tab-padres [active]="true" [searchTerm]="searchQuery()" />
+                }
+            }
+        </div>
     </mat-card>
 </div>

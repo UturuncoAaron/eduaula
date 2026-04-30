@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
@@ -15,14 +15,14 @@ import type { Period } from '../../../../core/models/academic';
   standalone: true,
   imports: [
     DatePipe, MatButtonModule, MatIconModule, MatTableModule,
-    MatSnackBarModule, MatProgressSpinnerModule, MatTooltipModule,
+    MatProgressSpinnerModule, MatTooltipModule,
   ],
   templateUrl: './periodos-tab.html',
   styleUrl: './periodos-tab.scss',
 })
 export class PeriodosTab implements OnInit {
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private dialog = inject(MatDialog);
 
   periodos = signal<Period[]>([]);
@@ -55,12 +55,9 @@ export class PeriodosTab implements OnInit {
               a.anio !== b.anio ? a.anio - b.anio : a.bimestre - b.bimestre
             )
           );
-          this.snack.open('Periodo creado correctamente', 'OK', { duration: 3000 });
+          this.toastr.success('Periodo creado correctamente', 'Éxito');
         },
-        error: err => this.snack.open(
-          err.error?.message ?? 'Error al crear periodo',
-          'Cerrar', { duration: 3000 },
-        ),
+        error: err => this.toastr.error(err.error?.message ?? 'Error al crear periodo', 'Error'),
       });
     });
   }
@@ -89,9 +86,9 @@ export class PeriodosTab implements OnInit {
           this.periodos.update(list =>
             list.map(p => ({ ...p, activo: p.id === periodo.id }))
           );
-          this.snack.open(`"${periodo.nombre}" activado correctamente`, 'OK', { duration: 3000 });
+          this.toastr.success(`"${periodo.nombre}" activado correctamente`, 'Éxito');
         },
-        error: () => this.snack.open('Error al activar periodo', 'Cerrar', { duration: 3000 }),
+        error: () => this.toastr.error('Error al activar periodo', 'Error'),
       });
     });
   }

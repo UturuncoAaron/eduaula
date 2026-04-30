@@ -11,7 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../core/services/api';
@@ -35,7 +35,7 @@ type TaskCreateInput = string | TaskCreateData | null;
     MatFormFieldModule, MatInputModule,
     MatSelectModule, MatCheckboxModule, MatButtonToggleModule,
     MatButtonModule, MatIconModule,
-    MatSnackBarModule, MatDialogModule,
+    MatDialogModule,
     MatDatepickerModule, MatNativeDateModule,
     MatProgressSpinnerModule,
   ],
@@ -46,7 +46,7 @@ export class TaskCreate implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private taskSvc = inject(TaskService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private router = inject(Router);
   private location = inject(Location);
   private dialogRef = inject(MatDialogRef<TaskCreate>, { optional: true });
@@ -204,11 +204,11 @@ export class TaskCreate implements OnInit {
     const isInteractiva = this.kind() === 'interactiva';
 
     if (isInteractiva && this.preguntasArray.length === 0) {
-      this.snack.open('Agrega al menos una pregunta', 'OK', { duration: 3000 });
+      this.toastr.success('Agrega al menos una pregunta', '…xito');
       return;
     }
     if (!isInteractiva && !v.permite_archivo && !v.permite_texto) {
-      this.snack.open('Selecciona al menos un m√©todo de entrega (archivo o texto)', 'OK', { duration: 3500 });
+      this.toastr.success('Selecciona al menos un m√©todo de entrega (archivo o texto)', '…xito');
       return;
     }
 
@@ -255,7 +255,7 @@ export class TaskCreate implements OnInit {
         }
       },
       error: () => {
-        this.snack.open('Error al crear la tarea', 'OK', { duration: 3000 });
+        this.toastr.success('Error al crear la tarea', '…xito');
         this.loading.set(false);
       },
     });
@@ -270,7 +270,7 @@ export class TaskCreate implements OnInit {
       },
       error: () => {
         this.uploading.set(false);
-        this.snack.open('Tarea creada, pero fall√≥ la subida del archivo de referencia', 'OK', { duration: 4000 });
+        this.toastr.success('Tarea creada, pero fall√≥ la subida del archivo de referencia', '…xito');
         this.finishSuccess();
       },
     });
@@ -278,7 +278,7 @@ export class TaskCreate implements OnInit {
 
   private finishSuccess() {
     this.loading.set(false);
-    this.snack.open('Tarea creada correctamente', 'OK', { duration: 3000 });
+    this.toastr.success('Tarea creada correctamente', '…xito');
     if (this.dialogRef) this.dialogRef.close(true);
     else this.router.navigate(['/tareas']);
   }

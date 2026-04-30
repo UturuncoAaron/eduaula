@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
@@ -22,11 +22,10 @@ type Tipo = 'alumnos' | 'docentes' | 'padres' | 'admins';
   selector: 'app-user-detail',
   standalone: true,
   imports: [
-    ReactiveFormsModule, DatePipe, 
+    ReactiveFormsModule, DatePipe,
     MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatChipsModule, MatDividerModule,
-    MatDialogModule, MatSnackBarModule,
-    PageHeader, LoadingSkeleton,
+    MatDialogModule, PageHeader, LoadingSkeleton,
   ],
   templateUrl: './user-detail.html',
   styleUrl: './user-detail.scss',
@@ -37,7 +36,7 @@ export class UserDetail implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   tipo = signal<Tipo>('alumnos');
   id = signal<string>('');
@@ -60,7 +59,7 @@ export class UserDetail implements OnInit {
     this.api.get<any>(`admin/users/${this.tipo()}/${this.id()}`).subscribe({
       next: r => { this.user.set(r.data); this.loading.set(false); },
       error: () => {
-        this.snack.open('Usuario no encontrado', 'OK', { duration: 3000 });
+        this.toastr.error('Usuario no encontrado', 'Error');
         this.loading.set(false);
         this.router.navigate(['/admin/usuarios']);
       },
@@ -72,12 +71,12 @@ export class UserDetail implements OnInit {
     this.saving.set(true);
     this.api.patch(`admin/users/${this.id()}/reset-password`, this.resetForm.value).subscribe({
       next: () => {
-        this.snack.open('Contraseña actualizada', 'OK', { duration: 2500 });
+        this.toastr.success('Contraseña actualizada', 'Éxito');
         this.resetForm.reset({ newPassword: '' });
         this.saving.set(false);
       },
       error: () => {
-        this.snack.open('Error al actualizar contraseña', 'OK', { duration: 3000 });
+        this.toastr.error('Error al actualizar contraseña', 'Error');
         this.saving.set(false);
       },
     });
@@ -91,10 +90,10 @@ export class UserDetail implements OnInit {
       if (!ok) return;
       this.api.delete(`admin/users/${this.id()}`).subscribe({
         next: () => {
-          this.snack.open('Usuario desactivado', 'OK', { duration: 2500 });
+          this.toastr.success('Usuario desactivado', 'Éxito');
           this.cargar();
         },
-        error: () => this.snack.open('Error al desactivar', 'OK', { duration: 3000 }),
+        error: () => this.toastr.error('Error al desactivar', 'Error'),
       });
     });
   }
@@ -102,10 +101,10 @@ export class UserDetail implements OnInit {
   reactivar() {
     this.api.patch(`admin/users/${this.id()}/reactivar`, {}).subscribe({
       next: () => {
-        this.snack.open('Usuario reactivado', 'OK', { duration: 2500 });
+        this.toastr.success('Usuario reactivado', 'Éxito');
         this.cargar();
       },
-      error: () => this.snack.open('Error al reactivar', 'OK', { duration: 3000 }),
+      error: () => this.toastr.error('Error al reactivar', 'Error'),
     });
   }
 

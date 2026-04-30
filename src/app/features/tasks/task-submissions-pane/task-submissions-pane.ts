@@ -8,7 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { Submission, Task, tipoEntregaTarea } from '../../../core/models/task';
 import { TaskService } from '../stores/task';
@@ -23,7 +23,7 @@ export interface TaskSubmissionsPaneData {
     CommonModule, FormsModule,
     MatButtonModule, MatIconModule, MatTooltipModule,
     MatProgressSpinnerModule, MatFormFieldModule, MatInputModule,
-    MatChipsModule, MatSnackBarModule, MatDialogModule,
+    MatChipsModule, MatDialogModule,
     DatePipe,
   ],
   templateUrl: './task-submissions-pane.html',
@@ -31,7 +31,7 @@ export interface TaskSubmissionsPaneData {
 })
 export class TaskSubmissionsPane implements OnInit {
   private taskSvc = inject(TaskService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private ref = inject<MatDialogRef<TaskSubmissionsPane>>(MatDialogRef);
   readonly data = inject<TaskSubmissionsPaneData>(MAT_DIALOG_DATA);
 
@@ -82,7 +82,7 @@ export class TaskSubmissionsPane implements OnInit {
       },
       error: () => {
         this.downloading.set(null);
-        this.snack.open('No se pudo descargar el archivo', 'OK', { duration: 2500 });
+        this.toastr.success('No se pudo descargar el archivo', '�xito');
       },
     });
   }
@@ -90,12 +90,12 @@ export class TaskSubmissionsPane implements OnInit {
   guardar(sub: Submission) {
     const cal = sub.calificacion_manual;
     if (cal == null || Number.isNaN(Number(cal))) {
-      this.snack.open('Ingresá una calificación válida', 'OK', { duration: 2500 });
+      this.toastr.success('Ingresá una calificación válida', '�xito');
       return;
     }
     const max = this.data.task.puntos_max;
     if (cal < 0 || cal > max) {
-      this.snack.open(`La nota debe estar entre 0 y ${max}`, 'OK', { duration: 2500 });
+      this.toastr.success(`La nota debe estar entre 0 y ${max}`, '�xito');
       return;
     }
     this.saving.set(sub.id);
@@ -109,11 +109,11 @@ export class TaskSubmissionsPane implements OnInit {
           list.map(s => s.id === sub.id ? { ...s, ...updated } : s),
         );
         this.saving.set(null);
-        this.snack.open('Nota guardada', 'OK', { duration: 2000 });
+        this.toastr.success('Nota guardada', '�xito');
       },
       error: () => {
         this.saving.set(null);
-        this.snack.open('Error al guardar la nota', 'OK', { duration: 2500 });
+        this.toastr.success('Error al guardar la nota', '�xito');
       },
     });
   }

@@ -5,7 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../core/services/api';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 
@@ -20,7 +20,7 @@ interface Attendance {
   standalone: true,
   imports: [
     FormsModule, MatCardModule, MatButtonModule,
-    MatSlideToggleModule, MatIconModule, MatSnackBarModule, PageHeader,
+    MatSlideToggleModule, MatIconModule, PageHeader,
   ],
   templateUrl: './attendance-register.html',
   styleUrl: './attendance-register.scss',
@@ -28,7 +28,7 @@ interface Attendance {
 export class AttendanceRegister implements OnInit {
   private route = inject(ActivatedRoute);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   classId = this.route.snapshot.paramMap.get('id')!;
   attendance = signal<Attendance[]>([]);
@@ -56,8 +56,8 @@ export class AttendanceRegister implements OnInit {
     this.api.post(`live-classes/${this.classId}/attendance`, {
       attendance: this.attendance(),
     }).subscribe({
-      next: () => this.snack.open('Asistencia guardada', 'OK', { duration: 2000 }),
-      error: () => this.snack.open('Error al guardar', 'OK', { duration: 2000 }),
+      next: () => this.toastr.success('Asistencia guardada', 'Éxito'),
+      error: () => this.toastr.success('Error al guardar', 'Éxito'),
     });
   }
 }

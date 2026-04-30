@@ -9,7 +9,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../../core/auth/auth';
 import { CourseService } from '../../../stores/course';
@@ -18,8 +18,8 @@ import { RouterLink } from '@angular/router';
 
 interface MaterialGroup {
   bimestre: number | null;
-  semana:   number | null;
-  label:    string;
+  semana: number | null;
+  label: string;
   materials: Material[];
 }
 
@@ -32,20 +32,20 @@ interface MaterialGroup {
     MatMenuModule, MatTooltipModule, DatePipe, UpperCasePipe,
   ],
   templateUrl: './tab-materiales.html',
-  styleUrl:    './tab-materiales.scss',
+  styleUrl: './tab-materiales.scss',
 })
 export class TabMateriales implements OnInit {
-  readonly auth  = inject(AuthService);
-  private csSvc  = inject(CourseService);
+  readonly auth = inject(AuthService);
+  private csSvc = inject(CourseService);
   private dialog = inject(MatDialog);
-  private snack  = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   courseId = input.required<string>();
 
-  materials       = signal<Material[]>([]);
+  materials = signal<Material[]>([]);
   loadingMaterials = signal(true);
-  searchTerm      = signal('');
-  filtroBimestre  = signal<number | 'todos'>('todos');
+  searchTerm = signal('');
+  filtroBimestre = signal<number | 'todos'>('todos');
 
   readonly materialIcons: Record<string, string> = {
     pdf: 'picture_as_pdf', video: 'smart_display',
@@ -58,7 +58,7 @@ export class TabMateriales implements OnInit {
 
   filteredMaterials = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
-    const bim  = this.filtroBimestre();
+    const bim = this.filtroBimestre();
     return this.materials().filter(m => {
       if (bim !== 'todos' && (m.bimestre ?? 0) !== bim) return false;
       if (!term) return true;
@@ -73,8 +73,8 @@ export class TabMateriales implements OnInit {
       if (!groups.has(key)) {
         groups.set(key, {
           bimestre: m.bimestre ?? null,
-          semana:   m.semana ?? null,
-          label:    this.buildLabel(m.bimestre ?? null, m.semana ?? null),
+          semana: m.semana ?? null,
+          label: this.buildLabel(m.bimestre ?? null, m.semana ?? null),
           materials: [],
         });
       }
@@ -98,7 +98,7 @@ export class TabMateriales implements OnInit {
   loadMaterials() {
     this.loadingMaterials.set(true);
     this.csSvc.getMaterials(this.courseId()).subscribe({
-      next: r  => { this.materials.set(r.data ?? []); this.loadingMaterials.set(false); },
+      next: r => { this.materials.set(r.data ?? []); this.loadingMaterials.set(false); },
       error: () => { this.materials.set([]); this.loadingMaterials.set(false); },
     });
   }
@@ -154,7 +154,7 @@ export class TabMateriales implements OnInit {
       next: () => this.materials.update(list =>
         list.map(m => m.id === id ? { ...m, visto: true } : m)
       ),
-      error: () => {},
+      error: () => { },
     });
   }
 
@@ -182,9 +182,9 @@ export class TabMateriales implements OnInit {
     this.csSvc.deleteMaterial(this.courseId(), m.id).subscribe({
       next: () => {
         this.materials.update(list => list.filter(x => x.id !== m.id));
-        this.snack.open('Material eliminado', 'OK', { duration: 3000 });
+        this.toastr.success('Material eliminado', 'Error');
       },
-      error: err => this.snack.open(err?.error?.message ?? 'Error', 'Cerrar', { duration: 4000 }),
+      error: err => this.toastr.error(err?.error?.message ?? 'Error', 'Error'),
     });
   }
 }

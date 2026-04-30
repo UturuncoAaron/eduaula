@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CourseService } from '../../stores/course';
 import { TipoMaterial } from '../../../../core/models/course';
@@ -40,7 +40,6 @@ export interface MaterialUploadData {
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule,
     MatDialogModule,
   ],
   templateUrl: './material-upload.html',
@@ -49,7 +48,7 @@ export interface MaterialUploadData {
 export class MaterialUpload {
   private fb = inject(FormBuilder);
   private csSvc = inject(CourseService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<MaterialUpload>);
   private dialogData = inject<string | MaterialUploadData>(MAT_DIALOG_DATA);
 
@@ -220,7 +219,7 @@ export class MaterialUpload {
   }
 
   private onSuccess() {
-    this.snack.open('Material subido correctamente', 'OK', { duration: 3000 });
+    this.toastr.success('Material subido correctamente', 'Éxito');
     this.dialogRef.close(true);
   }
 
@@ -228,6 +227,6 @@ export class MaterialUpload {
     this.loading.set(false);
     const msg = (err as { error?: { message?: string } })?.error?.message
       ?? 'No se pudo subir el material';
-    this.snack.open(msg, 'Cerrar', { duration: 4000 });
+    this.toastr.error(msg, 'Error');
   }
 }

@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../../core/services/api';
 
@@ -24,7 +24,6 @@ export interface ForumCreateData {
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule,
     MatDialogModule,
   ],
   templateUrl: './forum-create.html',
@@ -33,7 +32,7 @@ export interface ForumCreateData {
 export class ForumCreate {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<ForumCreate>);
   private dialogData = inject<string | ForumCreateData>(MAT_DIALOG_DATA);
 
@@ -73,11 +72,11 @@ export class ForumCreate {
     };
     this.api.post(`courses/${this.courseId}/forums`, payload).subscribe({
       next: () => {
-        this.snack.open('Foro creado correctamente', 'OK', { duration: 3000 });
+        this.toastr.success('Foro creado correctamente', 'Éxito');
         this.dialogRef.close(true);
       },
       error: () => {
-        this.snack.open('Error al crear el foro', 'OK', { duration: 3000 });
+        this.toastr.success('Error al crear el foro', 'Éxito');
         this.loading.set(false);
       },
     });

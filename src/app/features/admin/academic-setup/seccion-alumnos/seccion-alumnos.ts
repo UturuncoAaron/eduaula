@@ -5,7 +5,7 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../../core/services/api';
@@ -28,14 +28,14 @@ export interface AlumnoMatriculado {
   standalone: true,
   imports: [
     MatIconModule, MatButtonModule, MatTooltipModule,
-    MatSnackBarModule, MatDialogModule, MatProgressSpinnerModule,
+    MatDialogModule, MatProgressSpinnerModule,
   ],
   templateUrl: './seccion-alumnos.html',
   styleUrl:    './seccion-alumnos.scss',
 })
 export class SeccionAlumnos implements OnInit {
   private api    = inject(ApiService);
-  private snack  = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private dialog = inject(MatDialog);
 
   seccion = input.required<Section>();
@@ -84,7 +84,7 @@ export class SeccionAlumnos implements OnInit {
   openMatricular() {
     const pid = this.periodoId();
     if (!pid) {
-      this.snack.open('No hay un periodo activo. Activa uno primero.', 'Cerrar', { duration: 4000 });
+      this.toastr.error('No hay un periodo activo. Activa uno primero.', 'Error');
       return;
     }
 
@@ -122,9 +122,9 @@ export class SeccionAlumnos implements OnInit {
       this.api.delete(`courses/enroll/${alumno.id}`).subscribe({
         next: () => {
           this.alumnos.update(list => list.filter(a => a.id !== alumno.id));
-          this.snack.open(`${alumno.nombre} ${alumno.apellido_paterno} retirado`, 'OK', { duration: 3000 });
+          this.toastr.success(`${alumno.nombre} ${alumno.apellido_paterno} retirado`, 'Éxito');
         },
-        error: () => this.snack.open('Error al retirar alumno', 'Cerrar', { duration: 3000 }),
+        error: () => this.toastr.error('Error al retirar alumno', 'Error'),
       });
     });
   }

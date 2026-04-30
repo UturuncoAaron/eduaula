@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../core/services/api';
 import { Submission } from '../../../../core/models/task';
 import { GradeBadge } from '../../../../shared/components/grade-badge/grade-badge';
@@ -19,7 +19,7 @@ import { SlicePipe } from '@angular/common';
   standalone: true,
   imports: [
     FormsModule, MatCardModule, MatButtonModule, MatFormFieldModule,
-    MatInputModule, MatIconModule, MatSnackBarModule, SlicePipe,
+    MatInputModule, MatIconModule, SlicePipe,
     GradeBadge, PageHeader, EmptyState,
   ],
   templateUrl: './task-grade.html',
@@ -28,7 +28,7 @@ import { SlicePipe } from '@angular/common';
 export class TaskGrade implements OnInit {
   private route = inject(ActivatedRoute);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   taskId = this.route.snapshot.paramMap.get('id')!;
   submissions = signal<Submission[]>([]);
@@ -52,8 +52,8 @@ export class TaskGrade implements OnInit {
       calificacion_manual: sub.calificacion_manual,
       comentario_docente: sub.comentario_docente,
     }).subscribe({
-      next: () => this.snack.open('Nota guardada', 'OK', { duration: 2000 }),
-      error: () => this.snack.open('Error al guardar', 'OK', { duration: 2000 }),
+      next: () => this.toastr.success('Nota guardada', 'Éxito'),
+      error: () => this.toastr.success('Error al guardar', 'Éxito'),
     });
   }
 }

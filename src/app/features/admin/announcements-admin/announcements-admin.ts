@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
@@ -32,8 +32,7 @@ interface Announcement {
     ReactiveFormsModule, DatePipe,
     MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatChipsModule,
-    MatDialogModule, MatSnackBarModule,
-    PageHeader, EmptyState, LoadingSkeleton,
+    MatDialogModule, PageHeader, EmptyState, LoadingSkeleton,
   ],
   templateUrl: './announcements-admin.html',
   styleUrl: './announcements-admin.scss',
@@ -42,7 +41,7 @@ export class AnnouncementsAdmin implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   list = signal<Announcement[]>([]);
   loading = signal(true);
@@ -69,13 +68,13 @@ export class AnnouncementsAdmin implements OnInit {
     this.saving.set(true);
     this.api.post<Announcement>('announcements', this.form.value).subscribe({
       next: () => {
-        this.snack.open('Comunicado publicado', 'OK', { duration: 2500 });
+        this.toastr.success('Comunicado publicado', 'Éxito');
         this.form.reset({ titulo: '', contenido: '', destinatario: 'todos' });
         this.saving.set(false);
         this.cargar();
       },
       error: () => {
-        this.snack.open('No se pudo publicar el comunicado', 'OK', { duration: 3000 });
+        this.toastr.error('No se pudo publicar el comunicado', 'Error');
         this.saving.set(false);
       },
     });
@@ -89,10 +88,10 @@ export class AnnouncementsAdmin implements OnInit {
       if (!ok) return;
       this.api.delete(`announcements/${a.id}`).subscribe({
         next: () => {
-          this.snack.open('Comunicado eliminado', 'OK', { duration: 2500 });
+          this.toastr.success('Comunicado eliminado', 'Éxito');
           this.cargar();
         },
-        error: () => this.snack.open('Error al eliminar', 'OK', { duration: 3000 }),
+        error: () => this.toastr.error('Error al eliminar', 'Error'),
       });
     });
   }

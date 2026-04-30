@@ -13,15 +13,51 @@
     <nav class="sidebar-nav">
         <div class="nav-section-title" [class.hidden]="collapsed()">Menú Principal</div>
 
-        @for (item of visibleItems(); track item.route) {
-        <a [routerLink]="[item.route]" routerLinkActive="active" class="nav-item" matRipple
-            [matTooltip]="collapsed() ? item.label : ''" matTooltipPosition="right">
+        @for (item of visibleItems(); track item.label) {
 
-            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-            <span class="nav-label">{{ item.label }}</span>
-        </a>
+            <!-- ═══ GRUPO ACORDEÓN ═══ -->
+            @if (item.children && item.children.length) {
+                <div class="nav-group" [class.group-active]="isGroupActive(item)">
+
+                    <button type="button" class="nav-item group-toggle" matRipple
+                        (click)="toggleGroup(item.label)"
+                        [matTooltip]="collapsed() ? item.label : ''"
+                        matTooltipPosition="right">
+                        <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                        <span class="nav-label">{{ item.label }}</span>
+                        <mat-icon class="chevron" [class.rotated]="isExpanded(item.label)">
+                            expand_more
+                        </mat-icon>
+                    </button>
+
+                    @if (isExpanded(item.label) && !collapsed()) {
+                        <div class="nav-children">
+                            @for (child of item.children; track child.label) {
+                                <a [routerLink]="child.route"
+                                   class="nav-item child-item"
+                                   [class.active]="isItemActive(child)"
+                                   matRipple>
+                                    <mat-icon class="nav-icon child-icon">{{ child.icon }}</mat-icon>
+                                    <span class="nav-label">{{ child.label }}</span>
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+
+            <!-- ═══ ITEM SIMPLE ═══ -->
+            } @else if (item.route) {
+                <a [routerLink]="item.route"
+                   class="nav-item"
+                   [class.active]="isItemActive(item)"
+                   matRipple
+                   [matTooltip]="collapsed() ? item.label : ''"
+                   matTooltipPosition="right">
+                    <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                    <span class="nav-label">{{ item.label }}</span>
+                </a>
+            }
         }
     </nav>
 
- 
 </aside>

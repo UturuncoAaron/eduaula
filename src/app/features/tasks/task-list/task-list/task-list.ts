@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { AuthService } from '../../../../core/auth/auth';
 import { ApiService } from '../../../../core/services/api';
 import { Course } from '../../../../core/models/course';
@@ -30,7 +30,7 @@ import { MySubmissionView } from '../../my-submission-view/my-submission-view';
   selector: 'app-task-list',
   imports: [
     MatCardModule, MatIconModule, MatButtonModule, MatChipsModule,
-    MatSnackBarModule, DatePipe, RouterLink,
+    DatePipe, RouterLink,
     PageHeader, EmptyState, LoadingSkeleton,
   ],
   templateUrl: './task-list.html',
@@ -41,7 +41,7 @@ export class TaskList implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private taskSvc = inject(TaskService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   tasks = signal<Task[]>([]);
   submissionByTask = signal<Record<string, Submission>>({});
@@ -119,9 +119,9 @@ export class TaskList implements OnInit {
         this.tasks.update(list =>
           list.map(x => x.id === t.id ? { ...x, activo: r.data.activo } : x),
         );
-        this.snack.open(r.data.activo ? 'Tarea publicada' : 'Tarea oculta', 'OK', { duration: 2000 });
+        this.toastr.success(r.data.activo ? 'Tarea publicada' : 'Tarea oculta', 'Éxito');
       },
-      error: () => this.snack.open('No se pudo actualizar la tarea', 'OK', { duration: 2500 }),
+      error: () => this.toastr.success('No se pudo actualizar la tarea', 'Éxito'),
     });
   }
 

@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { TaskService } from '../../stores/task';
 import { Task, tipoEntregaTarea } from '../../../../core/models/task';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
@@ -19,7 +19,7 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCardModule,
-    MatProgressSpinnerModule, MatSnackBarModule, RouterLink, PageHeader, DatePipe,
+    MatProgressSpinnerModule, RouterLink, PageHeader, DatePipe,
   ],
   templateUrl: './task-submit.html',
   styleUrl: './task-submit.scss',
@@ -29,7 +29,7 @@ export class TaskSubmit implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private taskSvc = inject(TaskService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private sanitizer = inject(DomSanitizer);
 
   taskId = this.route.snapshot.paramMap.get('id')!;
@@ -71,7 +71,7 @@ export class TaskSubmit implements OnInit {
         }
       },
       error: () => {
-        this.snack.open('No se pudo cargar la tarea', 'OK', { duration: 3000 });
+        this.toastr.success('No se pudo cargar la tarea', 'Éxito');
         this.loading.set(false);
         this.router.navigate(['/tareas']);
       },
@@ -94,7 +94,7 @@ export class TaskSubmit implements OnInit {
     const file = this.selectedFile();
 
     if (!texto && !file) {
-      this.snack.open('Debes escribir una respuesta o adjuntar un archivo', 'OK', { duration: 3000 });
+      this.toastr.success('Debes escribir una respuesta o adjuntar un archivo', 'Éxito');
       return;
     }
 
@@ -113,7 +113,7 @@ export class TaskSubmit implements OnInit {
           }
         },
         error: () => {
-          this.snack.open('Error al subir el archivo', 'OK', { duration: 3000 });
+          this.toastr.success('Error al subir el archivo', 'Éxito');
           this.sending.set(false);
         },
       });
@@ -123,14 +123,14 @@ export class TaskSubmit implements OnInit {
     this.taskSvc.submitText(this.taskId, texto).subscribe({
       next: () => this.finishSuccess(),
       error: () => {
-        this.snack.open('Error al entregar la tarea', 'OK', { duration: 3000 });
+        this.toastr.success('Error al entregar la tarea', 'Éxito');
         this.sending.set(false);
       },
     });
   }
 
   private finishSuccess() {
-    this.snack.open('Tarea entregada correctamente', 'OK', { duration: 3000 });
+    this.toastr.success('Tarea entregada correctamente', 'Éxito');
     this.router.navigate(['/tareas']);
   }
 }

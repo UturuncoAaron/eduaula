@@ -5,9 +5,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ApiService } from '../../../core/services/api';
 import { ToastService } from 'ngx-toastr-notifier';
+import { ApiService } from '../../../core/services/api';
 
 export interface ResetPasswordDialogData {
   id: string;
@@ -24,7 +23,7 @@ export interface ResetPasswordDialogData {
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule,
+
   ],
   templateUrl: './reset-password-dialog.html',
   styleUrl: './reset-password-dialog.scss',
@@ -33,7 +32,6 @@ export class ResetPasswordDialog {
   readonly data: ResetPasswordDialogData = inject(MAT_DIALOG_DATA);
   private ref = inject(MatDialogRef<ResetPasswordDialog>);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
   private toastr = inject(ToastService);
   
 
@@ -61,11 +59,11 @@ export class ResetPasswordDialog {
       password: this.passwordCtrl.value,
     }).subscribe({
       next: () => {
-        this.toastr.success('Contraseña actualizada correctamente', 'Cerrar');
+        this.toastr.success('Cambios guardados correctamente', 'Éxito');
         this.ref.close(true);
       },
       error: (err) => {
-        this.toastr.error('Error al actualizar la contraseña');
+        this.toastr.error('Ocurrió un error, intenta nuevamente', 'Error');
         this.loading.set(false);
       },
     });

@@ -6,7 +6,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../stores/task';
 import { Pregunta, Task } from '../../../core/models/task';
@@ -17,7 +17,7 @@ import { PageHeader } from '../../../shared/components/page-header/page-header';
   imports: [
     MatCardModule, MatButtonModule, MatRadioModule,
     MatProgressBarModule, MatIconModule, MatProgressSpinnerModule,
-    MatSnackBarModule, FormsModule, PageHeader,
+    FormsModule, PageHeader,
   ],
   templateUrl: './task-take.html',
   styleUrl: './task-take.scss',
@@ -27,7 +27,7 @@ export class TaskTake implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private taskSvc = inject(TaskService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   taskId = this.route.snapshot.paramMap.get('id')!;
 
@@ -51,7 +51,7 @@ export class TaskTake implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.snack.open('No se pudo cargar la tarea', 'OK', { duration: 3000 });
+        this.toastr.success('No se pudo cargar la tarea', 'Éxito');
         this.loading.set(false);
         this.router.navigate(['/tareas']);
       },
@@ -66,7 +66,7 @@ export class TaskTake implements OnInit {
     const q = this.questions().length;
     const a = Object.keys(this.answers()).length;
     if (a < q) {
-      this.snack.open(`Faltan ${q - a} preguntas por responder`, 'OK', { duration: 3000 });
+      this.toastr.success(`Faltan ${q - a} preguntas por responder`, 'Éxito');
       return;
     }
     this.submitting.set(true);
@@ -77,11 +77,11 @@ export class TaskTake implements OnInit {
       next: r => {
         const data: any = r.data;
         const score = data?.calificacion_auto ?? data?.submission?.calificacion_auto ?? 'â€”';
-        this.snack.open(`Tarea enviada. Puntaje: ${score}`, 'OK', { duration: 4000 });
+        this.toastr.success(`Tarea enviada. Puntaje: ${score}`, 'Éxito');
         this.router.navigate(['/tareas']);
       },
       error: () => {
-        this.snack.open('Error al enviar la tarea', 'OK', { duration: 3000 });
+        this.toastr.success('Error al enviar la tarea', 'Éxito');
         this.submitting.set(false);
       },
     });

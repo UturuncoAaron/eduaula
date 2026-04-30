@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../core/services/api';
 import { ForumPost, ForumThread as ForumThreadData } from '../../../../core/models/forum';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
@@ -18,8 +18,7 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
   imports: [
     ReactiveFormsModule, MatCardModule, MatButtonModule,
     MatFormFieldModule, MatInputModule, MatIconModule,
-    MatProgressSpinnerModule, MatSnackBarModule,
-    DatePipe, PageHeader,
+    MatProgressSpinnerModule, DatePipe, PageHeader,
   ],
   templateUrl: './forum-thread.html',
   styleUrl: './forum-thread.scss',
@@ -27,7 +26,7 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 export class ForumThread implements OnInit {
   private route = inject(ActivatedRoute);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private fb = inject(FormBuilder);
 
   forumId = this.route.snapshot.paramMap.get('id')!;
@@ -66,13 +65,13 @@ export class ForumThread implements OnInit {
       this.form.value
     ).subscribe({
       next: () => {
-        this.snack.open('Respuesta publicada', 'OK', { duration: 2000 });
+        this.toastr.success('Respuesta publicada', 'Éxito');
         this.form.reset();
         this.sending.set(false);
         this.loadPosts();
       },
       error: () => {
-        this.snack.open('Error al publicar', 'OK', { duration: 2000 });
+        this.toastr.success('Error al publicar', 'Éxito');
         this.sending.set(false);
       },
     });
