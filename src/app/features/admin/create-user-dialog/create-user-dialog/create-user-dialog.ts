@@ -11,6 +11,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../../../core/services/api';
 import { UserRole } from '../../../../shared/components/sidebar/navigation.config';
+import { ToastService } from 'ngx-toastr-notifier';
+
 
 export interface CreateUserDialogData {
   rol: UserRole;
@@ -42,10 +44,13 @@ const ROLE_META: Record<UserRole, RoleMeta> = {
   styleUrl: './create-user-dialog.scss',
 })
 export class CreateUserDialog {
+
+
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private snack = inject(MatSnackBar);
   private dialogRef = inject(MatDialogRef<CreateUserDialog>);
+  private toastr = inject(ToastService);
 
   /** Rol recibido desde el tab activo */
   data: CreateUserDialogData = inject(MAT_DIALOG_DATA);
@@ -131,9 +136,7 @@ export class CreateUserDialog {
 
     this.api.post(endpoint, payload).subscribe({
       next: () => {
-        this.snack.open('Usuario creado exitosamente', 'Cerrar', {
-          duration: 3000,
-          panelClass: 'success-snackbar',
+        this.toastr.success('Usuario creado exitosamente', 'Cerrar', {
         });
         this.dialogRef.close(true); // true = se creó algo, recargar
         this.creating.set(false);
@@ -142,7 +145,7 @@ export class CreateUserDialog {
         const msg = Array.isArray(err?.error?.message)
           ? err.error.message.join(', ')
           : (err?.error?.message ?? 'Error al crear usuario');
-        this.snack.open(msg, 'Cerrar', { duration: 5000 });
+        this.toastr.error(msg);
         this.creating.set(false);
       },
     });

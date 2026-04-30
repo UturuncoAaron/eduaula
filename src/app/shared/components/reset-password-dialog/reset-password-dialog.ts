@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../../core/services/api';
+import { ToastService } from 'ngx-toastr-notifier';
 
 export interface ResetPasswordDialogData {
   id: string;
@@ -33,6 +34,8 @@ export class ResetPasswordDialog {
   private ref = inject(MatDialogRef<ResetPasswordDialog>);
   private api = inject(ApiService);
   private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
+  
 
   show = signal(false);
   loading = signal(false);
@@ -58,18 +61,11 @@ export class ResetPasswordDialog {
       password: this.passwordCtrl.value,
     }).subscribe({
       next: () => {
-        this.snack.open('Contraseña actualizada correctamente', 'Cerrar', {
-          duration: 3000,
-          panelClass: 'success-snackbar',
-        });
+        this.toastr.success('Contraseña actualizada correctamente', 'Cerrar');
         this.ref.close(true);
       },
       error: (err) => {
-        this.snack.open(
-          err?.error?.message ?? 'Error al actualizar la contraseña',
-          'Cerrar',
-          { duration: 4000 },
-        );
+        this.toastr.error('Error al actualizar la contraseña');
         this.loading.set(false);
       },
     });
