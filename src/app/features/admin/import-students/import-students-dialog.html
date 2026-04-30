@@ -1,0 +1,147 @@
+<div class="dialog-header">
+    <div class="dialog-title-row">
+        <div class="dialog-icon">
+            <mat-icon>upload_file</mat-icon>
+        </div>
+        <div>
+            <h2 class="dialog-title">Carga masiva de alumnos</h2>
+            <p class="dialog-subtitle">Importa alumnos desde un archivo CSV y matrícúlalos automáticamente</p>
+        </div>
+    </div>
+    <button mat-icon-button (click)="cerrar()" matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+
+<div class="dialog-body">
+
+    <!-- Descargar plantilla -->
+    <div class="template-banner">
+        <mat-icon>info_outline</mat-icon>
+        <span>Usa la plantilla oficial para evitar errores de formato.</span>
+        <button mat-stroked-button (click)="descargarPlantilla()">
+            <mat-icon>download</mat-icon> Descargar plantilla CSV
+        </button>
+    </div>
+
+    <form [formGroup]="form" novalidate>
+
+        <!-- Sección y Periodo -->
+        <div class="form-row">
+            <mat-form-field appearance="outline" class="field">
+                <mat-label>Sección destino</mat-label>
+                <mat-select formControlName="seccion_id">
+                    @for (s of secciones(); track s.id) {
+                    <mat-option [value]="s.id">
+                        {{ s.grado?.nombre ?? '' }} — Sección {{ s.nombre }}
+                    </mat-option>
+                    }
+                </mat-select>
+                @if (form.get('seccion_id')?.errors?.['required'] && form.get('seccion_id')?.touched) {
+                <mat-error>Selecciona una sección</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field">
+                <mat-label>Periodo</mat-label>
+                <mat-select formControlName="periodo_id">
+                    @for (p of periodos(); track p.id) {
+                    <mat-option [value]="p.id">
+                        {{ p.nombre }}{{ p.activo ? ' · activo' : '' }}
+                    </mat-option>
+                    }
+                </mat-select>
+                @if (form.get('periodo_id')?.errors?.['required'] && form.get('periodo_id')?.touched) {
+                <mat-error>Selecciona un periodo</mat-error>
+                }
+            </mat-form-field>
+        </div>
+
+        <!-- Selector de archivo -->
+        <input type="file" id="csvFileDialog" accept=".csv" (change)="pickFile($event)" hidden />
+        <label for="csvFileDialog" class="file-drop" [class.has-file]="archivo()">
+            <mat-icon>{{ archivo() ? 'check_circle' : 'upload_file' }}</mat-icon>
+            <span class="file-label">
+                {{ archivo()?.name ?? 'Seleccionar archivo CSV' }}
+            </span>
+            @if (archivo()) {
+            <span class="file-size">{{ (archivo()!.size / 1024).toFixed(1) }} KB</span>
+            } @else {
+            <span class="file-hint">Haz clic para explorar</span>
+            }
+        </label>
+
+        @if (uploading()) {
+        <div class="uploading-row">
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            <span class="uploading-label">Procesando archivo...</span>
+        </div>
+        }
+
+    </form>
+
+    <!-- Resultado -->
+    @if (resultado(); as r) {
+    <div class="result-panel">
+        <div class="result-header">
+            <mat-icon class="result-icon">check_circle</mat-icon>
+            <span>Importación completada</span>
+        </div>
+        <div class="result-counters">
+            <div class="counter">
+                <span class="counter-val">{{ r.total }}</span>
+                <span class="counter-lbl">total</span>
+            </div>
+            <div class="counter ok">
+                <span class="counter-val">{{ r.creados }}</span>
+                <span class="counter-lbl">creados</span>
+            </div>
+            <div class="counter ok">
+                <span class="counter-val">{{ r.matriculados }}</span>
+                <span class="counter-lbl">matriculados</span>
+            </div>
+            <div class="counter warn">
+                <span class="counter-val">{{ r.omitidos }}</span>
+                <span class="counter-lbl">omitidos</span>
+            </div>
+            @if (r.errores.length) {
+            <div class="counter danger">
+                <span class="counter-val">{{ r.errores.length }}</span>
+                <span class="counter-lbl">errores</span>
+            </div>
+            }
+        </div>
+
+        @if (r.errores.length) {
+        <div class="error-list">
+            <p class="error-list-title">Filas con error:</p>
+            @for (e of r.errores; track e.fila) {
+            <div class="error-row">
+                <span class="error-fila">Fila {{ e.fila }}</span>
+                <span class="error-doc">{{ e.numero_documento }}</span>
+                <span class="error-motivo">{{ e.motivo }}</span>
+            </div>
+            }
+        </div>
+        }
+    </div>
+    }
+
+</div>
+
+<!-- Footer -->
+<div class="dialog-footer">
+    <button mat-stroked-button (click)="cerrar()">
+        {{ resultado() ? 'Cerrar' : 'Cancelar' }}
+    </button>
+    <button mat-flat-button color="primary" (click)="importar()" [disabled]="uploading() || !archivo()">
+        @if (uploading()) {
+        <span>Importando...</span>
+        } @else {
+        <ng-container>
+            <mat-icon>cloud_upload</mat-icon>
+            <span>Iniciar importación</span>
+        </ng-container>
+        }
+    </button>
+</div>

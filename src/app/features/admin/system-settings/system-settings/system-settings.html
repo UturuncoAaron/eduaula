@@ -1,0 +1,70 @@
+<div class="settings-page">
+
+    <!-- ─── Header ──────────────────────────────────────────────── -->
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Ajustes del sistema</h2>
+            <p class="page-subtitle">Parámetros generales del colegio</p>
+        </div>
+    </div>
+
+    @if (loading()) {
+    <div class="loading-state">
+        <mat-spinner diameter="36"></mat-spinner>
+        <p>Cargando configuración...</p>
+    </div>
+
+    } @else {
+    <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+
+        <div class="settings-card">
+
+            <div class="card-section-title">Información del colegio</div>
+
+            <div class="fields-grid">
+                @for (item of items(); track item.clave) {
+                <div class="field-row">
+                    <div class="field-meta">
+                        <mat-icon class="field-icon">{{ item.icon }}</mat-icon>
+                        <div>
+                            <span class="field-label">{{ item.label }}</span>
+                            @if (item.descripcion) {
+                            <span class="field-desc">{{ item.descripcion }}</span>
+                            }
+                        </div>
+                    </div>
+                    <mat-form-field appearance="outline" class="field-input">
+                        <input matInput [formControlName]="item.clave"
+                            [type]="item.tipo === 'number' ? 'number' : 'text'"
+                            [min]="item.tipo === 'number' ? 1 : null" [placeholder]="item.label" />
+                        @if (form.get(item.clave)?.errors?.['required']) {
+                        <mat-error>Este campo es requerido</mat-error>
+                        }
+                        @if (form.get(item.clave)?.errors?.['min']) {
+                        <mat-error>El valor mínimo es 1</mat-error>
+                        }
+                    </mat-form-field>
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- ─── Acciones ─────────────────────────────────────────── -->
+        <div class="form-actions">
+            <button mat-stroked-button type="button" (click)="resetear()" [disabled]="!hayDirty || saving()">
+                <mat-icon>restart_alt</mat-icon> Descartar cambios
+            </button>
+            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || !hayDirty || saving()">
+                @if (saving()) {
+                <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                } @else {
+                <mat-icon>save</mat-icon>
+                }
+                Guardar cambios
+            </button>
+        </div>
+
+    </form>
+    }
+
+</div>

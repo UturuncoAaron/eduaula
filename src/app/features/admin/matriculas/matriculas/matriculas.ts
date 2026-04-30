@@ -1,0 +1,234 @@
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, forkJoin } from 'rxjs';
+import { DatePipe } from '@angular/common';
+
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatDialog } from '@angular/material/dialog';
+import { ToastService } from 'ngx-toastr-notifier';
+
+import { ApiService } from '../../../../core/services/api';
+import type { GradeLevel, Section, Period } from '../../../../core/models/academic';
+
+export interface MatriculaRow {
+  id: string;
+  alumno_id: string;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string | null;
+  codigo_estudiante: string;
+  seccion_id: number;
+  seccion_nombre: string;
+  grado_nombre: string;
+  grado_id: number;
+  periodo_id: number;
+  activo: boolean;
+  fecha_matricula: string;
+}
+
+@Component({
+  selector: 'app-matriculas',
+  standalone: true,
+  imports: [
+    ReactiveFormsModule, DatePipe,
+    MatButtonModule, MatIconModule, MatSelectModule,
+    MatFormFieldModule, MatTooltipModule,
+    MatProgressSpinnerModule, MatPaginatorModule,
+  ],
+  templateUrl: './matriculas.html',
+  styleUrl: './matriculas.scss',
+})
+export class Matriculas implements OnInit {
+  private api = inject(ApiService);
+  private toastr = inject(ToastService);
+  private dialog = inject(MatDialog);
+
+  // ── Filtros ───────────────────────────────────────────────────
+  grados = signal<GradeLevel[]>([]);
+  secciones = signal<Section[]>([]);
+  periodos = signal<Period[]>([]);
+
+  gradoFiltro = new FormControl<number | null>(null);
+  seccionFiltro = new FormControl<number | null>(null);
+  periodoFiltro = new FormControl<number | null>(null);
+  busqueda = new FormControl('');
+
+  // ── Datos ─────────────────────────────────────────────────────
+  matriculas = signal<MatriculaRow[]>([]);
+  loading = signal(false);
+  loadingFiltros = signal(true);
+
+  // ── Paginación ────────────────────────────────────────────────
+  page = signal(0);
+  pageSize = signal(15);
+
+  // ── Computed ──────────────────────────────────────────────────
+  seccionesFiltradas = computed(() => {
+    const gId = this.gradoFiltro.value;
+    return gId ? this.secciones().filter(s => s.grado_id === gId) : this.secciones();
+  });
+
+  periodoActivo = computed(() => this.periodos().find(p => p.activo) ?? null);
+
+  matriculasFiltradas = computed(() => {
+    const q = this.busqueda.value?.toLowerCase().trim() ?? '';
+    if (!q) return this.matriculas();
+    return this.matriculas().filter(m =>
+      m.nombre.toLowerCase().includes(q) ||
+      m.apellido_paterno.toLowerCase().includes(q) ||
+      m.codigo_estudiante.toLowerCase().includes(q),
+    );
+  });
+
+  matriculasPaginadas = computed(() => {
+    const start = this.page() * this.pageSize();
+    return this.matriculasFiltradas().slice(start, start + this.pageSize());
+  });
+
+  totalActivas = computed(() => this.matriculas().filter(m => m.activo).length);
+  totalInactivas = computed(() => this.matriculas().filter(m => !m.activo).length);
+
+  // ── Init ──────────────────────────────────────────────────────
+  ngOnInit(): void {
+    forkJoin({
+      grados: this.api.get<GradeLevel[]>('academic/grados'),
+      secciones: this.api.get<Section[]>('academic/secciones'),
+      periodos: this.api.get<Period[]>('academic/periodos'),
+    }).subscribe({
+      next: ({ grados, secciones, periodos }) => {
+        this.grados.set((grados as any).data ?? []);
+        this.secciones.set((secciones as any).data ?? []);
+        this.periodos.set((periodos as any).data ?? []);
+
+        const activo = ((periodos as any).data as Period[]).find(p => p.activo);
+        if (activo) this.periodoFiltro.setValue(activo.id);
+
+        this.loadingFiltros.set(false);
+        this.cargarMatriculas();
+      },
+      error: () => this.loadingFiltros.set(false),
+    });
+
+    this.busqueda.valueChanges.pipe(
+      debounceTime(200), distinctUntilChanged(),
+    ).subscribe(() => this.page.set(0));
+
+    this.gradoFiltro.valueChanges.subscribe(() => {
+      this.seccionFiltro.setValue(null);
+    });
+  }
+
+  // ── Carga ─────────────────────────────────────────────────────
+  cargarMatriculas(): void {
+    const params = new URLSearchParams();
+    const pid = this.periodoFiltro.value;
+    const sid = this.seccionFiltro.value;
+    if (pid) params.set('periodo_id', String(pid));
+    if (sid) params.set('seccion_id', String(sid));
+
+    const query = params.toString();
+    this.loading.set(true);
+    this.page.set(0);
+
+    this.api.get<MatriculaRow[]>(`academic/matriculas${query ? '?' + query : ''}`).subscribe({
+      next: r => { this.matriculas.set((r as any).data ?? []); this.loading.set(false); },
+      error: () => { this.loading.set(false); this.toastr.error('Error al cargar matrículas', 'Error'); },
+    });
+  }
+
+  aplicarFiltros(): void { this.cargarMatriculas(); }
+
+  limpiarFiltros(): void {
+    this.gradoFiltro.setValue(null);
+    this.seccionFiltro.setValue(null);
+    this.periodoFiltro.setValue(this.periodoActivo()?.id ?? null);
+    this.busqueda.setValue('');
+    this.cargarMatriculas();
+  }
+
+  // ── Acciones ──────────────────────────────────────────────────
+  async matricularAlumno(): Promise<void> {
+    const pid = this.periodoFiltro.value ?? this.periodoActivo()?.id;
+    if (!pid) { this.toastr.error('Selecciona un periodo primero', 'Error'); return; }
+
+    const { EnrollAlumnoDialog } = await import(
+      '../../../../shared/components/enroll-alumno-dialog/enroll-alumno-dialog'
+    );
+    const ref = this.dialog.open(EnrollAlumnoDialog, {
+      width: '500px',
+      data: {
+        periodoId: pid,
+        seccionId: this.seccionFiltro.value ?? null,
+        alumnosMatriculadosIds: this.matriculas().map(m => m.alumno_id),
+      },
+    });
+    ref.afterClosed().subscribe((enrolled: any) => { if (enrolled) this.cargarMatriculas(); });
+  }
+
+  async abrirCargaMasiva(): Promise<void> {
+    const { ImportStudentsDialog } = await import(
+      '../../import-students/import-students-dialog'
+    );
+    const ref = this.dialog.open(ImportStudentsDialog, {
+      width: '580px',
+      maxHeight: '90vh',
+      disableClose: false,
+    });
+    ref.afterClosed().subscribe((huboImportacion: boolean) => {
+      if (huboImportacion) this.cargarMatriculas();
+    });
+  }
+
+  async retirarAlumno(m: MatriculaRow): Promise<void> {
+    const { ConfirmDialog } = await import(
+      '../../../../shared/components/confirm-dialog/confirm-dialog'
+    );
+    const ref = this.dialog.open(ConfirmDialog, {
+      width: '400px',
+      data: {
+        title: '¿Retirar alumno?',
+        message: `Se retirará a ${m.nombre} ${m.apellido_paterno} de ${m.grado_nombre} — Sección ${m.seccion_nombre}.`,
+        confirm: 'Retirar',
+        cancel: 'Cancelar',
+        danger: true,
+      },
+    });
+    ref.afterClosed().subscribe((ok: boolean) => {
+      if (!ok) return;
+      this.api.delete(`courses/enroll/${m.id}`).subscribe({
+        next: () => {
+          this.matriculas.update(list =>
+            list.map(x => x.id === m.id ? { ...x, activo: false } : x),
+          );
+          this.toastr.success('Alumno retirado correctamente', 'Éxito');
+        },
+        error: () => this.toastr.error('Error al retirar alumno', 'Error'),
+      });
+    });
+  }
+
+  // ── Paginación ────────────────────────────────────────────────
+  onPageChange(e: PageEvent): void {
+    this.page.set(e.pageIndex);
+    this.pageSize.set(e.pageSize);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────
+  getInitials(nombre: string, apellido: string): string {
+    return `${nombre[0] ?? ''}${apellido[0] ?? ''}`.toUpperCase();
+  }
+
+  getPeriodoNombre(id: number): string {
+    return this.periodos().find(p => p.id === id)?.nombre ?? '—';
+  }
+
+  hayFiltrosActivos(): boolean {
+    return !!(this.gradoFiltro.value || this.seccionFiltro.value);
+  }
+}

@@ -3,6 +3,8 @@ import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
 
 export const routes: Routes = [
+
+    // ─── Auth ─────────────────────────────────────────────────────────────────
     {
         path: 'auth',
         loadComponent: () =>
@@ -16,11 +18,15 @@ export const routes: Routes = [
             { path: '', redirectTo: 'login', pathMatch: 'full' },
         ],
     },
+
+    // ─── App principal (requiere sesión) ──────────────────────────────────────
     {
         path: '',
+        canActivate: [authGuard],
         loadComponent: () =>
             import('./layouts/main-layout/main-layout').then(c => c.MainLayout),
         children: [
+
             {
                 path: 'dashboard',
                 loadChildren: () =>
@@ -31,11 +37,7 @@ export const routes: Routes = [
                 loadChildren: () =>
                     import('./features/courses/courses.routes').then(r => r.COURSES_ROUTES),
             },
-            {
-                path: 'examenes',
-                loadChildren: () =>
-                    import('./features/exams/exams.routes').then(r => r.EXAMS_ROUTES),
-            },
+            // Tareas unifica el antiguo módulo de exámenes
             {
                 path: 'tareas',
                 loadChildren: () =>
@@ -57,16 +59,16 @@ export const routes: Routes = [
                     import('./features/live-classes/live-classes.routes').then(r => r.LIVE_CLASSES_ROUTES),
             },
             {
+                path: 'mis-libretas',
+                canActivate: [roleGuard(['alumno', 'padre'])],
+                loadChildren: () =>
+                    import('./features/notebooks/notebooks.routes').then(r => r.NOTEBOOKS_ROUTES),
+            },
+            {
                 path: 'portal-padres',
                 canActivate: [roleGuard(['padre'])],
                 loadChildren: () =>
                     import('./features/parent-portal/parent.routes').then(r => r.PARENT_ROUTES),
-            },
-            {
-                path: 'admin',
-                canActivate: [roleGuard(['admin'])],
-                loadChildren: () =>
-                    import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
             },
             {
                 path: 'mi-tutoria',
@@ -74,9 +76,16 @@ export const routes: Routes = [
                 loadChildren: () =>
                     import('./features/notebooks/notebooks.routes').then(r => r.NOTEBOOKS_ROUTES),
             },
+            {
+                path: 'admin',
+                canActivate: [roleGuard(['admin'])],
+                loadChildren: () =>
+                    import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
+            },
 
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
         ],
     },
+
     { path: '**', redirectTo: 'auth/login' },
 ];

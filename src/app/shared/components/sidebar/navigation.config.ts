@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// navigation.config.ts — Configuración dinámica del sidebar
-// Solo incluye módulos terminados y funcionales
+// navigation.config.ts
 // ═══════════════════════════════════════════════════════════════
 
 export type UserRole = 'alumno' | 'docente' | 'admin' | 'padre';
@@ -12,11 +11,13 @@ export interface NavItem {
   roles: UserRole[];
   requiresTutor?: boolean;
   children?: NavItem[];
-  exactMatch?: boolean;       // true = la ruta debe coincidir exactamente
+  exactMatch?: boolean;
+  dividerBefore?: boolean;
 }
 
-// ─── Items de navegación ───────────────────────────────────────
 export const NAV_ITEMS: NavItem[] = [
+
+  // ─── Común ────────────────────────────────────────────────────────────────
   {
     label: 'Dashboard',
     icon: 'dashboard',
@@ -24,16 +25,12 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['alumno', 'docente', 'admin', 'padre'],
     exactMatch: true,
   },
+
+  // ─── Alumno y Docente ──────────────────────────────────────────────────────
   {
     label: 'Mis cursos',
     icon: 'menu_book',
     route: '/cursos',
-    roles: ['alumno', 'docente'],
-  },
-  {
-    label: 'Exámenes',
-    icon: 'assignment',
-    route: '/examenes',
     roles: ['alumno', 'docente'],
   },
   {
@@ -60,6 +57,8 @@ export const NAV_ITEMS: NavItem[] = [
     route: '/clases-vivo',
     roles: ['alumno', 'docente'],
   },
+
+  // ─── Solo Docente ──────────────────────────────────────────────────────────
   {
     label: 'Mi Tutoría',
     icon: 'school',
@@ -67,13 +66,19 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['docente', 'admin'],
     requiresTutor: true,
     exactMatch: true,
+    dividerBefore: true,
   },
+
+  // ─── Solo Alumno ───────────────────────────────────────────────────────────
   {
     label: 'Mis libretas',
     icon: 'auto_stories',
     route: '/mis-libretas',
-    roles: ['alumno', 'padre'],
+    roles: ['alumno'],
+    dividerBefore: true,
   },
+
+  // ─── Solo Padre ────────────────────────────────────────────────────────────
   {
     label: 'Portal Padres',
     icon: 'family_restroom',
@@ -81,33 +86,96 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['padre'],
   },
 
-  // ═══ SECCIÓN ADMIN ═══════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ADMIN
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  // ─── Académico: solo módulos terminados ──────────────────────
+  // ─── Académico ─────────────────────────────────────────────────────────────
   {
     label: 'Académico',
     icon: 'school',
     roles: ['admin'],
+    dividerBefore: true,
     children: [
-      { label: 'Grados y Cursos', icon: 'class',              route: '/admin/academico',  roles: ['admin'], exactMatch: true },
-      { label: 'Tutores',         icon: 'supervisor_account', route: '/admin/padre-hijo', roles: ['admin'], exactMatch: true },
+      {
+        label: 'Grados y Cursos',
+        icon: 'class',
+        route: '/admin/academico',
+        roles: ['admin'],
+        exactMatch: true,
+      },
+      {
+        label: 'Periodos',
+        icon: 'calendar_month',
+        route: '/admin/periodos',
+        roles: ['admin'],
+        exactMatch: true,
+      },
+      {
+        label: 'Matrículas',
+        icon: 'how_to_reg',
+        route: '/admin/matriculas',
+        roles: ['admin'],
+        exactMatch: true,
+      },
+      {
+        label: 'Vínculo Padre-Hijo',
+        icon: 'family_restroom',
+        route: '/admin/padre-hijo',
+        roles: ['admin'],
+        exactMatch: true,
+      },
     ],
   },
 
-  // ─── Usuarios ────────────────────────────────────────────────
+  // ─── Usuarios ──────────────────────────────────────────────────────────────
   {
     label: 'Usuarios',
     icon: 'manage_accounts',
     roles: ['admin'],
     children: [
-      { label: 'Administración', icon: 'admin_panel_settings', route: '/admin/usuarios/admins',   roles: ['admin'], exactMatch: true },
-      { label: 'Alumnos',        icon: 'person',               route: '/admin/usuarios/alumnos',  roles: ['admin'], exactMatch: true },
-      { label: 'Docentes',       icon: 'badge',                route: '/admin/usuarios/docentes', roles: ['admin'], exactMatch: true },
-      { label: 'Padres',         icon: 'family_restroom',      route: '/admin/usuarios/padres',   roles: ['admin'], exactMatch: true },
+      {
+        label: 'Alumnos',
+        icon: 'person',
+        route: '/admin/usuarios/alumnos',
+        roles: ['admin'],
+        exactMatch: true,
+      },
+      {
+        label: 'Padres',
+        icon: 'family_restroom',
+        route: '/admin/usuarios/padres',
+        roles: ['admin'],
+        exactMatch: true,
+      },
+      {
+        label: 'Docentes',
+        icon: 'badge',
+        route: '/admin/usuarios/docentes',
+        roles: ['admin'],
+        exactMatch: true,
+      },
+      {
+        label: 'Administración',
+        icon: 'admin_panel_settings',
+        route: '/admin/usuarios/admins',
+        roles: ['admin'],
+        exactMatch: true,
+      },
     ],
   },
 
-  // ─── Otros módulos admin ─────────────────────────────────────
+  // ─── Comunicados ──────────────────────────────────────────────────────────
+  {
+    label: 'Comunicados',
+    icon: 'campaign',
+    route: '/admin/comunicados',
+    roles: ['admin'],
+    exactMatch: true,
+    dividerBefore: true,
+  },
+
+  // ─── Reportes ─────────────────────────────────────────────────────────────
   {
     label: 'Reportes',
     icon: 'bar_chart',
@@ -115,18 +183,28 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['admin'],
     exactMatch: true,
   },
+
+  // ─── Configuración ────────────────────────────────────────────────────────
   {
-    label: 'Comunicados',
-    icon: 'campaign',
-    route: '/admin/comunicados',
+    label: 'Configuración',
+    icon: 'settings',
     roles: ['admin'],
-    exactMatch: true,
-  },
-  {
-    label: 'Importar alumnos',
-    icon: 'upload_file',
-    route: '/admin/importar',
-    roles: ['admin'],
-    exactMatch: true,
+    dividerBefore: true,
+    children: [
+      {
+        label: 'Importar alumnos',
+        icon: 'upload_file',
+        route: '/admin/importar',
+        roles: ['admin'],
+        exactMatch: true,
+      },
+      {
+        label: 'Ajustes del sistema',
+        icon: 'tune',
+        route: '/admin/ajustes',
+        roles: ['admin'],
+        exactMatch: true,
+      },
+    ],
   },
 ];

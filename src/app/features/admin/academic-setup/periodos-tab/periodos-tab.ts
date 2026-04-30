@@ -3,10 +3,11 @@ import { DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
-import { ToastService } from 'ngx-toastr-notifier';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
+import { ToastService } from 'ngx-toastr-notifier';
+
 import { ApiService } from '../../../../core/services/api';
 import type { Period } from '../../../../core/models/academic';
 
@@ -14,7 +15,8 @@ import type { Period } from '../../../../core/models/academic';
   selector: 'app-periodos-tab',
   standalone: true,
   imports: [
-    DatePipe, MatButtonModule, MatIconModule, MatTableModule,
+    DatePipe,
+    MatButtonModule, MatIconModule, MatTableModule,
     MatProgressSpinnerModule, MatTooltipModule,
   ],
   templateUrl: './periodos-tab.html',
@@ -28,15 +30,15 @@ export class PeriodosTab implements OnInit {
   periodos = signal<Period[]>([]);
   loading = signal(true);
 
-  cols = ['nombre', 'anio', 'bimestre', 'fechas', 'estado', 'acciones'];
+  cols = ['nombre', 'bimestre', 'fechas', 'estado', 'acciones'];
 
   ngOnInit(): void { this.loadPeriodos(); }
 
   loadPeriodos(): void {
     this.loading.set(true);
     this.api.get<Period[]>('academic/periodos').subscribe({
-      next: r => { this.periodos.set(r.data ?? []); this.loading.set(false); },
-      error: () => { this.loading.set(false); },
+      next: r => { this.periodos.set((r as any).data ?? []); this.loading.set(false); },
+      error: () => { this.loading.set(false); this.toastr.error('Error al cargar periodos', 'Error'); },
     });
   }
 
@@ -45,15 +47,14 @@ export class PeriodosTab implements OnInit {
       '../../../../shared/components/create-periodo-dialog/create-periodo-dialog'
     );
     const ref = this.dialog.open(CreatePeriodoDialog, { width: '520px' });
-
     ref.afterClosed().subscribe(result => {
       if (!result) return;
       this.api.post<Period>('academic/periodos', result).subscribe({
         next: r => {
           this.periodos.update(list =>
-            [...list, r.data].sort((a, b) =>
-              a.anio !== b.anio ? a.anio - b.anio : a.bimestre - b.bimestre
-            )
+            [...list, (r as any).data].sort((a: Period, b: Period) =>
+              a.anio !== b.anio ? a.anio - b.anio : a.bimestre - b.bimestre,
+            ),
           );
           this.toastr.success('Periodo creado correctamente', 'Éxito');
         },
@@ -64,7 +65,6 @@ export class PeriodosTab implements OnInit {
 
   async activarPeriodo(periodo: Period): Promise<void> {
     if (periodo.activo) return;
-
     const { ConfirmDialog } = await import(
       '../../../../shared/components/confirm-dialog/confirm-dialog'
     );
@@ -78,14 +78,11 @@ export class PeriodosTab implements OnInit {
         danger: false,
       },
     });
-
     ref.afterClosed().subscribe((confirmed: boolean) => {
       if (!confirmed) return;
       this.api.patch(`academic/periodos/${periodo.id}/activar`, {}).subscribe({
         next: () => {
-          this.periodos.update(list =>
-            list.map(p => ({ ...p, activo: p.id === periodo.id }))
-          );
+          this.periodos.update(list => list.map(p => ({ ...p, activo: p.id === periodo.id })));
           this.toastr.success(`"${periodo.nombre}" activado correctamente`, 'Éxito');
         },
         error: () => this.toastr.error('Error al activar periodo', 'Error'),

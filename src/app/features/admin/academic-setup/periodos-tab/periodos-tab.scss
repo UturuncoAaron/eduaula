@@ -1,377 +1,213 @@
-// Pega este contenido en grados-tab.scss Y periodos-tab.scss
+.periodos-page {
+    padding-bottom: 32px;
+}
 
-// ── Toolbar ───────────────────────────────────────────────────
-.section-toolbar {
+// ── Page header ───────────────────────────────────────────────
+.page-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
+    gap: 12px;
     flex-wrap: wrap;
-    gap: 8px;
 
-    .section-count {
+    .page-title {
+        margin: 0 0 3px;
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .page-subtitle {
+        margin: 0;
         font-size: 13px;
         color: #757575;
-        font-weight: 500;
     }
 }
 
-.no-periodo-warning {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #e65100;
-    background: #fff3e0;
-    padding: 4px 10px;
-    border-radius: 6px;
-
-    mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-    }
-}
-
-// ── Loading ───────────────────────────────────────────────────
+// ── Loading / Empty ───────────────────────────────────────────
 .loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    padding: 48px 24px;
+    padding: 60px 24px;
     color: #9e9e9e;
 
     p {
         margin: 0;
         font-size: 14px;
     }
-
-    &.small {
-        flex-direction: row;
-        padding: 20px 0;
-        gap: 10px;
-    }
 }
 
-// ── Empty ─────────────────────────────────────────────────────
 .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 40px 24px;
+    gap: 8px;
+    padding: 60px 24px;
     color: #bdbdbd;
     text-align: center;
 
     mat-icon {
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
     }
 
     p {
         margin: 0;
-        font-size: 14px;
-        color: #9e9e9e;
+        font-size: 15px;
+        color: #757575;
         font-weight: 500;
     }
 
     span {
         font-size: 12px;
-    }
-
-    &.small {
-        padding: 20px 0;
-    }
-}
-
-// ── Responsive table wrapper ──────────────────────────────────
-.table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 8px;
-    border: 1px solid #f0f0f0;
-}
-
-// ── Grades grid ───────────────────────────────────────────────
-.grades-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.grade-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    background: #fff;
-    user-select: none;
-
-    &:hover {
-        border-color: #9fa8da;
-        background: #f8f9ff;
-    }
-
-    &.selected {
-        border-color: #5c6bc0;
-        background: #ede7f6;
-    }
-
-    .grade-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        background: #e8eaf6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-
-        mat-icon {
-            color: #5c6bc0;
-            font-size: 20px;
-        }
-    }
-
-    .grade-info {
-        flex: 1;
-        min-width: 0;
-
-        .grade-name {
-            display: block;
-            font-weight: 600;
-            font-size: 13px;
-            color: #212121;
-        }
-
-        .grade-sections {
-            display: block;
-            font-size: 11px;
-            color: #9e9e9e;
-            margin-top: 2px;
-        }
-    }
-
-    .grade-arrow {
         color: #bdbdbd;
-        font-size: 20px;
-        flex-shrink: 0;
     }
 }
 
-// ── Sections panel ────────────────────────────────────────────
-.sections-panel {
-    border: 1px solid #e8eaf6;
-    border-radius: 12px;
+// ── Cards grid ────────────────────────────────────────────────
+.periodos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.periodo-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
     padding: 16px;
-    background: #fafafa;
-}
-
-.sections-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: #757575;
-
-    mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-    }
-
-    .breadcrumb-active {
-        color: #5c6bc0;
-        font-weight: 600;
-    }
-}
-
-// ── Section cards ─────────────────────────────────────────────
-.sections-list {
     display: flex;
     flex-direction: column;
     gap: 6px;
-}
-
-.section-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.15s;
-    user-select: none;
+    transition: box-shadow 0.15s, border-color 0.15s;
 
     &:hover {
-        border-color: #9fa8da;
-        background: #f8f9ff;
+        box-shadow: 0 2px 12px rgba(92, 107, 192, 0.1);
     }
 
-    &.selected {
+    &.active {
         border-color: #5c6bc0;
-        background: #ede7f6;
-    }
-
-    .section-letter {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: #5c6bc0;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 16px;
-        flex-shrink: 0;
-    }
-
-    .section-info {
-        flex: 1;
-
-        .section-name {
-            display: block;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .section-cap {
-            display: block;
-            font-size: 12px;
-            color: #9e9e9e;
-            margin-top: 2px;
-        }
-    }
-
-    .tutor-badge {
-        color: #43a047;
-        font-size: 18px;
-    }
-
-    .section-arrow {
-        color: #bdbdbd;
-        font-size: 20px;
+        background: linear-gradient(135deg, #f8f9ff 0%, #ede7f6 100%);
+        box-shadow: 0 2px 16px rgba(92, 107, 192, 0.15);
     }
 }
 
-// ── Courses panel ─────────────────────────────────────────────
-.courses-panel {
-    margin-top: 16px;
-    border-top: 1px solid #e8eaf6;
-    padding-top: 16px;
-}
-
-.courses-header {
+.periodo-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    .courses-title {
-        margin: 0;
-        font-size: 14px;
-        font-weight: 600;
-        color: #424242;
-    }
+    margin-bottom: 4px;
 }
 
-.courses-table {
-    width: 100%;
-
-    th.mat-header-cell {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #9e9e9e;
-        background: #fafafa;
-        padding: 10px 12px;
-    }
-
-    td.mat-cell {
-        padding: 10px 12px;
-        font-size: 13px;
-        border-bottom: 1px solid #f5f5f5;
-    }
-
-    .inactive-row {
-        opacity: 0.5;
-    }
+.bim-badge {
+    font-size: 11px;
+    font-weight: 700;
+    background: #e8eaf6;
+    color: #3949ab;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
-.course-name-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .color-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        flex-shrink: 0;
-    }
-
-    .muted {
-        color: #9e9e9e;
-    }
-}
-
-.docente-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .docente-avatar-sm {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: #7e57c2;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        font-weight: 700;
-        flex-shrink: 0;
-    }
-}
-
-.no-docente {
+.active-badge {
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #ef6c00;
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2e7d32;
+    background: #e8f5e9;
+    padding: 3px 8px;
+    border-radius: 20px;
 
-    mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+    .active-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #4caf50;
     }
 }
 
-// ── Periodos table ────────────────────────────────────────────
+.periodo-nombre {
+    font-size: 15px;
+    font-weight: 600;
+    color: #212121;
+}
+
+.periodo-anio {
+    font-size: 12px;
+    color: #9e9e9e;
+}
+
+.periodo-fechas {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #616161;
+    margin-top: 4px;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        color: #9e9e9e;
+
+        &.arrow {
+            color: #bdbdbd;
+        }
+    }
+}
+
+.periodo-card-footer {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.current-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #5c6bc0;
+
+    mat-icon {
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+    }
+}
+
+// ── Tabla de referencia ───────────────────────────────────────
+.table-section {
+    margin-top: 8px;
+}
+
+.table-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9e9e9e;
+    margin-bottom: 10px;
+}
+
+.table-wrapper {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    overflow-x: auto;
+}
+
 .periodos-table {
     width: 100%;
 
@@ -382,27 +218,27 @@
         letter-spacing: 0.5px;
         color: #9e9e9e;
         background: #fafafa;
-        padding: 12px 16px;
+        padding: 10px 16px;
     }
 
     td.mat-cell {
-        padding: 12px 16px;
-        font-size: 14px;
-        border-bottom: 1px solid #f5f5f5;
+        padding: 10px 16px;
+        font-size: 13px;
+        border-bottom-color: #f5f5f5;
     }
 
     .active-row td {
-        background: #f1f8e9;
+        background: #f8f9ff;
     }
 }
 
-.periodo-name {
+.td-nombre {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.active-badge {
+.inline-badge {
     font-size: 10px;
     font-weight: 700;
     background: #e8f5e9;
@@ -410,106 +246,69 @@
     padding: 2px 7px;
     border-radius: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
 }
 
-.bimestre-badge {
-    font-size: 13px;
+.bim-chip {
+    font-size: 12px;
     font-weight: 700;
     background: #e8eaf6;
     color: #3949ab;
-    padding: 3px 10px;
+    padding: 2px 8px;
     border-radius: 6px;
 }
 
-.fechas-cell {
+.td-fechas {
     display: flex;
     align-items: center;
-    gap: 6px;
-
-    .arrow-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
-        color: #9e9e9e;
-    }
-}
-
-.current-label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #2e7d32;
-    font-size: 13px;
-    font-weight: 500;
+    gap: 5px;
+    font-size: 12px;
+    color: #616161;
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
+        color: #bdbdbd;
     }
 }
 
-// ── Status chip ───────────────────────────────────────────────
+.td-acciones {
+    text-align: right;
+}
+
 .status-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
+    gap: 5px;
+    font-size: 11px;
     font-weight: 600;
-    padding: 4px 10px;
+    padding: 3px 9px;
     border-radius: 20px;
 
-    .status-dot {
-        width: 7px;
-        height: 7px;
+    .dot {
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
+        background: #bdbdbd;
     }
 
     &.active {
         background: #e8f5e9;
         color: #2e7d32;
 
-        .status-dot {
+        .dot {
             background: #4caf50;
         }
     }
-
-    &.inactive {
-        background: #ffebee;
-        color: #c62828;
-
-        .status-dot {
-            background: #ef5350;
-        }
-    }
-}
-
-.no-data {
-    text-align: center;
-    padding: 24px !important;
-    color: #9e9e9e;
 }
 
 // ── Responsive ────────────────────────────────────────────────
-@media (max-width: 768px) {
-    .grades-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .sections-header,
-    .courses-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .fechas-cell .arrow-icon {
-        display: none;
-    }
-}
-
-@media (max-width: 480px) {
-    .grades-grid {
+@media (max-width: 600px) {
+    .periodos-grid {
         grid-template-columns: 1fr;
+    }
+
+    .page-header {
+        flex-direction: column;
     }
 }

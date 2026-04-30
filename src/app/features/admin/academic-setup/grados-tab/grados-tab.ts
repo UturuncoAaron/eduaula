@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ToastService } from 'ngx-toastr-notifier';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -10,15 +9,19 @@ import { MatDialog } from '@angular/material/dialog';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { ToastService } from 'ngx-toastr-notifier';
+
 import { ApiService } from '../../../../core/services/api';
 import type { GradeLevel, Section, Course } from '../../../../core/models/academic';
+
+type SeccionTab = 'cursos' | 'alumnos' | 'horario';
 
 @Component({
     selector: 'app-grados-tab',
     standalone: true,
     imports: [
-        MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule,
-        MatPaginatorModule, MatMenuModule, ReactiveFormsModule,
+        MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+        MatTooltipModule, MatPaginatorModule, MatMenuModule, ReactiveFormsModule,
     ],
     templateUrl: './grados-tab.html',
     styleUrl: './grados-tab.scss',
@@ -32,6 +35,7 @@ export class GradosTab implements OnInit {
     grados = signal<GradeLevel[]>([]);
     secciones = signal<Section[]>([]);
     cursos = signal<Course[]>([]);
+    alumnos = signal<any[]>([]);
 
     loadingGrados = signal(true);
     loadingSecciones = signal(false);
@@ -41,20 +45,19 @@ export class GradosTab implements OnInit {
     selectedGrado = signal<GradeLevel | null>(null);
     selectedSeccion = signal<Section | null>(null);
     periodoActivo = signal<number | null>(null);
+    activeTab = signal<SeccionTab>('cursos');
 
-    // ── Alumnos ───────────────────────────────────────────────────
-    alumnos = signal<any[]>([]);
     alumnoSearch = new FormControl('');
     alumnoPage = signal(0);
     alumnoPageSize = signal(10);
 
     // ── Computed ──────────────────────────────────────────────────
     seccionesDelGrado = computed(() =>
-        this.secciones().filter(s => s.grado_id === this.selectedGrado()?.id)
+        this.secciones().filter(s => s.grado_id === this.selectedGrado()?.id),
     );
 
     cursosDeSeccion = computed(() =>
-        this.cursos().filter(c => c.seccion_id === this.selectedSeccion()?.id)
+        this.cursos().filter(c => c.seccion_id === this.selectedSeccion()?.id),
     );
 
     seccionesPorGrado = computed(() => {
@@ -66,7 +69,7 @@ export class GradosTab implements OnInit {
     alumnosFiltrados = computed(() => {
         const q = this.alumnoSearch.value?.toLowerCase().trim() ?? '';
         return this.alumnos().filter(a =>
-            !q || `${a.nombre} ${a.apellido_paterno} ${a.codigo_estudiante}`.toLowerCase().includes(q)
+            !q || `${a.nombre} ${a.apellido_paterno} ${a.codigo_estudiante}`.toLowerCase().includes(q),
         );
     });
 
@@ -88,33 +91,33 @@ export class GradosTab implements OnInit {
             periodos: this.api.get<any[]>('academic/periodos'),
         }).subscribe({
             next: ({ grados, secciones, periodos }) => {
-                this.grados.set(grados.data ?? []);
-                this.secciones.set(secciones.data ?? []);
-                const activo = (periodos.data as any[]).find(p => p.activo);
+                this.grados.set((grados as any).data ?? []);
+                this.secciones.set((secciones as any).data ?? []);
+                const activo = ((periodos as any).data as any[]).find(p => p.activo);
                 this.periodoActivo.set(activo?.id ?? null);
                 this.loadingGrados.set(false);
-                this.loadingSecciones.set(false);
             },
             error: () => {
                 this.loadingGrados.set(false);
-                this.loadingSecciones.set(false);
                 this.toastr.error('Error al cargar datos académicos', 'Error');
             },
         });
 
         this.alumnoSearch.valueChanges.pipe(
-            debounceTime(200),
-            distinctUntilChanged(),
+            debounceTime(200), distinctUntilChanged(),
         ).subscribe(() => this.alumnoPage.set(0));
     }
 
+    // ── Tabs ──────────────────────────────────────────────────────
+    setTab(tab: SeccionTab): void { this.activeTab.set(tab); }
+
     // ── Navegación ────────────────────────────────────────────────
     selectGrado(g: GradeLevel): void {
-        const isSame = this.selectedGrado()?.id === g.id;
-        this.selectedGrado.set(isSame ? null : g);
+        this.selectedGrado.set(this.selectedGrado()?.id === g.id ? null : g);
         this.selectedSeccion.set(null);
         this.cursos.set([]);
         this.alumnos.set([]);
+        this.activeTab.set('cursos');
     }
 
     selectSeccion(s: Section): void {
@@ -125,6 +128,7 @@ export class GradosTab implements OnInit {
             return;
         }
         this.selectedSeccion.set(s);
+        this.activeTab.set('cursos');
         this.loadingCursos.set(true);
         this.loadingAlumnos.set(true);
 
@@ -145,16 +149,16 @@ export class GradosTab implements OnInit {
         });
     }
 
-    // ── Loaders privados ──────────────────────────────────────────
+    // ── Reloaders ─────────────────────────────────────────────────
     private reloadSecciones(): void {
         this.loadingSecciones.set(true);
         this.api.get<Section[]>('academic/secciones').subscribe({
             next: r => {
-                this.secciones.set(r.data ?? []);
-                // Si la sección seleccionada cambió, refrescar la referencia
+                const data: Section[] = (r as any).data ?? [];
+                this.secciones.set(data);
                 const cur = this.selectedSeccion();
                 if (cur) {
-                    const fresh = (r.data ?? []).find(s => s.id === cur.id);
+                    const fresh = data.find(s => s.id === cur.id);
                     if (fresh) this.selectedSeccion.set(fresh);
                 }
                 this.loadingSecciones.set(false);
@@ -164,23 +168,26 @@ export class GradosTab implements OnInit {
     }
 
     private reloadCursos(): void {
-        const seccion = this.selectedSeccion();
-        if (!seccion) return;
+        const s = this.selectedSeccion();
+        if (!s) return;
         this.loadingCursos.set(true);
-        this.api.get<Course[]>(`courses?seccion_id=${seccion.id}`).subscribe({
-            next: r => { this.cursos.set(r.data ?? []); this.loadingCursos.set(false); },
+        this.api.get<Course[]>(`courses?seccion_id=${s.id}`).subscribe({
+            next: r => { this.cursos.set((r as any).data ?? []); this.loadingCursos.set(false); },
             error: () => this.loadingCursos.set(false),
         });
     }
 
     private reloadAlumnos(): void {
-        const seccion = this.selectedSeccion();
-        if (!seccion) return;
+        const s = this.selectedSeccion();
+        if (!s) return;
         this.loadingAlumnos.set(true);
         this.alumnoSearch.setValue('', { emitEvent: false });
         this.alumnoPage.set(0);
-        this.api.get<any[]>(`courses/seccion/${seccion.id}/students`).subscribe({
-            next: r => { this.alumnos.set(this.mapAlumnos(r.data ?? [])); this.loadingAlumnos.set(false); },
+        this.api.get<any[]>(`courses/seccion/${s.id}/students`).subscribe({
+            next: r => {
+                this.alumnos.set(this.mapAlumnos((r as any).data ?? []));
+                this.loadingAlumnos.set(false);
+            },
             error: () => this.loadingAlumnos.set(false),
         });
     }
@@ -198,26 +205,14 @@ export class GradosTab implements OnInit {
     }
 
     // ── Helpers ───────────────────────────────────────────────────
-    getSeccionCount(gradoId: number): number {
-        return this.seccionesPorGrado().get(gradoId) ?? 0;
-    }
-
-    getInitials(nombre: string, apellido: string): string {
-        return `${(nombre[0] ?? '').toUpperCase()}${(apellido[0] ?? '').toUpperCase()}`;
-    }
-
-    onAlumnoPageChange(e: PageEvent): void {
-        this.alumnoPage.set(e.pageIndex);
-        this.alumnoPageSize.set(e.pageSize);
-    }
+    getSeccionCount(gradoId: number): number { return this.seccionesPorGrado().get(gradoId) ?? 0; }
+    getInitials(n: string, a: string): string { return `${n[0] ?? ''}${a[0] ?? ''}`.toUpperCase(); }
+    onAlumnoPageChange(e: PageEvent): void { this.alumnoPage.set(e.pageIndex); this.alumnoPageSize.set(e.pageSize); }
 
     // ── Diálogos ──────────────────────────────────────────────────
-
     async openCreateSeccion(): Promise<void> {
         if (!this.selectedGrado()) return;
-        const { CreateSeccionDialog } = await import(
-            '../../../../shared/components/create-seccion-dialog/create-seccion-dialog'
-        );
+        const { CreateSeccionDialog } = await import('../../../../shared/components/create-seccion-dialog/create-seccion-dialog');
         const ref = this.dialog.open(CreateSeccionDialog, {
             width: '480px',
             data: { gradoId: this.selectedGrado()!.id, gradoNombre: this.selectedGrado()!.nombre },
@@ -232,9 +227,7 @@ export class GradosTab implements OnInit {
                 next: r => {
                     this.reloadSecciones();
                     const c = r.data?.cursos?.creados ?? 0;
-                    this.toastr.success(c > 0
-                            ? `Sección "${result.nombre}" creada · ${c} cursos generados`
-                            : `Sección "${result.nombre}" creada`, 'Éxito');
+                    this.toastr.success(c > 0 ? `Sección "${result.nombre}" creada · ${c} cursos generados` : `Sección "${result.nombre}" creada`, 'Éxito');
                 },
                 error: err => this.toastr.error(err.error?.message ?? 'Error al crear sección', 'Error'),
             });
@@ -242,52 +235,27 @@ export class GradosTab implements OnInit {
     }
 
     async openAddCourse(): Promise<void> {
-        const seccion = this.selectedSeccion();
-        const grado = this.selectedGrado();
-        if (!seccion || !grado) return;
+        const s = this.selectedSeccion(); const g = this.selectedGrado();
+        if (!s || !g) return;
         const pid = this.periodoActivo();
         if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
-
-        const { AddCourseDialog } = await import(
-            '../../../../shared/components/add-course-dialog/add-course-dialog'
-        );
-        const ref = this.dialog.open(AddCourseDialog, {
-            width: '500px',
-            data: { seccionId: seccion.id, periodoId: pid, seccionNombre: seccion.nombre, gradoNombre: grado.nombre },
-        });
+        const { AddCourseDialog } = await import('../../../../shared/components/add-course-dialog/add-course-dialog');
+        const ref = this.dialog.open(AddCourseDialog, { width: '500px', data: { seccionId: s.id, periodoId: pid, seccionNombre: s.nombre, gradoNombre: g.nombre } });
         ref.afterClosed().subscribe((c: any) => { if (c) this.reloadCursos(); });
     }
 
     async openSchedule(): Promise<void> {
-        const seccion = this.selectedSeccion();
-        const grado = this.selectedGrado();
-        if (!seccion || !grado) return;
+        const s = this.selectedSeccion(); const g = this.selectedGrado();
+        if (!s || !g) return;
         const pid = this.periodoActivo();
         if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
-
-        const { ScheduleDialog } = await import(
-            '../../../../shared/components/schedule-dialog/schedule-dialog'
-        );
-        this.dialog.open(ScheduleDialog, {
-            width: '860px',
-            maxHeight: '90vh',
-            data: {
-                seccionId: seccion.id,
-                periodoId: pid,
-                seccionNombre: seccion.nombre,
-                gradoNombre: grado.nombre,
-            },
-        });
+        const { ScheduleDialog } = await import('../../../../shared/components/schedule-dialog/schedule-dialog');
+        this.dialog.open(ScheduleDialog, { width: '860px', maxHeight: '90vh', data: { seccionId: s.id, periodoId: pid, seccionNombre: s.nombre, gradoNombre: g.nombre } });
     }
 
     async openAssignDocente(curso: Course): Promise<void> {
-        const { AssignDocenteDialog } = await import(
-            '../../../../shared/components/assign-docente-dialog/assign-docente-dialog'
-        );
-        const ref = this.dialog.open(AssignDocenteDialog, {
-            width: '480px',
-            data: { cursoId: curso.id, cursoNombre: curso.nombre, docenteActualId: curso.docente_id },
-        });
+        const { AssignDocenteDialog } = await import('../../../../shared/components/assign-docente-dialog/assign-docente-dialog');
+        const ref = this.dialog.open(AssignDocenteDialog, { width: '480px', data: { cursoId: curso.id, cursoNombre: curso.nombre, docenteActualId: curso.docente_id } });
         ref.afterClosed().subscribe((docenteId: string | undefined) => {
             if (!docenteId) return;
             this.api.patch(`courses/${curso.id}/assign-teacher`, { docente_id: docenteId }).subscribe({
@@ -297,119 +265,50 @@ export class GradosTab implements OnInit {
         });
     }
 
-    // ── NUEVO: Asignar / cambiar / quitar tutor ───────────────────
     async openAssignTutor(): Promise<void> {
-        const seccion = this.selectedSeccion();
-        const grado = this.selectedGrado();
-        if (!seccion || !grado) return;
-
-        const { AssignTutorDialog } = await import(
-            '../../../../shared/components/assign-tutor-dialog/assign-tutor-dialog'
-        );
-        const ref = this.dialog.open(AssignTutorDialog, {
-            width: '520px',
-            data: {
-                seccionId: seccion.id,
-                seccionNombre: seccion.nombre,
-                gradoNombre: grado.nombre,
-                tutorActualId: seccion.tutor_id ?? null,
-            },
-        });
-        ref.afterClosed().subscribe((result: { docente_id: string | null } | undefined) => {
-            if (result === undefined) return;
-            // El dialog ya hizo el PATCH y mostró snack; solo recargamos secciones
-            // para refrescar el chip de "tutor" en la UI.
-            this.reloadSecciones();
-        });
+        const s = this.selectedSeccion(); const g = this.selectedGrado();
+        if (!s || !g) return;
+        const { AssignTutorDialog } = await import('../../../../shared/components/assign-tutor-dialog/assign-tutor-dialog');
+        const ref = this.dialog.open(AssignTutorDialog, { width: '520px', data: { seccionId: s.id, seccionNombre: s.nombre, gradoNombre: g.nombre, tutorActualId: s.tutor_id ?? null } });
+        ref.afterClosed().subscribe((result: any) => { if (result !== undefined) this.reloadSecciones(); });
     }
 
     async toggleCurso(curso: Course): Promise<void> {
-        const { ConfirmDialog } = await import(
-            '../../../../shared/components/confirm-dialog/confirm-dialog'
-        );
-        const ref = this.dialog.open(ConfirmDialog, {
-            width: '360px',
-            data: {
-                title: curso.activo ? '¿Desactivar curso?' : '¿Activar curso?',
-                message: `El curso "${curso.nombre}" será ${curso.activo ? 'desactivado' : 'reactivado'}.`,
-                confirm: curso.activo ? 'Desactivar' : 'Activar',
-                cancel: 'Cancelar',
-                danger: curso.activo,
-            },
-        });
+        const { ConfirmDialog } = await import('../../../../shared/components/confirm-dialog/confirm-dialog');
+        const ref = this.dialog.open(ConfirmDialog, { width: '360px', data: { title: curso.activo ? '¿Desactivar curso?' : '¿Activar curso?', message: `El curso "${curso.nombre}" será ${curso.activo ? 'desactivado' : 'reactivado'}.`, confirm: curso.activo ? 'Desactivar' : 'Activar', cancel: 'Cancelar', danger: curso.activo } });
         ref.afterClosed().subscribe((ok: boolean) => {
             if (!ok) return;
             this.api.patch(`courses/${curso.id}`, { activo: !curso.activo }).subscribe({
-                next: () => this.cursos.update(list =>
-                    list.map(c => c.id === curso.id ? { ...c, activo: !c.activo } : c)
-                ),
+                next: () => this.cursos.update(list => list.map(c => c.id === curso.id ? { ...c, activo: !c.activo } : c)),
                 error: () => this.toastr.error('Error al actualizar curso', 'Error'),
             });
         });
     }
 
     async openMatricular(): Promise<void> {
-        const seccion = this.selectedSeccion();
-        const grado = this.selectedGrado();
-        if (!seccion || !grado) return;
+        const s = this.selectedSeccion(); const g = this.selectedGrado();
+        if (!s || !g) return;
         const pid = this.periodoActivo();
         if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
-
-        const { EnrollAlumnoDialog } = await import(
-            '../../../../shared/components/enroll-alumno-dialog/enroll-alumno-dialog'
-        );
-        const ref = this.dialog.open(EnrollAlumnoDialog, {
-            width: '500px',
-            data: {
-                seccionId: seccion.id,
-                periodoId: pid,
-                seccionNombre: seccion.nombre,
-                gradoNombre: grado.nombre,
-                alumnosMatriculadosIds: this.alumnosIds(),
-            },
-        });
+        const { EnrollAlumnoDialog } = await import('../../../../shared/components/enroll-alumno-dialog/enroll-alumno-dialog');
+        const ref = this.dialog.open(EnrollAlumnoDialog, { width: '500px', data: { seccionId: s.id, periodoId: pid, seccionNombre: s.nombre, gradoNombre: g.nombre, alumnosMatriculadosIds: this.alumnosIds() } });
         ref.afterClosed().subscribe((enrolled: any) => { if (enrolled) this.reloadAlumnos(); });
     }
 
     async retirarAlumno(alumno: any): Promise<void> {
-        const { ConfirmDialog } = await import(
-            '../../../../shared/components/confirm-dialog/confirm-dialog'
-        );
-        const ref = this.dialog.open(ConfirmDialog, {
-            width: '380px',
-            data: {
-                title: '¿Retirar alumno?',
-                message: `Se retirará a ${alumno.nombre} ${alumno.apellido_paterno} de la sección "${this.selectedSeccion()?.nombre}".`,
-                confirm: 'Retirar',
-                cancel: 'Cancelar',
-                danger: true,
-            },
-        });
+        const { ConfirmDialog } = await import('../../../../shared/components/confirm-dialog/confirm-dialog');
+        const ref = this.dialog.open(ConfirmDialog, { width: '380px', data: { title: '¿Retirar alumno?', message: `Se retirará a ${alumno.nombre} ${alumno.apellido_paterno} de la sección "${this.selectedSeccion()?.nombre}".`, confirm: 'Retirar', cancel: 'Cancelar', danger: true } });
         ref.afterClosed().subscribe((ok: boolean) => {
             if (!ok) return;
             this.api.delete(`courses/enroll/${alumno.id}`).subscribe({
-                next: () => {
-                    this.alumnos.update(list => list.filter(a => a.id !== alumno.id));
-                    this.toastr.success(`${alumno.nombre} ${alumno.apellido_paterno} retirado de la sección`, '�xito');
-                },
+                next: () => { this.alumnos.update(list => list.filter(a => a.id !== alumno.id)); this.toastr.success(`${alumno.nombre} retirado`, 'Éxito'); },
                 error: () => this.toastr.error('Error al retirar alumno', 'Error'),
             });
         });
     }
 
     async verNotasAlumno(alumno: any): Promise<void> {
-        const { AlumnoNotasDialog } = await import(
-            '../../../../shared/components/alumno-notas-dialog/alumno-notas-dialog'
-        );
-        this.dialog.open(AlumnoNotasDialog, {
-            width: '700px',
-            maxHeight: '90vh',
-            data: {
-                alumnoId: alumno.alumno_id,
-                nombre: `${alumno.apellido_paterno} ${alumno.apellido_materno ?? ''}, ${alumno.nombre}`,
-                seccionNombre: this.selectedSeccion()?.nombre,
-                gradoNombre: this.selectedGrado()?.nombre,
-            },
-        });
+        const { AlumnoNotasDialog } = await import('../../../../shared/components/alumno-notas-dialog/alumno-notas-dialog');
+        this.dialog.open(AlumnoNotasDialog, { width: '700px', maxHeight: '90vh', data: { alumnoId: alumno.alumno_id, nombre: `${alumno.apellido_paterno} ${alumno.apellido_materno ?? ''}, ${alumno.nombre}`, seccionNombre: this.selectedSeccion()?.nombre, gradoNombre: this.selectedGrado()?.nombre } });
     }
 }

@@ -1,32 +1,41 @@
-.tab-content {
-    padding-bottom: 24px;
+.grados-page {
+    padding-bottom: 32px;
 }
 
-// ── Toolbar ───────────────────────────────────────────────────
-.section-toolbar {
+// ── Page header ───────────────────────────────────────────────
+.page-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+    gap: 12px;
     flex-wrap: wrap;
-    gap: 8px;
 
-    .section-count {
+    .page-title {
+        margin: 0 0 3px;
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .page-subtitle {
+        margin: 0;
         font-size: 13px;
         color: #757575;
-        font-weight: 500;
     }
 }
 
-.no-periodo-warning {
+.periodo-warning {
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #e65100;
-    background: #fff3e0;
-    padding: 4px 10px;
-    border-radius: 6px;
+    font-weight: 500;
+    color: #b45309;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    padding: 6px 12px;
+    border-radius: 8px;
 
     mat-icon {
         font-size: 16px;
@@ -44,16 +53,17 @@
     padding: 48px 24px;
     color: #9e9e9e;
 
-    p {
+    p,
+    span {
         margin: 0;
-        font-size: 14px;
+        font-size: 13px;
     }
 
     &.small {
         flex-direction: row;
         padding: 16px 0;
         gap: 8px;
-        font-size: 13px;
+        justify-content: flex-start;
     }
 }
 
@@ -62,7 +72,7 @@
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    padding: 32px 16px;
+    padding: 28px 16px;
     color: #bdbdbd;
     text-align: center;
 
@@ -79,14 +89,14 @@
     }
 
     &.small {
-        padding: 16px 0;
+        padding: 20px 0;
     }
 }
 
 // ── Grades grid ───────────────────────────────────────────────
 .grades-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
     gap: 10px;
     margin-bottom: 20px;
 }
@@ -96,16 +106,17 @@
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    border: 2px solid #e0e0e0;
+    background: #fff;
+    border: 2px solid #e8eaf6;
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.15s;
-    background: #fff;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
     user-select: none;
 
     &:hover {
         border-color: #9fa8da;
         background: #f8f9ff;
+        transform: translateY(-1px);
     }
 
     &.selected {
@@ -114,9 +125,9 @@
     }
 
     .grade-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 9px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
         background: #e8eaf6;
         display: flex;
         align-items: center;
@@ -126,6 +137,8 @@
         mat-icon {
             color: #5c6bc0;
             font-size: 18px;
+            width: 18px;
+            height: 18px;
         }
     }
 
@@ -137,18 +150,18 @@
     .grade-name {
         display: block;
         font-weight: 600;
-        font-size: 13px;
+        font-size: 12px;
         color: #212121;
     }
 
-    .grade-sections {
+    .grade-secciones {
         display: block;
         font-size: 11px;
         color: #9e9e9e;
         margin-top: 1px;
     }
 
-    .grade-arrow {
+    .grade-chevron {
         color: #bdbdbd;
         font-size: 18px;
         flex-shrink: 0;
@@ -157,17 +170,17 @@
 
 // ── Sections panel ────────────────────────────────────────────
 .sections-panel {
+    background: #f8f9ff;
     border: 1px solid #e8eaf6;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 16px;
-    background: #fafafa;
 }
 
 .sections-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     flex-wrap: wrap;
     gap: 8px;
 }
@@ -175,17 +188,17 @@
 .breadcrumb {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     font-size: 13px;
     color: #757575;
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
     }
 
-    .breadcrumb-active {
+    .bc-active {
         color: #5c6bc0;
         font-weight: 600;
     }
@@ -200,8 +213,8 @@
 .section-card {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
+    gap: 12px;
+    padding: 10px 14px;
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 10px;
@@ -217,20 +230,27 @@
     &.selected {
         border-color: #5c6bc0;
         background: #ede7f6;
+        box-shadow: 0 0 0 3px rgba(92, 107, 192, 0.1);
     }
 
-    .section-letter {
-        width: 32px;
-        height: 32px;
+    .section-avatar {
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
-        background: #5c6bc0;
-        color: #fff;
+        background: #e8eaf6;
+        color: #5c6bc0;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 14px;
+        font-size: 15px;
         flex-shrink: 0;
+        transition: background 0.15s;
+
+        &.with-tutor {
+            background: #5c6bc0;
+            color: #fff;
+        }
     }
 
     .section-info {
@@ -241,79 +261,75 @@
         display: block;
         font-weight: 500;
         font-size: 13px;
+        color: #212121;
     }
 
     .section-cap {
         display: block;
         font-size: 11px;
         color: #9e9e9e;
+        margin-top: 1px;
     }
 
-    .tutor-mini {
+    .tutor-chip {
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 12px;
-        color: #2e7d32;
-        background: #e8f5e9;
+        font-size: 11px;
+        font-weight: 500;
         padding: 3px 8px;
-        border-radius: 12px;
-
-        .tutor-badge {
-            color: #43a047;
-            font-size: 14px;
-            width: 14px;
-            height: 14px;
-        }
-
-        .tutor-mini-name {
-            font-weight: 500;
-            max-width: 80px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-    }
-
-    .tutor-empty {
-        display: flex;
-        align-items: center;
-        color: #ef6c00;
+        border-radius: 20px;
+        white-space: nowrap;
 
         mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
+            font-size: 13px;
+            width: 13px;
+            height: 13px;
+        }
+
+        &.ok {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        &.missing {
+            background: #fff3e0;
+            color: #e65100;
         }
     }
 
-    .section-arrow {
+    .section-chevron {
         color: #bdbdbd;
         font-size: 18px;
     }
 }
 
-// ── Tutor strip (full width, encima del split) ────────────────
+// ── Detalle de sección ────────────────────────────────────────
+.seccion-detail {
+    margin-top: 14px;
+}
+
+// Tutor strip
 .tutor-strip {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-top: 16px;
     padding: 12px 16px;
     background: #fff;
     border: 1px solid #e0e0e0;
     border-left: 4px solid #43a047;
     border-radius: 10px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
 
     &.no-tutor {
         border-left-color: #fb8c00;
-        background: #fff8e1;
+        background: #fffde7;
     }
 }
 
-.tutor-strip-info {
+.tutor-strip-left {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -322,107 +338,163 @@
     flex-wrap: wrap;
 }
 
-.tutor-strip-icon {
-    color: #5c6bc0;
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
+.tutor-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e8f5e9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #9e9e9e;
+    }
+
+    &.ok mat-icon {
+        color: #43a047;
+    }
+
+    &.ok {
+        background: #e8f5e9;
+    }
 }
 
-.tutor-strip-label {
-    font-size: 12px;
+.tutor-strip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tutor-label {
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #757575;
+    color: #9e9e9e;
 }
 
-.tutor-strip-chip {
+.tutor-name-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #ede7f6;
-    border-radius: 16px;
-    padding: 4px 12px 4px 4px;
 }
 
-.tutor-strip-avatar {
-    width: 28px;
-    height: 28px;
+.tutor-initials {
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     background: #7e57c2;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
+    flex-shrink: 0;
 }
 
-.tutor-strip-name {
+.tutor-fullname {
     font-size: 13px;
     font-weight: 500;
     color: #311b92;
 }
 
-.tutor-strip-empty {
+.tutor-empty-msg {
+    font-size: 12px;
+    color: #fb8c00;
+}
+
+// Tabs
+.tabs-wrap {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tabs-header {
+    display: flex;
+    background: #fafafa;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.tab-btn {
     display: flex;
     align-items: center;
     gap: 6px;
+    padding: 11px 18px;
     font-size: 13px;
-    color: #ef6c00;
+    font-family: inherit;
+    color: #757575;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
 
     mat-icon {
         font-size: 16px;
         width: 16px;
         height: 16px;
     }
+
+    &:hover {
+        color: #5c6bc0;
+        background: #f3f4ff;
+    }
+
+    &.active {
+        color: #5c6bc0;
+        border-bottom-color: #5c6bc0;
+        font-weight: 500;
+        background: #fff;
+    }
 }
 
-.tutor-strip-actions {
-    flex-shrink: 0;
-}
-
-// ── Split layout (50/50 ahora) ────────────────────────────────
-.split-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-top: 12px;
-    align-items: start;
-}
-
-// ── Courses panel ─────────────────────────────────────────────
-.courses-panel {
-    background: #fff;
-    border: 1px solid #e0e0e0;
+.tab-pill {
+    font-size: 10px;
+    font-weight: 700;
+    background: #e8eaf6;
+    color: #3949ab;
+    padding: 1px 6px;
     border-radius: 10px;
-    overflow: hidden;
+    margin-left: 2px;
+
+    &.warn {
+        background: #fff3e0;
+        color: #e65100;
+    }
 }
 
-.panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: #fafafa;
-    border-bottom: 1px solid #f0f0f0;
+// Tab body
+.tab-body {
+    padding: 16px;
+}
 
-    .panel-title {
-        font-size: 12px;
+.tab-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+
+    .tab-bar-title {
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #757575;
-    }
-
-    .panel-actions {
-        display: flex;
-        gap: 6px;
+        color: #9e9e9e;
     }
 }
 
+// Cursos
 .courses-list {
     display: flex;
     flex-direction: column;
@@ -432,7 +504,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 9px 12px;
+    padding: 9px 4px;
     border-bottom: 1px solid #f5f5f5;
     transition: background 0.1s;
 
@@ -445,54 +517,58 @@
     }
 
     &.inactive {
-        opacity: 0.5;
+        opacity: 0.45;
     }
 
-    .color-dot {
+    .c-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         flex-shrink: 0;
     }
 
-    .course-name {
+    .c-name {
         flex: 1;
         font-size: 13px;
         color: #212121;
-        min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        &.muted {
+            color: #9e9e9e;
+        }
     }
 
-    .course-name.muted {
-        color: #9e9e9e;
-    }
-
-    .course-docente {
+    .c-docente {
         display: flex;
         align-items: center;
         gap: 5px;
         font-size: 12px;
-        color: #757575;
-        min-width: 100px;
-
-        .mini-avatar {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #7e57c2;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
+        color: #616161;
+        min-width: 90px;
     }
 
-    .no-docente {
+    .d-avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #7e57c2;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .d-name {
+        font-size: 12px;
+        color: #616161;
+    }
+
+    .d-empty {
         display: flex;
         align-items: center;
         gap: 3px;
@@ -505,71 +581,34 @@
             height: 13px;
         }
     }
-
-    .course-actions {
-        display: flex;
-        gap: 0;
-        flex-shrink: 0;
-    }
 }
 
-// ── Alumnos panel ─────────────────────────────────────────────
-.alumnos-panel {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.alumnos-header {
+// Alumnos
+.alumnos-header-left {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px;
-    background: #fafafa;
-    border-bottom: 1px solid #f0f0f0;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.alumnos-stats {
+.capacity-row {
     display: flex;
     align-items: center;
     gap: 8px;
-
-    .alumnos-title {
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #757575;
-    }
-
-    .alumnos-count {
-        font-size: 11px;
-        font-weight: 700;
-        background: #e8eaf6;
-        color: #3949ab;
-        padding: 2px 7px;
-        border-radius: 10px;
-    }
 }
 
-.btn-matricular {
-    font-size: 12px !important;
-    height: 32px !important;
-    padding: 0 10px !important;
-}
-
-// ── Capacity ──────────────────────────────────────────────────
-.capacity-track {
+.cap-track {
+    width: 120px;
     height: 4px;
     background: #e0e0e0;
-    margin: 0;
+    border-radius: 2px;
+    overflow: hidden;
 }
 
-.capacity-fill {
+.cap-fill {
     height: 100%;
     background: #42a5f5;
-    transition: width 0.4s ease;
+    border-radius: 2px;
+    transition: width 0.4s;
 
     &.warn {
         background: #ffa726;
@@ -580,22 +619,22 @@
     }
 }
 
-.capacity-text {
+.cap-label {
     font-size: 11px;
     color: #9e9e9e;
-    margin: 4px 12px 0;
-    padding-bottom: 4px;
+    white-space: nowrap;
 }
 
-// ── Search ────────────────────────────────────────────────────
-.alumno-search-wrap {
+.search-row {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-bottom: 1px solid #f0f0f0;
+    gap: 8px;
+    padding: 7px 10px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin-bottom: 10px;
 
-    .search-icon {
+    mat-icon {
         font-size: 16px;
         width: 16px;
         height: 16px;
@@ -603,20 +642,20 @@
         flex-shrink: 0;
     }
 
-    .alumno-search-input {
+    input {
         flex: 1;
         border: none;
+        background: transparent;
         outline: none;
         font-size: 13px;
         color: #212121;
-        background: transparent;
 
         &::placeholder {
             color: #bdbdbd;
         }
     }
 
-    .clear-search {
+    .clear-btn {
         background: none;
         border: none;
         cursor: pointer;
@@ -633,8 +672,9 @@
     }
 }
 
-// ── Alumnos list ──────────────────────────────────────────────
 .alumnos-list {
+    display: flex;
+    flex-direction: column;
     max-height: 380px;
     overflow-y: auto;
 }
@@ -642,8 +682,8 @@
 .alumno-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 7px 10px;
+    gap: 10px;
+    padding: 7px 4px;
     border-bottom: 1px solid #f5f5f5;
     transition: background 0.1s;
 
@@ -656,11 +696,11 @@
     }
 
     &.inactive {
-        opacity: 0.55;
+        opacity: 0.5;
     }
 }
 
-.alumno-avatar {
+.a-avatar {
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -674,46 +714,46 @@
     flex-shrink: 0;
 }
 
-.alumno-info {
+.a-info {
     flex: 1;
     min-width: 0;
-
-    .alumno-name {
-        display: block;
-        font-size: 12px;
-        font-weight: 500;
-        color: #212121;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .alumno-code {
-        display: block;
-        font-size: 10px;
-        color: #9e9e9e;
-        font-family: monospace;
-    }
 }
 
-.alumno-actions {
+.a-name {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #212121;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.a-code {
+    display: block;
+    font-size: 10px;
+    color: #9e9e9e;
+    font-family: monospace;
+}
+
+.a-actions {
     display: flex;
     gap: 0;
     flex-shrink: 0;
 
-    .action-btn {
+    button {
         width: 28px !important;
         height: 28px !important;
         line-height: 28px !important;
     }
 
-    .notes-btn mat-icon {
+    button mat-icon {
         font-size: 16px;
         color: #5c6bc0;
     }
 
-    .remove-btn {
-        opacity: 0.4;
+    .btn-remove {
+        opacity: 0.35;
         transition: opacity 0.15s;
 
         &:hover {
@@ -721,66 +761,54 @@
         }
     }
 
-    .remove-btn mat-icon {
-        font-size: 16px;
+    .btn-remove mat-icon {
         color: #ef5350;
     }
 }
 
-.alumnos-paginator {
-    border-top: 1px solid #f0f0f0;
+.horario-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 36px 16px;
+    color: #bdbdbd;
+    text-align: center;
 
-    ::ng-deep .mat-mdc-paginator-container {
-        min-height: 40px;
-        padding: 0 4px;
+    mat-icon {
+        font-size: 44px;
+        width: 44px;
+        height: 44px;
     }
 
-    ::ng-deep .mat-mdc-paginator-range-label {
-        font-size: 11px;
+    p {
+        margin: 0;
+        font-size: 13px;
+        color: #9e9e9e;
     }
 }
 
 // ── Responsive ────────────────────────────────────────────────
-@media (max-width: 900px) {
-    .split-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .alumnos-panel {
-        position: static;
-    }
-
-    .tutor-strip {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .tutor-strip-actions {
-        width: 100%;
-
-        button {
-            width: 100%;
-        }
-    }
-}
-
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .grades-grid {
         grid-template-columns: 1fr 1fr;
     }
 
-    .sections-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .course-docente {
+    .c-docente {
         display: none;
     }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 500px) {
     .grades-grid {
         grid-template-columns: 1fr;
+    }
+
+    .tab-btn span:not(.tab-pill) {
+        display: none;
+    }
+
+    .tab-btn {
+        padding: 10px 12px;
     }
 }

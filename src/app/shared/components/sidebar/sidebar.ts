@@ -20,6 +20,7 @@ import { NAV_ITEMS, NavItem, UserRole } from './navigation.config';
 
 @Component({
   selector: 'app-sidebar',
+  standalone: true,
   imports: [
     RouterLink,
     MatIconModule,
@@ -42,29 +43,33 @@ export class Sidebar implements OnInit, OnDestroy {
   user = computed(() => this.auth.currentUser());
   isTutor = signal(false);
 
-  /** Estado de expansión de los grupos del acordeón */
+  /** Estado de expansión de cada grupo del acordeón */
   expandedGroups = signal<Record<string, boolean>>({});
 
-  /** URL activa actual (sin query params ni fragments) */
+  /** URL activa normalizada (sin query params ni fragments) */
   currentUrl = signal(this.normalizeUrl(this.router.url));
 
-  /** Items filtrados por rol del usuario actual */
+  /** Items filtrados por rol + condición de tutor */
   visibleItems = computed(() => {
     const rol = this.user()?.rol as UserRole;
     if (!rol) return [];
     return this.filterByRole(NAV_ITEMS, rol, this.isTutor());
   });
 
-  ngOnInit() {
+  // ─── Lifecycle ───────────────────────────────────────────────
+
+  ngOnInit(): void {
     const rol = this.user()?.rol as UserRole | undefined;
+
+    // Comprobar si el docente/admin es tutor de alguna sección
     if (rol === 'docente' || rol === 'admin') {
       this.http
-        .get<unknown | null>(`${environment.apiUrl}/academic/tutoria/me`)
+        .get<unknown>(`${environment.apiUrl}/academic/tutoria/me`)
         .pipe(catchError(() => of(null)))
         .subscribe(data => this.isTutor.set(data !== null));
     }
 
-    // Escuchar cada navegación completada
+    // Actualizar URL activa en cada navegación completada
     this.routerSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(e => {
@@ -72,11 +77,11 @@ export class Sidebar implements OnInit, OnDestroy {
         this.autoExpandActiveRoute();
       });
 
-    // Auto-expandir al cargar
+    // Expandir el grupo activo al cargar la página
     this.autoExpandActiveRoute();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
   }
 
@@ -93,20 +98,16 @@ export class Sidebar implements OnInit, OnDestroy {
     return !!this.expandedGroups()[label];
   }
 
-  /** Verifica si algún hijo del grupo está activo */
+  /** True si algún hijo del grupo coincide con la URL activa */
   isGroupActive(item: NavItem): boolean {
-    if (!item.children) return false;
-    return this.hasActiveChild(item.children);
+    return item.children ? this.hasActiveChild(item.children) : false;
   }
 
-  /** Verifica si un item hoja específico coincide con la URL actual */
+  /** True si el item hoja coincide con la URL activa */
   isItemActive(item: NavItem): boolean {
     if (!item.route) return false;
     const url = this.currentUrl();
-    // Si el item pide match exacto, comparar exactamente
-    if (item.exactMatch) return url === item.route;
-    // Sino, usar startsWith para subrutas
-    return url.startsWith(item.route);
+    return item.exactMatch ? url === item.route : url.startsWith(item.route);
   }
 
   // ─── Helpers privados ────────────────────────────────────────
@@ -116,23 +117,24 @@ export class Sidebar implements OnInit, OnDestroy {
     return url.split('?')[0].split('#')[0];
   }
 
-  /** Filtra items recursivamente por rol y condición de tutor */
+  /** Filtra items recursivamente según rol y bandera de tutor */
   private filterByRole(items: NavItem[], rol: UserRole, isTutor: boolean): NavItem[] {
     return items
       .filter(i => i.roles.includes(rol) && (!i.requiresTutor || isTutor))
-      .map(i => i.children
-        ? { ...i, children: this.filterByRole(i.children, rol, isTutor) }
-        : i,
-      );
+      .map(i =>
+        i.children
+          ? { ...i, children: this.filterByRole(i.children, rol, isTutor) }
+          : i,
+      )
+      .filter(i => !i.children || i.children.length > 0); // elimina grupos vacíos
   }
 
-  /** Comprueba recursivamente si algún hijo está activo */
+  /** Verifica recursivamente si algún hijo está activo */
   private hasActiveChild(children: NavItem[]): boolean {
-    return children.some(child => {
-      if (child.route && this.isItemActive(child)) return true;
-      if (child.children) return this.hasActiveChild(child.children);
-      return false;
-    });
+    return children.some(child =>
+      (child.route && this.isItemActive(child)) ||
+      (child.children ? this.hasActiveChild(child.children) : false),
+    );
   }
 
   /** Expande automáticamente los grupos que contienen la ruta activa */
@@ -150,9 +152,8 @@ export class Sidebar implements OnInit, OnDestroy {
           state[item.label] = true;
           return true;
         }
-      }
-      if (item.route && this.isItemActive(item)) {
-         return true;
+      } else if (item.route && this.isItemActive(item)) {
+        return true;
       }
     }
     return false;

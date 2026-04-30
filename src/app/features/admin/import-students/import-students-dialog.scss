@@ -1,0 +1,316 @@
+// ── Header ────────────────────────────────────────────────────
+.dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 24px 0;
+    gap: 12px;
+}
+
+.dialog-title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.dialog-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #e8eaf6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+        color: #5c6bc0;
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+    }
+}
+
+.dialog-title {
+    margin: 0 0 3px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #212121;
+}
+
+.dialog-subtitle {
+    margin: 0;
+    font-size: 12px;
+    color: #757575;
+}
+
+// ── Body ──────────────────────────────────────────────────────
+.dialog-body {
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+// ── Template banner ───────────────────────────────────────────
+.template-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #e8f4fd;
+    border: 1px solid #b3d9f5;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #0d47a1;
+    flex-wrap: wrap;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    span {
+        flex: 1;
+    }
+
+    button {
+        font-size: 11px;
+        height: 30px;
+        padding: 0 10px;
+        flex-shrink: 0;
+    }
+}
+
+// ── Form ──────────────────────────────────────────────────────
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    .field {
+        width: 100%;
+    }
+}
+
+// ── File drop ─────────────────────────────────────────────────
+.file-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 20px 16px;
+    background: #fafafa;
+    border: 2px dashed #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: center;
+
+    mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: #9e9e9e;
+    }
+
+    .file-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #424242;
+        word-break: break-all;
+    }
+
+    .file-hint {
+        font-size: 11px;
+        color: #bdbdbd;
+    }
+
+    .file-size {
+        font-size: 11px;
+        color: #9e9e9e;
+    }
+
+    &:hover {
+        border-color: #9fa8da;
+        background: #f8f9ff;
+    }
+
+    &.has-file {
+        border-color: #5c6bc0;
+        background: #f8f9ff;
+
+        mat-icon {
+            color: #5c6bc0;
+        }
+    }
+}
+
+// ── Uploading ─────────────────────────────────────────────────
+.uploading-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.uploading-label {
+    font-size: 12px;
+    color: #757575;
+    text-align: center;
+}
+
+// ── Resultado ─────────────────────────────────────────────────
+.result-panel {
+    background: #f1f8e9;
+    border: 1px solid #c5e1a5;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2e7d32;
+
+    .result-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #43a047;
+    }
+}
+
+.result-counters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    min-width: 64px;
+
+    .counter-val {
+        font-size: 20px;
+        font-weight: 600;
+        color: #212121;
+    }
+
+    .counter-lbl {
+        font-size: 10px;
+        color: #9e9e9e;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    &.ok {
+        border-color: #a5d6a7;
+
+        .counter-val {
+            color: #2e7d32;
+        }
+    }
+
+    &.warn {
+        border-color: #ffe082;
+
+        .counter-val {
+            color: #f57f17;
+        }
+    }
+
+    &.danger {
+        border-color: #ef9a9a;
+
+        .counter-val {
+            color: #c62828;
+        }
+    }
+}
+
+// ── Error list ────────────────────────────────────────────────
+.error-list {
+    background: #fff;
+    border: 1px solid #ef9a9a;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 140px;
+    overflow-y: auto;
+}
+
+.error-list-title {
+    margin: 0 0 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #c62828;
+}
+
+.error-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 3px 0;
+    border-bottom: 1px solid #fce4ec;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .error-fila {
+        font-weight: 600;
+        color: #c62828;
+        min-width: 48px;
+    }
+
+    .error-doc {
+        color: #757575;
+        font-family: monospace;
+        min-width: 80px;
+    }
+
+    .error-motivo {
+        color: #424242;
+        flex: 1;
+    }
+}
+
+// ── Footer ────────────────────────────────────────────────────
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 24px 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .result-counters {
+        justify-content: center;
+    }
+}

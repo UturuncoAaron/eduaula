@@ -1,38 +1,44 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
+import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { environment } from '../../../../environments/environment';
 
 interface Seccion { id: number; nombre: string; grado?: { nombre: string } }
 interface Periodo { id: number; nombre: string; activo: boolean }
 interface ImportError { fila: number; numero_documento: string; motivo: string }
-interface ImportResult { total: number; creados: number; matriculados: number; omitidos: number; errores: ImportError[] }
+interface ImportResult {
+  total: number;
+  creados: number;
+  matriculados: number;
+  omitidos: number;
+  errores: ImportError[];
+}
 
 @Component({
-  selector: 'app-import-students',
+  selector: 'app-import-students-dialog',
   standalone: true,
   imports: [
-    ReactiveFormsModule,
-    MatCardModule, MatButtonModule, MatIconModule,
-    MatFormFieldModule, MatSelectModule, MatProgressBarModule, MatChipsModule,
-    PageHeader,
+    ReactiveFormsModule, MatDialogModule,
+    MatButtonModule,  MatFormFieldModule,
+    MatSelectModule, MatProgressBarModule, MatChipsModule, MatTooltipModule,MatIcon
   ],
-  templateUrl: './import-students.html',
-  styleUrl: './import-students.scss',
+  templateUrl: './import-students-dialog.html',
+  styleUrl: './import-students-dialog.scss',
 })
-export class ImportStudents implements OnInit {
+export class ImportStudentsDialog implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private toastr = inject(ToastService);
+  private ref = inject(MatDialogRef<ImportStudentsDialog>);
 
   secciones = signal<Seccion[]>([]);
   periodos = signal<Periodo[]>([]);
@@ -45,22 +51,23 @@ export class ImportStudents implements OnInit {
     periodo_id: [null as number | null, Validators.required],
   });
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.api.get<Seccion[]>('academic/secciones').subscribe({
-      next: r => this.secciones.set(r.data),
+      next: r => this.secciones.set((r as any).data ?? []),
       error: () => this.secciones.set([]),
     });
     this.api.get<Periodo[]>('academic/periodos').subscribe({
       next: r => {
-        this.periodos.set(r.data);
-        const activo = r.data.find(p => p.activo);
+        const data: Periodo[] = (r as any).data ?? [];
+        this.periodos.set(data);
+        const activo = data.find(p => p.activo);
         if (activo) this.form.patchValue({ periodo_id: activo.id });
       },
       error: () => this.periodos.set([]),
     });
   }
 
-  pickFile(ev: Event) {
+  pickFile(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     const f = input.files?.[0] ?? null;
     if (f && !f.name.toLowerCase().endsWith('.csv')) {
@@ -69,37 +76,50 @@ export class ImportStudents implements OnInit {
       return;
     }
     this.archivo.set(f);
+    this.resultado.set(null);
   }
 
-  importar() {
+  importar(): void {
     if (this.form.invalid || !this.archivo()) {
       this.form.markAllAsTouched();
-      if (!this.archivo()) this.toastr.error('Selecciona un CSV', 'Error');
+      if (!this.archivo()) this.toastr.error('Selecciona un archivo CSV', 'Error');
       return;
     }
-    const v = this.form.value;
+
+    const { seccion_id, periodo_id } = this.form.value;
     const fd = new FormData();
     fd.append('file', this.archivo()!);
+
     this.uploading.set(true);
     this.resultado.set(null);
 
     this.api.postForm<ImportResult>(
-      `admin/import/students?seccion_id=${v.seccion_id}&periodo_id=${v.periodo_id}`,
+      `admin/import/students?seccion_id=${seccion_id}&periodo_id=${periodo_id}`,
       fd,
     ).subscribe({
       next: r => {
-        this.resultado.set(r.data);
+        const data: ImportResult = (r as any).data;
+        this.resultado.set(data);
         this.uploading.set(false);
-        this.toastr.error(`\$\{r.data.creados\} alumnos creados, \$\{r.data.matriculados\} matriculados`, 'Error');
+        this.toastr.success(
+          `${data.creados} creados · ${data.matriculados} matriculados`,
+          'Importación completada',
+        );
       },
       error: e => {
         this.uploading.set(false);
-        this.toastr.error(e?.error?.message || 'Error en la importación', 'Error');
+        this.toastr.error(e?.error?.message ?? 'Error en la importación', 'Error');
       },
     });
   }
 
-  descargarPlantilla() {
+  descargarPlantilla(): void {
     window.open(`${environment.apiUrl}/admin/import/students/template`, '_blank');
+  }
+
+  cerrar(): void {
+    // Si hubo importación exitosa, cierra con `true` para que
+    // el padre pueda recargar la lista de matrículas.
+    this.ref.close(this.resultado() !== null);
   }
 }

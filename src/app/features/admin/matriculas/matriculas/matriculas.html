@@ -1,0 +1,202 @@
+<div class="matriculas-page">
+
+    <!-- ══ HEADER ════════════════════════════════════════════════ -->
+    <div class="page-header">
+        <div class="header-left">
+            <h2 class="page-title">Matrículas</h2>
+            <p class="page-subtitle">Gestiona las matrículas de alumnos por sección y periodo</p>
+        </div>
+        <div class="header-actions">
+            <button mat-stroked-button (click)="abrirCargaMasiva()" matTooltip="Importar alumnos desde CSV">
+                <mat-icon>upload_file</mat-icon>
+                <span>Carga masiva</span>
+            </button>
+            <button mat-flat-button color="primary" (click)="matricularAlumno()">
+                <mat-icon>person_add</mat-icon>
+                <span>Matricular alumno</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ FILTROS ═══════════════════════════════════════════════ -->
+    @if (!loadingFiltros()) {
+    <div class="filters-card">
+        <div class="filters-row">
+
+            <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Periodo</mat-label>
+                <mat-select [formControl]="periodoFiltro">
+                    @for (p of periodos(); track p.id) {
+                    <mat-option [value]="p.id">
+                        {{ p.nombre }}
+                        @if (p.activo) {<span class="opt-active"> · activo</span>}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Grado</mat-label>
+                <mat-select [formControl]="gradoFiltro">
+                    <mat-option [value]="null">Todos los grados</mat-option>
+                    @for (g of grados(); track g.id) {
+                    <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Sección</mat-label>
+                <mat-select [formControl]="seccionFiltro">
+                    <mat-option [value]="null">Todas las secciones</mat-option>
+                    @for (s of seccionesFiltradas(); track s.id) {
+                    <mat-option [value]="s.id">
+                        {{ s.grado?.nombre }} — {{ s.nombre }}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <div class="filter-btns">
+                <button mat-flat-button color="primary" (click)="aplicarFiltros()">
+                    <mat-icon>search</mat-icon> Buscar
+                </button>
+                @if (hayFiltrosActivos()) {
+                <button mat-icon-button (click)="limpiarFiltros()" matTooltip="Limpiar filtros">
+                    <mat-icon>filter_alt_off</mat-icon>
+                </button>
+                }
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <mat-icon>search</mat-icon>
+            <input [formControl]="busqueda" placeholder="Buscar por nombre o código de estudiante..." />
+            @if (busqueda.value) {
+            <button class="clear-btn" (click)="busqueda.setValue('')" matTooltip="Limpiar búsqueda">
+                <mat-icon>close</mat-icon>
+            </button>
+            }
+        </div>
+    </div>
+    }
+
+    <!-- ══ STATS ══════════════════════════════════════════════════ -->
+    @if (!loading() && !loadingFiltros() && matriculas().length > 0) {
+    <div class="stats-bar">
+        <div class="stat">
+            <span class="stat-num">{{ matriculasFiltradas().length }}</span>
+            <span class="stat-lbl">resultados</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num success">{{ totalActivas() }}</span>
+            <span class="stat-lbl">activas</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num muted">{{ totalInactivas() }}</span>
+            <span class="stat-lbl">inactivas</span>
+        </div>
+    </div>
+    }
+
+    <!-- ══ ESTADOS ════════════════════════════════════════════════ -->
+    @if (loading() || loadingFiltros()) {
+    <div class="center-state">
+        <mat-spinner diameter="36"></mat-spinner>
+        <p>Cargando matrículas...</p>
+    </div>
+
+    } @else if (matriculasFiltradas().length === 0) {
+    <div class="center-state empty">
+        <div class="empty-icon"><mat-icon>how_to_reg</mat-icon></div>
+        <p class="empty-title">
+            {{ matriculas().length === 0 ? 'Sin matrículas para este periodo' : 'Sin resultados para la búsqueda' }}
+        </p>
+        <p class="empty-hint">
+            {{ matriculas().length === 0
+            ? 'Usa "Matricular alumno" o "Carga masiva" para agregar estudiantes.'
+            : 'Intenta con otro nombre o código.' }}
+        </p>
+    </div>
+
+    } @else {
+
+    <!-- ══ TABLA ══════════════════════════════════════════════════ -->
+    <div class="table-card">
+        <table class="mat-table">
+            <thead>
+                <tr>
+                    <th class="col-alumno">Alumno</th>
+                    <th class="col-codigo">Código</th>
+                    <th class="col-seccion">Grado / Sección</th>
+                    <th class="col-periodo">Periodo</th>
+                    <th class="col-fecha">Fecha matrícula</th>
+                    <th class="col-estado">Estado</th>
+                    <th class="col-acciones"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (m of matriculasPaginadas(); track m.id) {
+                <tr [class.row-inactive]="!m.activo">
+
+                    <!-- Alumno -->
+                    <td class="col-alumno">
+                        <div class="alumno-cell">
+                            <div class="avatar" [class.avatar-inactive]="!m.activo">
+                                {{ getInitials(m.nombre, m.apellido_paterno) }}
+                            </div>
+                            <span class="alumno-name">
+                                {{ m.apellido_paterno }}{{ m.apellido_materno ? ' ' + m.apellido_materno : '' }},
+                                {{ m.nombre }}
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Código -->
+                    <td class="col-codigo">
+                        <code class="code-badge">{{ m.codigo_estudiante }}</code>
+                    </td>
+
+                    <!-- Grado / Sección -->
+                    <td class="col-seccion">
+                        <span class="grado-label">{{ m.grado_nombre }}</span>
+                        <span class="seccion-sub">Sección {{ m.seccion_nombre }}</span>
+                    </td>
+
+                    <!-- Periodo -->
+                    <td class="col-periodo">{{ getPeriodoNombre(m.periodo_id) }}</td>
+
+                    <!-- Fecha -->
+                    <td class="col-fecha">{{ m.fecha_matricula | date:'dd/MM/yyyy' }}</td>
+
+                    <!-- Estado -->
+                    <td class="col-estado">
+                        <span class="status-pill" [class.active]="m.activo">
+                            <span class="dot"></span>
+                            {{ m.activo ? 'Activa' : 'Inactiva' }}
+                        </span>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="col-acciones">
+                        @if (m.activo) {
+                        <button class="action-btn" (click)="retirarAlumno(m)" matTooltip="Retirar alumno de la sección">
+                            <mat-icon>person_remove</mat-icon>
+                        </button>
+                        }
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+
+        <mat-paginator [length]="matriculasFiltradas().length" [pageSize]="pageSize()"
+            [pageSizeOptions]="[10, 15, 25, 50]" [pageIndex]="page()" (page)="onPageChange($event)"
+            class="table-paginator">
+        </mat-paginator>
+    </div>
+    }
+
+</div>
