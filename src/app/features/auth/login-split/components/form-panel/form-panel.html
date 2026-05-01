@@ -1,0 +1,86 @@
+<div class="form-panel">
+
+    <div class="form-panel__inner">
+
+        <!-- Header -->
+        <div class="form-panel__header">
+            <div class="form-panel__welcome">Bienvenido</div>
+            <h2 class="form-panel__title">Inicia sesión</h2>
+            <p class="form-panel__subtitle">
+                Ingresa tu código de acceso institucional para continuar
+            </p>
+        </div>
+
+        <!-- Formulario -->
+        <form [formGroup]="form" (ngSubmit)="submit()" class="form-panel__form">
+
+            <!-- Código de acceso -->
+            <mat-form-field appearance="outline" class="form-panel__field">
+                <mat-label>Código de acceso</mat-label>
+                <mat-icon matPrefix class="form-panel__field-icon">badge</mat-icon>
+                <input matInput formControlName="codigo_acceso" placeholder="EST-00000000" autocomplete="username"
+                    style="text-transform: uppercase; letter-spacing: 0.05em;" />
+                @if (form.controls.codigo_acceso.hasError('required') && form.controls.codigo_acceso.touched) {
+                <mat-error>El código de acceso es obligatorio</mat-error>
+                }
+                @if (form.controls.codigo_acceso.hasError('minlength') && form.controls.codigo_acceso.touched) {
+                <mat-error>Código inválido</mat-error>
+                }
+            </mat-form-field>
+
+            <!-- Contraseña -->
+            <mat-form-field appearance="outline" class="form-panel__field">
+                <mat-label>Contraseña</mat-label>
+                <mat-icon matPrefix class="form-panel__field-icon">lock</mat-icon>
+                <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+                    autocomplete="current-password" />
+                <button mat-icon-button matSuffix type="button" (click)="togglePassword()">
+                    <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+                <mat-error>La contraseña es obligatoria</mat-error>
+                }
+            </mat-form-field>
+
+            <!-- Hint formatos -->
+            <div class="form-panel__hints">
+                <span class="form-panel__hint-chip">EST-DNI</span>
+                <span class="form-panel__hint-chip">DOC-DNI</span>
+                <span class="form-panel__hint-chip">PAD-DNI</span>
+                <span class="form-panel__hint-chip">ADM-DNI</span>
+            </div>
+
+            <!-- Error -->
+            @if (error()) {
+            <div class="form-panel__error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ error() }}</span>
+            </div>
+            }
+
+            <!-- Botón -->
+            <button mat-flat-button type="submit" class="form-panel__btn" [disabled]="form.invalid || loading()">
+                @if (loading()) {
+                <ng-container>
+                    <mat-spinner diameter="20" />
+                    <span>Verificando...</span>
+                </ng-container>
+                } @else {
+                <ng-container>
+                    <mat-icon>login</mat-icon>
+                    <span>Ingresar</span>
+                </ng-container>
+                }
+            </button>
+
+        </form>
+
+        <!-- Footer -->
+        <p class="form-panel__footer-note">
+            <mat-icon>info_outline</mat-icon>
+            Tu contraseña por defecto es tu número de documento
+        </p>
+
+    </div>
+
+</div>

@@ -22,7 +22,6 @@ import {
 import { TaskService } from '../../stores/task';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
-import { LoadingSkeleton } from '../../../../shared/components/loading-skeleton/loading-skeleton';
 import { TaskSubmissionsPane } from '../../task-submissions-pane/task-submissions-pane';
 import { MySubmissionView } from '../../my-submission-view/my-submission-view';
 
@@ -31,7 +30,7 @@ import { MySubmissionView } from '../../my-submission-view/my-submission-view';
   imports: [
     MatCardModule, MatIconModule, MatButtonModule, MatChipsModule,
     DatePipe, RouterLink,
-    PageHeader, EmptyState, LoadingSkeleton,
+    PageHeader, EmptyState
   ],
   templateUrl: './task-list.html',
   styleUrl: './task-list.scss',
@@ -119,9 +118,9 @@ export class TaskList implements OnInit {
         this.tasks.update(list =>
           list.map(x => x.id === t.id ? { ...x, activo: r.data.activo } : x),
         );
-        this.toastr.success(r.data.activo ? 'Tarea publicada' : 'Tarea oculta', 'Éxito');
+        this.toastr.success(r.data.activo ? 'Tarea publicada' : 'Tarea oculta', 'ï¿½xito');
       },
-      error: () => this.toastr.success('No se pudo actualizar la tarea', 'Éxito'),
+      error: () => this.toastr.success('No se pudo actualizar la tarea', 'ï¿½xito'),
     });
   }
 

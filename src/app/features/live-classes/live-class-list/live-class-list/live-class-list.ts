@@ -8,7 +8,7 @@ import { AuthService } from '../../../../core/auth/auth';
 import { ApiService } from '../../../../core/services/api';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
-import { LoadingSkeleton } from '../../../../shared/components/loading-skeleton/loading-skeleton';
+
 import { DatePipe, TitleCasePipe } from '@angular/common';
 
 interface LiveClass {
@@ -27,7 +27,7 @@ interface LiveClass {
   standalone: true,
   imports: [
     MatCardModule, MatButtonModule, MatIconModule, MatChipsModule,
-    DatePipe, TitleCasePipe,RouterLink, PageHeader, EmptyState, LoadingSkeleton,
+    DatePipe, TitleCasePipe,RouterLink, PageHeader, EmptyState
   ],
   templateUrl: './live-class-list.html',
   styleUrl: './live-class-list.scss',

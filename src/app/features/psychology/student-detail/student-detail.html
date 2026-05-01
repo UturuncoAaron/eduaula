@@ -1,0 +1,75 @@
+<div class="page-container">
+    <button mat-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon> Volver a la Agenda
+    </button>
+
+    @if (store.isLoading()) {
+    <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <span class="mat-body-1">Cargando información clínica...</span>
+    </div>
+    } @else if (store.selectedStudent(); as student) {
+
+    <!-- Cabecera del Perfil con MatCard -->
+    <mat-card class="profile-header-card">
+        <mat-card-header>
+            <div mat-card-avatar class="avatar-placeholder">
+                {{ student.names.charAt(0) }}
+            </div>
+            <mat-card-title class="mat-headline-5">{{ student.names }}</mat-card-title>
+            <mat-card-subtitle>
+                {{ student.grade }} - {{ student.section }} | Código: {{ student.studentId }}
+            </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-actions align="end">
+            <button mat-flat-button color="accent">
+                <mat-icon>note_add</mat-icon> Añadir Nota Clínica
+            </button>
+        </mat-card-actions>
+    </mat-card>
+
+    <!-- Navegación de Pestañas con MatTabs -->
+    <mat-tab-group animationDuration="0ms" class="content-tabs">
+
+        <mat-tab label="Ficha Psicológica">
+            <mat-card class="tab-card-content">
+                <mat-card-content>
+                    <h3 class="mat-h3">Anotaciones Generales</h3>
+                    <p class="mat-body-1">
+                        <strong>Motivo de derivación:</strong><br>
+                        {{ student.referralReason || 'No especificado' }}
+                    </p>
+                    <mat-divider></mat-divider>
+                    <p class="mat-body-1 mt-3">
+                        <strong>Observaciones clínicas:</strong><br>
+                        {{ student.clinicalNotes || 'Sin observaciones recientes registradas en el sistema.' }}
+                    </p>
+                </mat-card-content>
+            </mat-card>
+        </mat-tab>
+
+        <mat-tab label="Historial de Citas">
+            <mat-card class="tab-card-content">
+                <mat-card-content>
+                    <mat-list>
+                        <!-- Aquí iterarías sobre tu array de historial -->
+                        <mat-list-item>
+                            <mat-icon matListItemIcon>event_available</mat-icon>
+                            <div matListItemTitle>Sesión de Seguimiento</div>
+                            <div matListItemLine>15 Abril 2026</div>
+                            <div matListItemLine class="text-wrap">
+                                El alumno muestra mejoras en concentración. Acordamos próxima sesión en 15 días.
+                            </div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                    </mat-list>
+                </mat-card-content>
+            </mat-card>
+        </mat-tab>
+
+    </mat-tab-group>
+
+    } @else {
+    <div class="error-state mat-body-1">No se pudo cargar la información del alumno.</div>
+    }
+</div>

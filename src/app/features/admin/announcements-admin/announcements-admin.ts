@@ -13,7 +13,6 @@ import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 interface Announcement {
@@ -32,7 +31,7 @@ interface Announcement {
     ReactiveFormsModule, DatePipe,
     MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatChipsModule,
-    MatDialogModule, PageHeader, EmptyState, LoadingSkeleton,
+    MatDialogModule, PageHeader, EmptyState
   ],
   templateUrl: './announcements-admin.html',
   styleUrl: './announcements-admin.scss',

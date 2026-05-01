@@ -4,19 +4,11 @@ import { roleGuard } from './core/guards/role-guard';
 
 export const routes: Routes = [
 
-    // ─── Auth ─────────────────────────────────────────────────────────────────
+    // ─── Login ────────────────────────────────────────────────────────────────
     {
-        path: 'auth',
+        path: 'auth/login',
         loadComponent: () =>
-            import('./layouts/auth-layout/auth-layout').then(c => c.AuthLayoutComponent),
-        children: [
-            {
-                path: 'login',
-                loadComponent: () =>
-                    import('./features/auth/login/login').then(c => c.Login),
-            },
-            { path: '', redirectTo: 'login', pathMatch: 'full' },
-        ],
+            import('./features/auth/login-split/login-split').then(c => c.LoginSplit),
     },
 
     // ─── App principal (requiere sesión) ──────────────────────────────────────
@@ -26,7 +18,6 @@ export const routes: Routes = [
         loadComponent: () =>
             import('./layouts/main-layout/main-layout').then(c => c.MainLayout),
         children: [
-
             {
                 path: 'dashboard',
                 loadChildren: () =>
@@ -37,7 +28,6 @@ export const routes: Routes = [
                 loadChildren: () =>
                     import('./features/courses/courses.routes').then(r => r.COURSES_ROUTES),
             },
-            // Tareas unifica el antiguo módulo de exámenes
             {
                 path: 'tareas',
                 loadChildren: () =>
@@ -82,7 +72,6 @@ export const routes: Routes = [
                 loadChildren: () =>
                     import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
             },
-
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
         ],
     },

@@ -7,7 +7,7 @@
 </app-page-header>
 
 @if (loading()) {
-<app-loading-skeleton [count]="3" />
+
 } @else if (classes().length === 0) {
 <app-empty-state icon="videocam_off" title="Sin clases programadas" message="No hay clases en vivo próximas." />
 } @else {

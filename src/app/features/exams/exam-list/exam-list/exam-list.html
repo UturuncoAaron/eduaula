@@ -7,7 +7,7 @@
 </app-page-header>
 
 @if (loading()) {
-<app-loading-skeleton [count]="3" />
+
 } @else if (exams().length === 0) {
 <app-empty-state icon="quiz" title="Sin exámenes" message="No hay exámenes disponibles en este momento." />
 } @else {

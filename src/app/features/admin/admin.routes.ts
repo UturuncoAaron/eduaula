@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 
 export const ADMIN_ROUTES: Routes = [
-
   { path: '', redirectTo: 'academico', pathMatch: 'full' },
 
   // ─── Académico ────────────────────────────────────────────────────────────
@@ -16,12 +15,38 @@ export const ADMIN_ROUTES: Routes = [
       import('./academic-setup/periodos-tab/periodos-tab').then(c => c.PeriodosTab),
   },
 
-  // ─── Usuarios ─────────────────────────────────────────────────────────────
+  // ─── Gestión de Usuarios (Vistas Separadas) ───────────────────────────────
+
+  // 1. Rutas específicas para cada lista (Apuntan directo a tus componentes Tab)
   {
-    path: 'usuarios/:tipo',
+    path: 'usuarios/alumnos',
     loadComponent: () =>
-      import('./user-management/user-management/user-management').then(c => c.UserManagement),
+      import('./user-management/tabs/tab-alumnos/tab-alumnos').then(c => c.TabAlumnos),
   },
+  {
+    path: 'usuarios/padres',
+    loadComponent: () =>
+      import('./user-management/tabs/tab-padres/tab-padres').then(c => c.TabPadres),
+  },
+  {
+    path: 'usuarios/docentes',
+    loadComponent: () =>
+      import('./user-management/tabs/tab-docentes/tab-docentes').then(c => c.TabDocentes),
+  },
+  {
+    path: 'usuarios/admins',
+    loadComponent: () =>
+      import('./user-management/tabs/tab-admins/tab-admins').then(c => c.TabAdmins),
+  },
+  {
+    path: 'usuarios/psicologos',
+    loadComponent: () =>
+      // Nota: Deberás crear este componente 'tab-psicologos' en tu carpeta tabs 
+      // copiando la estructura de los otros para listar a los psicólogos
+      import('./user-management/tabs/tab-psicologos/tab-psicologos').then(c => c.TabPsicologos),
+  },
+
+  // 2. Ruta dinámica para el perfil individual (SIEMPRE AL FINAL DEL BLOQUE USUARIOS)
   {
     path: 'usuarios/:tipo/:id',
     loadComponent: () =>
@@ -62,5 +87,4 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./import-students/import-students-dialog').then(c => c.ImportStudentsDialog),
   },
-
 ];

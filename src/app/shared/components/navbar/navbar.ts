@@ -42,6 +42,7 @@ export class Navbar {
     docente: 'Docente',
     admin: 'Administrador',
     padre: 'Padre / Tutor',
+    psicologa: 'Psicóloga', // <-- Agregado
   };
 
   private roleColors: Record<UserRole, string> = {
@@ -49,6 +50,7 @@ export class Navbar {
     docente: '#f59e0b',
     admin: '#ef4444',
     padre: '#8b5cf6',
+    psicologa: '#0ea5e9', // <-- Agregado (Color Azul Claro/Cyan)
   };
 
   roleLabel = computed(() => {

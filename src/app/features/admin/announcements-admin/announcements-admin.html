@@ -45,7 +45,6 @@
         <h3 class="section-title">Publicados</h3>
 
         @if (loading()) {
-        <app-loading-skeleton [count]="3" />
         } @else if (list().length === 0) {
         <app-empty-state icon="campaign" title="Sin comunicados" message="Aún no se ha publicado ningún comunicado." />
         } @else {

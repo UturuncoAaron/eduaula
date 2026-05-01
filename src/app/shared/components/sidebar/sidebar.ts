@@ -60,9 +60,7 @@ export class Sidebar implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const rol = this.user()?.rol as UserRole | undefined;
-
-    // Comprobar si el docente/admin es tutor de alguna sección
-    if (rol === 'docente' || rol === 'admin') {
+    if (rol === 'docente') {
       this.http
         .get<unknown>(`${environment.apiUrl}/academic/tutoria/me`)
         .pipe(catchError(() => of(null)))

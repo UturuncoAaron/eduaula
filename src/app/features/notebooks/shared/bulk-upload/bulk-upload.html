@@ -142,14 +142,15 @@
         <button mat-button (click)="cancel()" [disabled]="isSubmitting()">
             Cancelar
         </button>
+        
         <button mat-flat-button color="primary" (click)="submit()" [disabled]="!canSubmit()">
             @if (isSubmitting()) {
             <mat-spinner diameter="18"></mat-spinner>
             Subiendo…
-            } @else {
+            } @else { <ng-container>
             <mat-icon>cloud_upload</mat-icon>
             Subir {{ stats().ready }} libreta{{ stats().ready === 1 ? '' : 's' }}
-            }
+            </ng-container> }
         </button>
     </footer>
 </div>

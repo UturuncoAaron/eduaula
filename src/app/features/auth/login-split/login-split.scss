@@ -1,0 +1,20 @@
+:host {
+    display: block;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+.split-layout {
+    display: grid;
+    grid-template-columns: 55% 45%;
+    height: 100%;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+
+        .split-layout__brand {
+            display: none;
+        }
+    }
+}

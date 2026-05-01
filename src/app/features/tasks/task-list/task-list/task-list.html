@@ -7,7 +7,7 @@
 </app-page-header>
 
 @if (loading()) {
-<app-loading-skeleton [count]="3" />
+
 } @else if (!hasData()) {
 <app-empty-state icon="assignment" title="Sin tareas" message="No hay tareas registradas." />
 } @else {

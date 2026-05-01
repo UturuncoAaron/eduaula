@@ -1,18 +1,18 @@
-// src/app/core/models/user.ts
-
 export type TipoDocumento = 'dni' | 'ce' | 'pasaporte';
-export type Rol = 'alumno' | 'docente' | 'admin' | 'padre';
+export type Rol = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa';
 
 export interface User {
     id: string;
     tipo_documento: TipoDocumento;
     numero_documento: string;
+    codigo_acceso: string;
     nombre: string;
     apellido_paterno: string;
     apellido_materno: string | null;
     foto_url: string | null;
     rol: Rol;
     activo: boolean;
+    password_changed: boolean;
     email: string | null;
     telefono: string | null;
     codigo_estudiante: string | null;
@@ -24,8 +24,7 @@ export interface User {
 }
 
 export interface LoginPayload {
-    tipo_documento: TipoDocumento;
-    numero_documento: string;
+    codigo_acceso: string;
     password: string;
 }
 
@@ -33,6 +32,12 @@ export interface LoginResponse {
     success: boolean;
     data: {
         token: string;
+        password_changed: boolean;
         user: User;
     };
+}
+
+export interface ChangePasswordPayload {
+    current_password: string;
+    new_password: string;
 }

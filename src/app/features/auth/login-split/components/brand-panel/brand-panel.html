@@ -1,0 +1,53 @@
+<div class="brand">
+    <div class="brand__overlay"></div>
+
+    <div class="brand__content">
+
+        <!-- Logo -->
+        <div class="brand__logo-wrap">
+            <img src="assets/images/logo-colegio.png" alt="Logo IE" class="brand__logo"
+                onerror="this.style.display='none'" />
+        </div>
+
+        <!-- Nombre y ubicación -->
+        <div class="brand__identity">
+            <h1 class="brand__name">{{ nombreColegio() }}</h1>
+            <p class="brand__location">
+                <span class="brand__dot"></span>
+                {{ ugel() }}
+            </p>
+        </div>
+
+        <!-- Divider decorativo -->
+        <div class="brand__divider">
+            <span></span>
+            <span class="brand__divider-text">Año Escolar {{ anioEscolar() }}</span>
+            <span></span>
+        </div>
+
+        <!-- Stats -->
+        <div class="brand__stats">
+            @for (stat of stats(); track stat.label) {
+            <div class="brand__stat">
+                <mat-icon class="brand__stat-icon">{{ stat.icon }}</mat-icon>
+                <span class="brand__stat-value">{{ stat.value }}</span>
+                <span class="brand__stat-label">{{ stat.label }}</span>
+            </div>
+            }
+        </div>
+
+        @if (director()) {
+        <p class="brand__director">
+            <mat-icon>manage_accounts</mat-icon>
+            Dir. {{ director() }}
+        </p>
+        }
+
+        <!-- Footer -->
+        <div class="brand__footer">
+            <div class="brand__badge">Plataforma Educativa Virtual</div>
+            <p class="brand__powered">Powered by EduAula</p>
+        </div>
+
+    </div>
+</div>

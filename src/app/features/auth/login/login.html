@@ -1,33 +1,18 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
 
-    <!-- Tipo de documento -->
+    <!-- Código de acceso -->
     <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Tipo de documento</mat-label>
-        <mat-select formControlName="tipo_documento" (selectionChange)="onDocTypeChange()">
-            <mat-option value="dni">
-                <mat-icon>badge</mat-icon> DNI — Documento Nacional de Identidad
-            </mat-option>
-            <mat-option value="ce">
-                <mat-icon>card_membership</mat-icon> CE — Carné de Extranjería
-            </mat-option>
-            <mat-option value="pasaporte">
-                <mat-icon>book</mat-icon> Pasaporte
-            </mat-option>
-        </mat-select>
-    </mat-form-field>
-
-    <!-- Número de documento -->
-    <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Número de documento</mat-label>
-        <mat-icon matPrefix>person</mat-icon>
-        <input matInput formControlName="numero_documento" [maxlength]="maxLength" [placeholder]="docPlaceholder"
-            autocomplete="username" />
-        @if (form.controls.numero_documento.hasError('required') && form.controls.numero_documento.touched) {
-        <mat-error>El número de documento es obligatorio</mat-error>
+        <mat-label>Código de acceso</mat-label>
+        <mat-icon matPrefix>badge</mat-icon>
+        <input matInput formControlName="codigo_acceso" placeholder="EST-12345678 / DOC-12345678"
+            autocomplete="username" style="text-transform: uppercase" />
+        @if (form.controls.codigo_acceso.hasError('required') && form.controls.codigo_acceso.touched) {
+        <mat-error>El código de acceso es obligatorio</mat-error>
         }
-        @if (form.controls.numero_documento.hasError('minlength') && form.controls.numero_documento.touched) {
-        <mat-error>Mínimo 6 caracteres</mat-error>
+        @if (form.controls.codigo_acceso.hasError('minlength') && form.controls.codigo_acceso.touched) {
+        <mat-error>Código inválido</mat-error>
         }
+        <mat-hint>Formato: EST-DNI · DOC-DNI · PAD-DNI · ADM-DNI</mat-hint>
     </mat-form-field>
 
     <!-- Contraseña -->
@@ -42,6 +27,7 @@
         @if (form.controls.password.hasError('required') && form.controls.password.touched) {
         <mat-error>La contraseña es obligatoria</mat-error>
         }
+        <mat-hint>Por defecto: tu número de documento</mat-hint>
     </mat-form-field>
 
     <!-- Error general -->
@@ -52,13 +38,11 @@
     </div>
     }
 
-    <!-- Botón -->
+    <!-- Botón — @else envuelto en ng-container para evitar warning de content projection -->
     <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="form.invalid || loading()">
         @if (loading()) {
-        <ng-container>
-            <mat-spinner diameter="20" />
-            Ingresando...
-        </ng-container>
+        <mat-spinner diameter="20" />
+        Ingresando...
         } @else {
         <ng-container>
             <mat-icon>login</mat-icon>

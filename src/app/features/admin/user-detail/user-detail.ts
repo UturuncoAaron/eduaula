@@ -13,7 +13,6 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
-import { LoadingSkeleton } from '../../../shared/components/loading-skeleton/loading-skeleton';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 type Tipo = 'alumnos' | 'docentes' | 'padres' | 'admins';
@@ -25,7 +24,7 @@ type Tipo = 'alumnos' | 'docentes' | 'padres' | 'admins';
     ReactiveFormsModule, DatePipe,
     MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatChipsModule, MatDividerModule,
-    MatDialogModule, PageHeader, LoadingSkeleton,
+    MatDialogModule, PageHeader
   ],
   templateUrl: './user-detail.html',
   styleUrl: './user-detail.scss',

@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -13,43 +13,32 @@ import { AuthService } from '../../../core/auth/auth';
   selector: 'app-login',
   imports: [
     ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './login.html',
-  styleUrl: './login.scss'
+  styleUrl: './login.scss',
 })
 export class Login {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   loading = signal(false);
   error = signal('');
   showPassword = signal(false);
 
   form = this.fb.group({
-    tipo_documento: ['dni', Validators.required],
-    numero_documento: ['', [Validators.required, Validators.minLength(6)]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    codigo_acceso: ['', [Validators.required, Validators.minLength(5)]],
+    password: ['', [Validators.required, Validators.minLength(4)]],
   });
-
-  get maxLength(): number {
-    const t = this.form.value.tipo_documento as string;
-    return t === 'dni' ? 8 : t === 'ce' ? 12 : 20;
-  }
-
-  get docPlaceholder(): string {
-    const t = this.form.value.tipo_documento as string;
-    return t === 'dni' ? '8 dígitos' : t === 'ce' ? 'Hasta 12 caracteres' : 'Hasta 20 caracteres';
-  }
 
   togglePassword() {
     this.showPassword.update(v => !v);
-  }
-
-  onDocTypeChange() {
-    this.form.controls.numero_documento.reset('');
   }
 
   submit() {
@@ -61,30 +50,59 @@ export class Login {
       next: () => {
         const user = this.auth.currentUser();
 
-        if (!user || !user.rol) {
-          this.error.set('Error de integridad: Cuenta sin rol asignado.');
+        if (!user?.rol) {
+          this.error.set('Error de integridad: cuenta sin rol asignado.');
           this.loading.set(false);
           this.auth.logout();
           return;
         }
 
-        // Redirección escalable
-        switch (user.rol) {
-          case 'alumno': this.router.navigate(['/dashboard/alumno']); break;
-          case 'docente': this.router.navigate(['/dashboard/docente']); break;
-          case 'padre': this.router.navigate(['/dashboard/padre']); break;
-          case 'admin': this.router.navigate(['/dashboard/admin']); break;
-          default:
-            this.error.set('Rol no reconocido por el sistema');
-            this.loading.set(false);
-            this.auth.logout();
-            break;
+        // Si no ha cambiado la contraseña → abrir modal obligatorio antes de redirigir
+        if (!this.auth.passwordChanged()) {
+          this.openChangePasswordDialog(user.rol);
+          this.loading.set(false);
+          return;
         }
+
+        this.redirectByRole(user.rol);
       },
       error: (msg: string) => {
-        this.error.set(msg || 'Documento o contraseña incorrectos');
+        this.error.set(msg || 'Código de acceso o contraseña incorrectos');
         this.loading.set(false);
-      }
+      },
     });
+  }
+
+  private async openChangePasswordDialog(rol: string) {
+    const { ChangePasswordDialog } = await import(
+      '../../../shared/components/change-password-dialog/change-password-dialog'
+    );
+
+    const ref = this.dialog.open(ChangePasswordDialog, {
+      width: '420px',
+      disableClose: true,   // no se puede cerrar sin cambiar
+      data: { rol },
+    });
+
+    ref.afterClosed().subscribe(() => {
+      this.redirectByRole(rol);
+    });
+  }
+
+  private redirectByRole(rol: string) {
+    const routes: Record<string, string> = {
+      alumno: '/dashboard/alumno',
+      docente: '/dashboard/docente',
+      padre: '/dashboard/padre',
+      admin: '/dashboard/admin',
+      psicologa: '/dashboard/psicologa',
+    };
+    const route = routes[rol];
+    if (route) {
+      this.router.navigate([route]);
+    } else {
+      this.error.set('Rol no reconocido por el sistema');
+      this.auth.logout();
+    }
   }
 }

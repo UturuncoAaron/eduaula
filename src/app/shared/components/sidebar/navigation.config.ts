@@ -2,7 +2,7 @@
 // navigation.config.ts
 // ═══════════════════════════════════════════════════════════════
 
-export type UserRole = 'alumno' | 'docente' | 'admin' | 'padre';
+export type UserRole = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa';
 
 export interface NavItem {
   label: string;
@@ -22,7 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Dashboard',
     icon: 'dashboard',
     route: '/dashboard',
-    roles: ['alumno', 'docente', 'admin', 'padre'],
+    roles: ['alumno', 'docente', 'admin', 'padre', 'psicologa'], // Agregado psicologa
     exactMatch: true,
   },
 
@@ -63,7 +63,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Mi Tutoría',
     icon: 'school',
     route: '/mi-tutoria',
-    roles: ['docente', 'admin'],
+    roles: ['docente'], // CORRECCIÓN: Quitamos 'admin', solo los docentes pueden ser tutores
     requiresTutor: true,
     exactMatch: true,
     dividerBefore: true,
@@ -87,85 +87,53 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // PSICOLOGÍA (NUEVO)
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    label: 'Agenda y Citas',
+    icon: 'event',
+    route: '/psychology/appointments',
+    roles: ['psicologa'],
+    dividerBefore: true,
+  },
+  {
+    label: 'Mis Alumnos',
+    icon: 'groups',
+    route: '/psychology/students', // Asumiendo que crearás una vista de lista más adelante
+    roles: ['psicologa'],
+  },
+  // La vista de la ficha (student/:id) no va aquí porque se navega desde las listas
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // ADMIN
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // ─── Académico ─────────────────────────────────────────────────────────────
+  // ... (El resto de tu configuración de Admin se mantiene exactamente igual)
   {
     label: 'Académico',
     icon: 'school',
     roles: ['admin'],
     dividerBefore: true,
     children: [
-      {
-        label: 'Grados y Cursos',
-        icon: 'class',
-        route: '/admin/academico',
-        roles: ['admin'],
-        exactMatch: true,
-      },
-      {
-        label: 'Periodos',
-        icon: 'calendar_month',
-        route: '/admin/periodos',
-        roles: ['admin'],
-        exactMatch: true,
-      },
-      {
-        label: 'Matrículas',
-        icon: 'how_to_reg',
-        route: '/admin/matriculas',
-        roles: ['admin'],
-        exactMatch: true,
-      },
-      {
-        label: 'Vínculo Padre-Hijo',
-        icon: 'family_restroom',
-        route: '/admin/padre-hijo',
-        roles: ['admin'],
-        exactMatch: true,
-      },
+      { label: 'Grados y Cursos', icon: 'class', route: '/admin/academico', roles: ['admin'], exactMatch: true },
+      { label: 'Periodos', icon: 'calendar_month', route: '/admin/periodos', roles: ['admin'], exactMatch: true },
+      { label: 'Matrículas', icon: 'how_to_reg', route: '/admin/matriculas', roles: ['admin'], exactMatch: true },
+      { label: 'Vínculo Padre-Hijo', icon: 'family_restroom', route: '/admin/padre-hijo', roles: ['admin'], exactMatch: true },
     ],
   },
-
-  // ─── Usuarios ──────────────────────────────────────────────────────────────
   {
     label: 'Usuarios',
     icon: 'manage_accounts',
     roles: ['admin'],
     children: [
-      {
-        label: 'Alumnos',
-        icon: 'person',
-        route: '/admin/usuarios/alumnos',
-        roles: ['admin'],
-        exactMatch: true,
-      },
-      {
-        label: 'Padres',
-        icon: 'family_restroom',
-        route: '/admin/usuarios/padres',
-        roles: ['admin'],
-        exactMatch: true,
-      },
-      {
-        label: 'Docentes',
-        icon: 'badge',
-        route: '/admin/usuarios/docentes',
-        roles: ['admin'],
-        exactMatch: true,
-      },
-      {
-        label: 'Administración',
-        icon: 'admin_panel_settings',
-        route: '/admin/usuarios/admins',
-        roles: ['admin'],
-        exactMatch: true,
-      },
+      { label: 'Alumnos', icon: 'person', route: '/admin/usuarios/alumnos', roles: ['admin'], exactMatch: true },
+      { label: 'Padres', icon: 'family_restroom', route: '/admin/usuarios/padres', roles: ['admin'], exactMatch: true },
+      { label: 'Docentes', icon: 'badge', route: '/admin/usuarios/docentes', roles: ['admin'], exactMatch: true },
+      { label: 'Administración', icon: 'admin_panel_settings', route: '/admin/usuarios/admins', roles: ['admin'], exactMatch: true },
+      // Añadimos a la psicóloga al gestor de usuarios del Admin
+      { label: 'Psicología', icon: 'psychology', route: '/admin/usuarios/psicologos', roles: ['admin'], exactMatch: true },
     ],
   },
-
-  // ─── Comunicados ──────────────────────────────────────────────────────────
   {
     label: 'Comunicados',
     icon: 'campaign',
@@ -174,8 +142,6 @@ export const NAV_ITEMS: NavItem[] = [
     exactMatch: true,
     dividerBefore: true,
   },
-
-  // ─── Reportes ─────────────────────────────────────────────────────────────
   {
     label: 'Reportes',
     icon: 'bar_chart',
@@ -183,28 +149,14 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['admin'],
     exactMatch: true,
   },
-
-  // ─── Configuración ────────────────────────────────────────────────────────
   {
     label: 'Configuración',
     icon: 'settings',
     roles: ['admin'],
     dividerBefore: true,
     children: [
-      {
-        label: 'Importar alumnos',
-        icon: 'upload_file',
-        route: '/admin/importar',
-        roles: ['admin'],
-        exactMatch: true,
-      },
-      {
-        label: 'Ajustes del sistema',
-        icon: 'tune',
-        route: '/admin/ajustes',
-        roles: ['admin'],
-        exactMatch: true,
-      },
+      { label: 'Importar alumnos', icon: 'upload_file', route: '/admin/importar', roles: ['admin'], exactMatch: true },
+      { label: 'Ajustes del sistema', icon: 'tune', route: '/admin/ajustes', roles: ['admin'], exactMatch: true },
     ],
   },
 ];

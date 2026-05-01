@@ -13,13 +13,12 @@ import { Course } from '../../../../core/models/course';
 import { Exam } from '../../../../core/models/exam';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
-import { LoadingSkeleton } from '../../../../shared/components/loading-skeleton/loading-skeleton';
 
 @Component({
   selector: 'app-exam-list',
   imports: [
     MatCardModule, MatIconModule, MatButtonModule, MatChipsModule,
-    DatePipe, RouterLink, PageHeader, EmptyState, LoadingSkeleton,
+    DatePipe, RouterLink, PageHeader, EmptyState
   ],
   templateUrl: './exam-list.html',
   styleUrl: './exam-list.scss',

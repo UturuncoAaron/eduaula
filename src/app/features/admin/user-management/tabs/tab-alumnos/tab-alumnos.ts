@@ -1,5 +1,5 @@
 import {
-  Component, inject, input, effect,
+  Component, inject, effect,
   ViewChild, OnInit, signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
@@ -10,10 +10,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDivider } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { ToastService } from 'ngx-toastr-notifier';
+
 import { ApiService } from '../../../../../core/services/api';
 import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+
+// Importa tu diálogo de creación (Ajusta la ruta si es necesario)
+import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
 
 export interface AlumnoRow {
   id: string;
@@ -33,9 +39,11 @@ export interface AlumnoRow {
 
 @Component({
   selector: 'app-tab-alumnos',
+  standalone: true,
   imports: [
     MatTableModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatMenuModule, MatDialogModule, MatDivider, DatePipe,
+    MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
+    MatFormFieldModule, MatInputModule, DatePipe,
   ],
   templateUrl: './tab-alumnos.html',
   styleUrl: './tab-alumnos.scss',
@@ -45,8 +53,8 @@ export class TabAlumnos implements OnInit {
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
 
-  active = input<boolean>(false);
-  searchTerm = input<string>('');
+  // Buscador reactivo
+  searchTerm = signal<string>('');
 
   dataSource = new MatTableDataSource<AlumnoRow>([]);
   displayedColumns = ['codigo', 'documento', 'nombre', 'grado', 'nacimiento', 'telefono', 'estado', 'acciones'];
@@ -55,7 +63,7 @@ export class TabAlumnos implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor() {
-    effect(() => { if (this.active()) this.loadData(); });
+    // Efecto para filtrar la tabla cada vez que el signal searchTerm cambie
     effect(() => {
       this.dataSource.filter = this.searchTerm().trim().toLowerCase();
       if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
@@ -68,23 +76,46 @@ export class TabAlumnos implements OnInit {
       row.nombre, row.apellido_paterno, row.apellido_materno ?? '',
       row.grado ?? '', row.seccion ?? '']
         .join(' ').toLowerCase().includes(filter);
+
+    this.loadData();
   }
 
   loadData() {
     this.loading.set(true);
-    this.api.get<AlumnoRow[]>('admin/users/alumnos').subscribe({
+    this.api.get<any>('admin/users/alumnos').subscribe({
       next: (res) => {
-        this.dataSource.data = res.data ?? [];
+        this.dataSource.data = res.data ?? res ?? [];
         setTimeout(() => { this.dataSource.paginator = this.paginator; });
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.toastr.error('Error al cargar la lista de alumnos', 'Error');
+        this.loading.set(false);
+      },
     });
   }
 
+  // ─── NUEVO: Abrir Modal de Creación ──────────────────────────────────────────
+  abrirCrearAlumno() {
+    const dialogRef = this.dialog.open(CreateUserDialog, {
+      width: '650px', // Ancho recomendado para formularios a 2 columnas
+      disableClose: true, // Evita que se cierre al hacer clic afuera por accidente
+      data: { rol: 'alumno' } // Le pasamos el rol para que renderice los campos correctos
+    });
+
+    // Escuchamos cuando se cierra el modal
+    dialogRef.afterClosed().subscribe((creado: boolean) => {
+      // Si el modal devuelve 'true' (se guardó algo), recargamos la tabla
+      if (creado) {
+        this.loadData();
+      }
+    });
+  }
+
+  // ─── Lógica existente ──────────────────────────────────────────────────────
   verDetalle(row: AlumnoRow) {
     console.log('Ver detalle alumno:', row);
-    // TODO: this.dialog.open(UserDetailDialog, { data: { id: row.id, rol: 'alumno' } });
+    // TODO: Redirigir a vista de detalle
   }
 
   resetPassword(row: AlumnoRow) {
@@ -112,8 +143,7 @@ export class TabAlumnos implements OnInit {
       req$.subscribe({
         next: () => {
           this.toastr.success(
-            activo ? 'Registro eliminado correctamente' : 'Cambios guardados correctamente',
-            'Éxito',
+            activo ? 'Registro eliminado correctamente' : 'Cambios guardados correctamente', 'Éxito'
           );
           this.loadData();
         },

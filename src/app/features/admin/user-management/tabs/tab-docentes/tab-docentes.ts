@@ -1,8 +1,5 @@
-// ═══════════════════════════════════════════
-// tab-docentes.ts
-// ═══════════════════════════════════════════
 import {
-  Component, inject, input, effect,
+  Component, inject, effect,
   ViewChild, OnInit, signal,
 } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -12,10 +9,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDivider } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { ToastService } from 'ngx-toastr-notifier';
+
 import { ApiService } from '../../../../../core/services/api';
 import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
 
 export interface DocenteRow {
   id: string;
@@ -37,6 +38,7 @@ export interface DocenteRow {
   imports: [
     MatTableModule, MatPaginatorModule, MatIconModule,
     MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
+    MatFormFieldModule, MatInputModule
   ],
   templateUrl: './tab-docentes.html',
   styleUrl: './tab-docentes.scss',
@@ -46,8 +48,8 @@ export class TabDocentes implements OnInit {
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
 
-  active = input<boolean>(false);
-  searchTerm = input<string>('');
+  // Buscador reactivo local
+  searchTerm = signal<string>('');
 
   dataSource = new MatTableDataSource<DocenteRow>([]);
   displayedColumns = ['documento', 'nombre', 'especialidad', 'estado', 'acciones'];
@@ -56,7 +58,6 @@ export class TabDocentes implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor() {
-    effect(() => { if (this.active()) this.loadData(); });
     effect(() => {
       this.dataSource.filter = this.searchTerm().trim().toLowerCase();
       if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
@@ -68,22 +69,45 @@ export class TabDocentes implements OnInit {
       [row.numero_documento ?? '', row.nombre, row.apellido_paterno,
       row.apellido_materno ?? '', row.especialidad ?? '']
         .join(' ').toLowerCase().includes(filter);
+
+    // Carga inicial al montar la vista
+    this.loadData();
   }
 
   loadData() {
     this.loading.set(true);
-    this.api.get<DocenteRow[]>('admin/users/docentes').subscribe({
+    this.api.get<any>('admin/users/docentes').subscribe({
       next: (res) => {
-        this.dataSource.data = res.data ?? [];
+        this.dataSource.data = res.data ?? res ?? [];
         setTimeout(() => { this.dataSource.paginator = this.paginator; });
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.toastr.error('Error al cargar la lista de docentes', 'Error');
+        this.loading.set(false);
+      }
     });
   }
 
+  // ─── NUEVO: Abrir Modal de Creación ──────────────────────────────────────────
+  abrirCrearDocente() {
+    const dialogRef = this.dialog.open(CreateUserDialog, {
+      width: '650px',
+      disableClose: true,
+      data: { rol: 'docente' }
+    });
+
+    dialogRef.afterClosed().subscribe((creado: boolean) => {
+      if (creado) {
+        this.loadData();
+      }
+    });
+  }
+
+  // ─── Lógica existente ──────────────────────────────────────────────────────
   verDetalle(row: DocenteRow) {
     console.log('Ver detalle docente:', row);
+    // TODO: Navegar a detalle del docente
   }
 
   resetPassword(row: DocenteRow) {
@@ -111,8 +135,7 @@ export class TabDocentes implements OnInit {
       req$.subscribe({
         next: () => {
           this.toastr.success(
-            activo ? 'Registro eliminado correctamente' : 'Cambios guardados correctamente',
-            'Éxito',
+            activo ? 'Registro eliminado correctamente' : 'Cambios guardados correctamente', 'Éxito'
           );
           this.loadData();
         },

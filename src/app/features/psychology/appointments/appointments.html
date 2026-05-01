@@ -1,0 +1,63 @@
+<div class="page-container">
+    <div class="page-header">
+        <div class="header-text">
+            <h1 class="mat-headline-4">Agenda de Citas</h1>
+            <p class="mat-body-1 text-muted">Gestiona tus sesiones programadas con alumnos y apoderados.</p>
+        </div>
+        <button mat-flat-button color="primary">
+            <mat-icon>add</mat-icon> Nueva Cita
+        </button>
+    </div>
+
+    @if (store.isLoading()) {
+    <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <span class="mat-body-1">Cargando agenda...</span>
+    </div>
+    } @else if (store.error()) {
+    <div class="error-state mat-body-1">{{ store.error() }}</div>
+    } @else {
+    <div class="appointments-grid">
+        @for (appointment of store.appointments(); track appointment.id) {
+        <mat-card class="appointment-card">
+            <mat-card-header>
+                <!-- Título de la cita -->
+                <mat-card-title>{{ appointment.motivo | titlecase }}</mat-card-title>
+                <mat-card-subtitle class="date-subtitle">
+                    <mat-icon inline>event</mat-icon>
+                    <!-- Pipe date para formatear la fecha que viene del backend -->
+                    {{ appointment.scheduledAt | date:'medium' }} ({{ appointment.durationMin }} min)
+                </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <mat-chip-set>
+                    <!-- Chips dinámicos según tu base de datos -->
+                    <mat-chip
+                        [color]="appointment.estado === 'confirmada' ? 'primary' : (appointment.estado === 'cancelada' ? 'warn' : 'accent')">
+                        {{ appointment.estado | titlecase }}
+                    </mat-chip>
+                    <mat-chip variant="outlined">
+                        {{ appointment.modalidad | titlecase }}
+                    </mat-chip>
+                    <mat-chip variant="outlined">
+                        {{ appointment.tipo | titlecase }}
+                    </mat-chip>
+                </mat-chip-set>
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+                <!-- Navegación usando el ID real -->
+                <button mat-stroked-button color="primary" (click)="goToStudentDetail(appointment.studentId)">
+                    Ver Ficha del Alumno
+                </button>
+            </mat-card-actions>
+        </mat-card>
+        } @empty {
+        <div class="empty-state mat-body-1">
+            No tienes citas programadas en este momento.
+        </div>
+        }
+    </div>
+    }
+</div>

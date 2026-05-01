@@ -10,6 +10,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../core/services/api';
+// Asegúrate de agregar 'psicologa' a tu type UserRole en navigation.config.ts
 import { UserRole } from '../../../../shared/components/sidebar/navigation.config';
 
 export interface CreateUserDialogData {
@@ -27,6 +28,8 @@ const ROLE_META: Record<UserRole, RoleMeta> = {
   alumno: { label: 'Alumno Regular', icon: 'school', endpoint: 'admin/users/alumnos' },
   docente: { label: 'Docente / Profesor', icon: 'badge', endpoint: 'admin/users/docentes' },
   padre: { label: 'Padre / Tutor / Apoderado', icon: 'family_restroom', endpoint: 'admin/users/padres' },
+  // ── Agregamos el rol de psicóloga con su endpoint exacto ──
+  psicologa: { label: 'Psicóloga', icon: 'psychology', endpoint: 'users/psychologist' },
 };
 
 @Component({
@@ -47,20 +50,14 @@ export class CreateUserDialog {
   private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<CreateUserDialog>);
 
-  /** Rol recibido desde el tab activo */
   data: CreateUserDialogData = inject(MAT_DIALOG_DATA);
-
   creating = signal(false);
-  showPass = signal(false);
-
-  /** Metadatos reactivos según el rol */
   roleMeta = computed<RoleMeta>(() => ROLE_META[this.data.rol]);
 
   form = this.fb.group({
-    // ── Campos comunes ──────────────────────────────────────────
+    // ── Campos comunes (CONTRASEÑA ELIMINADA) ───────────────────
     tipo_documento: ['dni', Validators.required],
     numero_documento: ['', [Validators.required, Validators.maxLength(20)]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_paterno: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_materno: [''],
@@ -68,18 +65,11 @@ export class CreateUserDialog {
     telefono: [''],
 
     // ── Campos por rol ──────────────────────────────────────────
-    // alumno
     codigo_estudiante: [''],
     fecha_nacimiento: [null as Date | null],
-
-    // docente
-    especialidad: [''],
+    especialidad: [''], // Compartido por Docente y Psicóloga
     titulo_profesional: [''],
-
-    // padre
     relacion: [''],
-
-    // admin
     cargo: [''],
   });
 
@@ -91,12 +81,27 @@ export class CreateUserDialog {
 
     this.creating.set(true);
     const v = this.form.value;
+    const endpoint = ROLE_META[this.data.rol].endpoint;
 
-    // ── Payload base (campos comunes a todos los roles) ─────────
+    // ── Mapeo especial para Psicóloga (según el DTO de NestJS) ──
+    if (this.data.rol === 'psicologa') {
+      const payloadPsicologa = {
+        nombres: v.nombre,
+        apellidos: `${v.apellido_paterno} ${v.apellido_materno || ''}`.trim(),
+        dni: v.numero_documento,
+        correo: v.email,
+        telefono: v.telefono,
+        especialidad: v.especialidad || 'Psicología Educativa'
+      };
+
+      this.executePost(endpoint, payloadPsicologa);
+      return;
+    }
+
+    // ── Payload base para los demás roles ───────────────────────
     const base: Record<string, unknown> = {
       tipo_documento: v.tipo_documento,
       numero_documento: v.numero_documento,
-      password: v.password,
       nombre: v.nombre,
       apellido_paterno: v.apellido_paterno,
       ...(v.apellido_materno?.trim() && { apellido_materno: v.apellido_materno }),
@@ -104,35 +109,29 @@ export class CreateUserDialog {
       ...(v.telefono?.trim() && { telefono: v.telefono }),
     };
 
-    // ── Campos extra según rol ──────────────────────────────────
-    const extras: Record<UserRole, Record<string, unknown>> = {
+    const extras: Record<string, Record<string, unknown>> = {
       alumno: {
-        codigo_estudiante: v.codigo_estudiante?.trim()
-          ? v.codigo_estudiante
-          : `EST-${v.numero_documento}`,
-        ...(v.fecha_nacimiento && {
-          fecha_nacimiento: (v.fecha_nacimiento as Date).toISOString().split('T')[0],
-        }),
+        codigo_estudiante: v.codigo_estudiante?.trim() ? v.codigo_estudiante : `EST-${v.numero_documento}`,
+        ...(v.fecha_nacimiento && { fecha_nacimiento: (v.fecha_nacimiento as Date).toISOString().split('T')[0] }),
       },
       docente: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.titulo_profesional?.trim() && { titulo_profesional: v.titulo_profesional }),
       },
-      padre: {
-        ...(v.relacion && { relacion: v.relacion }),
-      },
-      admin: {
-        ...(v.cargo?.trim() && { cargo: v.cargo }),
-      },
+      padre: { ...(v.relacion && { relacion: v.relacion }) },
+      admin: { ...(v.cargo?.trim() && { cargo: v.cargo }) },
     };
 
     const payload = { ...base, ...extras[this.data.rol] };
-    const endpoint = ROLE_META[this.data.rol].endpoint;
+    this.executePost(endpoint, payload);
+  }
 
+  // Helper para no repetir el subscribe
+  private executePost(endpoint: string, payload: any) {
     this.api.post(endpoint, payload).subscribe({
       next: () => {
         this.toastr.success('Registro creado correctamente', 'Éxito');
-        this.dialogRef.close(true); // true = se creó algo, recargar
+        this.dialogRef.close(true);
         this.creating.set(false);
       },
       error: (err) => {

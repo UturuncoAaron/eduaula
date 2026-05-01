@@ -1,0 +1,58 @@
+.page-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+
+  .back-button {
+    margin-bottom: 24px;
+    color: #64748b;
+  }
+
+  .loading-state, .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    gap: 16px;
+    color: #64748b;
+  }
+
+  .profile-header-card {
+    margin-bottom: 24px;
+    padding: 8px;
+
+    .avatar-placeholder {
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 20px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .content-tabs {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2), 
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14), 
+                0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+
+    .tab-card-content {
+      box-shadow: none; // Quitamos sombra interna porque el tab-group ya parece tarjeta
+      padding-top: 16px;
+      
+      .mt-3 {
+        margin-top: 16px;
+      }
+
+      .text-wrap {
+        white-space: normal;
+        margin-top: 4px;
+        color: #475569;
+      }
+    }
+  }
+}
