@@ -97,6 +97,14 @@ export class AuthService {
       );
   }
 
+  updateCurrentUser(data: Partial<User>) {
+    const current = this._user();
+    if (!current) return;
+    const updated = { ...current, ...data };
+    this._user.set(updated);
+    localStorage.setItem('user', JSON.stringify(updated));
+  }
+
   // ── Logout ────────────────────────────────────────────────────
   logout() {
     localStorage.removeItem('token');

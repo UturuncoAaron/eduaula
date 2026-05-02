@@ -1,0 +1,207 @@
+<div class="page-config">
+
+    <div class="config-header">
+        <mat-icon>settings</mat-icon>
+        <div>
+            <h1>Configuración</h1>
+            <p>Administra tu cuenta y seguridad</p>
+        </div>
+    </div>
+
+    <!-- FOTO DE PERFIL -->
+    <div class="config-card">
+        <div class="config-card-title">
+            <mat-icon>photo_camera</mat-icon>
+            <h2>Foto de perfil</h2>
+        </div>
+        <div class="foto-section">
+            <div class="foto-preview" [style.background]="roleColor()">
+                @if (fotoPreview() || user()?.foto_url) {
+                <img [src]="fotoPreview() || user()!.foto_url!" alt="foto" />
+                } @else {
+                <span>{{ initials() }}</span>
+                }
+            </div>
+            <div class="foto-actions">
+                <p class="foto-hint">JPG o PNG. Máximo 2MB.</p>
+                <label class="btn-upload">
+                    <mat-icon>upload</mat-icon>
+                    Seleccionar foto
+                    <input type="file" accept="image/jpeg,image/png" (change)="onFotoSelected($event)" hidden />
+                </label>
+                @if (fotoFile()) {
+                <button class="btn-primary" (click)="uploadFoto()" [disabled]="uploadingFoto()">
+                    @if (uploadingFoto()) { <span class="spinner"></span> } @else { <mat-icon>save</mat-icon> }
+                    Guardar foto
+                </button>
+                }
+                @if (fotoSuccess()) {
+                <div class="alert success"><mat-icon>check_circle</mat-icon> Foto actualizada.</div>
+                }
+                @if (fotoError()) {
+                <div class="alert error"><mat-icon>error_outline</mat-icon> {{ fotoError() }}</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- INFORMACIÓN PERSONAL -->
+    <div class="config-card">
+        <div class="config-card-title">
+            <mat-icon>person_outline</mat-icon>
+            <h2>Información personal</h2>
+        </div>
+        <form class="config-form" (ngSubmit)="saveInfo()">
+            <div class="form-row">
+                <div class="form-field">
+                    <label>Nombres</label>
+                    <input type="text" [(ngModel)]="infoForm.nombre" name="nombre" placeholder="Tu nombre" />
+                </div>
+                <div class="form-field">
+                    <label>Apellido paterno</label>
+                    <input type="text" [(ngModel)]="infoForm.apellido_paterno" name="apellido_paterno" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label>Apellido materno</label>
+                    <input type="text" [(ngModel)]="infoForm.apellido_materno" name="apellido_materno" />
+                </div>
+                <div class="form-field">
+                    <label>Teléfono</label>
+                    <input type="tel" [(ngModel)]="infoForm.telefono" name="telefono" placeholder="9XXXXXXXX" />
+                </div>
+            </div>
+
+            @if (infoSuccess()) {
+            <div class="alert success">
+                <mat-icon>check_circle</mat-icon> Información actualizada correctamente.
+            </div>
+            }
+            @if (infoError()) {
+            <div class="alert error">
+                <mat-icon>error_outline</mat-icon> {{ infoError() }}
+            </div>
+            }
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" [disabled]="savingInfo()">
+                    @if (savingInfo()) { <span class="spinner"></span> } @else { <mat-icon>save</mat-icon> }
+                    Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- CORREO -->
+    <div class="config-card">
+        <div class="config-card-title">
+            <mat-icon>email</mat-icon>
+            <h2>Correo electrónico</h2>
+        </div>
+        <form class="config-form" (ngSubmit)="saveEmail()">
+            <div class="form-row">
+                <div class="form-field full">
+                    <label>Nuevo correo</label>
+                    <input type="email" [(ngModel)]="emailForm.email" name="email"
+                        [placeholder]="user()?.email || 'correo@ejemplo.com'" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-field full">
+                    <label>Confirmar contraseña actual</label>
+                    <div class="input-pass">
+                        <input [type]="showEmailPass() ? 'text' : 'password'" [(ngModel)]="emailForm.password"
+                            name="emailPass" placeholder="Tu contraseña actual" />
+                        <button type="button" class="toggle-pass" (click)="showEmailPass.set(!showEmailPass())">
+                            <mat-icon>{{ showEmailPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            @if (emailSuccess()) {
+            <div class="alert success"><mat-icon>check_circle</mat-icon> Correo actualizado.</div>
+            }
+            @if (emailError()) {
+            <div class="alert error"><mat-icon>error_outline</mat-icon> {{ emailError() }}</div>
+            }
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary" [disabled]="savingEmail()">
+                    @if (savingEmail()) { <span class="spinner"></span> } @else { <mat-icon>save</mat-icon> }
+                    Actualizar correo
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- CONTRASEÑA -->
+    <div class="config-card">
+        <div class="config-card-title">
+            <mat-icon>lock_outline</mat-icon>
+            <h2>Cambiar contraseña</h2>
+        </div>
+        <form class="config-form" (ngSubmit)="savePassword()">
+            <div class="form-row">
+                <div class="form-field full">
+                    <label>Contraseña actual</label>
+                    <div class="input-pass">
+                        <input [type]="showOld() ? 'text' : 'password'" [(ngModel)]="passForm.old" name="passOld"
+                            placeholder="••••••••" />
+                        <button type="button" class="toggle-pass" (click)="showOld.set(!showOld())">
+                            <mat-icon>{{ showOld() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label>Nueva contraseña</label>
+                    <div class="input-pass">
+                        <input [type]="showNew() ? 'text' : 'password'" [(ngModel)]="passForm.new" name="passNew"
+                            placeholder="Mínimo 8 caracteres" />
+                        <button type="button" class="toggle-pass" (click)="showNew.set(!showNew())">
+                            <mat-icon>{{ showNew() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label>Confirmar contraseña</label>
+                    <div class="input-pass">
+                        <input [type]="showConfirm() ? 'text' : 'password'" [(ngModel)]="passForm.confirm"
+                            name="passConfirm" placeholder="Repetir nueva contraseña" />
+                        <button type="button" class="toggle-pass" (click)="showConfirm.set(!showConfirm())">
+                            <mat-icon>{{ showConfirm() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            @if (passForm.new && passForm.confirm && passForm.new !== passForm.confirm) {
+            <div class="alert warning">
+                <mat-icon>warning</mat-icon> Las contraseñas no coinciden.
+            </div>
+            }
+            @if (passSuccess()) {
+            <div class="alert success">
+                <mat-icon>check_circle</mat-icon> Contraseña actualizada correctamente.
+            </div>
+            }
+            @if (passError()) {
+            <div class="alert error">
+                <mat-icon>error_outline</mat-icon> {{ passError() }}
+            </div>
+            }
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary"
+                    [disabled]="savingPass() || passForm.new !== passForm.confirm || !passForm.new">
+                    @if (savingPass()) { <span class="spinner"></span> } @else { <mat-icon>lock</mat-icon> }
+                    Cambiar contraseña
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>

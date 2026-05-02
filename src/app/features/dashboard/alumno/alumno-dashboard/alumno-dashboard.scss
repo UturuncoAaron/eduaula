@@ -156,7 +156,7 @@ $c-green: #10b981;
     transition: box-shadow 0.2s;
 
     &.is-today {
-        border-color: lighten($c-blue, 30%);
+        border-color: rgba($c-blue, 0.3);
         box-shadow: 0 0 0 2px rgba($c-blue, 0.12);
 
         .day-header {
@@ -356,12 +356,12 @@ $c-green: #10b981;
 
     &.tarea {
         background: rgba($c-amber, 0.12);
-        color: darken($c-amber, 20%);
+        color: #b45309;
     }
 
     &.examen {
         background: rgba($c-red, 0.1);
-        color: darken($c-red, 10%);
+        color: #dc2626;
     }
 }
 

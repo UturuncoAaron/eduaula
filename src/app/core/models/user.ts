@@ -21,6 +21,9 @@ export interface User {
     titulo_profesional: string | null;
     relacion_familiar: string | null;
     cargo: string | null;
+    grado?: string | null;
+    seccion?: string | null;
+    created_at?: string | null;
 }
 
 export interface LoginPayload {

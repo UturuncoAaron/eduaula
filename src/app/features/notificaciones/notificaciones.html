@@ -1,0 +1,39 @@
+<app-page-header title="Notificaciones">
+    @if (unreadCount > 0) {
+    <button mat-stroked-button (click)="markAll()" [disabled]="marking()">
+        <mat-icon>done_all</mat-icon>
+        Marcar todo como leído
+    </button>
+    }
+</app-page-header>
+
+@if (unreadCount > 0) {
+<div class="unread-banner">
+    <mat-icon>notifications_active</mat-icon>
+    Tienes {{ unreadCount }} notificación{{ unreadCount > 1 ? 'es' : '' }} sin leer
+</div>
+}
+
+@if (loading()) {
+<p class="loading-text">Cargando notificaciones...</p>
+} @else if (items().length === 0) {
+<app-empty-state icon="notifications_none" title="Sin notificaciones" message="No tienes notificaciones por ahora." />
+} @else {
+<div class="notif-list">
+    @for (n of items(); track n.id) {
+    <div class="notif-item" [class.unread]="!n.read" (click)="markOne(n)">
+        <div class="notif-icon" [style.background]="colorForType(n.tipo) + '18'" [style.color]="colorForType(n.tipo)">
+            <mat-icon>{{ iconForType(n.tipo) }}</mat-icon>
+        </div>
+        <div class="notif-body">
+            <div class="notif-title">{{ n.titulo }}</div>
+            <div class="notif-cuerpo">{{ n.cuerpo }}</div>
+            <div class="notif-time">{{ n.createdAt | timeAgo }}</div>
+        </div>
+        @if (!n.read) {
+        <div class="unread-dot"></div>
+        }
+    </div>
+    }
+</div>
+}

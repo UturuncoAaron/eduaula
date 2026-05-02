@@ -1,10 +1,8 @@
 <header class="navbar">
     <div class="navbar-left">
-        <button class="icon-action-btn" (click)="onToggleSidebar()"
-            [matTooltip]="sidebarCollapsed() ? 'Expandir menú' : 'Contraer menú'">
+        <button class="icon-action-btn" (click)="onToggleSidebar()" [matTooltip]="'Menú'">
             <mat-icon>menu</mat-icon>
         </button>
-
         <div class="context-breadcrumb">
             <span class="text-muted">EduAula</span>
             <span class="slash">/</span>
@@ -13,16 +11,24 @@
     </div>
 
     <div class="navbar-right">
-        <button class="icon-action-btn" matTooltip="Notificaciones">
-            <mat-icon>notifications_none</mat-icon>
-            <span class="badge-dot"></span>
+
+        <!-- Notificaciones -->
+        <button class="icon-action-btn notif-btn" matTooltip="Notificaciones" (click)="goToNotificaciones()">
+            <mat-icon [matBadge]="unreadCount() > 0 ? unreadCount() : null" matBadgeColor="warn" matBadgeSize="small">
+                notifications_none
+            </mat-icon>
         </button>
 
         <div class="divider-vertical"></div>
 
-        <button class="profile-trigger" [matMenuTriggerFor]="userMenu">
+        <!-- Avatar + menú -->
+        <button class="profile-trigger" [matMenuTriggerFor]="userMenu" aria-label="Menú de usuario">
             <div class="avatar" [style.background]="roleColor()">
+                @if (user()?.foto_url) {
+                <img [src]="user()!.foto_url" alt="foto" />
+                } @else {
                 {{ initials() }}
+                }
             </div>
             <div class="profile-details">
                 <span class="profile-name">{{ user()?.nombre }} {{ user()?.apellido_paterno }}</span>
@@ -31,9 +37,17 @@
             <mat-icon class="chevron">expand_more</mat-icon>
         </button>
 
-        <mat-menu #userMenu="matMenu" xPosition="before" class="modern-dropdown" backdropClass="modern-backdrop">
-            <div class="dropdown-header">
-                <div class="dropdown-avatar" [style.background]="roleColor()">{{ initials() }}</div>
+        <mat-menu #userMenu="matMenu" xPosition="before" class="modern-dropdown">
+
+            <!-- Tarjeta de perfil -->
+            <div class="dropdown-header" (click)="$event.stopPropagation()">
+                <div class="dropdown-avatar" [style.background]="roleColor()">
+                    @if (user()?.foto_url) {
+                    <img [src]="user()!.foto_url" alt="foto" />
+                    } @else {
+                    {{ initials() }}
+                    }
+                </div>
                 <div class="dropdown-info">
                     <span class="info-name">{{ user()?.nombre }} {{ user()?.apellido_paterno }}</span>
                     <span class="info-email">{{ user()?.email || 'Sin correo registrado' }}</span>
@@ -42,11 +56,22 @@
 
             <mat-divider></mat-divider>
 
-            <button mat-menu-item>
+            <button mat-menu-item (click)="goToProfile()">
                 <mat-icon>person_outline</mat-icon>
                 <span>Mi perfil</span>
             </button>
-            <button mat-menu-item>
+
+            <button mat-menu-item (click)="goToNotificaciones()">
+                <mat-icon>notifications_none</mat-icon>
+                <span>
+                    Notificaciones
+                    @if (unreadCount() > 0) {
+                    <span class="menu-badge">{{ unreadCount() }}</span>
+                    }
+                </span>
+            </button>
+
+            <button mat-menu-item (click)="goToConfiguracion()">
                 <mat-icon>settings</mat-icon>
                 <span>Configuración</span>
             </button>
@@ -57,6 +82,7 @@
                 <mat-icon>logout</mat-icon>
                 <span>Cerrar sesión</span>
             </button>
+
         </mat-menu>
     </div>
 </header>
