@@ -68,19 +68,6 @@
         }
     </nav>
 
-    <!-- ─── Usuario actual (pie del sidebar) ────────────────────── -->
-    @if (!collapsed()) {
-    <div class="sidebar-footer">
-        <div class="user-chip">
-            <div class="user-avatar">
-                {{ user()?.nombre?.[0] ?? 'U' }}{{ user()?.apellido_paterno?.[0] ?? '' }}
-            </div>
-            <div class="user-info">
-                <span class="user-name">{{ user()?.apellido_paterno }}, {{ user()?.nombre }}</span>
-                <span class="user-role">{{ user()?.rol }}</span>
-            </div>
-        </div>
-    </div>
-    }
+
 
 </aside>
