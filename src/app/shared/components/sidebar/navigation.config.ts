@@ -86,6 +86,14 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['padre'],
   },
 
+  {
+  label: 'Comunicados',
+  icon: 'campaign',
+  route: '/comunicados',
+  roles: ['alumno', 'docente', 'padre', 'psicologa'],
+  dividerBefore: true,
+},
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PSICOLOGÍA
   // ═══════════════════════════════════════════════════════════════════════════

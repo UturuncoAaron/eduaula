@@ -11,16 +11,14 @@
     justify-content: space-between;
     height: 64px;
     padding: 0 24px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid #f1f5f9; // Slate 100
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid #f1f5f9;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-/* =========================================
-   IZQUIERDA: BOTONES Y BREADCRUMB
-========================================= */
+/* ── IZQUIERDA ──────────────────────────────── */
 .navbar-left {
     display: flex;
     align-items: center;
@@ -36,7 +34,7 @@
 
     .text-muted {
         font-weight: 500;
-        color: #64748b; // Slate 500
+        color: #64748b;
     }
 
     .slash {
@@ -46,14 +44,12 @@
 
     .text-main {
         font-weight: 600;
-        color: #0f172a; // Slate 900
+        color: #0f172a;
         letter-spacing: -0.01em;
     }
 }
 
-/* =========================================
-   BOTONES DE ACCIÓN GLOBALES
-========================================= */
+/* ── BOTONES ICONO ──────────────────────────── */
 .icon-action-btn {
     background: transparent;
     border: none;
@@ -69,7 +65,7 @@
     transition: all 0.2s ease;
 
     &:hover {
-        background: #f1f5f9; // Slate 100
+        background: #f1f5f9;
         color: #0f172a;
     }
 
@@ -79,7 +75,7 @@
         right: 10px;
         width: 8px;
         height: 8px;
-        background-color: #ef4444; // Red 500
+        background: #ef4444;
         border: 2px solid white;
         border-radius: 50%;
     }
@@ -88,46 +84,47 @@
 .divider-vertical {
     width: 1px;
     height: 24px;
-    background-color: #e2e8f0;
+    background: #e2e8f0;
     margin: 0 4px;
 }
 
-/* =========================================
-   DERECHA: PERFIL
-========================================= */
+/* ── DERECHA ────────────────────────────────── */
 .navbar-right {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
+/* ── BOTÓN PERFIL ───────────────────────────── */
 .profile-trigger {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     background: transparent;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 8px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 50px;
+    padding: 5px 12px 5px 5px;
     cursor: pointer;
     transition: all 0.2s ease;
 
-    &:hover,
-    &[aria-expanded="true"] {
-        background: #f1f5f9;
+    &:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
     }
 
     .avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px; // Cuadrado redondeado es más moderno que un círculo perfecto hoy en día
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 700;
         color: white;
         letter-spacing: 0.5px;
+        flex-shrink: 0;
+        overflow: hidden;
     }
 
     .profile-details {
@@ -139,6 +136,7 @@
             font-size: 13px;
             font-weight: 600;
             color: #0f172a;
+            white-space: nowrap;
         }
 
         .profile-role {
@@ -155,101 +153,161 @@
         color: #94a3b8;
         transition: transform 0.2s ease;
     }
-
-    &[aria-expanded="true"] .chevron {
-        transform: rotate(180deg);
-    }
 }
 
-/* =========================================
-   ESTILOS DEL DROPDOWN (MATERIAL OVERRIDES)
-========================================= */
+/* ── DROPDOWN ───────────────────────────────── */
 ::ng-deep {
     .modern-dropdown {
-        border-radius: 12px !important;
-        margin-top: 8px;
-        min-width: 240px !important;
-        background: rgba(255, 255, 255, 0.98) !important;
-        backdrop-filter: blur(16px);
-        border: 1px solid #f1f5f9;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+        border-radius: 14px !important;
+        margin-top: 8px !important;
+        min-width: 260px !important;
+        overflow: hidden !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow:
+            0 4px 6px -1px rgba(0, 0, 0, 0.07),
+            0 10px 24px -4px rgba(0, 0, 0, 0.12) !important;
 
+        /* Quita el padding por defecto de Material */
+        .mat-mdc-menu-content {
+            padding: 0 !important;
+        }
+
+        /* ─ Tarjeta de perfil ─ */
         .dropdown-header {
-            padding: 16px;
             display: flex;
             align-items: center;
             gap: 12px;
+            padding: 16px;
+            background: #f8fafc;
+            cursor: default;
             outline: none;
 
             .dropdown-avatar {
-                width: 40px;
-                height: 40px;
-                border-radius: 10px;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 color: white;
-                font-weight: 600;
-                font-size: 14px;
+                font-weight: 700;
+                font-size: 16px;
+                flex-shrink: 0;
+                overflow: hidden;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    border-radius: 50%;
+                }
             }
 
             .dropdown-info {
                 display: flex;
                 flex-direction: column;
+                overflow: hidden;
 
                 .info-name {
                     font-size: 14px;
                     font-weight: 600;
                     color: #0f172a;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
 
                 .info-email {
                     font-size: 12px;
                     color: #64748b;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
             }
         }
 
+        /* ─ Ítems del menú ─ */
         .mat-mdc-menu-item {
             font-size: 14px;
-            color: #475569;
+            font-weight: 500;
+            color: #334155;
             min-height: 44px;
             padding: 0 16px;
+            transition: background 0.15s;
 
             mat-icon {
                 margin-right: 12px;
                 color: #64748b;
                 font-size: 20px;
+                width: 20px;
+                height: 20px;
             }
 
             &:hover {
-                background-color: #f8fafc;
+                background: #f1f5f9 !important;
                 color: #0f172a;
 
                 mat-icon {
-                    color: #0f172a;
+                    color: #1e293b;
                 }
             }
         }
 
+        /* ─ Cerrar sesión ─ */
         .logout-btn {
-            color: #ef4444 !important;
-            margin-top: 4px;
+            color: #dc2626 !important;
 
             mat-icon {
-                color: #ef4444 !important;
+                color: #dc2626 !important;
             }
 
             &:hover {
-                background-color: #fef2f2 !important;
+                background: #fef2f2 !important;
             }
+        }
+
+        /* ─ Divider ─ */
+        .mat-divider {
+            margin: 4px 0 !important;
+            border-color: #f1f5f9 !important;
         }
     }
 }
 
-/* =========================================
-   MÓVIL
-========================================= */
+/* ── NOTIFICACIONES ─────────────────────────── */
+.notif-btn {
+    position: relative;
+}
+
+/* ── IMÁGENES ───────────────────────────────── */
+.avatar img,
+.dropdown-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+/* ── BADGE EN MENÚ ──────────────────────────── */
+.menu-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 99px;
+    padding: 0 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* ── MÓVIL ──────────────────────────────────── */
 @media (max-width: 640px) {
     .navbar {
         padding: 0 12px;
@@ -262,6 +320,8 @@
 
     .profile-trigger {
         padding: 4px;
+        border-radius: 50%;
+        border: none;
 
         .chevron {
             display: none;

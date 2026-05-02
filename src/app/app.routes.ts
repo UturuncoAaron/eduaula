@@ -73,10 +73,31 @@ export const routes: Routes = [
                     import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
             },
             {
+<<<<<<< Updated upstream
                 path: 'psychology',
                 canActivate: [roleGuard(['psicologa'])],
                 loadChildren: () =>
                     import('./features/psychology/psychology.routes').then(r => r.PSYCHOLOGY_ROUTES),
+=======
+                path: 'perfil',
+                loadComponent: () =>
+                    import('./features/perfil/perfil').then(c => c.PerfilComponent),
+            },
+            {
+                path: 'comunicados',
+                loadComponent: () =>
+                    import('./features/comunicados/comunicados').then(c => c.Comunicados),
+            },
+            {
+                path: 'notificaciones',
+                loadComponent: () =>
+                    import('./features/notificaciones/notificaciones').then(c => c.Notificaciones),
+            },
+            {
+                path: 'configuracion',
+                loadComponent: () =>
+                    import('./features/configuracion/configuracion').then(m => m.ConfiguracionComponent),
+>>>>>>> Stashed changes
             },
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
         ],

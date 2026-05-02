@@ -1,0 +1,105 @@
+<div class="page-perfil">
+
+    <div class="perfil-hero">
+        <div class="avatar-wrap">
+            <div class="avatar-circle" [style.background]="roleColor()">
+                @if (user()?.foto_url) {
+                <img [src]="user()!.foto_url" alt="foto" />
+                } @else {
+                {{ initials() }}
+                }
+            </div>
+            <div class="role-badge" [style.background]="roleColor()">{{ roleLabel() }}</div>
+        </div>
+        <div class="hero-info">
+            <h1>{{ user()?.nombre }} {{ user()?.apellido_paterno }} {{ user()?.apellido_materno }}</h1>
+            <p class="hero-email">{{ user()?.email }}</p>
+        </div>
+    </div>
+
+    <div class="perfil-grid">
+
+        <div class="info-card">
+            <div class="card-header">
+                <mat-icon>person</mat-icon>
+                <h2>Información personal</h2>
+            </div>
+            <div class="info-rows">
+                <div class="info-row">
+                    <span class="label">Nombres</span>
+                    <span class="value">{{ user()?.nombre || '—' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Apellido paterno</span>
+                    <span class="value">{{ user()?.apellido_paterno || '—' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Apellido materno</span>
+                    <span class="value">{{ user()?.apellido_materno || '—' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">DNI</span>
+                    <span class="value">{{ user()?.numero_documento || '—' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Teléfono</span>
+                    <span class="value">{{ user()?.telefono || '—' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Correo</span>
+                    <span class="value">{{ user()?.email || '—' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="card-header">
+                <mat-icon>school</mat-icon>
+                <h2>Información académica</h2>
+            </div>
+            <div class="info-rows">
+                <div class="info-row">
+                    <span class="label">Rol</span>
+                    <span class="value">
+                        <span class="role-chip" [style.background]="roleColor() + '20'" [style.color]="roleColor()">
+                            {{ roleLabel() }}
+                        </span>
+                    </span>
+                </div>
+                @if (user()?.rol === 'alumno') {
+                <div class="info-row">
+                    <span class="label">Grado y sección</span>
+                    <span class="value">{{ user()?.grado || '—' }} {{ user()?.seccion || '' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Código</span>
+                    <span class="value">{{ user()?.codigo_estudiante || '—' }}</span>
+                </div>
+                }
+                @if (user()?.rol === 'docente') {
+                <div class="info-row">
+                    <span class="label">Especialidad</span>
+                    <span class="value">{{ user()?.especialidad || '—' }}</span>
+                </div>
+                }
+                <div class="info-row">
+                    <span class="label">Colegio</span>
+                    <span class="value">IE Juan Pablo Vizcardo y Guzmán</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Miembro desde</span>
+                    <span class="value">{{ user()?.created_at | date:'MMMM yyyy' : '' : 'es' }}</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="perfil-actions">
+        <button mat-stroked-button routerLink="/configuracion">
+            <mat-icon>settings</mat-icon>
+            Editar en Configuración
+        </button>
+    </div>
+
+</div>
