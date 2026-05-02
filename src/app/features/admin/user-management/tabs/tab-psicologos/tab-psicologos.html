@@ -103,6 +103,10 @@
                                 <mat-icon>more_vert</mat-icon>
                             </button>
                             <mat-menu #menu="matMenu">
+                                <button mat-menu-item (click)="asignarAlumnos(row)">
+                                    <mat-icon>group_add</mat-icon><span>Asignar alumnos</span>
+                                </button>
+                                <mat-divider></mat-divider>
                                 <button mat-menu-item (click)="resetPassword(row)">
                                     <mat-icon>lock_reset</mat-icon><span>Resetear contraseña</span>
                                 </button>

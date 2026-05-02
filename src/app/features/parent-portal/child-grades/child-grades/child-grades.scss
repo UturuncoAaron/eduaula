@@ -1,99 +1,66 @@
-.page-container {
+:host {
+    display: block;
     padding: 24px;
-    max-width: 1000px;
 }
 
-.page-header {
+.state-center {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 24px;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 64px;
+    color: #64748b;
 }
 
-.page-title {
-    margin: 0 0 4px;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--mat-sys-on-surface, #1a1a1a);
-}
-
-.page-subtitle {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--mat-sys-on-surface-variant, #666);
+.table-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow-x: auto;
+    margin-top: 16px;
 }
 
 .grades-table {
     width: 100%;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    margin-bottom: 16px;
 
-    .mat-mdc-header-row {
-        background: var(--mat-sys-surface-variant, #f5f5f5);
+    .curso-name {
+        display: block;
+        font-weight: 600;
+        color: #1e293b;
     }
-}
 
-.curso-name {
-    display: block;
-    font-weight: 500;
-    font-size: 0.9rem;
-}
-
-.periodo-label {
-    display: block;
-    font-size: 0.73rem;
-    color: var(--mat-sys-on-surface-variant, #888);
+    .periodo-label {
+        display: block;
+        font-size: .72rem;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
 }
 
 .escala-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
     font-weight: 700;
+    font-size: .8rem;
+    letter-spacing: .3px;
 }
 
 .no-data {
-    color: var(--mat-sys-on-surface-variant, #999);
+    color: #cbd5e1;
 }
 
 .legend {
+    margin-top: 16px;
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-}
 
-.legend-item {
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.73rem;
-    font-weight: 600;
-}
-
-.loading-state,
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 48px;
-    gap: 12px;
-    color: var(--mat-sys-on-surface-variant, #999);
-
-    mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-    }
-
-    h3 {
-        margin: 0;
-    }
-
-    p {
-        margin: 0;
-        font-size: 0.85rem;
+    .legend-item {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: .78rem;
+        font-weight: 600;
     }
 }

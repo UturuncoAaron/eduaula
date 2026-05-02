@@ -1,16 +1,59 @@
-.list {
+:host {
+    display: block;
+    padding: 24px;
+}
+
+.state-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 64px;
+    color: #64748b;
+}
+
+.ann-list {
+    margin-top: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
 .ann-card {
-    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+
+    .ann-avatar {
+        display: grid;
+        place-items: center;
+        background: #dbeafe;
+        color: #1e40af;
+
+        &.padres {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    }
 
     p {
-        font-size: 14px;
-        color: #444;
-        line-height: 1.6;
-        margin: 8px 0 0;
+        margin: 6px 0 0;
+        white-space: pre-wrap;
+        line-height: 1.55;
+        color: #334155;
+        font-size: .9rem;
+    }
+
+    .dest {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 6px;
+        background: #dbeafe;
+        color: #1e40af;
+        font-size: .72rem;
+        font-weight: 600;
+
+        &.padres {
+            background: #fef3c7;
+            color: #92400e;
+        }
     }
 }

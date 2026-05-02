@@ -15,7 +15,7 @@ import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
-type Tipo = 'alumnos' | 'docentes' | 'padres' | 'admins';
+type Tipo = 'alumnos' | 'docentes' | 'padres' | 'admins' | 'psicologos';
 
 @Component({
   selector: 'app-user-detail',
@@ -115,5 +115,21 @@ export class UserDetail implements OnInit {
 
   get isActive(): boolean {
     return this.user()?.cuenta?.activo ?? this.user()?.activo ?? true;
+  }
+
+  get numeroDocumento(): string | null {
+    const u = this.user();
+    return u?.cuenta?.numero_documento ?? u?.numero_documento ?? null;
+  }
+
+  get tipoDocumento(): string | null {
+    const u = this.user();
+    const t = u?.cuenta?.tipo_documento ?? u?.tipo_documento ?? null;
+    return t ? t.toString().toUpperCase() : null;
+  }
+
+  get codigoAcceso(): string | null {
+    const u = this.user();
+    return u?.cuenta?.codigo_acceso ?? u?.codigo_acceso ?? null;
   }
 }

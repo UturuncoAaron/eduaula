@@ -1,0 +1,60 @@
+@use '../../../../../admin/user-management/shared/_admin-table.scss' as admin-table;
+
+.tab-citas {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    @include admin-table.styles;
+}
+
+.tab-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    h3 {
+        margin: 0 0 4px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .muted {
+        margin: 0;
+        font-size: .82rem;
+        color: #64748b;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        button { gap: 6px; }
+    }
+
+    .filter-field { min-width: 220px; }
+}
+
+.state-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px;
+    color: #64748b;
+    font-size: .9rem;
+}
+
+.danger { color: #dc2626; }
+
+// Estados de cita: colorea el chip
+.status-chip[data-estado="pendiente"]   { background: #fef3c7; color: #92400e; .status-dot { background: #f59e0b; } }
+.status-chip[data-estado="confirmada"]  { background: #ecfdf5; color: #059669; .status-dot { background: #10b981; } }
+.status-chip[data-estado="realizada"]   { background: #dbeafe; color: #1e40af; .status-dot { background: #3b82f6; } }
+.status-chip[data-estado="cancelada"]   { background: #fef2f2; color: #dc2626; .status-dot { background: #ef4444; } }
+.status-chip[data-estado="no_asistio"]  { background: #f1f5f9; color: #475569; .status-dot { background: #94a3b8; } }

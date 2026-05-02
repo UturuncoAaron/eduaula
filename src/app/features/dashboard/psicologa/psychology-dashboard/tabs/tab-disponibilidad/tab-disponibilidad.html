@@ -1,0 +1,107 @@
+<div class="tab-disponibilidad">
+
+    <!-- ─── Disponibilidad semanal ────────────────────────────────────────── -->
+    <section class="card-section">
+        <div class="section-header">
+            <div>
+                <h3>Disponibilidad semanal</h3>
+                <p class="muted">Define los horarios fijos en los que atiendes citas (Lun–Vie).</p>
+            </div>
+            <button mat-flat-button color="primary"
+                    (click)="saveAll()"
+                    [disabled]="saving()">
+                @if (saving()) {
+                    <mat-spinner diameter="18" />
+                } @else {
+                    <mat-icon>save</mat-icon><span>Guardar cambios</span>
+                }
+            </button>
+        </div>
+
+        @if (store.loadingAvailability()) {
+            <div class="state-center">
+                <mat-spinner diameter="32" />
+                <span>Cargando disponibilidad...</span>
+            </div>
+        } @else {
+            <ul class="day-list">
+                @for (row of rows(); track row.weekDay; let i = $index) {
+                    <li class="day-row">
+                        <div class="day-toggle">
+                            <mat-slide-toggle
+                                [checked]="row.enabled"
+                                (change)="toggleDay(i, $event.checked)">
+                                <span class="day-label">{{ row.label }}</span>
+                            </mat-slide-toggle>
+                        </div>
+
+                        <div class="day-times">
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>Inicio</mat-label>
+                                <input matInput type="time"
+                                       [disabled]="!row.enabled"
+                                       [ngModel]="row.startTime"
+                                       (ngModelChange)="updateField(i, 'startTime', $event)" />
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>Fin</mat-label>
+                                <input matInput type="time"
+                                       [disabled]="!row.enabled"
+                                       [ngModel]="row.endTime"
+                                       (ngModelChange)="updateField(i, 'endTime', $event)" />
+                            </mat-form-field>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <!-- ─── Bloqueos puntuales ────────────────────────────────────────────── -->
+    <section class="card-section">
+        <div class="section-header">
+            <div>
+                <h3>Bloqueos puntuales</h3>
+                <p class="muted">Días u horas específicas en las que NO atenderás (vacaciones, capacitación).</p>
+            </div>
+            <button mat-stroked-button color="primary" (click)="openCreateBlock()">
+                <mat-icon>event_busy</mat-icon>
+                <span>Nuevo bloqueo</span>
+            </button>
+        </div>
+
+        @if (store.loadingBlocks()) {
+            <div class="state-center">
+                <mat-spinner diameter="32" />
+                <span>Cargando bloqueos...</span>
+            </div>
+        } @else if (store.blocks().length === 0) {
+            <app-empty-state
+                icon="event_busy"
+                title="Sin bloqueos"
+                message="No tienes bloqueos registrados. Crea uno con el botón Nuevo bloqueo." />
+        } @else {
+            <ul class="blocks-list">
+                @for (b of store.blocks(); track b.id) {
+                    <li class="block-card">
+                        <div class="block-info">
+                            <p class="block-range">
+                                <mat-icon>schedule</mat-icon>
+                                <span>{{ b.startDate | date:'short' }} → {{ b.endDate | date:'short' }}</span>
+                            </p>
+                            @if (b.motivo) {
+                                <p class="block-motivo">{{ b.motivo }}</p>
+                            }
+                        </div>
+                        <button mat-icon-button (click)="removeBlock(b)"
+                                aria-label="Eliminar bloqueo" class="danger">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+</div>

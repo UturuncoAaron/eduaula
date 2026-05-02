@@ -28,8 +28,7 @@ const ROLE_META: Record<UserRole, RoleMeta> = {
   alumno: { label: 'Alumno Regular', icon: 'school', endpoint: 'admin/users/alumnos' },
   docente: { label: 'Docente / Profesor', icon: 'badge', endpoint: 'admin/users/docentes' },
   padre: { label: 'Padre / Tutor / Apoderado', icon: 'family_restroom', endpoint: 'admin/users/padres' },
-  // ── Agregamos el rol de psicóloga con su endpoint exacto ──
-  psicologa: { label: 'Psicóloga', icon: 'psychology', endpoint: 'users/psychologist' },
+  psicologa: { label: 'Psicóloga', icon: 'psychology', endpoint: 'admin/users/psicologos' },
 };
 
 @Component({
@@ -68,6 +67,7 @@ export class CreateUserDialog {
     codigo_estudiante: [''],
     fecha_nacimiento: [null as Date | null],
     especialidad: [''], // Compartido por Docente y Psicóloga
+    colegiatura: [''],
     titulo_profesional: [''],
     relacion: [''],
     cargo: [''],
@@ -79,26 +79,15 @@ export class CreateUserDialog {
       return;
     }
 
+    if (this.data.rol === 'padre' && !this.form.value.relacion) {
+      this.toastr.error('Debes indicar la relación con el alumno', 'Error');
+      return;
+    }
+
     this.creating.set(true);
     const v = this.form.value;
     const endpoint = ROLE_META[this.data.rol].endpoint;
 
-    // ── Mapeo especial para Psicóloga (según el DTO de NestJS) ──
-    if (this.data.rol === 'psicologa') {
-      const payloadPsicologa = {
-        nombres: v.nombre,
-        apellidos: `${v.apellido_paterno} ${v.apellido_materno || ''}`.trim(),
-        dni: v.numero_documento,
-        correo: v.email,
-        telefono: v.telefono,
-        especialidad: v.especialidad || 'Psicología Educativa'
-      };
-
-      this.executePost(endpoint, payloadPsicologa);
-      return;
-    }
-
-    // ── Payload base para los demás roles ───────────────────────
     const base: Record<string, unknown> = {
       tipo_documento: v.tipo_documento,
       numero_documento: v.numero_documento,
@@ -120,6 +109,10 @@ export class CreateUserDialog {
       },
       padre: { ...(v.relacion && { relacion: v.relacion }) },
       admin: { ...(v.cargo?.trim() && { cargo: v.cargo }) },
+      psicologa: {
+        ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
+        ...(v.colegiatura?.trim() && { colegiatura: v.colegiatura }),
+      },
     };
 
     const payload = { ...base, ...extras[this.data.rol] };

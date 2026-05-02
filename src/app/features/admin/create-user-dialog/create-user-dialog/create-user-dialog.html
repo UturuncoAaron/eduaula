@@ -91,19 +91,67 @@
         <!-- ── Campos dinámicos según rol ──────────────────────── -->
 
         @if (data.rol === 'alumno') {
-        <!-- ... tu código intacto de alumno ... -->
+        <div class="section-title fade-in">
+            <mat-icon>school</mat-icon> Datos Académicos
+        </div>
+        <div class="row-2 fade-in">
+            <mat-form-field appearance="outline">
+                <mat-label>Código de estudiante (Opcional)</mat-label>
+                <input matInput formControlName="codigo_estudiante"
+                    placeholder="Se generará EST-{{'{'}}DNI{{'}'}} si lo dejas vacío" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Fecha de nacimiento (Opcional)</mat-label>
+                <input matInput [matDatepicker]="dp" formControlName="fecha_nacimiento" />
+                <mat-datepicker-toggle matIconSuffix [for]="dp" />
+                <mat-datepicker #dp />
+            </mat-form-field>
+        </div>
         }
 
         @if (data.rol === 'docente') {
-        <!-- ... tu código intacto de docente ... -->
+        <div class="section-title fade-in">
+            <mat-icon>badge</mat-icon> Datos Profesionales
+        </div>
+        <div class="row-2 fade-in">
+            <mat-form-field appearance="outline">
+                <mat-label>Especialidad (Opcional)</mat-label>
+                <input matInput formControlName="especialidad" placeholder="Ej. Matemática" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Título profesional (Opcional)</mat-label>
+                <input matInput formControlName="titulo_profesional" placeholder="Ej. Lic. en Educación" />
+            </mat-form-field>
+        </div>
         }
 
         @if (data.rol === 'padre') {
-        <!-- ... tu código intacto de padre ... -->
+        <div class="section-title fade-in">
+            <mat-icon>family_restroom</mat-icon> Vínculo Familiar
+        </div>
+        <div class="row-2 fade-in">
+            <mat-form-field appearance="outline">
+                <mat-label>Relación con el alumno*</mat-label>
+                <mat-select formControlName="relacion" required>
+                    <mat-option value="padre">Padre</mat-option>
+                    <mat-option value="madre">Madre</mat-option>
+                    <mat-option value="tutor">Tutor</mat-option>
+                    <mat-option value="apoderado">Apoderado</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
         }
 
         @if (data.rol === 'admin') {
-        <!-- ... tu código intacto de admin ... -->
+        <div class="section-title fade-in">
+            <mat-icon>admin_panel_settings</mat-icon> Cargo
+        </div>
+        <div class="row-2 fade-in">
+            <mat-form-field appearance="outline">
+                <mat-label>Cargo (Opcional)</mat-label>
+                <input matInput formControlName="cargo" placeholder="Ej. Director Académico" />
+            </mat-form-field>
+        </div>
         }
 
         @if (data.rol === 'psicologa') {
@@ -114,6 +162,10 @@
             <mat-form-field appearance="outline">
                 <mat-label>Especialidad</mat-label>
                 <input matInput formControlName="especialidad" placeholder="Ej. Psicología Educativa" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Colegiatura (Opcional)</mat-label>
+                <input matInput formControlName="colegiatura" placeholder="N° de colegiatura" />
             </mat-form-field>
         </div>
         }

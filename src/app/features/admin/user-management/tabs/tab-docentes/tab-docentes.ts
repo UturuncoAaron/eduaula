@@ -2,6 +2,7 @@ import {
   Component, inject, effect,
   ViewChild, OnInit, signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
@@ -47,6 +48,7 @@ export class TabDocentes implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
+  private router = inject(Router);
 
   // Buscador reactivo local
   searchTerm = signal<string>('');
@@ -106,8 +108,7 @@ export class TabDocentes implements OnInit {
 
   // ─── Lógica existente ──────────────────────────────────────────────────────
   verDetalle(row: DocenteRow) {
-    console.log('Ver detalle docente:', row);
-    // TODO: Navegar a detalle del docente
+    this.router.navigate(['/admin/usuarios', 'docentes', row.id]);
   }
 
   resetPassword(row: DocenteRow) {

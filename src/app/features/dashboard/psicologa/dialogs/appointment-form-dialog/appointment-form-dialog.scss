@@ -1,0 +1,47 @@
+:host { display: block; min-width: 640px; }
+
+[mat-dialog-title] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 1.05rem;
+    color: #0f172a;
+}
+
+.dialog-body {
+    padding: 18px 24px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .row {
+        display: grid;
+        gap: 12px;
+
+        &.two { grid-template-columns: 1fr 1fr; }
+    }
+
+    .full { width: 100%; }
+}
+
+.error-msg {
+    margin: 4px 0 0;
+    color: #b91c1c;
+    font-size: .8rem;
+}
+
+mat-dialog-actions {
+    padding: 12px 24px 16px;
+    border-top: 1px solid #f1f5f9;
+    gap: 8px;
+
+    button { gap: 6px; }
+}
+
+@media (max-width: 720px) {
+    :host { min-width: 0; width: 100%; }
+    .dialog-body .row.two { grid-template-columns: 1fr; }
+}

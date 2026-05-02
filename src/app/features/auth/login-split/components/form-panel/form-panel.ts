@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,7 +25,6 @@ export class FormPanel {
     private fb = inject(FormBuilder);
     private auth = inject(AuthService);
     private router = inject(Router);
-    private dialog = inject(MatDialog);
 
     loading = signal(false);
     error = signal('');
@@ -55,13 +53,6 @@ export class FormPanel {
                     this.auth.logout();
                     return;
                 }
-
-                if (!this.auth.passwordChanged()) {
-                    this.openChangePasswordDialog(user.rol);
-                    this.loading.set(false);
-                    return;
-                }
-
                 this.redirectByRole(user.rol);
             },
             error: (msg: string) => {
@@ -69,18 +60,6 @@ export class FormPanel {
                 this.loading.set(false);
             },
         });
-    }
-
-    private async openChangePasswordDialog(rol: string) {
-        const { ChangePasswordDialog } = await import(
-            '../../../../../shared/components/change-password-dialog/change-password-dialog'
-        );
-        const ref = this.dialog.open(ChangePasswordDialog, {
-            width: '420px',
-            disableClose: true,
-            data: { rol },
-        });
-        ref.afterClosed().subscribe(() => this.redirectByRole(rol));
     }
 
     private redirectByRole(rol: string) {

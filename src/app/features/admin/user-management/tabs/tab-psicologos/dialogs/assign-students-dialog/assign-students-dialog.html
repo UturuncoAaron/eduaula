@@ -1,0 +1,101 @@
+<h2 mat-dialog-title>
+    <mat-icon>group_add</mat-icon>
+    Asignar alumnos a {{ data.psicologaNombre }}
+</h2>
+
+<mat-dialog-content class="dialog-content">
+    @if (loading()) {
+    <div class="loading">
+        <mat-spinner diameter="40" />
+        <span>Cargando alumnos...</span>
+    </div>
+    } @else {
+
+    <!-- Asignados -->
+    <section class="block">
+        <header class="block__header">
+            <h3>
+                <mat-icon>check_circle</mat-icon>
+                Asignados ({{ assignedStudents().length }})
+            </h3>
+        </header>
+
+        @if (assignedStudents().length === 0) {
+        <p class="empty">Aún no hay alumnos asignados a esta psicóloga.</p>
+        } @else {
+        <ul class="list">
+            @for (a of assignedStudents(); track a.id) {
+            <li class="list__row list__row--assigned">
+                <div class="list__info">
+                    <span class="list__name">{{ fullName(a) }}</span>
+                    @if (a.codigo_estudiante) {
+                    <span class="list__code">{{ a.codigo_estudiante }}</span>
+                    }
+                </div>
+                <button mat-icon-button color="warn"
+                        [disabled]="saving() === a.id"
+                        (click)="unassign(a)"
+                        matTooltip="Desasignar alumno">
+                    @if (saving() === a.id) {
+                    <mat-spinner diameter="20" />
+                    } @else {
+                    <mat-icon>remove_circle_outline</mat-icon>
+                    }
+                </button>
+            </li>
+            }
+        </ul>
+        }
+    </section>
+
+    <mat-divider />
+
+    <!-- Disponibles -->
+    <section class="block">
+        <header class="block__header">
+            <h3>
+                <mat-icon>person_search</mat-icon>
+                Disponibles ({{ availableStudents().length }})
+            </h3>
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+                <mat-icon matPrefix>search</mat-icon>
+                <input matInput
+                       placeholder="Buscar por nombre, código o DNI..."
+                       [formControl]="searchControl" />
+            </mat-form-field>
+        </header>
+
+        @if (availableStudents().length === 0) {
+        <p class="empty">No hay alumnos disponibles para asignar.</p>
+        } @else {
+        <ul class="list">
+            @for (a of availableStudents(); track a.id) {
+            <li class="list__row">
+                <div class="list__info">
+                    <span class="list__name">{{ fullName(a) }}</span>
+                    @if (a.codigo_estudiante) {
+                    <span class="list__code">{{ a.codigo_estudiante }}</span>
+                    }
+                </div>
+                <button mat-icon-button color="primary"
+                        [disabled]="saving() === a.id"
+                        (click)="assign(a)"
+                        matTooltip="Asignar alumno">
+                    @if (saving() === a.id) {
+                    <mat-spinner diameter="20" />
+                    } @else {
+                    <mat-icon>add_circle_outline</mat-icon>
+                    }
+                </button>
+            </li>
+            }
+        </ul>
+        }
+    </section>
+
+    }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-flat-button color="primary" (click)="close()">Cerrar</button>
+</mat-dialog-actions>

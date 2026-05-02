@@ -18,6 +18,12 @@
 
         <mat-card-content>
             <div class="info-grid">
+                @if (numeroDocumento) {
+                <div><span class="lbl">{{ tipoDocumento || 'Documento' }}</span><span>{{ numeroDocumento }}</span></div>
+                }
+                @if (codigoAcceso) {
+                <div><span class="lbl">Código de acceso</span><span>{{ codigoAcceso }}</span></div>
+                }
                 @if (user().codigo_estudiante) {
                 <div><span class="lbl">Código estudiante</span><span>{{ user().codigo_estudiante }}</span></div>
                 }
@@ -33,6 +39,9 @@
                 }
                 @if (user().especialidad) {
                 <div><span class="lbl">Especialidad</span><span>{{ user().especialidad }}</span></div>
+                }
+                @if (user().colegiatura) {
+                <div><span class="lbl">Colegiatura</span><span>{{ user().colegiatura }}</span></div>
                 }
                 @if (user().titulo_profesional) {
                 <div><span class="lbl">Título</span><span>{{ user().titulo_profesional }}</span></div>

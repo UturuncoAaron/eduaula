@@ -72,6 +72,12 @@ export const routes: Routes = [
                 loadChildren: () =>
                     import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
             },
+            {
+                path: 'psychology',
+                canActivate: [roleGuard(['psicologa'])],
+                loadChildren: () =>
+                    import('./features/psychology/psychology.routes').then(r => r.PSYCHOLOGY_ROUTES),
+            },
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
         ],
     },

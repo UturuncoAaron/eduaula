@@ -1,7 +1,12 @@
-import { Component, signal, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import {
+  Component, signal, ChangeDetectionStrategy, HostListener,
+  OnInit, inject,
+} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { Navbar } from '../../shared/components/navbar/navbar';
+import { AuthService } from '../../core/auth/auth';
 
 @Component({
   selector: 'app-main-layout',
@@ -9,31 +14,56 @@ import { Navbar } from '../../shared/components/navbar/navbar';
   imports: [RouterOutlet, Sidebar, Navbar],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush 
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MainLayout {
-  // 1. El nombre ahora coincide con el HTML.
+export class MainLayout implements OnInit {
+  private dialog = inject(MatDialog);
+  private auth = inject(AuthService);
+
+  // El nombre coincide con el HTML.
   // Inicia colapsado (true) si la pantalla es de celular (< 768px).
   collapsed = signal<boolean>(window.innerWidth < 768);
+
+  ngOnInit(): void {
+    if (!this.auth.passwordChanged()) {
+      this.openChangePasswordDialog();
+    }
+  }
+
+  private async openChangePasswordDialog(): Promise<void> {
+    const { ChangePasswordDialog } = await import(
+      '../../shared/components/change-password-dialog/change-password-dialog'
+    );
+
+    const ref = this.dialog.open(ChangePasswordDialog, {
+      width: '420px',
+      disableClose: true,
+      data: { rol: this.auth.currentUser()?.rol ?? '' },
+    });
+
+    ref.afterClosed().subscribe((result) => {
+      if (result !== true) {
+        this.auth.logout();
+      }
+    });
+  }
 
   toggleSidebar() {
     this.collapsed.update(val => !val);
   }
 
-  // 2. Función para cerrar el menú en móviles al tocar el fondo oscuro
   closeSidebarOnMobile() {
     if (window.innerWidth < 768) {
       this.collapsed.set(true);
     }
   }
 
-  // 3. (Opcional pero muy pro) Escucha si el usuario voltea el celular o redimensiona la ventana
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     if (event.target.innerWidth < 768) {
-      this.collapsed.set(true); // Ocultar en móvil
+      this.collapsed.set(true);
     } else {
-      this.collapsed.set(false); // Mostrar en PC
+      this.collapsed.set(false);
     }
   }
 }

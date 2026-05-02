@@ -1,58 +1,200 @@
-.page-container {
+.student-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding: 24px;
-  max-width: 900px;
-  margin: 0 auto;
+}
 
-  .back-button {
-    margin-bottom: 24px;
-    color: #64748b;
+.state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 64px;
+  color: #64748b;
+  font-size: .9rem;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  .avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #fff;
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    flex-shrink: 0;
   }
 
-  .loading-state, .error-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px;
-    gap: 16px;
-    color: #64748b;
-  }
+  .info {
+    flex: 1;
+    min-width: 0;
 
-  .profile-header-card {
-    margin-bottom: 24px;
-    padding: 8px;
+    h2 {
+      margin: 0 0 6px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
 
-    .avatar-placeholder {
-      background: #e2e8f0;
-      color: #334155;
-      font-size: 20px;
-      font-weight: 500;
+    .meta {
+      margin: 0;
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: .82rem;
+      color: #64748b;
+
+      span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .code {
+        background: #eef2ff;
+        color: #4338ca;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+      }
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+}
+
+.records {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .muted {
+      font-size: .82rem;
+      color: #64748b;
+    }
+  }
+}
+
+.record-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.record-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+
+  .left {
+    flex: 1;
+    min-width: 0;
+
+    .cat-chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 8px;
+      font-size: .7rem;
+      font-weight: 600;
+      background: #eef2ff;
+      color: #4338ca;
+      margin-bottom: 8px;
+      text-transform: capitalize;
+
+      &[data-cat="conductual"] {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      &[data-cat="academico"] {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      &[data-cat="familiar"] {
+        background: #fce7f3;
+        color: #9d174d;
+      }
+
+      &[data-cat="emocional"] {
+        background: #ede9fe;
+        color: #5b21b6;
+      }
+
+      &[data-cat="otro"] {
+        background: #e2e8f0;
+        color: #334155;
+      }
+    }
+
+    .content {
+      margin: 0 0 6px;
+      white-space: pre-wrap;
+      color: #1e293b;
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+
+    .meta {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #94a3b8;
+      font-size: .75rem;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
     }
   }
 
-  .content-tabs {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2), 
-                0px 1px 1px 0px rgba(0, 0, 0, 0.14), 
-                0px 1px 3px 0px rgba(0, 0, 0, 0.12);
-
-    .tab-card-content {
-      box-shadow: none; // Quitamos sombra interna porque el tab-group ya parece tarjeta
-      padding-top: 16px;
-      
-      .mt-3 {
-        margin-top: 16px;
-      }
-
-      .text-wrap {
-        white-space: normal;
-        margin-top: 4px;
-        color: #475569;
-      }
-    }
+  .actions {
+    display: flex;
+    gap: 4px;
+    align-items: flex-start;
   }
+}
+
+.danger {
+  color: #dc2626;
 }

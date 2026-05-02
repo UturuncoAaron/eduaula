@@ -2,6 +2,7 @@ import {
   Component, inject, effect,
   ViewChild, OnInit, signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
@@ -49,6 +50,7 @@ export class TabAdmins implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
+  private router = inject(Router);
 
   // Buscador reactivo
   searchTerm = signal<string>('');
@@ -108,8 +110,7 @@ export class TabAdmins implements OnInit {
 
   // ─── Lógica existente ──────────────────────────────────────────────────────
   verDetalle(row: AdminRow) {
-    console.log('Ver detalle admin:', row);
-    // TODO: Redirigir a vista de detalle
+    this.router.navigate(['/admin/usuarios', 'admins', row.id]);
   }
 
   resetPassword(row: AdminRow) {

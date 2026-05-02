@@ -1,0 +1,101 @@
+<h2 mat-dialog-title>
+    <mat-icon>event</mat-icon>
+    Nueva cita
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-dialog-content class="dialog-body">
+
+        <div class="row two">
+            <mat-form-field appearance="outline">
+                <mat-label>Alumno</mat-label>
+                <mat-select formControlName="studentId"
+                            (selectionChange)="onStudentChange($event.value)">
+                    @if (store.myStudents().length === 0) {
+                        <mat-option disabled>Sin alumnos asignados</mat-option>
+                    }
+                    @for (s of store.myStudents(); track s.id) {
+                        <mat-option [value]="s.id">{{ fullName(s) }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Padre / Madre / Tutor</mat-label>
+                <mat-select formControlName="parentId">
+                    @if (loadingParents()) {
+                        <mat-option disabled>Cargando padres...</mat-option>
+                    } @else if (parents().length === 0 && !!form.value.studentId) {
+                        <mat-option disabled>Este alumno no tiene padres registrados</mat-option>
+                    }
+                    @for (p of parents(); track p.id) {
+                        <mat-option [value]="p.id">{{ parentName(p) }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div class="row two">
+            <mat-form-field appearance="outline">
+                <mat-label>Tipo</mat-label>
+                <mat-select formControlName="tipo">
+                    @for (t of tipos; track t.value) {
+                        <mat-option [value]="t.value">{{ t.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Modalidad</mat-label>
+                <mat-select formControlName="modalidad">
+                    @for (m of modalidades; track m.value) {
+                        <mat-option [value]="m.value">{{ m.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div class="row two">
+            <mat-form-field appearance="outline">
+                <mat-label>Fecha y hora</mat-label>
+                <input matInput type="datetime-local" formControlName="scheduledAt" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Duración (min)</mat-label>
+                <input matInput type="number" min="15" max="120" formControlName="durationMin" />
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full">
+            <mat-label>Motivo</mat-label>
+            <input matInput formControlName="motivo"
+                   placeholder="Resumen breve del motivo de la cita" />
+            @if (form.get('motivo')?.hasError('minlength') && form.get('motivo')?.touched) {
+                <mat-error>Mínimo 5 caracteres</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+            <mat-label>Notas previas (opcional)</mat-label>
+            <textarea matInput rows="3" formControlName="priorNotes"
+                      placeholder="Información de contexto antes de la sesión"></textarea>
+        </mat-form-field>
+
+        @if (errorMsg()) {
+            <p class="error-msg">{{ errorMsg() }}</p>
+        }
+
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="cancel()" [disabled]="loading()">
+            Cancelar
+        </button>
+        <button mat-flat-button color="primary" type="submit"
+                [disabled]="loading() || form.invalid">
+            @if (loading()) { <mat-spinner diameter="18" /> }
+            @else { <mat-icon>event_available</mat-icon><span>Programar</span> }
+        </button>
+    </mat-dialog-actions>
+</form>

@@ -17,6 +17,7 @@ import { ApiService } from '../../../../../core/services/api';
 import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
+import { AssignStudentsDialog } from './dialogs/assign-students-dialog/assign-students-dialog';
 
 export interface PsicologaRow {
   id: string;
@@ -92,6 +93,18 @@ export class TabPsicologos implements OnInit {
 
     dialogRef.afterClosed().subscribe((creado: boolean) => {
       if (creado) this.loadData();
+    });
+  }
+
+  asignarAlumnos(row: PsicologaRow) {
+    this.dialog.open(AssignStudentsDialog, {
+      width: '640px',
+      maxHeight: '85vh',
+      autoFocus: false,
+      data: {
+        psicologaId: row.id,
+        psicologaNombre: `${row.nombres} ${row.apellidos}`.trim(),
+      },
     });
   }
 

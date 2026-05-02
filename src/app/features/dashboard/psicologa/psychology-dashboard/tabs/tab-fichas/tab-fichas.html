@@ -1,0 +1,97 @@
+<div class="tab-fichas">
+
+    <header class="tab-header">
+        <div>
+            <h3>Fichas psicológicas</h3>
+            <p class="muted">Anotaciones por alumno</p>
+        </div>
+
+        @if (selectedStudent()) {
+            <button mat-flat-button color="primary" (click)="openCreate()">
+                <mat-icon>add</mat-icon>
+                <span>Nueva ficha</span>
+            </button>
+        }
+    </header>
+
+    <div class="filters">
+        <mat-form-field appearance="outline" class="select-field">
+            <mat-label>Alumno</mat-label>
+            <mat-select [ngModel]="selectedStudentId()"
+                        (ngModelChange)="onStudentChange($event)">
+                @if (store.myStudents().length === 0) {
+                    <mat-option disabled>Sin alumnos asignados</mat-option>
+                }
+                @for (s of store.myStudents(); track s.id) {
+                    <mat-option [value]="s.id">{{ fullName(s) }} · {{ s.codigo_estudiante }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        @if (selectedStudent()) {
+            <mat-form-field appearance="outline" class="select-field">
+                <mat-label>Categoría</mat-label>
+                <mat-select [ngModel]="filterCategoria()"
+                            (ngModelChange)="onCategoriaChange($event)">
+                    @for (c of categorias; track c.value) {
+                        <mat-option [value]="c.value">{{ c.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        }
+    </div>
+
+    @if (!selectedStudent()) {
+        <app-empty-state
+            icon="folder_open"
+            title="Selecciona un alumno"
+            message="Elige un alumno arriba para ver y gestionar sus fichas psicológicas." />
+    } @else if (store.loadingRecords()) {
+        <div class="state-center">
+            <mat-spinner diameter="32" />
+            <span>Cargando fichas...</span>
+        </div>
+    } @else if (filteredRecords().length === 0) {
+        <app-empty-state
+            icon="description"
+            title="Sin fichas registradas"
+            [message]="filterCategoria() === 'all'
+                ? 'Aún no hay fichas para este alumno. Crea la primera con el botón Nueva ficha.'
+                : 'No hay fichas en esta categoría.'" />
+    } @else {
+        <ul class="records-list">
+            @for (r of filteredRecords(); track r.id) {
+                <li class="record-card">
+                    <div class="left">
+                        <span class="cat-chip" [attr.data-cat]="r.categoria">
+                            {{ categoriaLabel(r.categoria) }}
+                        </span>
+                        <p class="content">{{ r.contenido }}</p>
+                        <p class="meta">
+                            <mat-icon>schedule</mat-icon>
+                            <span>{{ r.createdAt | date:'medium' }}</span>
+                        </p>
+                    </div>
+                    <div class="right">
+                        <button mat-icon-button [matMenuTriggerFor]="menu"
+                                aria-label="Acciones">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu">
+                            <button mat-menu-item (click)="openEdit(r)">
+                                <mat-icon>edit</mat-icon>
+                                <span>Editar</span>
+                            </button>
+                            <button mat-menu-item class="danger"
+                                    (click)="delete(r)">
+                                <mat-icon>delete</mat-icon>
+                                <span>Eliminar</span>
+                            </button>
+                        </mat-menu>
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+
+</div>

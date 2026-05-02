@@ -1,45 +1,53 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
 import { AuthService } from '../../../../core/auth/auth';
-import { ApiService } from '../../../../core/services/api';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
-
-interface Child {
-  id: string;
-  nombre: string;
-  apellido_paterno: string;
-  grado: string;
-  seccion: string;
-  tiene_libreta: boolean;
-}
+import { ParentPortalService } from '../../stores/parent-portal.store';
+import { Child } from '../../../../core/models/parent-portal';
 
 @Component({
   selector: 'app-child-selector',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, RouterLink, PageHeader, EmptyState],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    RouterLink,
+    MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    PageHeader, EmptyState,
+  ],
   templateUrl: './child-selector.html',
   styleUrl: './child-selector.scss',
 })
 export class ChildSelector implements OnInit {
   readonly auth = inject(AuthService);
-  private api = inject(ApiService);
+  private store = inject(ParentPortalService);
 
-  children = signal<Child[]>([]);
-  loading = signal(true);
+  readonly children = signal<Child[]>([]);
+  readonly loading = signal(true);
 
   ngOnInit() {
-    this.api.get<Child[]>('parent/children').subscribe({
-      next: r => { this.children.set(r.data); this.loading.set(false); },
+    this.store.getChildren().subscribe({
+      next: r => {
+        this.children.set(r.data ?? []);
+        this.loading.set(false);
+      },
       error: () => {
-        this.children.set([
-          { id: '1', nombre: 'Carlos', apellido_paterno: 'García', grado: '3ro de Secundaria', seccion: 'A', tiene_libreta: true },
-        ]);
+        this.children.set([]);
         this.loading.set(false);
       },
     });
+  }
+
+  initials(c: Child): string {
+    return ((c.nombre?.[0] ?? '') + (c.apellido_paterno?.[0] ?? '')).toUpperCase();
+  }
+
+  fullName(c: Child): string {
+    return `${c.nombre} ${c.apellido_paterno} ${c.apellido_materno ?? ''}`.trim();
   }
 }

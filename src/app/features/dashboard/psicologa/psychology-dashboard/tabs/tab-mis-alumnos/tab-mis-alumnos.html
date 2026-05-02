@@ -1,0 +1,69 @@
+<div class="tab-alumnos">
+
+    <header class="tab-header">
+        <div>
+            <h3>Mis alumnos asignados</h3>
+            <p class="muted">{{ store.myStudents().length }} alumno(s) bajo tu cargo</p>
+        </div>
+
+        @if (store.myStudents().length > 0) {
+            <mat-form-field appearance="outline" class="search-field">
+                <mat-icon matPrefix>search</mat-icon>
+                <mat-label>Buscar alumno</mat-label>
+                <input matInput
+                       [ngModel]="query()"
+                       (ngModelChange)="onSearch($event)"
+                       placeholder="Nombre o código" />
+            </mat-form-field>
+        }
+    </header>
+
+    @if (store.loadingStudents()) {
+        <div class="state-center">
+            <mat-spinner diameter="32" />
+            <span>Cargando alumnos...</span>
+        </div>
+    } @else if (store.myStudents().length === 0) {
+        <app-empty-state
+            icon="groups"
+            title="Sin alumnos asignados"
+            message="Aún no tienes alumnos asignados. Contacta al administrador." />
+    } @else if (filteredStudents().length === 0) {
+        <app-empty-state
+            icon="search_off"
+            title="Sin resultados"
+            message="No encontramos alumnos que coincidan con tu búsqueda." />
+    } @else {
+        <div class="grid">
+            @for (s of filteredStudents(); track s.id) {
+                <article class="card">
+                    <div class="avatar">{{ initials(s) }}</div>
+                    <div class="info">
+                        <h4 class="name">{{ fullName(s) }}</h4>
+                        <p class="code">{{ s.codigo_estudiante }}</p>
+                        @if (s.email) {
+                            <p class="meta">
+                                <mat-icon>mail</mat-icon>
+                                <span>{{ s.email }}</span>
+                            </p>
+                        }
+                        @if (s.telefono) {
+                            <p class="meta">
+                                <mat-icon>call</mat-icon>
+                                <span>{{ s.telefono }}</span>
+                            </p>
+                        }
+                    </div>
+                    <div class="actions">
+                        <button mat-stroked-button color="primary"
+                                (click)="verFicha(s)">
+                            <mat-icon>folder_open</mat-icon>
+                            <span>Ver ficha</span>
+                        </button>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+
+</div>

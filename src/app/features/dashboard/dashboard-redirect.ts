@@ -13,6 +13,7 @@ export class DashboardRedirect implements OnInit {
       docente: '/dashboard/docente',
       admin: '/dashboard/admin',
       padre: '/dashboard/padre',
+      psicologa: '/dashboard/psicologa',
     };
     const rol = this.auth.currentUser()?.rol ?? '';
     this.router.navigate([map[rol] ?? '/auth/login']);

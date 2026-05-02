@@ -1,0 +1,124 @@
+<div class="tab-citas">
+
+    <header class="tab-header">
+        <div>
+            <h3>Agenda de citas</h3>
+            <p class="muted">{{ store.appointments().length }} cita(s) registradas</p>
+        </div>
+
+        <div class="header-actions">
+            <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Estado</mat-label>
+                <mat-select [ngModel]="filterEstado()"
+                            (ngModelChange)="onEstadoChange($event)">
+                    @for (e of estados; track e.value) {
+                        <mat-option [value]="e.value">{{ e.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" (click)="openCreate()">
+                <mat-icon>add</mat-icon>
+                <span>Nueva cita</span>
+            </button>
+        </div>
+    </header>
+
+    @if (store.loadingAppointments()) {
+        <div class="state-center">
+            <mat-spinner diameter="32" />
+            <span>Cargando citas...</span>
+        </div>
+    } @else if (visible().length === 0) {
+        <app-empty-state
+            icon="event_busy"
+            title="Sin citas"
+            [message]="filterEstado() === 'all'
+                ? 'No tienes citas programadas. Crea una con el botón Nueva cita.'
+                : 'No hay citas en este estado.'" />
+    } @else {
+        <div class="table-responsive">
+            <table mat-table [dataSource]="dataSource" class="users-table">
+
+                <ng-container matColumnDef="fecha">
+                    <th mat-header-cell *matHeaderCellDef>Fecha y hora</th>
+                    <td mat-cell *matCellDef="let row">
+                        <span class="full-name">{{ row.scheduledAt | date:'short' }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="alumno">
+                    <th mat-header-cell *matHeaderCellDef>Alumno</th>
+                    <td mat-cell *matCellDef="let row">
+                        <span class="full-name">{{ studentName(row) }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="tipo">
+                    <th mat-header-cell *matHeaderCellDef>Tipo</th>
+                    <td mat-cell *matCellDef="let row">
+                        <span class="doc-type-chip">{{ row.tipo }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="modalidad">
+                    <th mat-header-cell *matHeaderCellDef>Modalidad</th>
+                    <td mat-cell *matCellDef="let row">
+                        <span class="grado-chip">{{ row.modalidad }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="duracion">
+                    <th mat-header-cell *matHeaderCellDef>Duración</th>
+                    <td mat-cell *matCellDef="let row">{{ row.durationMin }} min</td>
+                </ng-container>
+
+                <ng-container matColumnDef="estado">
+                    <th mat-header-cell *matHeaderCellDef>Estado</th>
+                    <td mat-cell *matCellDef="let row">
+                        <span class="status-chip" [attr.data-estado]="row.estado">
+                            <span class="status-dot"></span>
+                            {{ estadoLabel(row.estado) }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
+                    <td mat-cell *matCellDef="let row" class="col-actions">
+                        <button mat-icon-button [matMenuTriggerFor]="menu" class="menu-trigger">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu">
+                            <button mat-menu-item (click)="setEstado(row, 'confirmada')">
+                                <mat-icon>check</mat-icon>
+                                <span>Confirmar</span>
+                            </button>
+                            <button mat-menu-item (click)="setEstado(row, 'realizada')">
+                                <mat-icon>task_alt</mat-icon>
+                                <span>Marcar como realizada</span>
+                            </button>
+                            <button mat-menu-item (click)="setEstado(row, 'no_asistio')">
+                                <mat-icon>person_off</mat-icon>
+                                <span>No asistió</span>
+                            </button>
+                            <button mat-menu-item (click)="cancelar(row)" class="danger">
+                                <mat-icon>cancel</mat-icon>
+                                <span>Cancelar cita</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
+            </table>
+        </div>
+
+        <mat-paginator
+            [pageSizeOptions]="[10, 25, 50]"
+            [pageSize]="10"
+            showFirstLastButtons />
+    }
+
+</div>

@@ -1,29 +1,67 @@
-<app-page-header title="Libreta de notas" [backRoute]="'/portal-padres'" />
+<app-page-header
+    title="Libreta de notas"
+    subtitle="Boletines firmados por bimestre"
+    backRoute="/portal-padres" />
 
 @if (loading()) {
-<p>Cargando libreta...</p>
+    <div class="state-center">
+        <mat-spinner diameter="36" />
+        <p>Cargando libretas...</p>
+    </div>
 } @else if (libretas().length === 0) {
-<app-empty-state icon="menu_book" title="Sin libreta disponible"
-    message="El administrador del colegio aún no ha asignado una libreta para este alumno." />
+    <app-empty-state
+        icon="menu_book"
+        title="Sin libretas"
+        message="Aún no se ha publicado ninguna libreta para este alumno." />
 } @else {
-<div class="libretas-list">
-    @for (l of libretas(); track l.id) {
-    <mat-card class="libreta-card">
-        <mat-card-content>
-            <div class="libreta-row">
-                <div class="libreta-icon">
-                    <mat-icon>menu_book</mat-icon>
-                </div>
-                <div class="libreta-info">
-                    <span class="libreta-name">{{ l.nombre }}</span>
-                    <span class="libreta-period">{{ l.periodo }}</span>
-                </div>
-                <button mat-flat-button color="primary" (click)="open(l.url_pdf)">
-                    <mat-icon>visibility</mat-icon> Ver libreta
-                </button>
-            </div>
-        </mat-card-content>
-    </mat-card>
-    }
-</div>
+
+    <div class="libretas-grid">
+        @for (l of libretas(); track l.id) {
+            <mat-card class="libreta-card">
+                <mat-card-header>
+                    <div mat-card-avatar class="lib-avatar">
+                        <mat-icon>menu_book</mat-icon>
+                    </div>
+                    <mat-card-title>
+                        @if (l.periodo) {
+                            {{ l.periodo.nombre }} {{ l.periodo.anio }}
+                        } @else {
+                            Libreta
+                        }
+                    </mat-card-title>
+                    <mat-card-subtitle>
+                        Subida {{ l.created_at | date:'mediumDate' }}
+                    </mat-card-subtitle>
+                </mat-card-header>
+
+                <mat-card-content>
+                    <p class="filename">
+                        <mat-icon>description</mat-icon>
+                        <span>{{ l.nombre_archivo }}</span>
+                    </p>
+                    @if (l.observaciones) {
+                        <p class="obs">{{ l.observaciones }}</p>
+                    }
+                </mat-card-content>
+
+                <mat-card-actions align="end">
+                    @if (hasUrl(l)) {
+                        <button mat-flat-button color="primary"
+                                (click)="open(l.url)">
+                            <mat-icon>open_in_new</mat-icon>
+                            <span>Ver libreta</span>
+                        </button>
+                    } @else {
+                        <button mat-stroked-button
+                                disabled
+                                matTooltip="Archivo no disponible">
+                            <mat-icon>block</mat-icon>
+                            <span>Ver libreta</span>
+                        </button>
+                    }
+                </mat-card-actions>
+            </mat-card>
+        }
+    </div>
+
 }

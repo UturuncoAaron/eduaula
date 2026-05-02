@@ -1,1 +1,18 @@
-<p>psychology-dashboard works!</p>
+<div class="psy-dashboard">
+
+    <app-page-header title="Panel de psicología" subtitle="Gestiona alumnos, fichas, citas y disponibilidad" />
+
+    <nav class="tabs-nav">
+        @for (t of tabs; track t.route) {
+        <a [routerLink]="t.route" routerLinkActive="active" class="tab-link">
+            <mat-icon>{{ t.icon }}</mat-icon>
+            <span>{{ t.label }}</span>
+        </a>
+        }
+    </nav>
+
+    <section class="tab-outlet">
+        <router-outlet />
+    </section>
+
+</div>

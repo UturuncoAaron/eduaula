@@ -87,22 +87,33 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // PSICOLOGÍA (NUEVO)
+  // PSICOLOGÍA
   // ═══════════════════════════════════════════════════════════════════════════
   {
-    label: 'Agenda y Citas',
-    icon: 'event',
-    route: '/psychology/appointments',
+    label: 'Mis Alumnos',
+    icon: 'groups',
+    route: '/dashboard/psicologa/alumnos',
     roles: ['psicologa'],
     dividerBefore: true,
   },
   {
-    label: 'Mis Alumnos',
-    icon: 'groups',
-    route: '/psychology/students', // Asumiendo que crearás una vista de lista más adelante
+    label: 'Fichas',
+    icon: 'folder_open',
+    route: '/dashboard/psicologa/fichas',
     roles: ['psicologa'],
   },
-  // La vista de la ficha (student/:id) no va aquí porque se navega desde las listas
+  {
+    label: 'Agenda y Citas',
+    icon: 'event',
+    route: '/dashboard/psicologa/citas',
+    roles: ['psicologa'],
+  },
+  {
+    label: 'Disponibilidad',
+    icon: 'schedule',
+    route: '/dashboard/psicologa/disponibilidad',
+    roles: ['psicologa'],
+  },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ADMIN
