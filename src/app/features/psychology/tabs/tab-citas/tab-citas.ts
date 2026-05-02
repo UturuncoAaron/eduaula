@@ -13,13 +13,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
 
-import { PsychologyStore } from '../../../../../psychology/stores/psychology.store';
-import { EmptyState } from '../../../../../../shared/components/empty-state/empty-state';
-import { ConfirmDialog } from '../../../../../../shared/components/confirm-dialog/confirm-dialog';
-import { AppointmentFormDialog } from '../../../dialogs/appointment-form-dialog/appointment-form-dialog';
+import { PsychologyStore } from '../../stores/psychology.store';
+import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { AppointmentFormDialog } from '../../dialogs/appointment-form-dialog/appointment-form-dialog';
 import {
   Appointment, AppointmentEstado,
-} from '../../../../../../core/models/psychology';
+} from '../../../../core/models/psychology';
 
 @Component({
   selector: 'app-tab-citas',

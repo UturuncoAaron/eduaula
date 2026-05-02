@@ -87,41 +87,21 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   {
-  label: 'Comunicados',
-  icon: 'campaign',
-  route: '/comunicados',
-  roles: ['alumno', 'docente', 'padre', 'psicologa'],
-  dividerBefore: true,
-},
+    label: 'Comunicados',
+    icon: 'campaign',
+    route: '/comunicados',
+    roles: ['alumno', 'docente', 'padre', 'psicologa'],
+    dividerBefore: true,
+  },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PSICOLOGÍA
   // ═══════════════════════════════════════════════════════════════════════════
-  {
-    label: 'Mis Alumnos',
-    icon: 'groups',
-    route: '/dashboard/psicologa/alumnos',
-    roles: ['psicologa'],
-    dividerBefore: true,
-  },
-  {
-    label: 'Fichas',
-    icon: 'folder_open',
-    route: '/dashboard/psicologa/fichas',
-    roles: ['psicologa'],
-  },
-  {
-    label: 'Agenda y Citas',
-    icon: 'event',
-    route: '/dashboard/psicologa/citas',
-    roles: ['psicologa'],
-  },
-  {
-    label: 'Disponibilidad',
-    icon: 'schedule',
-    route: '/dashboard/psicologa/disponibilidad',
-    roles: ['psicologa'],
-  },
+  // Sección PSICOLOGÍA — sin cambios de rutas, ya están correctas:
+  { label: 'Mis Alumnos', icon: 'groups', route: '/dashboard/psicologa/alumnos', roles: ['psicologa'], dividerBefore: true },
+  { label: 'Fichas', icon: 'folder_open', route: '/dashboard/psicologa/fichas', roles: ['psicologa'] },
+  { label: 'Agenda y Citas', icon: 'event', route: '/dashboard/psicologa/citas', roles: ['psicologa'] },
+  { label: 'Disponibilidad', icon: 'schedule', route: '/dashboard/psicologa/disponibilidad', roles: ['psicologa'] },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ADMIN

@@ -54,7 +54,7 @@
         <button mat-flat-button color="primary" type="submit"
                 [disabled]="loading() || form.invalid">
             @if (loading()) { <mat-spinner diameter="18" /> }
-            @else { <mat-icon>save</mat-icon><span>Guardar bloqueo</span> }
+            @else { <ng-container><mat-icon>save</mat-icon><span>Guardar bloqueo</span></ng-container> }
         </button>
     </mat-dialog-actions>
 </form>

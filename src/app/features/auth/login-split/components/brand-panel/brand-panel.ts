@@ -24,6 +24,8 @@ export class BrandPanel implements OnInit {
     ]);
 
     ngOnInit() {
+        const token = localStorage.getItem('token'); // o como guardas el token
+        if (!token) return;
         this.http
             .get<{ success: boolean; data: { clave: string; valor: string }[] }>(
                 `${environment.apiUrl}/configuracion`,

@@ -8,8 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastService } from 'ngx-toastr-notifier';
 
-import { PsychologyStore } from '../../../../psychology/stores/psychology.store';
-import { PsychologistAvailability } from '../../../../../core/models/psychology';
+import { PsychologyStore } from '../../stores/psychology.store';
+import { PsychologistAvailability } from '../../../../../app/core/models/psychology';
 
 export interface BlockFormDialogData {
   availability: PsychologistAvailability[];

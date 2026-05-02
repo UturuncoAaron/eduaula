@@ -1,98 +1,188 @@
+// ─── Variables ────────────────────────────────────────────────
+$radius : 14px;
+$radius-sm : 8px;
+$border : 1px solid #e8edf4;
+$trans : .18s ease;
+
+// ─── HEADER ───────────────────────────────────────────────────
 .dialog-header {
-    background: #f8fafc;
-    padding: 24px 32px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #e2e8f0;
+    justify-content: space-between;
+    padding: 20px 28px;
+    background: #fff;
+    border-bottom: $border;
+}
 
-    .header-text {
-        h2 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 600;
-            color: #0f172a;
-        }
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
 
-        .subtitle {
-            margin: 4px 0 0 0;
-            font-size: 13px;
-            color: #64748b;
-        }
-    }
+.header-role-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 
-    .header-icon {
-        background: #e0f2fe;
-        color: #0284c7;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        mat-icon {
-            font-size: 24px;
-            width: 24px;
-            height: 24px;
-        }
+    mat-icon {
+        font-size: 22px !important;
+        width: 22px !important;
+        height: 22px !important;
     }
 }
 
-mat-dialog-content {
-    min-width: 650px;
-    max-height: 65vh;
-    padding: 24px 32px !important;
+.header-eyebrow {
+    margin: 0 0 2px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: #94a3b8;
+}
 
-    @media (max-width: 768px) {
+.header-title {
+    margin: 0;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    color: #0f172a;
+    letter-spacing: -.2px;
+    padding: 0 !important; // override mat-dialog-title
+}
+
+.header-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: $border;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: all $trans;
+    flex-shrink: 0;
+
+    mat-icon {
+        font-size: 18px !important;
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    &:hover {
+        background: #f8fafc;
+        color: #0f172a;
+    }
+}
+
+// ─── PROGRESS ─────────────────────────────────────────────────
+.progress-strip {
+    height: 3px;
+    background: #f1f5f9;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    transition: width .4s ease;
+    border-radius: 0 2px 2px 0;
+}
+
+// ─── CONTENT ──────────────────────────────────────────────────
+mat-dialog-content {
+    min-width: 620px;
+    max-height: 62vh !important;
+    padding: 8px 28px 24px !important;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 99px;
+    }
+
+    @media (max-width: 680px) {
         min-width: unset;
         width: 100%;
-        padding: 16px !important;
+        padding: 8px 16px 20px !important;
     }
 }
 
+// ─── FORM ─────────────────────────────────────────────────────
 .form {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
 }
 
-.section-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 16px 0 12px;
+// ─── SECTION ──────────────────────────────────────────────────
+.form-section {
+    padding: 20px 0;
+    border-bottom: $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.section-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.section-num {
+    min-width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
     display: flex;
     align-items: center;
-    gap: 8px;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 8px;
-
-    mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        color: #94a3b8;
-    }
-
-    &.highlight-section {
-        color: #0284c7;
-        border-bottom-color: #bae6fd;
-
-        mat-icon {
-            color: #0284c7;
-        }
-    }
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: background $trans, color $trans;
 }
 
+.section-name {
+    margin: 0 0 2px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.section-hint {
+    margin: 0;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+// ─── GRIDS ────────────────────────────────────────────────────
 .row-3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 12px 16px;
+    margin-bottom: 12px;
 
-    @media (max-width: 768px) {
+    @media (max-width: 680px) {
         grid-template-columns: 1fr;
     }
 }
@@ -100,9 +190,9 @@ mat-dialog-content {
 .row-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 12px 16px;
 
-    @media (max-width: 768px) {
+    @media (max-width: 680px) {
         grid-template-columns: 1fr;
     }
 }
@@ -110,24 +200,27 @@ mat-dialog-content {
 .row-1 {
     display: grid;
     grid-template-columns: 1fr;
+    gap: 12px;
 }
 
-.dynamic-fields-container {
-    background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: 8px;
-    padding: 16px;
-    margin-top: 4px;
+// ─── MAT FORM FIELD overrides ─────────────────────────────────
+mat-form-field {
+    width: 100%;
+
+    .mat-mdc-form-field-subscript-wrapper {
+        padding: 0 2px;
+    }
 }
 
+// ─── FADE IN ──────────────────────────────────────────────────
 .fade-in {
-    animation: fadeIn 0.3s ease-in-out;
+    animation: fadeIn .25s ease;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(-5px);
+        transform: translateY(-6px);
     }
 
     to {
@@ -136,8 +229,105 @@ mat-dialog-content {
     }
 }
 
+// ─── FOOTER ───────────────────────────────────────────────────
 .dialog-footer {
-    padding: 16px 32px;
-    border-top: 1px solid #e2e8f0;
-    margin-bottom: 0;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px !important;
+    border-top: $border;
+    background: #fafbfc;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    @media (max-width: 480px) {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.footer-left {
+    flex: 1;
+}
+
+.footer-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #94a3b8;
+
+    mat-icon {
+        font-size: 14px !important;
+        width: 14px !important;
+        height: 14px !important;
+    }
+}
+
+.footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-cancel {
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    border-radius: 8px !important;
+    padding: 0 16px !important;
+
+    &:hover {
+        background: #f1f5f9 !important;
+    }
+}
+
+.btn-submit {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 0 22px !important;
+    height: 40px !important;
+    border-radius: 9px !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    transition: filter $trans, transform $trans !important;
+
+    mat-icon {
+        font-size: 17px !important;
+        width: 17px !important;
+        height: 17px !important;
+    }
+
+    &:hover:not([disabled]) {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+    }
+
+    &:active:not([disabled]) {
+        transform: translateY(0);
+    }
+
+    &[disabled] {
+        opacity: .55 !important;
+        cursor: not-allowed;
+    }
+}
+
+// ─── SPINNER ──────────────────────────────────────────────────
+.spinner-btn {
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, .35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }

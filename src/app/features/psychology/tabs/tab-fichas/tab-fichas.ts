@@ -1,6 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy, Component, OnInit,
+  computed, inject, signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -8,17 +12,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
 
-import { PsychologyStore } from '../../../../../psychology/stores/psychology.store';
-import { EmptyState } from '../../../../../../shared/components/empty-state/empty-state';
-import { ConfirmDialog } from '../../../../../../shared/components/confirm-dialog/confirm-dialog';
-import { RecordFormDialog } from '../../../dialogs/record-form-dialog/record-form-dialog';
-import {
-  AssignedStudent, PsychologyRecord, RecordCategoria,
-} from '../../../../../../core/models/psychology';
+import { PsychologyStore } from '../../stores/psychology.store';
+import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { RecordFormDialog } from '../../dialogs/record-form-dialog/record-form-dialog';
+import { AssignedStudent, PsychologyRecord, RecordCategoria } from '../../../../core/models/psychology';
 
 @Component({
   selector: 'app-tab-fichas',
@@ -28,7 +29,7 @@ import {
     DatePipe, FormsModule,
     MatFormFieldModule, MatSelectModule, MatInputModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    MatMenuModule, MatChipsModule,
+    MatMenuModule,
     EmptyState,
   ],
   templateUrl: './tab-fichas.html',
@@ -38,6 +39,7 @@ export class TabFichas implements OnInit {
   readonly store = inject(PsychologyStore);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
+  private router = inject(Router);
 
   readonly selectedStudentId = signal<string | null>(null);
   readonly filterCategoria = signal<RecordCategoria | 'all'>('all');
@@ -56,18 +58,17 @@ export class TabFichas implements OnInit {
   });
 
   readonly categorias: { value: RecordCategoria | 'all'; label: string }[] = [
-    { value: 'all',        label: 'Todas' },
+    { value: 'all', label: 'Todas' },
     { value: 'conductual', label: 'Conductual' },
-    { value: 'academico',  label: 'Académico' },
-    { value: 'familiar',   label: 'Familiar' },
-    { value: 'emocional',  label: 'Emocional' },
-    { value: 'otro',       label: 'Otro' },
+    { value: 'academico', label: 'Académico' },
+    { value: 'familiar', label: 'Familiar' },
+    { value: 'emocional', label: 'Emocional' },
+    { value: 'otro', label: 'Otro' },
   ];
 
   ngOnInit(): void {
-    if (this.store.myStudents().length === 0) {
-      this.store.loadMyStudents();
-    }
+    // Siempre recarga al entrar
+    this.store.loadMyStudents();
   }
 
   onStudentChange(id: string) {
@@ -77,6 +78,10 @@ export class TabFichas implements OnInit {
 
   onCategoriaChange(value: RecordCategoria | 'all') {
     this.filterCategoria.set(value);
+  }
+
+  verDetalle(s: AssignedStudent) {
+    this.router.navigate(['/dashboard/psicologa/fichas', s.id]);
   }
 
   fullName(s: AssignedStudent): string {
@@ -108,7 +113,7 @@ export class TabFichas implements OnInit {
   delete(record: PsychologyRecord) {
     const stu = this.selectedStudent();
     if (!stu) return;
-    const confirm = this.dialog.open(ConfirmDialog, {
+    const ref = this.dialog.open(ConfirmDialog, {
       width: '420px',
       data: {
         title: 'Eliminar ficha',
@@ -118,7 +123,7 @@ export class TabFichas implements OnInit {
         danger: true,
       },
     });
-    confirm.afterClosed().subscribe(async (ok) => {
+    ref.afterClosed().subscribe(async ok => {
       if (!ok) return;
       try {
         await this.store.deleteRecord(record.id, stu.id);

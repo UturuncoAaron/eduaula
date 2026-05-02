@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy, Component, OnInit,
+  computed, inject,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
@@ -12,7 +14,7 @@ import { PsychologyStore } from '../stores/psychology.store';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
-import { RecordFormDialog } from '../../dashboard/psicologa/dialogs/record-form-dialog/record-form-dialog';
+import { RecordFormDialog } from '../dialogs/record-form-dialog/record-form-dialog'; // ← corregido
 import { AssignedStudent, PsychologyRecord } from '../../../core/models/psychology';
 
 @Component({
@@ -21,7 +23,7 @@ import { AssignedStudent, PsychologyRecord } from '../../../core/models/psycholo
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe,
-    MatButtonModule, MatIconModule, MatChipsModule,
+    MatButtonModule, MatIconModule,
     MatProgressSpinnerModule,
     PageHeader, EmptyState,
   ],

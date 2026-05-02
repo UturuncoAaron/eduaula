@@ -10,25 +10,23 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../core/services/api';
-// Asegúrate de agregar 'psicologa' a tu type UserRole en navigation.config.ts
 import { UserRole } from '../../../../shared/components/sidebar/navigation.config';
 
-export interface CreateUserDialogData {
-  rol: UserRole;
-}
+export interface CreateUserDialogData { rol: UserRole; }
 
 interface RoleMeta {
   label: string;
   icon: string;
   endpoint: string;
+  color: string;
 }
 
 const ROLE_META: Record<UserRole, RoleMeta> = {
-  admin: { label: 'Administrador del Sistema', icon: 'admin_panel_settings', endpoint: 'admin/users/admins' },
-  alumno: { label: 'Alumno Regular', icon: 'school', endpoint: 'admin/users/alumnos' },
-  docente: { label: 'Docente / Profesor', icon: 'badge', endpoint: 'admin/users/docentes' },
-  padre: { label: 'Padre / Tutor / Apoderado', icon: 'family_restroom', endpoint: 'admin/users/padres' },
-  psicologa: { label: 'Psicóloga', icon: 'psychology', endpoint: 'admin/users/psicologos' },
+  admin: { label: 'Administrador', icon: 'admin_panel_settings', endpoint: 'admin/users/admins', color: '#ef4444' },
+  alumno: { label: 'Alumno', icon: 'school', endpoint: 'admin/users/alumnos', color: '#10b981' },
+  docente: { label: 'Docente', icon: 'badge', endpoint: 'admin/users/docentes', color: '#f59e0b' },
+  padre: { label: 'Padre / Tutor', icon: 'family_restroom', endpoint: 'admin/users/padres', color: '#8b5cf6' },
+  psicologa: { label: 'Psicóloga', icon: 'psychology', endpoint: 'admin/users/psicologos', color: '#0ea5e9' },
 };
 
 @Component({
@@ -37,8 +35,7 @@ const ROLE_META: Record<UserRole, RoleMeta> = {
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatButtonModule, MatIconModule,
-    MatDatepickerModule, MatNativeDateModule,
-    MatDialogModule,
+    MatDatepickerModule, MatNativeDateModule, MatDialogModule,
   ],
   templateUrl: './create-user-dialog.html',
   styleUrl: './create-user-dialog.scss',
@@ -49,12 +46,13 @@ export class CreateUserDialog {
   private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<CreateUserDialog>);
 
-  data: CreateUserDialogData = inject(MAT_DIALOG_DATA);
+  data = inject<CreateUserDialogData>(MAT_DIALOG_DATA);
   creating = signal(false);
   roleMeta = computed<RoleMeta>(() => ROLE_META[this.data.rol]);
 
+  // ── Formulario ────────────────────────────────────────────
   form = this.fb.group({
-    // ── Campos comunes (CONTRASEÑA ELIMINADA) ───────────────────
+    // Comunes
     tipo_documento: ['dni', Validators.required],
     numero_documento: ['', [Validators.required, Validators.maxLength(20)]],
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
@@ -62,25 +60,53 @@ export class CreateUserDialog {
     apellido_materno: [''],
     email: ['', Validators.email],
     telefono: [''],
-
-    // ── Campos por rol ──────────────────────────────────────────
-    codigo_estudiante: [''],
+    // Alumno
     fecha_nacimiento: [null as Date | null],
-    especialidad: [''], // Compartido por Docente y Psicóloga
-    colegiatura: [''],
+    // Docente
+    especialidad: [''],
     titulo_profesional: [''],
+    // Padre
     relacion: [''],
+    // Admin
     cargo: [''],
+    // Psicóloga
+    colegiatura: [''],
   });
 
+  // ── Progress bar según campos completados ─────────────────
+  progressWidth = computed(() => {
+    const controls = this.form.controls;
+    const required = [
+      controls.tipo_documento,
+      controls.numero_documento,
+      controls.nombre,
+      controls.apellido_paterno,
+    ];
+    const optional = [
+      controls.apellido_materno,
+      controls.email,
+      controls.telefono,
+    ];
+    const filledRequired = required.filter(c => c.value?.toString().trim()).length;
+    const filledOptional = optional.filter(c => c.value?.toString().trim()).length;
+    const total = ((filledRequired / required.length) * 70) + ((filledOptional / optional.length) * 30);
+    return `${Math.round(total)}%`;
+  });
+
+  // ── Submit ────────────────────────────────────────────────
   submit() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
+    // Validación adicional por rol
+    if (this.data.rol === 'alumno') {
+      this.form.controls.fecha_nacimiento.setValidators(Validators.required);
+      this.form.controls.fecha_nacimiento.updateValueAndValidity();
+    }
+    if (this.data.rol === 'padre') {
+      this.form.controls.relacion.setValidators(Validators.required);
+      this.form.controls.relacion.updateValueAndValidity();
     }
 
-    if (this.data.rol === 'padre' && !this.form.value.relacion) {
-      this.toastr.error('Debes indicar la relación con el alumno', 'Error');
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
 
@@ -98,39 +124,37 @@ export class CreateUserDialog {
       ...(v.telefono?.trim() && { telefono: v.telefono }),
     };
 
-    const extras: Record<string, Record<string, unknown>> = {
+    const extras: Record<UserRole, Record<string, unknown>> = {
       alumno: {
-        codigo_estudiante: v.codigo_estudiante?.trim() ? v.codigo_estudiante : `EST-${v.numero_documento}`,
-        ...(v.fecha_nacimiento && { fecha_nacimiento: (v.fecha_nacimiento as Date).toISOString().split('T')[0] }),
+        // código se genera en el backend — no se envía
+        fecha_nacimiento: (v.fecha_nacimiento as Date).toISOString().split('T')[0],
       },
       docente: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.titulo_profesional?.trim() && { titulo_profesional: v.titulo_profesional }),
       },
-      padre: { ...(v.relacion && { relacion: v.relacion }) },
-      admin: { ...(v.cargo?.trim() && { cargo: v.cargo }) },
+      padre: {
+        relacion: v.relacion,
+      },
+      admin: {
+        ...(v.cargo?.trim() && { cargo: v.cargo }),
+      },
       psicologa: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.colegiatura?.trim() && { colegiatura: v.colegiatura }),
       },
     };
 
-    const payload = { ...base, ...extras[this.data.rol] };
-    this.executePost(endpoint, payload);
-  }
-
-  // Helper para no repetir el subscribe
-  private executePost(endpoint: string, payload: any) {
-    this.api.post(endpoint, payload).subscribe({
+    this.api.post(endpoint, { ...base, ...extras[this.data.rol] }).subscribe({
       next: () => {
-        this.toastr.success('Registro creado correctamente', 'Éxito');
+        this.toastr.success('Usuario registrado correctamente', '¡Listo!');
         this.dialogRef.close(true);
         this.creating.set(false);
       },
       error: (err) => {
         const msg = Array.isArray(err?.error?.message)
           ? err.error.message.join(', ')
-          : (err?.error?.message ?? 'Ocurrió un error, intenta nuevamente');
+          : (err?.error?.message ?? 'Error al crear el usuario');
         this.toastr.error(msg, 'Error');
         this.creating.set(false);
       },

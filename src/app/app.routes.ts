@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
-
 export const routes: Routes = [
 
     // ─── Login ────────────────────────────────────────────────────────────────
@@ -72,16 +71,11 @@ export const routes: Routes = [
                 loadChildren: () =>
                     import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
             },
+
             {
-<<<<<<< Updated upstream
-                path: 'psychology',
-                canActivate: [roleGuard(['psicologa'])],
-                loadChildren: () =>
-                    import('./features/psychology/psychology.routes').then(r => r.PSYCHOLOGY_ROUTES),
-=======
                 path: 'perfil',
                 loadComponent: () =>
-                    import('./features/perfil/perfil').then(c => c.PerfilComponent),
+                    import('./features/perfil/perfil').then(c => c.Perfil),
             },
             {
                 path: 'comunicados',
@@ -93,12 +87,7 @@ export const routes: Routes = [
                 loadComponent: () =>
                     import('./features/notificaciones/notificaciones').then(c => c.Notificaciones),
             },
-            {
-                path: 'configuracion',
-                loadComponent: () =>
-                    import('./features/configuracion/configuracion').then(m => m.ConfiguracionComponent),
->>>>>>> Stashed changes
-            },
+
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
         ],
     },

@@ -41,26 +41,32 @@ export const DASHBOARD_ROUTES: Routes = [
       {
         path: 'alumnos',
         loadComponent: () =>
-          import('./psicologa/psychology-dashboard/tabs/tab-mis-alumnos/tab-mis-alumnos')
-            .then(c => c.TabMisAlumnos),
+          import('../psychology/tabs/tab-mis-alumnos/tab-mis-alumnos').then(c => c.TabMisAlumnos),
+        title: 'Mis Alumnos | EduAula',
       },
       {
         path: 'fichas',
         loadComponent: () =>
-          import('./psicologa/psychology-dashboard/tabs/tab-fichas/tab-fichas')
-            .then(c => c.TabFichas),
+          import('../psychology/tabs/tab-fichas/tab-fichas').then(c => c.TabFichas),
+        title: 'Fichas | EduAula',
+      },
+      {
+        path: 'fichas/:id',
+        loadComponent: () =>
+          import('../psychology/student-detail/student-detail').then(c => c.StudentDetail),
+        title: 'Ficha del alumno | EduAula',
       },
       {
         path: 'citas',
         loadComponent: () =>
-          import('./psicologa/psychology-dashboard/tabs/tab-citas/tab-citas')
-            .then(c => c.TabCitas),
+          import('../psychology/tabs/tab-citas/tab-citas').then(c => c.TabCitas),
+        title: 'Agenda y Citas | EduAula',
       },
       {
         path: 'disponibilidad',
         loadComponent: () =>
-          import('./psicologa/psychology-dashboard/tabs/tab-disponibilidad/tab-disponibilidad')
-            .then(c => c.TabDisponibilidad),
+          import('../psychology/tabs/tab-disponibilidad/tab-disponibilidad').then(c => c.TabDisponibilidad),
+        title: 'Disponibilidad | EduAula',
       },
     ],
   },

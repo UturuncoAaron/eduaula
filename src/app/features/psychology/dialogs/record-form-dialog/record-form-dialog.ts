@@ -9,10 +9,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastService } from 'ngx-toastr-notifier';
 
-import { PsychologyStore } from '../../../../psychology/stores/psychology.store';
+import { PsychologyStore } from '../../stores/psychology.store';
 import {
   PsychologyRecord, RecordCategoria,
-} from '../../../../../core/models/psychology';
+} from '../../../../../app/core/models/psychology';
 
 export interface RecordFormDialogData {
   studentId: string;
@@ -28,7 +28,7 @@ export interface RecordFormDialogData {
     ReactiveFormsModule,
     MatDialogModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './record-form-dialog.html',
   styleUrl: './record-form-dialog.scss',

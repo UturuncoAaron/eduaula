@@ -95,7 +95,7 @@
         <button mat-flat-button color="primary" type="submit"
                 [disabled]="loading() || form.invalid">
             @if (loading()) { <mat-spinner diameter="18" /> }
-            @else { <mat-icon>event_available</mat-icon><span>Programar</span> }
+            @else { <ng-container><mat-icon>event_available</mat-icon><span>Programar</span></ng-container> }
         </button>
     </mat-dialog-actions>
 </form>

@@ -9,11 +9,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastService } from 'ngx-toastr-notifier';
 
-import { PsychologyStore } from '../../../../psychology/stores/psychology.store';
+import { PsychologyStore } from '../../stores/psychology.store';
 import {
   AppointmentModalidad, AppointmentTipo,
   AssignedStudent, ParentOfStudent,
-} from '../../../../../core/models/psychology';
+} from '../../../../../app/core/models/psychology';
 
 export interface AppointmentFormDialogData {
   preselectedStudentId?: string;
