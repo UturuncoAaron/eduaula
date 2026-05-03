@@ -1,16 +1,18 @@
 <div class="page-container fade-in">
+
+    <!-- ══ HEADER ══════════════════════════════════════════════════ -->
     <div class="page-header">
         <div class="header-info">
             <h1 class="mat-headline-5 m-0">Gestión de Familias</h1>
-            <p class="text-muted m-0">Administra las cuentas de padres y tutores legales de los alumnos.</p>
+            <p class="text-muted m-0">Administra las cuentas de padres y tutores legales.</p>
         </div>
         <div class="header-actions">
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
                 <mat-icon matPrefix>search</mat-icon>
-                <input matInput [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)"
-                    placeholder="Buscar por nombre o documento...">
-                @if (searchTerm()) {
-                <button mat-icon-button matSuffix (click)="searchTerm.set('')">
+                <mat-label>Buscar</mat-label>
+                <input matInput [formControl]="busqueda" placeholder="Nombre, DNI o documento...">
+                @if (busqueda.value) {
+                <button mat-icon-button matSuffix (click)="limpiarBusqueda()">
                     <mat-icon>close</mat-icon>
                 </button>
                 }
@@ -21,17 +23,40 @@
         </div>
     </div>
 
+    <!-- ══ STATS BAR ════════════════════════════════════════════════ -->
+    @if (!loading() && total() > 0) {
+    <div class="results-bar">
+        <span class="results-count">
+            <strong>{{ total() }}</strong>
+            padre{{ total() !== 1 ? 's/tutores' : '/tutor' }}
+            {{ busqueda.value ? 'encontrados' : 'registrados' }}
+        </span>
+    </div>
+    }
+
+    <!-- ══ TABLA / ESTADOS ══════════════════════════════════════════ -->
     <div class="table-card">
         <div class="tab-table-container">
+
             @if (loading()) {
             <div class="loading-state">
                 <div class="spinner-ring"></div>
                 <p>Cargando padres/tutores...</p>
             </div>
+
             } @else if (dataSource.data.length === 0) {
-            <div class="empty-state"><mat-icon>person_search</mat-icon>
-                <p>No hay padres o tutores registrados.</p>
+            <div class="empty-state">
+                <mat-icon>person_search</mat-icon>
+                <p>No se encontraron padres o tutores</p>
+                <span class="empty-hint">
+                    @if (busqueda.value) {
+                    Intenta con otro nombre o documento.
+                    } @else {
+                    Aún no hay padres registrados. Usa "Nuevo Tutor" para comenzar.
+                    }
+                </span>
             </div>
+
             } @else {
             <div class="table-responsive">
                 <table mat-table [dataSource]="dataSource" class="users-table">
@@ -42,7 +67,9 @@
                             @if (row.numero_documento) {
                             <span class="doc-type-chip">{{ row.tipo_documento }}</span>
                             <span class="doc-number">{{ row.numero_documento }}</span>
-                            } @else { <span class="text-muted">—</span> }
+                            } @else {
+                            <span class="text-muted">—</span>
+                            }
                         </td>
                     </ng-container>
 
@@ -54,9 +81,13 @@
                                     rol="padre" [fotoUrl]="row.foto_url ?? null" [size]="36" />
                                 <div>
                                     <span class="full-name">
-                                        {{ row.apellido_paterno }} {{ row.apellido_materno ?? '' }}, {{ row.nombre }}
+                                        {{ row.apellido_paterno }}
+                                        {{ row.apellido_materno ? row.apellido_materno + ',' : ',' }}
+                                        {{ row.nombre }}
                                     </span>
-                                    @if (row.telefono) { <span class="sub-text">{{ row.telefono }}</span> }
+                                    @if (row.telefono) {
+                                    <span class="sub-text">{{ row.telefono }}</span>
+                                    }
                                 </div>
                             </div>
                         </td>
@@ -95,19 +126,20 @@
                     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
                     <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
                         [class.inactive-row]="row.activo === false"></tr>
-                    <tr class="mat-row" *matNoDataRow>
-                        <td class="mat-cell no-results" colspan="5">
-                            <mat-icon>search_off</mat-icon> Sin resultados para "{{ searchTerm() }}"
-                        </td>
-                    </tr>
+
                 </table>
             </div>
-            <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons />
+
+            <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageIndex]="page() - 1"
+                [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons />
             }
+
         </div>
     </div>
+
 </div>
 
+<!-- ══ MENÚ ACCIONES ════════════════════════════════════════════ -->
 <mat-menu #rowMenu="matMenu">
     <ng-template matMenuContent let-row="row">
         <button mat-menu-item (click)="editarPadre(row)">

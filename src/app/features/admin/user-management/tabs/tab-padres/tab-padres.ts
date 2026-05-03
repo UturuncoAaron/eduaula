@@ -1,7 +1,8 @@
-import { Component, inject, effect, ViewChild, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ViewChild, OnInit, signal, inject } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -9,6 +10,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDivider } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
@@ -42,10 +44,11 @@ const RELACION_LABEL: Record<string, string> = {
   selector: 'app-tab-padres',
   standalone: true,
   imports: [
+    ReactiveFormsModule,
     MatTableModule, MatPaginatorModule, MatIconModule,
     MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
-    MatFormFieldModule, MatInputModule,
-    UserAvatar
+    MatFormFieldModule, MatInputModule, MatTooltipModule,
+    UserAvatar,
   ],
   templateUrl: './tab-padres.html',
   styleUrl: './tab-padres.scss',
@@ -54,76 +57,106 @@ export class TabPadres implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
-  private router = inject(Router);
   private userEdit = inject(UserEditService);
 
-  searchTerm = signal('');
+  // ── Búsqueda ──────────────────────────────────────────────────
+  busqueda = new FormControl('');
+
+  // ── Datos ─────────────────────────────────────────────────────
   loading = signal(true);
   dataSource = new MatTableDataSource<PadreRow>([]);
   displayedColumns = ['documento', 'nombre', 'relacion', 'estado', 'acciones'];
   readonly relacionLabel = RELACION_LABEL;
 
+  // ── Paginación server-side ────────────────────────────────────
+  total = signal(0);
+  page = signal(1);
+  pageSize = signal(20);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor() {
-    effect(() => {
-      this.dataSource.filter = this.searchTerm().trim().toLowerCase();
-      if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+  ngOnInit(): void {
+    // Carga inicial
+    this.loadData();
+
+    // Búsqueda reactiva
+    this.busqueda.valueChanges.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      map(v => v?.trim() ?? ''),
+    ).subscribe(() => {
+      this.page.set(1);
+      this.loadData();
     });
   }
 
-  ngOnInit() {
-    this.dataSource.filterPredicate = (row: PadreRow, f: string) =>
-      [row.numero_documento ?? '', row.nombre, row.apellido_paterno,
-      row.apellido_materno ?? '', row.relacion]
-        .join(' ').toLowerCase().includes(f);
-    this.loadData();
-  }
+  loadData(): void {
+    const q = this.busqueda.value?.trim();
+    const params = new URLSearchParams();
+    if (q && q.length >= 2) params.set('q', q);
+    params.set('page', String(this.page()));
+    params.set('limit', String(this.pageSize()));
 
-  loadData() {
     this.loading.set(true);
-    this.api.get<any>('admin/users/padres').subscribe({
+    this.api.get<any>(`admin/users/padres?${params.toString()}`).subscribe({
       next: res => {
-        this.dataSource.data = res.data ?? res ?? [];
-        setTimeout(() => { this.dataSource.paginator = this.paginator; });
+        const body = (res as any).data ?? res;
+        if (Array.isArray(body)) {
+          this.dataSource.data = body;
+          this.total.set(body.length);
+        } else {
+          this.dataSource.data = body.data ?? [];
+          this.total.set(body.total ?? 0);
+        }
         this.loading.set(false);
       },
       error: () => {
-        this.toastr.error('Error al cargar la lista de padres/tutores', 'Error');
+        this.toastr.error('Error al cargar padres/tutores', 'Error');
         this.loading.set(false);
       },
     });
   }
 
-  abrirCrearPadre() {
+  onPageChange(e: PageEvent): void {
+    this.page.set(e.pageIndex + 1);
+    this.pageSize.set(e.pageSize);
+    this.loadData();
+  }
+
+  limpiarBusqueda(): void {
+    this.busqueda.setValue('');
+    this.page.set(1);
+    this.loadData();
+  }
+
+  // ── Acciones ──────────────────────────────────────────────────
+  abrirCrearPadre(): void {
     this.dialog.open(CreateUserDialog, {
       width: '650px', disableClose: true,
       data: { rol: 'padre' },
     }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
   }
 
-  async editarPadre(row: PadreRow) {
+  async editarPadre(row: PadreRow): Promise<void> {
     const updated = await this.userEdit.openEdit(row as any, 'padre');
     if (updated) this.loadData();
   }
 
-  verDetalle(row: PadreRow) {
+  verDetalle(row: PadreRow): void {
     this.dialog.open(UserDetailDialog, {
-      width: '580px',
-      maxHeight: '90vh',
-      autoFocus: false,
+      width: '580px', maxHeight: '90vh', autoFocus: false,
       data: { id: row.id, tipo: 'padres' },
     });
   }
 
-  resetPassword(row: PadreRow) {
+  resetPassword(row: PadreRow): void {
     this.dialog.open(ResetPasswordDialog, {
       width: '400px',
       data: { id: row.id, nombre: `${row.nombre} ${row.apellido_paterno}` },
     });
   }
 
-  toggleEstado(row: PadreRow) {
+  toggleEstado(row: PadreRow): void {
     const activo = row.activo ?? true;
     this.dialog.open(ConfirmDialog, {
       width: '380px',
@@ -131,6 +164,7 @@ export class TabPadres implements OnInit {
         title: activo ? '¿Desactivar tutor?' : '¿Reactivar tutor?',
         message: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
         confirm: activo ? 'Desactivar' : 'Reactivar',
+        cancel: 'Cancelar',
         danger: activo,
       },
     }).afterClosed().subscribe(ok => {
@@ -140,7 +174,7 @@ export class TabPadres implements OnInit {
         : this.api.patch(`admin/users/${row.id}/reactivar`, {});
       req$.subscribe({
         next: () => { this.toastr.success('Cambios guardados', 'Éxito'); this.loadData(); },
-        error: () => this.toastr.error('Ocurrió un error, intenta nuevamente', 'Error'),
+        error: () => this.toastr.error('Error al actualizar', 'Error'),
       });
     });
   }

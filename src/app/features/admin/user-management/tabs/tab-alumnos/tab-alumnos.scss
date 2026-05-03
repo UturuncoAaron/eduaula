@@ -1,10 +1,7 @@
-// Importa tu mixin (Asegúrate de que la ruta sea correcta hacia tu archivo)
 @use '../../shared/_admin-table.scss' as admin-table;
-
-// Inyectamos los estilos de la tabla
 @include admin-table.styles;
 
-// ─── ESTILOS DE LA PÁGINA (Layout) ─────────────────────────────────────────
+// ─── PAGE LAYOUT ────────────────────────────────────────────────
 
 .page-container {
     padding: 24px;
@@ -16,7 +13,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
     gap: 16px;
 
@@ -36,21 +33,7 @@
     .header-actions {
         display: flex;
         align-items: center;
-        gap: 16px;
-
-        .search-field {
-            width: 320px;
-
-            // Ajustes para que el input sea más pequeño y alineado
-            ::ng-deep .mdc-text-field--outlined {
-                height: 48px; // Altura igual al botón
-            }
-
-            ::ng-deep .mat-mdc-form-field-infix {
-                padding-top: 12px;
-                padding-bottom: 12px;
-            }
-        }
+        gap: 12px;
 
         .btn-create {
             height: 48px;
@@ -67,15 +50,128 @@
     }
 }
 
+// ─── FILTROS ────────────────────────────────────────────────────
+
+.filters-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+}
+
+.filters-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .filter-field {
+        flex: 1;
+        min-width: 160px;
+
+        &.search-field {
+            flex: 2;
+            min-width: 220px;
+        }
+    }
+
+    .filter-btns {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+
+        button[mat-flat-button] {
+            height: 48px;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-weight: 600;
+
+            mat-icon {
+                margin-right: 6px;
+            }
+        }
+    }
+}
+
+// ─── TABLE CARD ─────────────────────────────────────────────────
+
 .table-card {
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 2px 4px -2px rgba(0, 0, 0, 0.05);
     border: 1px solid #f1f5f9;
-    overflow: hidden; // Para que el borde redondeado respete la tabla
+    overflow: hidden;
 }
 
-// Utilidades útiles
+// ─── ESTADOS VACÍOS ─────────────────────────────────────────────
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    gap: 8px;
+    text-align: center;
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: #cbd5e1;
+    }
+
+    p {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 500;
+        color: #475569;
+    }
+
+    .empty-hint {
+        font-size: 13px;
+        color: #94a3b8;
+    }
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    gap: 16px;
+
+    p {
+        margin: 0;
+        font-size: 14px;
+        color: #64748b;
+    }
+}
+
+// ─── COLUMNA GRADO ──────────────────────────────────────────────
+// Muestra grado en línea y sección debajo en gris
+
+.grado-chip {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.seccion-sub {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 1px;
+}
+
+// ─── UTILIDADES ─────────────────────────────────────────────────
+
 .m-0 {
     margin: 0;
 }
@@ -96,7 +192,22 @@
     }
 }
 
-// ─── RESPONSIVE COMPLEMENTARIO ─────────────────────────────────────────────
+// ─── RESPONSIVE ─────────────────────────────────────────────────
+
+@media (max-width: 900px) {
+    .filters-row {
+
+        .filter-field,
+        .filter-field.search-field {
+            flex: 1 1 100%;
+        }
+
+        .filter-btns {
+            width: 100%;
+            justify-content: flex-end;
+        }
+    }
+}
 
 @media (max-width: 768px) {
     .page-container {
@@ -111,9 +222,32 @@
             flex-direction: column;
             align-items: stretch;
 
-            .search-field {
+            .btn-create {
                 width: 100%;
             }
         }
+    }
+}
+// ─── CONTADOR RESULTADOS ────────────────────────────────────────
+// ─── STATS BAR ──────────────────────────────────────────────────
+.results-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px 12px;
+
+    .results-count {
+        font-size: 13px;
+        color: #64748b;
+
+        strong {
+            color: #1e293b;
+            font-weight: 600;
+        }
+    }
+
+    .results-hint {
+        font-size: 12px;
+        color: #94a3b8;
     }
 }

@@ -2,17 +2,17 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { environment } from '../../../../environments/environment';
 
-interface Seccion { id: number; nombre: string; grado?: { nombre: string } }
+// ✅ seccion_id es string UUID en v7
+interface Seccion { id: string; nombre: string; grado?: { nombre: string } }
 interface Periodo { id: number; nombre: string; activo: boolean }
 interface ImportError { fila: number; numero_documento: string; motivo: string }
 interface ImportResult {
@@ -28,8 +28,8 @@ interface ImportResult {
   standalone: true,
   imports: [
     ReactiveFormsModule, MatDialogModule,
-    MatButtonModule,  MatFormFieldModule,
-    MatSelectModule, MatProgressBarModule, MatChipsModule, MatTooltipModule,MatIcon
+    MatButtonModule, MatIconModule, MatFormFieldModule,
+    MatSelectModule, MatProgressBarModule, MatTooltipModule,
   ],
   templateUrl: './import-students-dialog.html',
   styleUrl: './import-students-dialog.scss',
@@ -45,9 +45,8 @@ export class ImportStudentsDialog implements OnInit {
   archivo = signal<File | null>(null);
   uploading = signal(false);
   resultado = signal<ImportResult | null>(null);
-
   form = this.fb.group({
-    seccion_id: [null as number | null, Validators.required],
+    seccion_id: [null as string | null, Validators.required],
     periodo_id: [null as number | null, Validators.required],
   });
 
@@ -56,6 +55,7 @@ export class ImportStudentsDialog implements OnInit {
       next: r => this.secciones.set((r as any).data ?? []),
       error: () => this.secciones.set([]),
     });
+
     this.api.get<Periodo[]>('academic/periodos').subscribe({
       next: r => {
         const data: Periodo[] = (r as any).data ?? [];
@@ -99,12 +99,16 @@ export class ImportStudentsDialog implements OnInit {
     ).subscribe({
       next: r => {
         const data: ImportResult = (r as any).data;
-        this.resultado.set(data);
         this.uploading.set(false);
+        this.resultado.set(data);
+
         this.toastr.success(
           `${data.creados} creados · ${data.matriculados} matriculados`,
           'Importación completada',
         );
+        if (data.errores.length === 0) {
+          setTimeout(() => this.ref.close(true), 1500);
+        }
       },
       error: e => {
         this.uploading.set(false);
@@ -118,8 +122,6 @@ export class ImportStudentsDialog implements OnInit {
   }
 
   cerrar(): void {
-    // Si hubo importación exitosa, cierra con `true` para que
-    // el padre pueda recargar la lista de matrículas.
     this.ref.close(this.resultado() !== null);
   }
 }

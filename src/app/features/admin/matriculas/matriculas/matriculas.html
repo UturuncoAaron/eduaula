@@ -111,16 +111,18 @@
     } @else if (matriculasFiltradas().length === 0) {
     <div class="center-state empty">
         <div class="empty-icon"><mat-icon>how_to_reg</mat-icon></div>
-        <p class="empty-title">
-            {{ matriculas().length === 0 ? 'Sin matrículas para este periodo' : 'Sin resultados para la búsqueda' }}
-        </p>
-        <p class="empty-hint">
-            {{ matriculas().length === 0
-            ? 'Usa "Matricular alumno" o "Carga masiva" para agregar estudiantes.'
-            : 'Intenta con otro nombre o código.' }}
-        </p>
-    </div>
 
+        @if (!seccionFiltro.value) {
+        <p class="empty-title">Selecciona una sección para ver sus matrículas</p>
+        <p class="empty-hint">Usa los filtros de arriba para elegir grado y sección.</p>
+        } @else if (matriculas().length === 0) {
+        <p class="empty-title">Sin matrículas para esta sección</p>
+        <p class="empty-hint">Usa "Matricular alumno" o "Carga masiva" para agregar estudiantes.</p>
+        } @else {
+        <p class="empty-title">Sin resultados para la búsqueda</p>
+        <p class="empty-hint">Intenta con otro nombre o código.</p>
+        }
+    </div>
     } @else {
 
     <!-- ══ TABLA ══════════════════════════════════════════════════ -->

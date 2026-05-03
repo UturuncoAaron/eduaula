@@ -23,7 +23,7 @@ export interface MatriculaRow {
   apellido_paterno: string;
   apellido_materno: string | null;
   codigo_estudiante: string;
-  seccion_id: number;
+  seccion_id: string;
   seccion_nombre: string;
   grado_nombre: string;
   grado_id: number;
@@ -66,7 +66,7 @@ export class Matriculas implements OnInit {
 
   // ── Paginación ────────────────────────────────────────────────
   page = signal(0);
-  pageSize = signal(15);
+  pageSize = signal(10);
 
   // ── Computed ──────────────────────────────────────────────────
   seccionesFiltradas = computed(() => {
@@ -95,6 +95,7 @@ export class Matriculas implements OnInit {
   totalInactivas = computed(() => this.matriculas().filter(m => !m.activo).length);
 
   // ── Init ──────────────────────────────────────────────────────
+  // ── Init ──────────────────────────────────────────────────────
   ngOnInit(): void {
     forkJoin({
       grados: this.api.get<GradeLevel[]>('academic/grados'),
@@ -110,7 +111,7 @@ export class Matriculas implements OnInit {
         if (activo) this.periodoFiltro.setValue(activo.id);
 
         this.loadingFiltros.set(false);
-        this.cargarMatriculas();
+        // ✅ NO llamar cargarMatriculas() aquí — esperar que seleccionen sección
       },
       error: () => this.loadingFiltros.set(false),
     });
@@ -121,27 +122,31 @@ export class Matriculas implements OnInit {
 
     this.gradoFiltro.valueChanges.subscribe(() => {
       this.seccionFiltro.setValue(null);
+      this.matriculas.set([]); // ✅ limpiar tabla al cambiar grado
     });
   }
 
   // ── Carga ─────────────────────────────────────────────────────
   cargarMatriculas(): void {
+    const sid = this.seccionFiltro.value;
+    if (!sid) {
+      this.matriculas.set([]);
+      return;
+    }
+
     const params = new URLSearchParams();
     const pid = this.periodoFiltro.value;
-    const sid = this.seccionFiltro.value;
     if (pid) params.set('periodo_id', String(pid));
-    if (sid) params.set('seccion_id', String(sid));
+    params.set('seccion_id', String(sid));
 
-    const query = params.toString();
     this.loading.set(true);
     this.page.set(0);
 
-    this.api.get<MatriculaRow[]>(`academic/matriculas${query ? '?' + query : ''}`).subscribe({
+    this.api.get<MatriculaRow[]>(`academic/matriculas?${params.toString()}`).subscribe({
       next: r => { this.matriculas.set((r as any).data ?? []); this.loading.set(false); },
       error: () => { this.loading.set(false); this.toastr.error('Error al cargar matrículas', 'Error'); },
     });
   }
-
   aplicarFiltros(): void { this.cargarMatriculas(); }
 
   limpiarFiltros(): void {
