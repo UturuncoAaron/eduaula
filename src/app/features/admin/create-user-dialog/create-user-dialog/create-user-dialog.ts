@@ -50,9 +50,10 @@ export class CreateUserDialog {
   creating = signal(false);
   roleMeta = computed<RoleMeta>(() => ROLE_META[this.data.rol]);
 
-  // ── Formulario ────────────────────────────────────────────
+  // fecha_nacimiento requerida solo para alumnos
+  readonly fechaRequerida = this.data.rol === 'alumno';
+
   form = this.fb.group({
-    // Comunes
     tipo_documento: ['dni', Validators.required],
     numero_documento: ['', [Validators.required, Validators.maxLength(20)]],
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
@@ -60,51 +61,42 @@ export class CreateUserDialog {
     apellido_materno: [''],
     email: ['', Validators.email],
     telefono: [''],
-    // Alumno
-    fecha_nacimiento: [null as Date | null],
+    fecha_nacimiento: [null as Date | null, this.fechaRequerida ? Validators.required : null],
     // Docente
     especialidad: [''],
     titulo_profesional: [''],
+    tipo_contrato: ['contratado'],
+    estado_contrato: ['activo'],
+    fecha_inicio_contrato: [null as Date | null],
+    fecha_fin_contrato: [null as Date | null],
     // Padre
-    relacion: [''],
+    relacion: ['', this.data.rol === 'padre' ? Validators.required : null],
     // Admin
     cargo: [''],
     // Psicóloga
     colegiatura: [''],
   });
 
-  // ── Progress bar según campos completados ─────────────────
+  // Mostrar fecha_fin solo si tipo_contrato = 'contratado'
+  esContratado = computed(() =>
+    this.form.get('tipo_contrato')?.value === 'contratado'
+  );
+
   progressWidth = computed(() => {
-    const controls = this.form.controls;
-    const required = [
-      controls.tipo_documento,
-      controls.numero_documento,
-      controls.nombre,
-      controls.apellido_paterno,
-    ];
-    const optional = [
-      controls.apellido_materno,
-      controls.email,
-      controls.telefono,
-    ];
-    const filledRequired = required.filter(c => c.value?.toString().trim()).length;
-    const filledOptional = optional.filter(c => c.value?.toString().trim()).length;
-    const total = ((filledRequired / required.length) * 70) + ((filledOptional / optional.length) * 30);
+    const c = this.form.controls;
+    const required = [c.tipo_documento, c.numero_documento, c.nombre, c.apellido_paterno];
+    const optional = [c.apellido_materno, c.email, c.telefono];
+    const filledReq = required.filter(x => x.value?.toString().trim()).length;
+    const filledOpt = optional.filter(x => x.value?.toString().trim()).length;
+    const total = ((filledReq / required.length) * 70) + ((filledOpt / optional.length) * 30);
     return `${Math.round(total)}%`;
   });
 
-  // ── Submit ────────────────────────────────────────────────
-  submit() {
-    // Validación adicional por rol
-    if (this.data.rol === 'alumno') {
-      this.form.controls.fecha_nacimiento.setValidators(Validators.required);
-      this.form.controls.fecha_nacimiento.updateValueAndValidity();
-    }
-    if (this.data.rol === 'padre') {
-      this.form.controls.relacion.setValidators(Validators.required);
-      this.form.controls.relacion.updateValueAndValidity();
-    }
+  private toISODate(d: Date | null): string | null {
+    return d ? d.toISOString().split('T')[0] : null;
+  }
 
+  submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -122,23 +114,27 @@ export class CreateUserDialog {
       ...(v.apellido_materno?.trim() && { apellido_materno: v.apellido_materno }),
       ...(v.email?.trim() && { email: v.email }),
       ...(v.telefono?.trim() && { telefono: v.telefono }),
+      ...(v.fecha_nacimiento && { fecha_nacimiento: this.toISODate(v.fecha_nacimiento as Date) }),
     };
 
     const extras: Record<UserRole, Record<string, unknown>> = {
-      alumno: {
-        // código se genera en el backend — no se envía
-        fecha_nacimiento: (v.fecha_nacimiento as Date).toISOString().split('T')[0],
-      },
+      alumno: {},  // fecha_nacimiento ya va en base (requerida)
+
       docente: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.titulo_profesional?.trim() && { titulo_profesional: v.titulo_profesional }),
+        tipo_contrato: v.tipo_contrato,
+        estado_contrato: v.estado_contrato,
+        ...(v.fecha_inicio_contrato && { fecha_inicio_contrato: this.toISODate(v.fecha_inicio_contrato as Date) }),
+        ...(v.fecha_fin_contrato && { fecha_fin_contrato: this.toISODate(v.fecha_fin_contrato as Date) }),
       },
-      padre: {
-        relacion: v.relacion,
-      },
+
+      padre: { relacion: v.relacion },
+
       admin: {
         ...(v.cargo?.trim() && { cargo: v.cargo }),
       },
+
       psicologa: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.colegiatura?.trim() && { colegiatura: v.colegiatura }),

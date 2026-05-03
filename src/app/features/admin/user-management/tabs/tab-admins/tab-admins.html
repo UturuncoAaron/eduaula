@@ -1,14 +1,11 @@
 <div class="page-container fade-in">
 
-    <!-- ─── HEADER DE LA PÁGINA ────────────────────────────────────────────── -->
     <div class="page-header">
         <div class="header-info">
             <h1 class="mat-headline-5 m-0">Gestión de Administradores</h1>
             <p class="text-muted m-0">Administra los usuarios con acceso total al sistema institucional.</p>
         </div>
-
         <div class="header-actions">
-            <!-- Barra de búsqueda permanente -->
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
                 <mat-icon matPrefix>search</mat-icon>
                 <input matInput [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)"
@@ -19,8 +16,6 @@
                 </button>
                 }
             </mat-form-field>
-
-            <!-- Botón de creación -->
             <button mat-flat-button color="primary" class="btn-create" (click)="abrirCrearAdmin()">
                 <mat-icon>admin_panel_settings</mat-icon>
                 <span>Nuevo Admin</span>
@@ -28,7 +23,6 @@
         </div>
     </div>
 
-    <!-- ─── CONTENEDOR DE LA TABLA ─────────────────────────────────────────── -->
     <div class="table-card">
         <div class="tab-table-container">
 
@@ -62,14 +56,11 @@
                         <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
                         <td mat-cell *matCellDef="let row" class="name-cell">
                             <div class="avatar-name">
-                                <!-- La clase 'admin' le dará su color específico si la definiste en el mixin -->
-                                <div class="avatar-circle admin">
-                                    {{ row.nombre.charAt(0) }}{{ row.apellido_paterno.charAt(0) }}
-                                </div>
+                                <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno"
+                                    rol="admin" [fotoUrl]="row.foto_url ?? null" [size]="36" />
                                 <div>
                                     <span class="full-name">
-                                        {{ row.apellido_paterno }} {{ row.apellido_materno ? row.apellido_materno : ''
-                                        }}, {{ row.nombre }}
+                                        {{ row.apellido_paterno }} {{ row.apellido_materno ?? '' }}, {{ row.nombre }}
                                     </span>
                                     @if (row.email) {
                                     <span class="sub-text">{{ row.email }}</span>
@@ -102,32 +93,10 @@
                     <ng-container matColumnDef="acciones">
                         <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
                         <td mat-cell *matCellDef="let row" class="col-actions">
-                            <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Opciones"
+                            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }"
                                 class="menu-trigger">
                                 <mat-icon>more_vert</mat-icon>
                             </button>
-                            <mat-menu #menu="matMenu" class="users-action-menu">
-                                <button mat-menu-item (click)="verDetalle(row)">
-                                    <mat-icon color="primary">visibility</mat-icon>
-                                    <span>Ver detalle</span>
-                                </button>
-                                <button mat-menu-item (click)="resetPassword(row)">
-                                    <mat-icon>lock_reset</mat-icon>
-                                    <span>Resetear contraseña</span>
-                                </button>
-                                <mat-divider></mat-divider>
-                                @if (row.activo) {
-                                <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
-                                    <mat-icon color="warn">block</mat-icon>
-                                    <span>Desactivar cuenta</span>
-                                </button>
-                                } @else {
-                                <button mat-menu-item (click)="toggleEstado(row)" class="success-item">
-                                    <mat-icon>check_circle</mat-icon>
-                                    <span>Reactivar cuenta</span>
-                                </button>
-                                }
-                            </mat-menu>
                         </td>
                     </ng-container>
 
@@ -144,9 +113,38 @@
                 </table>
             </div>
 
-            <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons aria-label="Paginar administradores">
-            </mat-paginator>
+            <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons aria-label="Paginar administradores" />
             }
         </div>
     </div>
 </div>
+
+<!-- ── Menú contextual — ÚNICO, fuera de la tabla, usa matMenuTriggerData ── -->
+<mat-menu #rowMenu="matMenu" class="users-action-menu">
+    <ng-template matMenuContent let-row="row">
+        <button mat-menu-item (click)="editarAdmin(row)">
+            <mat-icon>edit</mat-icon>
+            <span>Editar perfil</span>
+        </button>
+        <button mat-menu-item (click)="verDetalle(row)">
+            <mat-icon color="primary">visibility</mat-icon>
+            <span>Ver detalle</span>
+        </button>
+        <button mat-menu-item (click)="resetPassword(row)">
+            <mat-icon>lock_reset</mat-icon>
+            <span>Resetear contraseña</span>
+        </button>
+        <mat-divider />
+        @if (row.activo) {
+        <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
+            <mat-icon color="warn">block</mat-icon>
+            <span>Desactivar cuenta</span>
+        </button>
+        } @else {
+        <button mat-menu-item (click)="toggleEstado(row)" class="success-item">
+            <mat-icon>check_circle</mat-icon>
+            <span>Reactivar cuenta</span>
+        </button>
+        }
+    </ng-template>
+</mat-menu>

@@ -1,0 +1,354 @@
+.ud-dialog {
+    width: 560px;
+    max-width: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+// ── Header ───────────────────────────────────────────────────────
+.ud-header {
+    position: relative;
+    padding: 28px 28px 20px;
+    background: #fff;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.ud-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94A3B8;
+    transition: all .15s;
+
+    &:hover {
+        background: #F8FAFC;
+        color: #0F172A;
+    }
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.ud-hero {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding-right: 40px;
+}
+
+.ud-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.ud-status-dot {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+
+    &.active {
+        background: #22C55E;
+    }
+
+    &.inactive {
+        background: #94A3B8;
+    }
+}
+
+.ud-hero-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ud-role-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+    letter-spacing: .3px;
+}
+
+.ud-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ud-sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12.5px;
+        color: #64748B;
+
+        mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+        }
+    }
+}
+
+// ── Body ─────────────────────────────────────────────────────────
+.ud-body {
+    padding: 0 28px;
+    overflow-y: auto;
+    max-height: 52vh;
+    flex: 1;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #E2E8F0;
+        border-radius: 99px;
+    }
+
+    mat-divider {
+        margin: 0;
+    }
+}
+
+.ud-section {
+    padding: 16px 0;
+}
+
+.ud-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: #94A3B8;
+    margin: 0 0 12px;
+}
+
+.ud-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 20px;
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ud-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.ud-lbl {
+    font-size: 11px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.ud-val {
+    font-size: 13.5px;
+    color: #1E293B;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.mono {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+
+.ud-age {
+    font-size: 11px;
+    font-weight: 600;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    padding: 1px 7px;
+    border-radius: 10px;
+}
+
+// Chips
+.doc-chip {
+    font-size: 10px;
+    font-weight: 700;
+    background: #F1F5F9;
+    color: #475569;
+    padding: 2px 7px;
+    border-radius: 6px;
+    letter-spacing: .5px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+
+    .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    &.active {
+        background: #F0FDF4;
+        color: #15803D;
+
+        .dot {
+            background: #22C55E;
+        }
+    }
+
+    &.inactive {
+        background: #F8FAFC;
+        color: #94A3B8;
+
+        .dot {
+            background: #94A3B8;
+        }
+    }
+}
+
+.contrato-chip {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #FFF7ED;
+    color: #C2410C;
+
+    &.nombrado {
+        background: #EFF6FF;
+        color: #1D4ED8;
+    }
+}
+
+// ── Footer ───────────────────────────────────────────────────────
+.ud-footer {
+    padding: 14px 28px;
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    justify-content: flex-end;
+    background: #FAFBFC;
+}
+
+.btn-close {
+    font-size: 13px !important;
+    color: #64748B !important;
+    border-radius: 8px !important;
+
+    &:hover {
+        background: #F1F5F9 !important;
+    }
+}
+
+// ── Skeleton loading ──────────────────────────────────────────────
+@keyframes shimmer {
+    0% {
+        background-position: -400px 0;
+    }
+
+    100% {
+        background-position: 400px 0;
+    }
+}
+
+%sk {
+    background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 6px;
+}
+
+.ud-header-skeleton {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-right: 40px;
+}
+
+.sk-avatar {
+    @extend %sk;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.sk-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sk-line {
+    @extend %sk;
+    height: 14px;
+}
+
+.sk-w60 {
+    width: 60%;
+}
+
+.sk-w40 {
+    width: 40%;
+}
+
+.ud-loading {
+    padding: 20px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sk-block {
+    @extend %sk;
+    height: 40px;
+    border-radius: 8px;
+
+    &.sk-short {
+        width: 60%;
+    }
+}

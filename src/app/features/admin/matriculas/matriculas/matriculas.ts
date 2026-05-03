@@ -155,7 +155,14 @@ export class Matriculas implements OnInit {
   // ── Acciones ──────────────────────────────────────────────────
   async matricularAlumno(): Promise<void> {
     const pid = this.periodoFiltro.value ?? this.periodoActivo()?.id;
+    const sid = this.seccionFiltro.value;
+
     if (!pid) { this.toastr.error('Selecciona un periodo primero', 'Error'); return; }
+    if (!sid) { this.toastr.error('Selecciona una sección primero', 'Error'); return; }  // ← validar
+
+    // Obtener nombres para mostrar en el dialog
+    const seccion = this.secciones().find(s => s.id === sid);
+    const grado = this.grados().find(g => g.id === seccion?.grado_id);
 
     const { EnrollAlumnoDialog } = await import(
       '../../../../shared/components/enroll-alumno-dialog/enroll-alumno-dialog'
@@ -164,7 +171,9 @@ export class Matriculas implements OnInit {
       width: '500px',
       data: {
         periodoId: pid,
-        seccionId: this.seccionFiltro.value ?? null,
+        seccionId: sid,                        // ← garantizado no null
+        seccionNombre: seccion?.nombre ?? '',      // ← agregar
+        gradoNombre: grado?.nombre ?? '',        // ← agregar
         alumnosMatriculadosIds: this.matriculas().map(m => m.alumno_id),
       },
     });

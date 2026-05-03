@@ -1,28 +1,33 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { ApiService } from '../../core/services/api';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago-pipe';
 
+type Destinatario = 'todos' | 'alumnos' | 'docentes' | 'padres' | 'psicologas';
+
 interface Announcement {
     id: string;
     titulo: string;
     contenido: string;
-    destinatario: 'todos' | 'alumnos' | 'docentes' | 'padres';
+    destinatarios: Destinatario[];
     created_at: string;
     autor?: { nombre?: string; email?: string };
 }
 
+const DEST_LABELS: Record<Destinatario, string> = {
+    todos: 'Todos',
+    alumnos: 'Alumnos',
+    docentes: 'Docentes',
+    padres: 'Padres',
+    psicologas: 'Psicólogas',
+};
+
 @Component({
     selector: 'app-comunicados',
     standalone: true,
-    imports: [
-        MatCardModule, MatIconModule, MatButtonModule,
-        PageHeader, EmptyState, TimeAgoPipe,
-    ],
+    imports: [MatIconModule, PageHeader, EmptyState, TimeAgoPipe],
     templateUrl: './comunicados.html',
     styleUrl: './comunicados.scss',
 })
@@ -41,19 +46,7 @@ export class Comunicados implements OnInit {
     }
 
     destinatarioLabel(d: string): string {
-        const map: Record<string, string> = {
-            todos: 'Todos', alumnos: 'Alumnos',
-            docentes: 'Docentes', padres: 'Padres',
-        };
-        return map[d] ?? d;
-    }
-
-    destinatarioColor(d: string): string {
-        const map: Record<string, string> = {
-            todos: '#1A3A6B', alumnos: '#10b981',
-            docentes: '#f59e0b', padres: '#8b5cf6',
-        };
-        return map[d] ?? '#64748b';
+        return DEST_LABELS[d as Destinatario] ?? d;
     }
 
     open(item: Announcement) { this.selected.set(item); }

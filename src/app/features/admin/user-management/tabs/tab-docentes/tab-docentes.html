@@ -1,14 +1,10 @@
 <div class="page-container fade-in">
-
-    <!-- ─── HEADER DE LA PÁGINA ────────────────────────────────────────────── -->
     <div class="page-header">
         <div class="header-info">
             <h1 class="mat-headline-5 m-0">Gestión de Docentes</h1>
             <p class="text-muted m-0">Administra el personal académico de la institución.</p>
         </div>
-
         <div class="header-actions">
-            <!-- Barra de búsqueda permanente -->
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
                 <mat-icon matPrefix>search</mat-icon>
                 <input matInput [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)"
@@ -19,31 +15,23 @@
                 </button>
                 }
             </mat-form-field>
-
-            <!-- Botón de creación -->
             <button mat-flat-button color="primary" class="btn-create" (click)="abrirCrearDocente()">
-                <mat-icon>person_add</mat-icon>
-                <span>Nuevo Docente</span>
+                <mat-icon>person_add</mat-icon><span>Nuevo Docente</span>
             </button>
         </div>
     </div>
 
-    <!-- ─── CONTENEDOR DE LA TABLA ─────────────────────────────────────────── -->
     <div class="table-card">
         <div class="tab-table-container">
-
             @if (loading()) {
             <div class="loading-state">
                 <div class="spinner-ring"></div>
                 <p>Cargando docentes...</p>
             </div>
-
             } @else if (dataSource.data.length === 0) {
-            <div class="empty-state">
-                <mat-icon>person_search</mat-icon>
-                <p>No hay docentes registrados en el sistema.</p>
+            <div class="empty-state"><mat-icon>person_search</mat-icon>
+                <p>No hay docentes registrados.</p>
             </div>
-
             } @else {
             <div class="table-responsive">
                 <table mat-table [dataSource]="dataSource" class="users-table">
@@ -62,9 +50,8 @@
                         <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
                         <td mat-cell *matCellDef="let row" class="name-cell">
                             <div class="avatar-name">
-                                <div class="avatar-circle docente">
-                                    {{ row.nombre.charAt(0) }}{{ row.apellido_paterno.charAt(0) }}
-                                </div>
+                                <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno"
+                                    rol="docente" [fotoUrl]="row.foto_url ?? null" [size]="36" />
                                 <div>
                                     <span class="full-name">
                                         {{ row.apellido_paterno }} {{ row.apellido_materno ?? '' }}, {{ row.nombre }}
@@ -77,9 +64,7 @@
 
                     <ng-container matColumnDef="especialidad">
                         <th mat-header-cell *matHeaderCellDef>Especialidad</th>
-                        <td mat-cell *matCellDef="let row">
-                            {{ row.especialidad || 'General' }}
-                        </td>
+                        <td mat-cell *matCellDef="let row">{{ row.especialidad || 'General' }}</td>
                     </ng-container>
 
                     <ng-container matColumnDef="estado">
@@ -96,34 +81,16 @@
                     <ng-container matColumnDef="acciones">
                         <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
                         <td mat-cell *matCellDef="let row" class="col-actions">
-                            <button mat-icon-button [matMenuTriggerFor]="menu" class="menu-trigger">
+                            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }"
+                                class="menu-trigger">
                                 <mat-icon>more_vert</mat-icon>
                             </button>
-                            <mat-menu #menu="matMenu">
-                                <button mat-menu-item (click)="verDetalle(row)">
-                                    <mat-icon color="primary">visibility</mat-icon><span>Ver detalle</span>
-                                </button>
-                                <button mat-menu-item (click)="resetPassword(row)">
-                                    <mat-icon>lock_reset</mat-icon><span>Resetear contraseña</span>
-                                </button>
-                                <mat-divider></mat-divider>
-                                @if (row.activo !== false) {
-                                <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
-                                    <mat-icon color="warn">block</mat-icon><span>Desactivar cuenta</span>
-                                </button>
-                                } @else {
-                                <button mat-menu-item (click)="toggleEstado(row)" class="success-item">
-                                    <mat-icon>check_circle</mat-icon><span>Reactivar cuenta</span>
-                                </button>
-                                }
-                            </mat-menu>
                         </td>
                     </ng-container>
 
                     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
                     <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
                         [class.inactive-row]="row.activo === false"></tr>
-
                     <tr class="mat-row" *matNoDataRow>
                         <td class="mat-cell no-results" colspan="5">
                             <mat-icon>search_off</mat-icon> Sin resultados para "{{ searchTerm() }}"
@@ -131,8 +98,32 @@
                     </tr>
                 </table>
             </div>
-            <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+            <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons />
             }
         </div>
     </div>
 </div>
+
+<mat-menu #rowMenu="matMenu">
+    <ng-template matMenuContent let-row="row">
+        <button mat-menu-item (click)="editarDocente(row)">
+            <mat-icon>edit</mat-icon><span>Editar perfil</span>
+        </button>
+        <button mat-menu-item (click)="verDetalle(row)">
+            <mat-icon color="primary">visibility</mat-icon><span>Ver detalle</span>
+        </button>
+        <button mat-menu-item (click)="resetPassword(row)">
+            <mat-icon>lock_reset</mat-icon><span>Resetear contraseña</span>
+        </button>
+        <mat-divider />
+        @if (row.activo !== false) {
+        <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
+            <mat-icon color="warn">block</mat-icon><span>Desactivar cuenta</span>
+        </button>
+        } @else {
+        <button mat-menu-item (click)="toggleEstado(row)" class="success-item">
+            <mat-icon>check_circle</mat-icon><span>Reactivar cuenta</span>
+        </button>
+        }
+    </ng-template>
+</mat-menu>

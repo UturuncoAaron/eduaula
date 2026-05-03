@@ -1,7 +1,4 @@
-import {
-  Component, inject, effect,
-  ViewChild, OnInit, signal,
-} from '@angular/core';
+import { Component, inject, effect, ViewChild, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -16,11 +13,12 @@ import { MatInputModule } from '@angular/material/input';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
+import { UserEditService } from '../../../../../core/services/user-edit.service';
 import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
-
-// Importa tu diálogo de creación (Ajusta la ruta si es necesario)
 import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
+import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
+import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 
 export interface AlumnoRow {
   id: string;
@@ -33,6 +31,7 @@ export interface AlumnoRow {
   fecha_nacimiento?: string;
   telefono?: string;
   email?: string;
+  foto_url?: string | null;
   activo?: boolean;
   grado?: string;
   seccion?: string;
@@ -45,6 +44,7 @@ export interface AlumnoRow {
     MatTableModule, MatPaginatorModule, MatIconModule,
     MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
     MatFormFieldModule, MatInputModule, DatePipe,
+    UserAvatar
   ],
   templateUrl: './tab-alumnos.html',
   styleUrl: './tab-alumnos.scss',
@@ -54,18 +54,16 @@ export class TabAlumnos implements OnInit {
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
   private router = inject(Router);
+  private userEdit = inject(UserEditService);
 
-  // Buscador reactivo
-  searchTerm = signal<string>('');
-
+  searchTerm = signal('');
+  loading = signal(true);
   dataSource = new MatTableDataSource<AlumnoRow>([]);
   displayedColumns = ['codigo', 'documento', 'nombre', 'grado', 'nacimiento', 'telefono', 'estado', 'acciones'];
-  loading = signal(true);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor() {
-    // Efecto para filtrar la tabla cada vez que el signal searchTerm cambie
     effect(() => {
       this.dataSource.filter = this.searchTerm().trim().toLowerCase();
       if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
@@ -73,19 +71,18 @@ export class TabAlumnos implements OnInit {
   }
 
   ngOnInit() {
-    this.dataSource.filterPredicate = (row: AlumnoRow, filter: string) =>
+    this.dataSource.filterPredicate = (row: AlumnoRow, f: string) =>
       [row.codigo_estudiante, row.numero_documento ?? '',
       row.nombre, row.apellido_paterno, row.apellido_materno ?? '',
       row.grado ?? '', row.seccion ?? '']
-        .join(' ').toLowerCase().includes(filter);
-
+        .join(' ').toLowerCase().includes(f);
     this.loadData();
   }
 
   loadData() {
     this.loading.set(true);
     this.api.get<any>('admin/users/alumnos').subscribe({
-      next: (res) => {
+      next: res => {
         this.dataSource.data = res.data ?? res ?? [];
         setTimeout(() => { this.dataSource.paginator = this.paginator; });
         this.loading.set(false);
@@ -97,26 +94,25 @@ export class TabAlumnos implements OnInit {
     });
   }
 
-  // ─── NUEVO: Abrir Modal de Creación ──────────────────────────────────────────
   abrirCrearAlumno() {
-    const dialogRef = this.dialog.open(CreateUserDialog, {
-      width: '650px', // Ancho recomendado para formularios a 2 columnas
-      disableClose: true, // Evita que se cierre al hacer clic afuera por accidente
-      data: { rol: 'alumno' } // Le pasamos el rol para que renderice los campos correctos
-    });
-
-    // Escuchamos cuando se cierra el modal
-    dialogRef.afterClosed().subscribe((creado: boolean) => {
-      // Si el modal devuelve 'true' (se guardó algo), recargamos la tabla
-      if (creado) {
-        this.loadData();
-      }
-    });
+    this.dialog.open(CreateUserDialog, {
+      width: '650px', disableClose: true,
+      data: { rol: 'alumno' },
+    }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
   }
 
-  // ─── Lógica existente ──────────────────────────────────────────────────────
+  async editarAlumno(row: AlumnoRow) {
+    const updated = await this.userEdit.openEdit(row as any, 'alumno');
+    if (updated) this.loadData();
+  }
+
   verDetalle(row: AlumnoRow) {
-    this.router.navigate(['/admin/usuarios', 'alumnos', row.id]);
+    this.dialog.open(UserDetailDialog, {
+      width: '580px',
+      maxHeight: '90vh',
+      autoFocus: false,
+      data: { id: row.id, tipo: 'alumnos' },
+    });
   }
 
   resetPassword(row: AlumnoRow) {
@@ -128,26 +124,21 @@ export class TabAlumnos implements OnInit {
 
   toggleEstado(row: AlumnoRow) {
     const activo = row.activo ?? true;
-    const ref = this.dialog.open(ConfirmDialog, {
+    this.dialog.open(ConfirmDialog, {
       width: '380px',
       data: {
-        titulo: activo ? '¿Desactivar alumno?' : '¿Reactivar alumno?',
-        mensaje: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
-        peligro: activo,
+        title: activo ? '¿Desactivar alumno?' : '¿Reactivar alumno?',
+        message: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
+        confirm: activo ? 'Desactivar' : 'Reactivar',
+        danger: activo,
       },
-    });
-    ref.afterClosed().subscribe((confirmed: boolean) => {
-      if (!confirmed) return;
+    }).afterClosed().subscribe(ok => {
+      if (!ok) return;
       const req$ = activo
         ? this.api.delete(`admin/users/${row.id}`)
         : this.api.patch(`admin/users/${row.id}/reactivar`, {});
       req$.subscribe({
-        next: () => {
-          this.toastr.success(
-            activo ? 'Registro eliminado correctamente' : 'Cambios guardados correctamente', 'Éxito'
-          );
-          this.loadData();
-        },
+        next: () => { this.toastr.success('Cambios guardados', 'Éxito'); this.loadData(); },
         error: () => this.toastr.error('Ocurrió un error, intenta nuevamente', 'Error'),
       });
     });

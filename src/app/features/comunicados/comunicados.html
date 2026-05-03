@@ -2,67 +2,90 @@
 
 @if (loading()) {
 <div class="loading-center">
-    <mat-icon class="loading-icon">campaign</mat-icon>
+    <div class="loading-pulse">
+        <mat-icon>campaign</mat-icon>
+    </div>
     <p>Cargando comunicados...</p>
 </div>
 } @else if (items().length === 0) {
 <app-empty-state icon="campaign" title="Sin comunicados" message="No hay comunicados publicados en este momento." />
 } @else {
 
-<!-- Vista detalle -->
+<!-- Overlay detalle -->
 @if (selected(); as s) {
 <div class="detail-overlay" (click)="close()">
-    <mat-card class="detail-card" (click)="$event.stopPropagation()">
-        <mat-card-content>
-            <div class="detail-header">
-                <div class="detail-icon">
-                    <mat-icon>campaign</mat-icon>
-                </div>
-                <div class="detail-meta">
-                    <span class="dest-chip" [style.background]="destinatarioColor(s.destinatario) + '18'"
-                        [style.color]="destinatarioColor(s.destinatario)">
-                        {{ destinatarioLabel(s.destinatario) }}
-                    </span>
-                    <span class="detail-time">{{ s.created_at | timeAgo }}</span>
-                </div>
+    <div class="detail-card" (click)="$event.stopPropagation()">
+
+        <div class="detail-top-bar">
+            <div class="detail-chips">
+                @for (dest of s.destinatarios; track dest) {
+                <span class="dest-chip dest-chip--{{ dest }}">
+                    {{ destinatarioLabel(dest) }}
+                </span>
+                }
+            </div>
+            <button class="close-btn" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+
+        <div class="detail-content">
+            <div class="detail-date-row">
+                <mat-icon class="date-icon">schedule</mat-icon>
+                <span>{{ s.created_at | timeAgo }}</span>
             </div>
             <h2 class="detail-title">{{ s.titulo }}</h2>
+            <div class="detail-divider"></div>
             <p class="detail-body">{{ s.contenido }}</p>
+
             @if (s.autor?.nombre) {
-            <p class="detail-author">Publicado por: {{ s.autor!.nombre }}</p>
+            <div class="detail-author">
+                <div class="author-avatar">
+                    {{ s.autor!.nombre!.charAt(0) }}
+                </div>
+                <span>{{ s.autor!.nombre }}</span>
+            </div>
             }
-        </mat-card-content>
-        <mat-card-actions>
-            <button mat-button (click)="close()">Cerrar</button>
-        </mat-card-actions>
-    </mat-card>
+        </div>
+
+    </div>
 </div>
 }
 
-<!-- Lista -->
+<!-- Lista de comunicados -->
 <div class="comms-list">
-    @for (item of items(); track item.id) {
-    <mat-card class="comm-card" (click)="open(item)">
-        <mat-card-content>
-            <div class="comm-row">
-                <div class="comm-icon-wrap">
-                    <mat-icon>campaign</mat-icon>
-                </div>
-                <div class="comm-body">
-                    <div class="comm-top">
-                        <span class="comm-title">{{ item.titulo }}</span>
-                        <span class="dest-chip" [style.background]="destinatarioColor(item.destinatario) + '18'"
-                            [style.color]="destinatarioColor(item.destinatario)">
-                            {{ destinatarioLabel(item.destinatario) }}
-                        </span>
-                    </div>
-                    <p class="comm-preview">{{ item.contenido }}</p>
-                    <span class="comm-time">{{ item.created_at | timeAgo }}</span>
-                </div>
-                <mat-icon class="comm-arrow">chevron_right</mat-icon>
+    @for (item of items(); track item.id; let i = $index) {
+    <article class="comm-card" (click)="open(item)" [style.animation-delay]="(i * 40) + 'ms'">
+
+        <div class="comm-left">
+            <div class="comm-icon-wrap">
+                <mat-icon>campaign</mat-icon>
             </div>
-        </mat-card-content>
-    </mat-card>
+            <div class="comm-line"></div>
+        </div>
+
+        <div class="comm-body">
+            <div class="comm-header-row">
+                <h3 class="comm-title">{{ item.titulo }}</h3>
+                <div class="comm-chips">
+                    @for (dest of item.destinatarios; track dest) {
+                    <span class="dest-chip dest-chip--{{ dest }}">
+                        {{ destinatarioLabel(dest) }}
+                    </span>
+                    }
+                </div>
+            </div>
+            <p class="comm-preview">{{ item.contenido }}</p>
+            <div class="comm-footer">
+                <mat-icon class="footer-icon">schedule</mat-icon>
+                <span class="comm-time">{{ item.created_at | timeAgo }}</span>
+                <span class="comm-read-more">Leer más
+                    <mat-icon>arrow_forward</mat-icon>
+                </span>
+            </div>
+        </div>
+
+    </article>
     }
 </div>
 }

@@ -14,16 +14,15 @@
     </button>
 </div>
 
-<!-- PROGRESS STRIP -->
+<!-- PROGRESS -->
 <div class="progress-strip">
     <div class="progress-fill" [style.width]="progressWidth()"></div>
 </div>
 
-<!-- CONTENT -->
 <mat-dialog-content class="custom-scrollbar">
     <form [formGroup]="form" class="form">
 
-        <!-- ── SECCIÓN 1: Identidad ─────────────────────────── -->
+        <!-- 01 Identidad -->
         <div class="form-section">
             <div class="section-head">
                 <span class="section-num">01</span>
@@ -52,7 +51,7 @@
             </div>
         </div>
 
-        <!-- ── SECCIÓN 2: Datos personales ─────────────────── -->
+        <!-- 02 Datos personales -->
         <div class="form-section">
             <div class="section-head">
                 <span class="section-num">02</span>
@@ -72,14 +71,14 @@
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                     <mat-label>Apellido paterno *</mat-label>
-                    <input matInput formControlName="apellido_paterno" placeholder="Ej. García" />
+                    <input matInput formControlName="apellido_paterno" />
                     @if (form.controls.apellido_paterno.invalid && form.controls.apellido_paterno.touched) {
                     <mat-error>Campo requerido</mat-error>
                     }
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                     <mat-label>Apellido materno</mat-label>
-                    <input matInput formControlName="apellido_materno" placeholder="Ej. López" />
+                    <input matInput formControlName="apellido_materno" />
                 </mat-form-field>
             </div>
 
@@ -98,22 +97,11 @@
                     <input matInput formControlName="telefono" placeholder="9XXXXXXXX" />
                 </mat-form-field>
             </div>
-        </div>
 
-        <!-- ── SECCIÓN 3: Campos por rol ───────────────────── -->
-        @if (data.rol === 'alumno') {
-        <div class="form-section fade-in">
-            <div class="section-head">
-                <span class="section-num" [style.background]="roleMeta().color + '18'"
-                    [style.color]="roleMeta().color">03</span>
-                <div>
-                    <p class="section-name">Datos académicos</p>
-                    <p class="section-hint">Información escolar del estudiante</p>
-                </div>
-            </div>
-            <div class="row-1">
+            <!-- Fecha de nacimiento — todos los roles -->
+            <div class="row-2">
                 <mat-form-field appearance="outline">
-                    <mat-label>Fecha de nacimiento *</mat-label>
+                    <mat-label>Fecha de nacimiento {{ fechaRequerida ? '*' : '' }}</mat-label>
                     <mat-icon matPrefix>cake</mat-icon>
                     <input matInput [matDatepicker]="dp" formControlName="fecha_nacimiento" placeholder="DD/MM/AAAA" />
                     <mat-datepicker-toggle matIconSuffix [for]="dp" />
@@ -124,8 +112,12 @@
                 </mat-form-field>
             </div>
         </div>
-        }
 
+        <!-- 03 Campos por rol -->
+
+        <!-- ALUMNO: sin sección extra (solo tiene datos personales) -->
+
+        <!-- DOCENTE -->
         @if (data.rol === 'docente') {
         <div class="form-section fade-in">
             <div class="section-head">
@@ -133,14 +125,14 @@
                     [style.color]="roleMeta().color">03</span>
                 <div>
                     <p class="section-name">Datos profesionales</p>
-                    <p class="section-hint">Formación académica y especialización</p>
+                    <p class="section-hint">Formación académica y tipo de contrato</p>
                 </div>
             </div>
             <div class="row-2">
                 <mat-form-field appearance="outline">
                     <mat-label>Especialidad</mat-label>
                     <mat-icon matPrefix>school</mat-icon>
-                    <input matInput formControlName="especialidad" placeholder="Ej. Matemática, Comunicación" />
+                    <input matInput formControlName="especialidad" placeholder="Ej. Matemática" />
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                     <mat-label>Título profesional</mat-label>
@@ -148,9 +140,54 @@
                     <input matInput formControlName="titulo_profesional" placeholder="Ej. Lic. en Educación" />
                 </mat-form-field>
             </div>
+
+            <div class="row-2">
+                <mat-form-field appearance="outline">
+                    <mat-label>Tipo de contrato</mat-label>
+                    <mat-icon matPrefix>description</mat-icon>
+                    <mat-select formControlName="tipo_contrato">
+                        <mat-option value="contratado">Contratado</mat-option>
+                        <mat-option value="nombrado">Nombrado</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Estado del contrato</mat-label>
+                    <mat-icon matPrefix>verified</mat-icon>
+                    <mat-select formControlName="estado_contrato">
+                        <mat-option value="activo">Activo</mat-option>
+                        <mat-option value="inactivo">Inactivo</mat-option>
+                        <mat-option value="pendiente">Pendiente</mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="row-2">
+                <mat-form-field appearance="outline">
+                    <mat-label>Fecha inicio contrato</mat-label>
+                    <mat-icon matPrefix>event</mat-icon>
+                    <input matInput [matDatepicker]="dpInicio" formControlName="fecha_inicio_contrato"
+                        placeholder="DD/MM/AAAA" />
+                    <mat-datepicker-toggle matIconSuffix [for]="dpInicio" />
+                    <mat-datepicker #dpInicio />
+                </mat-form-field>
+
+                <!-- Fecha fin solo si es contratado -->
+                @if (esContratado()) {
+                <mat-form-field appearance="outline">
+                    <mat-label>Fecha fin contrato</mat-label>
+                    <mat-icon matPrefix>event_busy</mat-icon>
+                    <input matInput [matDatepicker]="dpFin" formControlName="fecha_fin_contrato"
+                        placeholder="DD/MM/AAAA" />
+                    <mat-datepicker-toggle matIconSuffix [for]="dpFin" />
+                    <mat-datepicker #dpFin />
+                    <mat-hint>Solo para docentes contratados</mat-hint>
+                </mat-form-field>
+                }
+            </div>
         </div>
         }
 
+        <!-- PADRE -->
         @if (data.rol === 'padre') {
         <div class="form-section fade-in">
             <div class="section-head">
@@ -179,6 +216,7 @@
         </div>
         }
 
+        <!-- ADMIN -->
         @if (data.rol === 'admin') {
         <div class="form-section fade-in">
             <div class="section-head">
@@ -199,6 +237,7 @@
         </div>
         }
 
+        <!-- PSICÓLOGA -->
         @if (data.rol === 'psicologa') {
         <div class="form-section fade-in">
             <div class="section-head">
@@ -244,7 +283,7 @@
             @if (creating()) {
             <span class="spinner-btn"></span>
             Guardando...
-            } @else {<ng-container>
+            } @else { <ng-container>
                 <mat-icon>person_add</mat-icon>
                 Confirmar registro
             </ng-container>}

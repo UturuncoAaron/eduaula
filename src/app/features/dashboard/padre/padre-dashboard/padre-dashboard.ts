@@ -35,7 +35,7 @@ export class PadreDashboard implements OnInit {
     if (!padreId) { this.loading.set(false); return; }
 
     // TODO: quitar ?padreId= cuando JWT esté activo
-    this.api.get<Child[]>('parent/children', { padreId }).subscribe({
+    this.api.get<Child[]>('parent/children',).subscribe({
       next: r => { this.children.set(r.data); this.loading.set(false); },
       error: () => {
         // TODO: reemplazar con API real

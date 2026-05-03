@@ -1,0 +1,64 @@
+<app-page-header title="Mis libretas" subtitle="Boletines de calificaciones por bimestre" />
+
+@if (loading()) {
+<div class="nb-state">
+    <div class="nb-spinner"></div>
+    <p>Cargando libretas...</p>
+</div>
+
+} @else if (error()) {
+<div class="nb-state nb-state--error">
+    <mat-icon>error_outline</mat-icon>
+    <p>No se pudieron cargar tus libretas.</p>
+</div>
+
+} @else if (notebooks().length === 0) {
+<div class="nb-state nb-state--empty">
+    <div class="nb-empty-icon">
+        <mat-icon>auto_stories</mat-icon>
+    </div>
+    <h3>Sin libretas disponibles</h3>
+    <p>Tu tutor aún no ha subido ningún boletín.</p>
+</div>
+
+} @else {
+<div class="nb-grid">
+    @for (nb of notebooks(); track nb.id; let i = $index) {
+    <article class="nb-card" [style.animation-delay]="(i * 50) + 'ms'">
+
+        <div class="nb-card-left">
+            <div class="nb-icon">
+                <mat-icon>description</mat-icon>
+            </div>
+            <div class="nb-bimestre-line"></div>
+        </div>
+
+        <div class="nb-card-body">
+            <div class="nb-card-top">
+                <div>
+                    <p class="nb-period">{{ nb.periodo.nombre }}</p>
+                    <p class="nb-meta">
+                        <span class="nb-bim-badge">Bim {{ nb.periodo.bimestre }}</span>
+                        {{ nb.periodo.anio }}
+                    </p>
+                </div>
+                <button mat-flat-button class="nb-open-btn" (click)="open(nb.url)">
+                    <mat-icon>open_in_new</mat-icon>
+                    Ver boletín
+                </button>
+            </div>
+
+            @if (nb.observaciones) {
+            <p class="nb-obs">{{ nb.observaciones }}</p>
+            }
+
+            <p class="nb-date">
+                <mat-icon>schedule</mat-icon>
+                Subido el {{ nb.created_at | date:'dd/MM/yyyy' }}
+            </p>
+        </div>
+
+    </article>
+    }
+</div>
+}

@@ -48,22 +48,18 @@
 
     // Logo
     &__logo-wrap {
-        width: 88px;
-        height: 88px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.12);
-        border: 2px solid rgba(255, 255, 255, 0.25);
+        width: 150px;
+        height: 150px;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(8px);
     }
 
     &__logo {
-        width: 72px;
-        height: 72px;
+        width: 150px;
+        height: 150px;
         object-fit: contain;
     }
 

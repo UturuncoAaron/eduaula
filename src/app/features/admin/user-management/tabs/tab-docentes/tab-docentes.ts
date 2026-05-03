@@ -1,7 +1,4 @@
-import {
-  Component, inject, effect,
-  ViewChild, OnInit, signal,
-} from '@angular/core';
+import { Component, inject, effect, ViewChild, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -15,9 +12,12 @@ import { MatInputModule } from '@angular/material/input';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
+import { UserEditService } from '../../../../../core/services/user-edit.service';
 import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
+import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
+import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 
 export interface DocenteRow {
   id: string;
@@ -30,6 +30,7 @@ export interface DocenteRow {
   titulo_profesional?: string;
   email?: string;
   telefono?: string;
+  foto_url?: string | null;
   activo?: boolean;
 }
 
@@ -39,7 +40,8 @@ export interface DocenteRow {
   imports: [
     MatTableModule, MatPaginatorModule, MatIconModule,
     MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
-    MatFormFieldModule, MatInputModule
+    MatFormFieldModule, MatInputModule,
+    UserAvatar
   ],
   templateUrl: './tab-docentes.html',
   styleUrl: './tab-docentes.scss',
@@ -49,13 +51,12 @@ export class TabDocentes implements OnInit {
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
   private router = inject(Router);
+  private userEdit = inject(UserEditService);
 
-  // Buscador reactivo local
-  searchTerm = signal<string>('');
-
+  searchTerm = signal('');
+  loading = signal(true);
   dataSource = new MatTableDataSource<DocenteRow>([]);
   displayedColumns = ['documento', 'nombre', 'especialidad', 'estado', 'acciones'];
-  loading = signal(true);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -67,19 +68,17 @@ export class TabDocentes implements OnInit {
   }
 
   ngOnInit() {
-    this.dataSource.filterPredicate = (row: DocenteRow, filter: string) =>
+    this.dataSource.filterPredicate = (row: DocenteRow, f: string) =>
       [row.numero_documento ?? '', row.nombre, row.apellido_paterno,
       row.apellido_materno ?? '', row.especialidad ?? '']
-        .join(' ').toLowerCase().includes(filter);
-
-    // Carga inicial al montar la vista
+        .join(' ').toLowerCase().includes(f);
     this.loadData();
   }
 
   loadData() {
     this.loading.set(true);
     this.api.get<any>('admin/users/docentes').subscribe({
-      next: (res) => {
+      next: res => {
         this.dataSource.data = res.data ?? res ?? [];
         setTimeout(() => { this.dataSource.paginator = this.paginator; });
         this.loading.set(false);
@@ -87,28 +86,29 @@ export class TabDocentes implements OnInit {
       error: () => {
         this.toastr.error('Error al cargar la lista de docentes', 'Error');
         this.loading.set(false);
-      }
+      },
     });
   }
 
-  // ─── NUEVO: Abrir Modal de Creación ──────────────────────────────────────────
   abrirCrearDocente() {
-    const dialogRef = this.dialog.open(CreateUserDialog, {
-      width: '650px',
-      disableClose: true,
-      data: { rol: 'docente' }
-    });
-
-    dialogRef.afterClosed().subscribe((creado: boolean) => {
-      if (creado) {
-        this.loadData();
-      }
-    });
+    this.dialog.open(CreateUserDialog, {
+      width: '650px', disableClose: true,
+      data: { rol: 'docente' },
+    }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
   }
 
-  // ─── Lógica existente ──────────────────────────────────────────────────────
+  async editarDocente(row: DocenteRow) {
+    const updated = await this.userEdit.openEdit(row as any, 'docente');
+    if (updated) this.loadData();
+  }
+
   verDetalle(row: DocenteRow) {
-    this.router.navigate(['/admin/usuarios', 'docentes', row.id]);
+    this.dialog.open(UserDetailDialog, {
+      width: '580px',
+      maxHeight: '90vh',
+      autoFocus: false,
+      data: { id: row.id, tipo: 'docentes' },
+    });
   }
 
   resetPassword(row: DocenteRow) {
@@ -120,26 +120,21 @@ export class TabDocentes implements OnInit {
 
   toggleEstado(row: DocenteRow) {
     const activo = row.activo ?? true;
-    const ref = this.dialog.open(ConfirmDialog, {
+    this.dialog.open(ConfirmDialog, {
       width: '380px',
       data: {
-        titulo: activo ? '¿Desactivar docente?' : '¿Reactivar docente?',
-        mensaje: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
-        peligro: activo,
+        title: activo ? '¿Desactivar docente?' : '¿Reactivar docente?',
+        message: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
+        confirm: activo ? 'Desactivar' : 'Reactivar',
+        danger: activo,
       },
-    });
-    ref.afterClosed().subscribe((confirmed: boolean) => {
-      if (!confirmed) return;
+    }).afterClosed().subscribe(ok => {
+      if (!ok) return;
       const req$ = activo
         ? this.api.delete(`admin/users/${row.id}`)
         : this.api.patch(`admin/users/${row.id}/reactivar`, {});
       req$.subscribe({
-        next: () => {
-          this.toastr.success(
-            activo ? 'Registro eliminado correctamente' : 'Cambios guardados correctamente', 'Éxito'
-          );
-          this.loadData();
-        },
+        next: () => { this.toastr.success('Cambios guardados', 'Éxito'); this.loadData(); },
         error: () => this.toastr.error('Ocurrió un error, intenta nuevamente', 'Error'),
       });
     });

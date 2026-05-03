@@ -49,9 +49,15 @@ export const routes: Routes = [
             },
             {
                 path: 'mis-libretas',
-                canActivate: [roleGuard(['alumno', 'padre'])],
+                canActivate: [roleGuard(['alumno'])],
                 loadChildren: () =>
                     import('./features/notebooks/notebooks.routes').then(r => r.NOTEBOOKS_ROUTES),
+            },
+            {
+                path: 'mi-tutoria',
+                canActivate: [roleGuard(['docente'])],
+                loadChildren: () =>
+                    import('./features/notebooks/tutoring.routes').then(r => r.TUTORING_ROUTES),
             },
             {
                 path: 'portal-padres',

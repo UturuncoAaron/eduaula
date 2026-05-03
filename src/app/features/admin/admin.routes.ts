@@ -47,11 +47,7 @@ export const ADMIN_ROUTES: Routes = [
   },
 
   // 2. Ruta dinámica para el perfil individual (SIEMPRE AL FINAL DEL BLOQUE USUARIOS)
-  {
-    path: 'usuarios/:tipo/:id',
-    loadComponent: () =>
-      import('./user-detail/user-detail').then(c => c.UserDetail),
-  },
+
 
   // ─── Matrículas ───────────────────────────────────────────────────────────
   {

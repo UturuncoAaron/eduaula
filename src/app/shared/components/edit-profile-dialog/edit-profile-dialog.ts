@@ -3,13 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { AuthService } from '../../../core/auth/auth';
 import { User } from '../../../core/models/user';
 
 export interface EditProfileDialogData {
   user: User;
-  isSelf: boolean; // true → PUT /users/me  |  false → PUT /admin/users/:id
+  isSelf: boolean;
 }
 
 @Component({
@@ -22,6 +23,7 @@ export interface EditProfileDialogData {
 export class EditProfileDialog implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<EditProfileDialog>);
 
   data = inject<EditProfileDialogData>(MAT_DIALOG_DATA);
@@ -37,31 +39,24 @@ export class EditProfileDialog implements OnInit {
   showConfirm = signal(false);
   showCurrent = signal(false);
 
-  // ── Formulario completo ───────────────────────────────────────────────
   form = {
-    // Documento (solo visible/editable si !isSelf)
     tipo_documento: '',
     numero_documento: '',
-    // Personales
     nombre: '',
     apellido_paterno: '',
     apellido_materno: '',
     telefono: '',
-    // Contacto
     email: '',
-    // Por rol
     especialidad: '',
     titulo_profesional: '',
     colegiatura: '',
     cargo: '',
     relacion: '',
-    // Contraseña (opcional)
     current_password: '',
     new_password: '',
     confirm_password: '',
   };
 
-  // ── Helpers ───────────────────────────────────────────────────────────
   private roleColors: Record<string, string> = {
     alumno: '#10b981',
     docente: '#f59e0b',
@@ -84,7 +79,6 @@ export class EditProfileDialog implements OnInit {
     return 'Error al conectar con el servidor';
   }
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────
   ngOnInit() {
     const u = this.data.user;
     this.form.tipo_documento = u.tipo_documento ?? 'dni';
@@ -101,12 +95,12 @@ export class EditProfileDialog implements OnInit {
     this.form.relacion = u.relacion_familiar ?? '';
   }
 
-  // ── Foto ──────────────────────────────────────────────────────────────
   onFotoSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
       this.error.set('La imagen supera los 2 MB.');
+      this.toastr.error('La imagen supera los 2 MB.', 'Archivo inválido');
       return;
     }
     this.fotoFile.set(file);
@@ -120,20 +114,27 @@ export class EditProfileDialog implements OnInit {
     this.fotoPreview.set(null);
   }
 
-  // ── Guardar ───────────────────────────────────────────────────────────
   async save() {
-    // Validaciones básicas
     if (!this.form.nombre.trim() || !this.form.apellido_paterno.trim()) {
-      this.error.set('Nombre y apellido paterno son obligatorios.');
+      const msg = 'Nombre y apellido paterno son obligatorios.';
+      this.error.set(msg);
+      this.toastr.error(msg, 'Campos requeridos');
       return;
     }
-    if (this.form.new_password && this.form.new_password !== this.form.confirm_password) return;
+    if (this.form.new_password && this.form.new_password !== this.form.confirm_password) {
+      this.toastr.error('Las contraseñas no coinciden.', 'Error de validación');
+      return;
+    }
     if (this.form.new_password && this.form.new_password.length < 8) {
-      this.error.set('La contraseña debe tener al menos 8 caracteres.');
+      const msg = 'La contraseña debe tener al menos 8 caracteres.';
+      this.error.set(msg);
+      this.toastr.error(msg, 'Contraseña débil');
       return;
     }
     if (this.data.isSelf && this.form.new_password && !this.form.current_password) {
-      this.error.set('Debes ingresar tu contraseña actual para cambiarla.');
+      const msg = 'Debes ingresar tu contraseña actual para cambiarla.';
+      this.error.set(msg);
+      this.toastr.error(msg, 'Requerido');
       return;
     }
 
@@ -142,7 +143,7 @@ export class EditProfileDialog implements OnInit {
     this.success.set(false);
 
     try {
-      // ── 1. Foto (multipart — sigue siendo una llamada separada) ────────
+      // 1. Foto
       if (this.fotoFile()) {
         const fd = new FormData();
         fd.append('foto', this.fotoFile()!);
@@ -154,7 +155,7 @@ export class EditProfileDialog implements OnInit {
         }
       }
 
-      // ── 2. PUT unificado — una sola llamada para todo lo demás ─────────
+      // 2. PUT perfil
       const endpoint = this.data.isSelf
         ? 'users/me'
         : `admin/users/${this.data.user.id}`;
@@ -167,30 +168,25 @@ export class EditProfileDialog implements OnInit {
         email: this.form.email || null,
       };
 
-      // Campos por rol (solo si tienen valor)
       if (this.form.especialidad) payload['especialidad'] = this.form.especialidad;
       if (this.form.titulo_profesional) payload['titulo_profesional'] = this.form.titulo_profesional;
       if (this.form.colegiatura) payload['colegiatura'] = this.form.colegiatura;
       if (this.form.cargo) payload['cargo'] = this.form.cargo;
       if (this.form.relacion) payload['relacion'] = this.form.relacion;
 
-      // Documento (solo admin editando otro usuario)
       if (!this.data.isSelf) {
         payload['tipo_documento'] = this.form.tipo_documento;
         payload['numero_documento'] = this.form.numero_documento;
       }
 
-      // Contraseña (opcional)
       if (this.form.new_password) {
         payload['new_password'] = this.form.new_password;
-        if (this.data.isSelf) {
-          payload['current_password'] = this.form.current_password;
-        }
+        if (this.data.isSelf) payload['current_password'] = this.form.current_password;
       }
 
       await this.api.put(endpoint, payload).toPromise();
 
-      // ── 3. Actualizar signal del usuario logueado si es self ───────────
+      // 3. Actualizar store si es self
       if (this.data.isSelf) {
         this.auth.updateCurrentUser({
           nombre: this.form.nombre,
@@ -203,11 +199,14 @@ export class EditProfileDialog implements OnInit {
 
       this.saving.set(false);
       this.success.set(true);
+      this.toastr.success('Perfil actualizado correctamente.', '¡Listo!');
       setTimeout(() => this.dialogRef.close({ updated: true }), 1200);
 
     } catch (e: any) {
+      const msg = this.extractError(e);
       this.saving.set(false);
-      this.error.set(this.extractError(e));
+      this.error.set(msg);
+      this.toastr.error(msg, 'Error');
     }
   }
 }

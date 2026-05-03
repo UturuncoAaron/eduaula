@@ -14,15 +14,26 @@ import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+type Destinatario = 'todos' | 'alumnos' | 'docentes' | 'padres' | 'psicologas';
 
 interface Announcement {
   id: string;
   titulo: string;
   contenido: string;
-  destinatario: 'todos' | 'alumnos' | 'docentes' | 'padres';
+  destinatarios: Destinatario[];
   created_at: string;
-  autor?: { id: string; nombre?: string; email?: string };
+  admin?: { nombre: string; apellido_paterno: string; };
 }
+
+const LABELS: Record<Destinatario, string> = {
+  todos: 'Todos',
+  alumnos: 'Alumnos',
+  docentes: 'Docentes',
+  padres: 'Padres',
+  psicologas: 'Psicólogas',
+};
 
 @Component({
   selector: 'app-announcements-admin',
@@ -30,8 +41,8 @@ interface Announcement {
   imports: [
     ReactiveFormsModule, DatePipe,
     MatCardModule, MatButtonModule, MatIconModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule, MatChipsModule,
-    MatDialogModule, PageHeader, EmptyState
+    MatFormFieldModule, MatInputModule, MatSelectModule,
+    MatChipsModule, MatDialogModule, PageHeader, EmptyState, MatProgressSpinnerModule,
   ],
   templateUrl: './announcements-admin.html',
   styleUrl: './announcements-admin.scss',
@@ -49,8 +60,12 @@ export class AnnouncementsAdmin implements OnInit {
   form = this.fb.group({
     titulo: ['', [Validators.required, Validators.maxLength(200)]],
     contenido: ['', Validators.required],
-    destinatario: ['todos' as 'todos' | 'alumnos' | 'docentes' | 'padres'],
+    destinatarios: [['todos'] as Destinatario[], Validators.required],
   });
+
+  labelDest(d: string) {
+    return LABELS[d as Destinatario] ?? d;
+  }
 
   ngOnInit() { this.cargar(); }
 
@@ -68,7 +83,7 @@ export class AnnouncementsAdmin implements OnInit {
     this.api.post<Announcement>('announcements', this.form.value).subscribe({
       next: () => {
         this.toastr.success('Comunicado publicado', 'Éxito');
-        this.form.reset({ titulo: '', contenido: '', destinatario: 'todos' });
+        this.form.reset({ titulo: '', contenido: '', destinatarios: ['todos'] });
         this.saving.set(false);
         this.cargar();
       },
@@ -81,15 +96,17 @@ export class AnnouncementsAdmin implements OnInit {
 
   eliminar(a: Announcement) {
     const ref = this.dialog.open(ConfirmDialog, {
-      data: { title: 'Eliminar comunicado', message: `¿Eliminar "${a.titulo}"?`, confirmText: 'Eliminar' },
+      data: {
+        title: 'Eliminar comunicado',
+        message: `¿Eliminar "${a.titulo}"?`,
+        confirm: 'Eliminar',
+        danger: true,
+      },
     });
     ref.afterClosed().subscribe(ok => {
       if (!ok) return;
       this.api.delete(`announcements/${a.id}`).subscribe({
-        next: () => {
-          this.toastr.success('Comunicado eliminado', 'Éxito');
-          this.cargar();
-        },
+        next: () => { this.toastr.success('Comunicado eliminado', 'Éxito'); this.cargar(); },
         error: () => this.toastr.error('Error al eliminar', 'Error'),
       });
     });

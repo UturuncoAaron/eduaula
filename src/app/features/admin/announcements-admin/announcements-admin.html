@@ -1,75 +1,94 @@
+<h2 class="sr-only">Gestión de comunicados</h2>
 <app-page-header title="Comunicados" />
 
-<div class="announcements-grid">
+<div class="ann-layout">
 
-    <mat-card class="form-card">
-        <mat-card-header>
-            <mat-icon mat-card-avatar style="color:#1565C0">campaign</mat-icon>
-            <mat-card-title>Publicar nuevo comunicado</mat-card-title>
-            <mat-card-subtitle>Visible para los destinatarios elegidos</mat-card-subtitle>
-        </mat-card-header>
+    <!-- Panel izquierdo: formulario -->
+    <aside class="compose-panel">
+        <div class="compose-header">
+            <div class="compose-icon">
+                <mat-icon>campaign</mat-icon>
+            </div>
+            <div>
+                <p class="compose-title">Nuevo comunicado</p>
+                <p class="compose-sub">Visible para los destinatarios elegidos</p>
+            </div>
+        </div>
 
-        <mat-card-content>
-            <form [formGroup]="form" (ngSubmit)="publicar()" class="form">
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Título</mat-label>
-                    <input matInput formControlName="titulo" maxlength="200" />
-                </mat-form-field>
+        <form [formGroup]="form" (ngSubmit)="publicar()" class="compose-form">
+            <mat-form-field appearance="outline" class="w100">
+                <mat-label>Título</mat-label>
+                <input matInput formControlName="titulo" maxlength="200" />
+                <mat-hint align="end">{{ form.get('titulo')?.value?.length ?? 0 }}/200</mat-hint>
+            </mat-form-field>
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Contenido</mat-label>
-                    <textarea matInput formControlName="contenido" rows="5"></textarea>
-                </mat-form-field>
+            <mat-form-field appearance="outline" class="w100">
+                <mat-label>Contenido</mat-label>
+                <textarea matInput formControlName="contenido" rows="6"></textarea>
+            </mat-form-field>
 
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Destinatario</mat-label>
-                    <mat-select formControlName="destinatario">
-                        <mat-option value="todos">Todos</mat-option>
-                        <mat-option value="alumnos">Alumnos</mat-option>
-                        <mat-option value="docentes">Docentes</mat-option>
-                        <mat-option value="padres">Padres</mat-option>
-                    </mat-select>
-                </mat-form-field>
+            <mat-form-field appearance="outline" class="w100">
+                <mat-label>Destinatarios</mat-label>
+                <mat-select formControlName="destinatarios" multiple>
+                    <mat-option value="todos">Todos</mat-option>
+                    <mat-option value="alumnos">Alumnos</mat-option>
+                    <mat-option value="docentes">Docentes</mat-option>
+                    <mat-option value="padres">Padres</mat-option>
+                    <mat-option value="psicologas">Psicólogas</mat-option>
+                </mat-select>
+            </mat-form-field>
 
-                <div class="actions">
-                    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
-                        <mat-icon>send</mat-icon>
-                        {{ saving() ? 'Publicando...' : 'Publicar' }}
-                    </button>
-                </div>
-            </form>
-        </mat-card-content>
-    </mat-card>
+            <button mat-flat-button color="primary" type="submit" class="publish-btn" [disabled]="saving()">
+                <mat-icon>send</mat-icon>
+                {{ saving() ? 'Publicando...' : 'Publicar comunicado' }}
+            </button>
+        </form>
+    </aside>
 
-    <div class="list-section">
-        <h3 class="section-title">Publicados</h3>
+    <!-- Panel derecho: lista -->
+    <section class="feed-panel">
+        <div class="feed-header">
+            <span class="feed-title">Publicados</span>
+            <span class="feed-count">{{ list().length }} comunicado{{ list().length !== 1 ? 's' : '' }}</span>
+        </div>
 
         @if (loading()) {
+        <div class="feed-loading">
+            <mat-spinner diameter="32" />
+        </div>
         } @else if (list().length === 0) {
         <app-empty-state icon="campaign" title="Sin comunicados" message="Aún no se ha publicado ningún comunicado." />
         } @else {
-        <div class="list">
+        <div class="feed-list">
             @for (a of list(); track a.id) {
-            <mat-card class="ann-card">
-                <mat-card-header>
-                    <mat-card-title>{{ a.titulo }}</mat-card-title>
-                    <mat-card-subtitle>
-                        <mat-chip class="chip-target">{{ a.destinatario }}</mat-chip>
-                        · {{ a.created_at | date:'dd/MM/yyyy HH:mm' }}
-                    </mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                    <p class="ann-body">{{ a.contenido }}</p>
-                </mat-card-content>
-                <mat-card-actions>
-                    <button mat-button color="warn" (click)="eliminar(a)">
-                        <mat-icon>delete</mat-icon> Eliminar
+            <article class="ann-item">
+                <div class="ann-item-top">
+                    <div class="ann-meta">
+                        <div class="ann-chips">
+                            @for (dest of a.destinatarios; track dest) {
+                            <span class="dest-chip dest-chip--{{ dest }}">{{ labelDest(dest) }}</span>
+                            }
+                        </div>
+                        <span class="ann-date">{{ a.created_at | date:'d MMM yyyy · HH:mm' }}</span>
+                    </div>
+                    <button mat-icon-button class="delete-btn" (click)="eliminar(a)" matTooltip="Eliminar">
+                        <mat-icon>delete_outline</mat-icon>
                     </button>
-                </mat-card-actions>
-            </mat-card>
+                </div>
+
+                <h3 class="ann-titulo">{{ a.titulo }}</h3>
+                <p class="ann-body">{{ a.contenido }}</p>
+
+                @if (a.admin) {
+                <div class="ann-author">
+                    <mat-icon class="author-icon">person_outline</mat-icon>
+                    <span>{{ a.admin.nombre }} {{ a.admin.apellido_paterno }}</span>
+                </div>
+                }
+            </article>
             }
         </div>
         }
-    </div>
+    </section>
 
 </div>

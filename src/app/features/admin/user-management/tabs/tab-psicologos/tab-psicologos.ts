@@ -1,7 +1,4 @@
-import {
-  Component, inject, effect,
-  ViewChild, OnInit, signal,
-} from '@angular/core';
+import { Component, inject, effect, ViewChild, OnInit, signal } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,19 +11,26 @@ import { MatInputModule } from '@angular/material/input';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
+import { UserEditService } from '../../../../../core/services/user-edit.service';
 import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
 import { AssignStudentsDialog } from './dialogs/assign-students-dialog/assign-students-dialog';
+import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
+import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 
 export interface PsicologaRow {
   id: string;
   dni: string;
+  tipo_documento?: string;
   nombres: string;
   apellidos: string;
+  apellido_paterno: string;
+  apellido_materno?: string;
   especialidad: string;
   correo: string;
   telefono?: string;
+  foto_url?: string | null;
   activo: boolean;
 }
 
@@ -36,7 +40,8 @@ export interface PsicologaRow {
   imports: [
     MatTableModule, MatPaginatorModule, MatIconModule,
     MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
-    MatFormFieldModule, MatInputModule
+    MatFormFieldModule, MatInputModule,
+    UserAvatar
   ],
   templateUrl: './tab-psicologos.html',
   styleUrl: './tab-psicologos.scss',
@@ -45,11 +50,12 @@ export class TabPsicologos implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
+  private userEdit = inject(UserEditService);
 
-  searchTerm = signal<string>('');
+  searchTerm = signal('');
+  loading = signal(true);
   dataSource = new MatTableDataSource<PsicologaRow>([]);
   displayedColumns = ['dni', 'nombre', 'especialidad', 'contacto', 'estado', 'acciones'];
-  loading = signal(true);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -61,18 +67,16 @@ export class TabPsicologos implements OnInit {
   }
 
   ngOnInit() {
-    this.dataSource.filterPredicate = (row: PsicologaRow, filter: string) =>
+    this.dataSource.filterPredicate = (row: PsicologaRow, f: string) =>
       [row.dni, row.nombres, row.apellidos, row.especialidad]
-        .join(' ').toLowerCase().includes(filter);
-
+        .join(' ').toLowerCase().includes(f);
     this.loadData();
   }
 
   loadData() {
     this.loading.set(true);
-    // Endpoint basado en tu estructura de backend
     this.api.get<any>('admin/users/psicologos').subscribe({
-      next: (res) => {
+      next: res => {
         this.dataSource.data = res.data ?? res ?? [];
         setTimeout(() => { this.dataSource.paginator = this.paginator; });
         this.loading.set(false);
@@ -80,31 +84,35 @@ export class TabPsicologos implements OnInit {
       error: () => {
         this.toastr.error('Error al cargar la lista de psicólogas', 'Error');
         this.loading.set(false);
-      }
+      },
     });
   }
 
   abrirCrearPsicologa() {
-    const dialogRef = this.dialog.open(CreateUserDialog, {
-      width: '650px',
-      disableClose: true,
-      data: { rol: 'psicologa' }
-    });
+    this.dialog.open(CreateUserDialog, {
+      width: '650px', disableClose: true,
+      data: { rol: 'psicologa' },
+    }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
+  }
 
-    dialogRef.afterClosed().subscribe((creado: boolean) => {
-      if (creado) this.loadData();
-    });
+  async editarPsicologa(row: PsicologaRow) {
+    // El backend devuelve nombres/apellidos pero EditProfileDialog espera nombre/apellido_paterno
+    const updated = await this.userEdit.openEdit({
+      id: row.id,
+      nombre: row.nombres,
+      apellido_paterno: row.apellido_paterno,
+      apellido_materno: row.apellido_materno,
+      email: row.correo,
+      telefono: row.telefono,
+      foto_url: row.foto_url,
+    } as any, 'psicologa');
+    if (updated) this.loadData();
   }
 
   asignarAlumnos(row: PsicologaRow) {
     this.dialog.open(AssignStudentsDialog, {
-      width: '640px',
-      maxHeight: '85vh',
-      autoFocus: false,
-      data: {
-        psicologaId: row.id,
-        psicologaNombre: `${row.nombres} ${row.apellidos}`.trim(),
-      },
+      width: '640px', maxHeight: '85vh', autoFocus: false,
+      data: { psicologaId: row.id, psicologaNombre: `${row.nombres} ${row.apellidos}`.trim() },
     });
   }
 
@@ -116,29 +124,31 @@ export class TabPsicologos implements OnInit {
   }
 
   toggleEstado(row: PsicologaRow) {
-    const activo = row.activo;
-    const ref = this.dialog.open(ConfirmDialog, {
+    this.dialog.open(ConfirmDialog, {
       width: '380px',
       data: {
-        titulo: activo ? '¿Desactivar cuenta?' : '¿Reactivar cuenta?',
-        mensaje: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de la psicóloga ${row.nombres}.`,
-        peligro: activo,
+        title: row.activo ? '¿Desactivar cuenta?' : '¿Reactivar cuenta?',
+        message: `Estás por ${row.activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombres}.`,
+        confirm: row.activo ? 'Desactivar' : 'Reactivar',
+        danger: row.activo,
       },
-    });
-
-    ref.afterClosed().subscribe((confirmed: boolean) => {
-      if (!confirmed) return;
-      const req$ = activo
+    }).afterClosed().subscribe(ok => {
+      if (!ok) return;
+      const req$ = row.activo
         ? this.api.delete(`admin/users/${row.id}`)
         : this.api.patch(`admin/users/${row.id}/reactivar`, {});
-
       req$.subscribe({
-        next: () => {
-          this.toastr.success('Cambios guardados correctamente', 'Éxito');
-          this.loadData();
-        },
-        error: () => this.toastr.error('Ocurrió un error al procesar la solicitud', 'Error'),
+        next: () => { this.toastr.success('Cambios guardados', 'Éxito'); this.loadData(); },
+        error: () => this.toastr.error('Error al procesar la solicitud', 'Error'),
       });
+    });
+  }
+  verDetalle(row: PsicologaRow) {
+    this.dialog.open(UserDetailDialog, {
+      width: '580px',
+      maxHeight: '90vh',
+      autoFocus: false,
+      data: { id: row.id, tipo: 'psicologos' },
     });
   }
 }

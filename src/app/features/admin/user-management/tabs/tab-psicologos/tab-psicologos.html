@@ -1,11 +1,9 @@
 <div class="page-container fade-in">
-
     <div class="page-header">
         <div class="header-info">
             <h1 class="mat-headline-5 m-0">Personal de Psicología</h1>
             <p class="text-muted m-0">Gestión de cuentas para el departamento psicopedagógico.</p>
         </div>
-
         <div class="header-actions">
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
                 <mat-icon matPrefix>search</mat-icon>
@@ -17,10 +15,8 @@
                 </button>
                 }
             </mat-form-field>
-
             <button mat-flat-button color="primary" class="btn-create" (click)="abrirCrearPsicologa()">
-                <mat-icon>psychology</mat-icon>
-                <span>Nueva Psicóloga</span>
+                <mat-icon>psychology</mat-icon><span>Nueva Psicóloga</span>
             </button>
         </div>
     </div>
@@ -33,15 +29,13 @@
                 <p>Cargando personal...</p>
             </div>
             } @else if (dataSource.data.length === 0) {
-            <div class="empty-state">
-                <mat-icon>psychology</mat-icon>
-                <p>No hay psicólogas registradas en el sistema.</p>
+            <div class="empty-state"><mat-icon>psychology</mat-icon>
+                <p>No hay psicólogas registradas.</p>
             </div>
             } @else {
             <div class="table-responsive">
                 <table mat-table [dataSource]="dataSource" class="users-table">
 
-                    <!-- DNI -->
                     <ng-container matColumnDef="dni">
                         <th mat-header-cell *matHeaderCellDef>DNI / Documento</th>
                         <td mat-cell *matCellDef="let row">
@@ -49,42 +43,36 @@
                         </td>
                     </ng-container>
 
-                    <!-- Nombre -->
                     <ng-container matColumnDef="nombre">
                         <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
                         <td mat-cell *matCellDef="let row" class="name-cell">
                             <div class="avatar-name">
-                                <div class="avatar-circle admin"> <!-- Color similar al admin o personalizado -->
-                                    {{ row.nombres.charAt(0) }}{{ row.apellidos.charAt(0) }}
-                                </div>
-                                <span class="full-name">
-                                    {{ row.apellidos }}, {{ row.nombres }}
-                                </span>
+                                <app-user-avatar [nombre]="row.nombres"
+                                    [apellidoPaterno]="row.apellido_paterno || row.apellidos" rol="psicologa"
+                                    [fotoUrl]="row.foto_url ?? null" [size]="36" />
+                                <span class="full-name">{{ row.apellidos }}, {{ row.nombres }}</span>
                             </div>
                         </td>
                     </ng-container>
 
-                    <!-- Especialidad -->
                     <ng-container matColumnDef="especialidad">
                         <th mat-header-cell *matHeaderCellDef>Especialidad</th>
                         <td mat-cell *matCellDef="let row">
-                            <span class="grado-chip">{{ row.especialidad }}</span>
+                            <span class="grado-chip">{{ row.especialidad || '—' }}</span>
                         </td>
                     </ng-container>
 
-                    <!-- Contacto -->
                     <ng-container matColumnDef="contacto">
                         <th mat-header-cell *matHeaderCellDef>Contacto</th>
                         <td mat-cell *matCellDef="let row">
                             <div class="contact-info">
-                                <span class="sub-text"><mat-icon inline>mail</mat-icon> {{ row.correo }}</span>
+                                <span class="sub-text"><mat-icon inline>mail</mat-icon> {{ row.correo || '—' }}</span>
                                 <span class="sub-text"><mat-icon inline>phone</mat-icon> {{ row.telefono || '—'
                                     }}</span>
                             </div>
                         </td>
                     </ng-container>
 
-                    <!-- Estado -->
                     <ng-container matColumnDef="estado">
                         <th mat-header-cell *matHeaderCellDef>Estado</th>
                         <td mat-cell *matCellDef="let row">
@@ -95,28 +83,12 @@
                         </td>
                     </ng-container>
 
-                    <!-- Acciones -->
                     <ng-container matColumnDef="acciones">
                         <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
                         <td mat-cell *matCellDef="let row" class="col-actions">
-                            <button mat-icon-button [matMenuTriggerFor]="menu">
+                            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }">
                                 <mat-icon>more_vert</mat-icon>
                             </button>
-                            <mat-menu #menu="matMenu">
-                                <button mat-menu-item (click)="asignarAlumnos(row)">
-                                    <mat-icon>group_add</mat-icon><span>Asignar alumnos</span>
-                                </button>
-                                <mat-divider></mat-divider>
-                                <button mat-menu-item (click)="resetPassword(row)">
-                                    <mat-icon>lock_reset</mat-icon><span>Resetear contraseña</span>
-                                </button>
-                                <mat-divider></mat-divider>
-                                <button mat-menu-item (click)="toggleEstado(row)" [class.danger-item]="row.activo">
-                                    <mat-icon [color]="row.activo ? 'warn' : ''">{{ row.activo ? 'block' :
-                                        'check_circle' }}</mat-icon>
-                                    <span>{{ row.activo ? 'Desactivar' : 'Reactivar' }} cuenta</span>
-                                </button>
-                            </mat-menu>
                         </td>
                     </ng-container>
 
@@ -124,8 +96,35 @@
                     <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
                 </table>
             </div>
-            <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+            <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons />
             }
         </div>
     </div>
 </div>
+
+<mat-menu #rowMenu="matMenu">
+    <ng-template matMenuContent let-row="row">
+        <button mat-menu-item (click)="editarPsicologa(row)">
+            <mat-icon>edit</mat-icon><span>Editar perfil</span>
+        </button>
+        <button mat-menu-item (click)="verDetalle(row)">
+            <mat-icon>visibility</mat-icon><span>Ver detalle</span>
+        </button>
+        <button mat-menu-item (click)="asignarAlumnos(row)">
+            <mat-icon>group_add</mat-icon><span>Asignar alumnos</span>
+        </button>
+        <button mat-menu-item (click)="resetPassword(row)">
+            <mat-icon>lock_reset</mat-icon><span>Resetear contraseña</span>
+        </button>
+        <mat-divider />
+        @if (row.activo) {
+        <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
+            <mat-icon color="warn">block</mat-icon><span>Desactivar cuenta</span>
+        </button>
+        } @else {
+        <button mat-menu-item (click)="toggleEstado(row)" class="success-item">
+            <mat-icon>check_circle</mat-icon><span>Reactivar cuenta</span>
+        </button>
+        }
+    </ng-template>
+</mat-menu>
