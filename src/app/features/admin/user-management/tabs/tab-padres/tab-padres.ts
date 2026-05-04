@@ -14,10 +14,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
-import { UserEditService } from '../../../../../core/services/user-edit.service';
-import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
-import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
+import { UserDialog } from '../../../../../shared/components/user-dialog/user-dialog';
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 
@@ -57,18 +55,14 @@ export class TabPadres implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
-  private userEdit = inject(UserEditService);
 
-  // ── Búsqueda ──────────────────────────────────────────────────
   busqueda = new FormControl('');
 
-  // ── Datos ─────────────────────────────────────────────────────
   loading = signal(true);
   dataSource = new MatTableDataSource<PadreRow>([]);
   displayedColumns = ['documento', 'nombre', 'relacion', 'estado', 'acciones'];
   readonly relacionLabel = RELACION_LABEL;
 
-  // ── Paginación server-side ────────────────────────────────────
   total = signal(0);
   page = signal(1);
   pageSize = signal(20);
@@ -76,10 +70,8 @@ export class TabPadres implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   ngOnInit(): void {
-    // Carga inicial
     this.loadData();
 
-    // Búsqueda reactiva
     this.busqueda.valueChanges.pipe(
       debounceTime(400),
       distinctUntilChanged(),
@@ -129,30 +121,43 @@ export class TabPadres implements OnInit {
     this.loadData();
   }
 
-  // ── Acciones ──────────────────────────────────────────────────
   abrirCrearPadre(): void {
-    this.dialog.open(CreateUserDialog, {
-      width: '650px', disableClose: true,
-      data: { rol: 'padre' },
+    this.dialog.open(UserDialog, {
+      width: '700px',
+      disableClose: true,
+      data: { mode: 'create', rol: 'padre' },  // ← corregido
     }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
   }
 
-  async editarPadre(row: PadreRow): Promise<void> {
-    const updated = await this.userEdit.openEdit(row as any, 'padre');
-    if (updated) this.loadData();
+  editarPadre(row: PadreRow): void {
+    this.dialog.open(UserDialog, {
+      width: '700px',
+      disableClose: true,
+      data: {
+        mode: 'edit',
+        rol: 'padre',
+        isSelf: false,
+        user: {
+          id: row.id,
+          rol: 'padre',
+          nombre: row.nombre,
+          apellido_paterno: row.apellido_paterno,
+          apellido_materno: row.apellido_materno ?? '',
+          email: row.email ?? '',
+          telefono: row.telefono ?? '',
+          foto_url: row.foto_url ?? null,
+          tipo_documento: row.tipo_documento ?? 'dni',
+          numero_documento: row.numero_documento ?? '',
+          relacion_familiar: row.relacion ?? '',
+        },
+      },
+    }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
   }
 
   verDetalle(row: PadreRow): void {
     this.dialog.open(UserDetailDialog, {
       width: '580px', maxHeight: '90vh', autoFocus: false,
       data: { id: row.id, tipo: 'padres' },
-    });
-  }
-
-  resetPassword(row: PadreRow): void {
-    this.dialog.open(ResetPasswordDialog, {
-      width: '400px',
-      data: { id: row.id, nombre: `${row.nombre} ${row.apellido_paterno}` },
     });
   }
 

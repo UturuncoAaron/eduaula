@@ -1,6 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { CommonModule } from '@angular/common';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,10 +10,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
+
 import { ApiService } from '../../../core/services/api';
 import { environment } from '../../../../environments/environment';
 
-// ✅ seccion_id es string UUID en v7
+// Interfaces de tu API original
 interface Seccion { id: string; nombre: string; grado?: { nombre: string } }
 interface Periodo { id: number; nombre: string; activo: boolean }
 interface ImportError { fila: number; numero_documento: string; motivo: string }
@@ -27,7 +30,7 @@ interface ImportResult {
   selector: 'app-import-students-dialog',
   standalone: true,
   imports: [
-    ReactiveFormsModule, MatDialogModule,
+    CommonModule, ReactiveFormsModule, MatDialogModule,
     MatButtonModule, MatIconModule, MatFormFieldModule,
     MatSelectModule, MatProgressBarModule, MatTooltipModule,
   ],
@@ -42,20 +45,28 @@ export class ImportStudentsDialog implements OnInit {
 
   secciones = signal<Seccion[]>([]);
   periodos = signal<Periodo[]>([]);
+
+  // Archivo y Estados
   archivo = signal<File | null>(null);
   uploading = signal(false);
+  isDragging = signal(false);
   resultado = signal<ImportResult | null>(null);
+
   form = this.fb.group({
     seccion_id: [null as string | null, Validators.required],
     periodo_id: [null as number | null, Validators.required],
   });
+  allowedTypes = [
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
 
   ngOnInit(): void {
     this.api.get<Seccion[]>('academic/secciones').subscribe({
       next: r => this.secciones.set((r as any).data ?? []),
       error: () => this.secciones.set([]),
     });
-
     this.api.get<Periodo[]>('academic/periodos').subscribe({
       next: r => {
         const data: Periodo[] = (r as any).data ?? [];
@@ -66,23 +77,75 @@ export class ImportStudentsDialog implements OnInit {
       error: () => this.periodos.set([]),
     });
   }
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(true);
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleFile(files[0]);
+    }
+  }
 
   pickFile(ev: Event): void {
     const input = ev.target as HTMLInputElement;
     const f = input.files?.[0] ?? null;
-    if (f && !f.name.toLowerCase().endsWith('.csv')) {
-      this.toastr.error('El archivo debe ser .csv', 'Error');
-      input.value = '';
-      return;
+    if (f) this.handleFile(f);
+    input.value = ''; // Reset input
+  }
+
+  handleFile(file: File) {
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const isValidExt = ['csv', 'xls', 'xlsx'].includes(extension || '');
+
+    if (this.allowedTypes.includes(file.type) || isValidExt) {
+      this.archivo.set(file);
+      this.resultado.set(null);
+    } else {
+      this.toastr.error('Solo se permiten archivos Excel (.xlsx, .xls) o CSV.', 'Formato inválido');
+      this.archivo.set(null);
     }
-    this.archivo.set(f);
+  }
+
+  removeFile() {
+    this.archivo.set(null);
     this.resultado.set(null);
   }
 
+  formatBytes(bytes: number, decimals = 2) {
+    if (!+bytes) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  }
+
+  // ── Descarga de Plantilla ─────────────────────────────────────
+  descargarPlantilla(): void {
+    // Mantengo tu endpoint original si funciona, 
+    // pero si falla, te sugiero cambiarlo a la generación en memoria que te pasé antes.
+    window.open(`${environment.apiUrl}/admin/import/students/template`, '_blank');
+  }
+
+  // ── Envío a la API ────────────────────────────────────────────
   importar(): void {
     if (this.form.invalid || !this.archivo()) {
       this.form.markAllAsTouched();
-      if (!this.archivo()) this.toastr.error('Selecciona un archivo CSV', 'Error');
+      if (!this.archivo()) this.toastr.error('Selecciona un archivo', 'Error');
       return;
     }
 
@@ -106,8 +169,9 @@ export class ImportStudentsDialog implements OnInit {
           `${data.creados} creados · ${data.matriculados} matriculados`,
           'Importación completada',
         );
+
         if (data.errores.length === 0) {
-          setTimeout(() => this.ref.close(true), 1500);
+          setTimeout(() => this.ref.close(true), 2000);
         }
       },
       error: e => {
@@ -115,10 +179,6 @@ export class ImportStudentsDialog implements OnInit {
         this.toastr.error(e?.error?.message ?? 'Error en la importación', 'Error');
       },
     });
-  }
-
-  descargarPlantilla(): void {
-    window.open(`${environment.apiUrl}/admin/import/students/template`, '_blank');
   }
 
   cerrar(): void {

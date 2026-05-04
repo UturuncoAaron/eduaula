@@ -1,0 +1,444 @@
+// ─── Variables & Mixins ─────────────────────────────────────────
+$border-color: #e2e8f0;
+$bg-light: #f8fafc;
+$text-main: #0f172a;
+$text-muted: #64748b;
+$transition: 0.2s ease-in-out;
+
+.dialog-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #ffffff;
+    font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+// ─── Header Moderno ─────────────────────────────────────────────
+.dialog-header {
+    background: #ffffff;
+    border-bottom: 1px solid $border-color;
+    position: relative;
+}
+
+.dialog-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px;
+}
+
+.header-main {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+// Avatar (Edición)
+.user-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px; // Cuadrado redondeado (Squircle) moderno
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-letters {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+    }
+
+    .avatar-upload {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity $transition;
+        cursor: pointer;
+        color: #ffffff;
+
+        mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+        }
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
+// Icono (Creación)
+.create-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+        font-size: 30px;
+        width: 30px;
+        height: 30px;
+    }
+}
+
+// Información del usuario
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        align-self: flex-start;
+
+        mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    .eyebrow {
+        margin: 0 0 2px 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .user-name {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: $text-main;
+        letter-spacing: -0.5px;
+        line-height: 1.2;
+    }
+
+    .user-subtitle {
+        margin: 0;
+        font-size: 13.5px;
+        color: $text-muted;
+    }
+
+    .file-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        margin-top: 4px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        font-size: 11px;
+        color: #334155;
+        align-self: flex-start;
+
+        button {
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            cursor: pointer;
+            color: #ef4444;
+
+            mat-icon {
+                font-size: 12px;
+                width: 12px;
+                height: 12px;
+            }
+        }
+    }
+}
+
+// Botón de Cerrar (X)
+.close-btn {
+    position: absolute;
+
+    top: 24px;
+    right: 24px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all $transition;
+    flex-shrink: 0;
+    z-index: 100;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+}
+
+.progress-strip {
+    height: 4px;
+    background: $bg-light;
+    width: 100%;
+
+    .progress-fill {
+        height: 100%;
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 0 2px 2px 0;
+    }
+}
+
+// ─── Body y Formularios ─────────────────────────────────────────
+.dialog-body {
+    padding: 0 !important;
+    max-height: 65vh !important;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+}
+
+.modern-form {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 32px; // Separación elegante entre secciones
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: $text-main;
+        padding-bottom: 8px;
+        border-bottom: 1px solid $border-color;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .section-hint {
+        margin: -8px 0 8px 0;
+        font-size: 12.5px;
+        color: $text-muted;
+    }
+}
+
+.security-section {
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e1;
+
+    .section-title {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 4px;
+    }
+}
+
+// ─── Grids ──────────────────────────────────────────────────────
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.col-span-2 {
+    grid-column: span 2;
+}
+
+@media (max-width: 640px) {
+
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .col-span-2 {
+        grid-column: span 1;
+    }
+
+    .header-main {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .user-info .role-badge,
+    .user-info .file-badge {
+        align-self: center;
+    }
+}
+
+// ─── Angular Material Overrides ─────────────────────────────────
+mat-form-field {
+    width: 100%;
+
+    ::ng-deep .mat-mdc-text-field-wrapper {
+        background-color: #ffffff !important;
+    }
+
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+        padding: 0;
+        margin-top: 4px;
+    }
+}
+
+// ─── Alertas ────────────────────────────────────────────────────
+.status-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.alert-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.alert-success {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+// ─── Footer ─────────────────────────────────────────────────────
+.dialog-footer {
+    padding: 16px 24px !important;
+    background: #ffffff;
+    border-top: 1px solid $border-color;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 0;
+
+    .btn-cancel {
+        color: #475569;
+        font-weight: 500;
+
+        &:hover {
+            background: #f1f5f9;
+        }
+    }
+
+    .btn-submit {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #ffffff;
+        transition: filter $transition, transform $transition;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            margin-right: 4px;
+        }
+
+        &:hover:not([disabled]) {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        &[disabled] {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+}
+
+// Spinner
+.spinner {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

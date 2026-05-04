@@ -187,7 +187,7 @@ export class Matriculas implements OnInit {
 
   async abrirCargaMasiva(): Promise<void> {
     const { ImportStudentsDialog } = await import(
-      '../../import-students/import-students-dialog'
+      '../../../../shared/components/import-students/import-students-dialog'
     );
     const ref = this.dialog.open(ImportStudentsDialog, {
       width: '580px',

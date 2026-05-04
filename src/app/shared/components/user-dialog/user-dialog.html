@@ -1,0 +1,292 @@
+<div class="dialog-container">
+
+    <!-- ══ HEADER ════════════════════════════════════════════════ -->
+    <div class="dialog-header">
+
+        <!-- EDIT MODE -->
+        @if (isEdit) {
+        <div class="dialog-header-modern">
+            <div class="header-main">
+                <div class="user-avatar" [style.background]="roleMeta().color">
+                    @if (fotoPreview() || data.user?.foto_url) {
+                    <img [src]="fotoPreview() || data.user!.foto_url!" alt="foto" />
+                    } @else {
+                    <span class="avatar-letters">{{ initials() }}</span>
+                    }
+
+                    @if (isSelf) {
+                    <label class="avatar-upload" matTooltip="Cambiar foto de perfil">
+                        <mat-icon>photo_camera</mat-icon>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onFotoSelected($event)"
+                            hidden />
+                    </label>
+                    }
+                </div>
+
+                <div class="user-info">
+                    <div class="role-badge" [style.background]="roleMeta().color + '15'"
+                        [style.color]="roleMeta().color">
+                        <mat-icon>{{ roleMeta().icon }}</mat-icon> {{ roleMeta().label }}
+                    </div>
+                    <h2 class="user-name">{{ data.user?.nombre }} {{ data.user?.apellido_paterno }}</h2>
+                    <p class="user-subtitle">Actualización de perfil</p>
+
+                    @if (fotoFile() && isSelf) {
+                    <span class="file-badge">
+                        <mat-icon>image</mat-icon> {{ fotoFile()!.name }}
+                        <button type="button" (click)="removeFoto()"><mat-icon>close</mat-icon></button>
+                    </span>
+                    }
+                </div>
+            </div>
+            <button class="close-btn" mat-dialog-close tabindex="-1"><mat-icon>close</mat-icon></button>
+        </div>
+        }
+
+        <!-- CREATE MODE -->
+        @if (isCreate) {
+        <div class="dialog-header-modern">
+            <div class="header-main">
+                <div class="create-icon" [style.background]="roleMeta().color + '15'" [style.color]="roleMeta().color">
+                    <mat-icon>{{ roleMeta().icon }}</mat-icon>
+                </div>
+                <div class="user-info">
+                    <p class="eyebrow">Crear nuevo registro</p>
+                    <h2 class="user-name">{{ roleMeta().label }}</h2>
+                </div>
+            </div>
+            <button class="close-btn" mat-dialog-close tabindex="-1"><mat-icon>close</mat-icon></button>
+        </div>
+        <div class="progress-strip">
+            <div class="progress-fill" [style.width]="progressWidth()" [style.background]="roleMeta().color"></div>
+        </div>
+        }
+    </div>
+
+    <!-- ══ CONTENT ═══════════════════════════════════════════════ -->
+    <mat-dialog-content class="dialog-body">
+        <form [formGroup]="form" class="modern-form">
+
+            <!-- 01 IDENTIDAD -->
+            @if (isCreate || !isSelf) {
+            <div class="form-section">
+                <h3 class="section-title">
+                    <mat-icon [style.color]="roleMeta().color">badge</mat-icon> Identidad y acceso
+                </h3>
+                @if(isCreate) { <p class="section-hint">El número de documento será utilizado como la contraseña inicial
+                    del usuario.</p> }
+
+                <div class="grid-2">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Tipo de documento</mat-label>
+                        <mat-select formControlName="tipo_documento">
+                            <mat-option value="dni">DNI</mat-option>
+                            <mat-option value="ce">Carné de Extranjería (CE)</mat-option>
+                            <mat-option value="pasaporte">Pasaporte</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Número de documento</mat-label>
+                        <input matInput formControlName="numero_documento" placeholder="Ingresa el documento"
+                            [attr.maxlength]="form.get('tipo_documento')?.value === 'dni' ? 8 : 20" />
+
+                        @if (form.controls['numero_documento'].invalid && form.controls['numero_documento'].touched) {
+                        @if (form.controls['numero_documento'].hasError('required')) { <mat-error>Requerido</mat-error>
+                        }
+                        @if (form.controls['numero_documento'].hasError('pattern') && form.get('tipo_documento')?.value
+                        === 'dni') { <mat-error>Debe tener exactamente 8 números</mat-error> }
+                        @if (form.controls['numero_documento'].hasError('pattern') && form.get('tipo_documento')?.value
+                        === 'ce') { <mat-error>Debe tener entre 9 y 12 caracteres</mat-error> }
+                        }
+                    </mat-form-field>
+                </div>
+            </div>
+            }
+
+            <!-- 02 DATOS PERSONALES -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <mat-icon [style.color]="roleMeta().color">person</mat-icon> Datos personales
+                </h3>
+
+                <div class="grid-3">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Nombres</mat-label>
+                        <input matInput formControlName="nombre" placeholder="Ej. Juan Carlos" maxlength="100" />
+                        @if (form.controls['nombre'].invalid && form.controls['nombre'].touched) {
+                        <mat-error>Requerido</mat-error> }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Apellido paterno</mat-label>
+                        <input matInput formControlName="apellido_paterno" placeholder="Ej. Pérez" maxlength="100" />
+                        @if (form.controls['apellido_paterno'].invalid && form.controls['apellido_paterno'].touched) {
+                        <mat-error>Requerido</mat-error> }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Apellido materno</mat-label>
+                        <input matInput formControlName="apellido_materno" placeholder="Opcional" maxlength="100" />
+                    </mat-form-field>
+                </div>
+
+                <div class="grid-2">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Correo electrónico</mat-label>
+                        <mat-icon matPrefix>alternate_email</mat-icon>
+                        <input matInput formControlName="email" type="email" placeholder="correo@ejemplo.com"
+                            maxlength="100" />
+                        @if (form.controls['email'].hasError('email')) { <mat-error>Correo inválido</mat-error> }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Teléfono (Celular)</mat-label>
+                        <mat-icon matPrefix>smartphone</mat-icon>
+                        <input matInput formControlName="telefono" placeholder="9XXXXXXXX" maxlength="9" />
+                        @if (form.controls['telefono'].hasError('pattern')) { <mat-error>Debe tener 9
+                            dígitos</mat-error> }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Fecha de nacimiento {{ fechaRequerida ? '*' : '' }}</mat-label>
+                        <mat-icon matPrefix>cake</mat-icon>
+                        <input matInput [matDatepicker]="dp" formControlName="fecha_nacimiento"
+                            placeholder="DD/MM/AAAA" />
+                        <mat-datepicker-toggle matIconSuffix [for]="dp" />
+                        <mat-datepicker #dp />
+                        @if (form.controls['fecha_nacimiento'].invalid && form.controls['fecha_nacimiento'].touched) {
+                        <mat-error>Requerido</mat-error> }
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <!-- 03 CAMPOS POR ROL -->
+            @if (data.rol === 'docente') {
+            <div class="form-section">
+                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">work</mat-icon> Información
+                    profesional</h3>
+                <div class="grid-2">
+                    <mat-form-field appearance="outline"><mat-label>Especialidad</mat-label><input matInput
+                            formControlName="especialidad" placeholder="Ej. Matemática" /></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Título profesional</mat-label><input matInput
+                            formControlName="titulo_profesional" placeholder="Ej. Lic. en Educación" /></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Tipo de contrato</mat-label><mat-select
+                            formControlName="tipo_contrato"><mat-option
+                                value="contratado">Contratado</mat-option><mat-option
+                                value="nombrado">Nombrado</mat-option></mat-select></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Estado</mat-label><mat-select
+                            formControlName="estado_contrato"><mat-option value="activo">Activo</mat-option><mat-option
+                                value="inactivo">Inactivo</mat-option><mat-option
+                                value="pendiente">Pendiente</mat-option></mat-select></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Inicio de contrato</mat-label><input matInput
+                            [matDatepicker]="dpI" formControlName="fecha_inicio_contrato"
+                            placeholder="DD/MM/AAAA" /><mat-datepicker-toggle matIconSuffix
+                            [for]="dpI" /><mat-datepicker #dpI /></mat-form-field>
+                    @if (esContratado()) { <mat-form-field appearance="outline"><mat-label>Fin de
+                            contrato</mat-label><input matInput [matDatepicker]="dpF"
+                            formControlName="fecha_fin_contrato" placeholder="DD/MM/AAAA" /><mat-datepicker-toggle
+                            matIconSuffix [for]="dpF" /><mat-datepicker #dpF /></mat-form-field> }
+                </div>
+            </div>
+            }
+
+            @if (data.rol === 'padre') {
+            <div class="form-section">
+                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">diversity_1</mat-icon> Vínculo
+                    familiar</h3>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Relación con el alumno</mat-label>
+                    <mat-select formControlName="relacion">
+                        <mat-option value="padre">Padre</mat-option>
+                        <mat-option value="madre">Madre</mat-option>
+                        <mat-option value="tutor">Tutor Legal</mat-option>
+                        <mat-option value="apoderado">Apoderado</mat-option>
+                    </mat-select>
+                    @if (form.controls['relacion'].invalid && form.controls['relacion'].touched) {
+                    <mat-error>Requerido</mat-error> }
+                </mat-form-field>
+            </div>
+            }
+
+            @if (data.rol === 'admin') {
+            <div class="form-section">
+                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">corporate_fare</mat-icon> Cargo
+                    institucional</h3>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Cargo o Puesto</mat-label>
+                    <input matInput formControlName="cargo" placeholder="Ej. Director Académico" />
+                </mat-form-field>
+            </div>
+            }
+
+            @if (data.rol === 'psicologa') {
+            <div class="form-section">
+                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">health_and_safety</mat-icon> Datos
+                    clínicos</h3>
+                <div class="grid-2">
+                    <mat-form-field appearance="outline"><mat-label>Especialidad</mat-label><input matInput
+                            formControlName="especialidad" placeholder="Ej. Psicología Clínica" /></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>N° Colegiatura (CPSP)</mat-label><input matInput
+                            formControlName="colegiatura" placeholder="Ej. 12345" /></mat-form-field>
+                </div>
+            </div>
+            }
+
+            <!-- 04 SEGURIDAD (Solo edición) -->
+            @if (isEdit) {
+            <div class="form-section security-section">
+                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">security</mat-icon> Seguridad de
+                    cuenta</h3>
+                <p class="section-hint">Opcional. Deja los campos vacíos si no deseas cambiar la contraseña.</p>
+
+                <div class="grid-2">
+                    @if (isSelf) {
+                    <mat-form-field appearance="outline">
+                        <mat-label>Contraseña actual</mat-label>
+                        <input matInput [type]="showCurrent() ? 'text' : 'password'" formControlName="current_password"
+                            placeholder="Tu contraseña actual" />
+                        <button mat-icon-button matSuffix type="button" (click)="showCurrent.set(!showCurrent())">
+                            <mat-icon>{{ showCurrent() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                    </mat-form-field>
+                    }
+
+                    <mat-form-field appearance="outline" [class.col-span-2]="!isSelf">
+                        <mat-label>Nueva contraseña</mat-label>
+                        <input matInput [type]="showNew() ? 'text' : 'password'" formControlName="new_password"
+                            placeholder="Mínimo 8 caracteres" />
+                        <button mat-icon-button matSuffix type="button" (click)="showNew.set(!showNew())">
+                            <mat-icon>{{ showNew() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                        @if (form.controls['new_password'].hasError('minlength')) { <mat-error>Mínimo 8
+                            caracteres</mat-error> }
+                    </mat-form-field>
+                </div>
+            </div>
+            }
+
+            <!-- Alertas de estado -->
+            @if (error()) { <div class="status-alert alert-error"><mat-icon>error_outline</mat-icon> {{ error() }}</div>
+            }
+            @if (success()) { <div class="status-alert alert-success"><mat-icon>check_circle</mat-icon> Perfil guardado
+                exitosamente.</div> }
+
+        </form>
+    </mat-dialog-content>
+
+    <!-- ══ FOOTER ════════════════════════════════════════════════ -->
+    <mat-dialog-actions class="dialog-footer">
+        <button mat-button mat-dialog-close [disabled]="busy()" class="btn-cancel">Cancelar</button>
+        <button mat-flat-button (click)="submit()" [disabled]="busy()" class="btn-submit"
+            [style.background]="roleMeta().color">
+            @if (busy()) {
+            <span class="spinner"></span>
+            }
+            @if (!busy()) {
+            <mat-icon>{{ isCreate ? 'person_add' : 'save' }}</mat-icon>
+            }
+            <span>{{ busy() ? 'Procesando...' : (isCreate ? 'Crear usuario' : 'Guardar cambios') }}</span>
+        </button>
+    </mat-dialog-actions>
+</div>

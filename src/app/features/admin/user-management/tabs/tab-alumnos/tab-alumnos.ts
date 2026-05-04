@@ -16,10 +16,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
-import { UserEditService } from '../../../../../core/services/user-edit.service';
-import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
-import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
+import { UserDialog } from '../../../../../shared/components/user-dialog/user-dialog';
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 import type { GradeLevel, Section } from '../../../../../core/models/academic';
@@ -60,7 +58,7 @@ export class TabAlumnos implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
-  private userEdit = inject(UserEditService);
+
 
   // ── Filtros ───────────────────────────────────────────────────
   grados = signal<GradeLevel[]>([]);
@@ -190,16 +188,35 @@ export class TabAlumnos implements OnInit {
 
   // ── Acciones ──────────────────────────────────────────────────
   abrirCrearAlumno(): void {
-    this.dialog.open(CreateUserDialog, {
+    this.dialog.open(UserDialog, {
       width: '650px',
       disableClose: true,
-      data: { rol: 'alumno' },
+      data: { rol: 'alumno', isCreate: true },
     }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
   }
 
-  async editarAlumno(row: AlumnoRow): Promise<void> {
-    const updated = await this.userEdit.openEdit(row as any, 'alumno');
-    if (updated) this.loadData();
+  editarAlumno(row: AlumnoRow) {
+    this.dialog.open(UserDialog, {
+      width: '700px',
+      disableClose: true,
+      data: {
+        mode: 'edit',
+        rol: 'alumno',
+        isSelf: false,
+        user: {
+          id: row.id,
+          rol: 'alumno',
+          nombre: row.nombre,
+          apellido_paterno: row.apellido_paterno,
+          apellido_materno: row.apellido_materno ?? '',
+          email: row.email ?? '',
+          telefono: row.telefono ?? '',
+          foto_url: null,
+          tipo_documento: row.tipo_documento ?? 'dni',
+          numero_documento: row.numero_documento ?? '',
+        },
+      },
+    }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
   }
 
   verDetalle(row: AlumnoRow): void {
@@ -208,13 +225,6 @@ export class TabAlumnos implements OnInit {
       maxHeight: '90vh',
       autoFocus: false,
       data: { id: row.id, tipo: 'alumnos' },
-    });
-  }
-
-  resetPassword(row: AlumnoRow): void {
-    this.dialog.open(ResetPasswordDialog, {
-      width: '400px',
-      data: { id: row.id, nombre: `${row.nombre} ${row.apellido_paterno}` },
     });
   }
 

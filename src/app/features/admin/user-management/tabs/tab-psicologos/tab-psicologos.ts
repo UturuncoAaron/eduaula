@@ -1,6 +1,8 @@
-import { Component, inject, effect, ViewChild, OnInit, signal } from '@angular/core';
+import { Component, ViewChild, OnInit, signal, inject } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -8,40 +10,40 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDivider } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
-import { UserEditService } from '../../../../../core/services/user-edit.service';
-import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
-import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
+import { UserDialog } from '../../../../../shared/components/user-dialog/user-dialog';
 import { AssignStudentsDialog } from './dialogs/assign-students-dialog/assign-students-dialog';
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 
 export interface PsicologaRow {
   id: string;
-  dni: string;
   tipo_documento?: string;
-  nombres: string;
-  apellidos: string;
+  numero_documento?: string;
+  nombre: string;
   apellido_paterno: string;
   apellido_materno?: string;
-  especialidad: string;
-  correo: string;
+  especialidad?: string;
+  colegiatura?: string;
+  email?: string;
   telefono?: string;
   foto_url?: string | null;
-  activo: boolean;
+  activo?: boolean;
 }
 
 @Component({
   selector: 'app-tab-psicologos',
   standalone: true,
   imports: [
+    ReactiveFormsModule,
     MatTableModule, MatPaginatorModule, MatIconModule,
     MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
-    MatFormFieldModule, MatInputModule,
-    UserAvatar
+    MatFormFieldModule, MatInputModule, MatTooltipModule,
+    UserAvatar,
   ],
   templateUrl: './tab-psicologos.html',
   styleUrl: './tab-psicologos.scss',
@@ -50,35 +52,50 @@ export class TabPsicologos implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
-  private userEdit = inject(UserEditService);
 
-  searchTerm = signal('');
+  busqueda = new FormControl('');
+
   loading = signal(true);
   dataSource = new MatTableDataSource<PsicologaRow>([]);
-  displayedColumns = ['dni', 'nombre', 'especialidad', 'contacto', 'estado', 'acciones'];
+  displayedColumns = ['documento', 'nombre', 'especialidad', 'estado', 'acciones'];
+
+  total = signal(0);
+  page = signal(1);
+  pageSize = signal(20);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor() {
-    effect(() => {
-      this.dataSource.filter = this.searchTerm().trim().toLowerCase();
-      if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+  ngOnInit(): void {
+    this.loadData();
+
+    this.busqueda.valueChanges.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      map(v => v?.trim() ?? ''),
+    ).subscribe(() => {
+      this.page.set(1);
+      this.loadData();
     });
   }
 
-  ngOnInit() {
-    this.dataSource.filterPredicate = (row: PsicologaRow, f: string) =>
-      [row.dni, row.nombres, row.apellidos, row.especialidad]
-        .join(' ').toLowerCase().includes(f);
-    this.loadData();
-  }
+  loadData(): void {
+    const q = this.busqueda.value?.trim();
+    const params = new URLSearchParams();
+    if (q && q.length >= 2) params.set('q', q);
+    params.set('page', String(this.page()));
+    params.set('limit', String(this.pageSize()));
 
-  loadData() {
     this.loading.set(true);
-    this.api.get<any>('admin/users/psicologos').subscribe({
+    this.api.get<any>(`admin/users/psicologos?${params.toString()}`).subscribe({
       next: res => {
-        this.dataSource.data = res.data ?? res ?? [];
-        setTimeout(() => { this.dataSource.paginator = this.paginator; });
+        const body = (res as any).data ?? res;
+        if (Array.isArray(body)) {
+          this.dataSource.data = body;
+          this.total.set(body.length);
+        } else {
+          this.dataSource.data = body.data ?? [];
+          this.total.set(body.total ?? 0);
+        }
         this.loading.set(false);
       },
       error: () => {
@@ -88,67 +105,89 @@ export class TabPsicologos implements OnInit {
     });
   }
 
-  abrirCrearPsicologa() {
-    this.dialog.open(CreateUserDialog, {
-      width: '650px', disableClose: true,
-      data: { rol: 'psicologa' },
+  onPageChange(e: PageEvent): void {
+    this.page.set(e.pageIndex + 1);
+    this.pageSize.set(e.pageSize);
+    this.loadData();
+  }
+
+  limpiarBusqueda(): void {
+    this.busqueda.setValue('');
+    this.page.set(1);
+    this.loadData();
+  }
+
+  abrirCrearPsicologa(): void {
+    this.dialog.open(UserDialog, {
+      width: '700px',
+      disableClose: true,
+      data: { mode: 'create', rol: 'psicologa' },  // ← corregido
     }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
   }
 
-  async editarPsicologa(row: PsicologaRow) {
-    // El backend devuelve nombres/apellidos pero EditProfileDialog espera nombre/apellido_paterno
-    const updated = await this.userEdit.openEdit({
-      id: row.id,
-      nombre: row.nombres,
-      apellido_paterno: row.apellido_paterno,
-      apellido_materno: row.apellido_materno,
-      email: row.correo,
-      telefono: row.telefono,
-      foto_url: row.foto_url,
-    } as any, 'psicologa');
-    if (updated) this.loadData();
+  editarPsicologa(row: PsicologaRow): void {
+    this.dialog.open(UserDialog, {
+      width: '700px',
+      disableClose: true,
+      data: {
+        mode: 'edit',
+        rol: 'psicologa',
+        isSelf: false,
+        user: {
+          id: row.id,
+          rol: 'psicologa',
+          nombre: row.nombre,
+          apellido_paterno: row.apellido_paterno,
+          apellido_materno: row.apellido_materno ?? '',
+          email: row.email ?? '',
+          telefono: row.telefono ?? '',
+          foto_url: row.foto_url ?? null,
+          tipo_documento: row.tipo_documento ?? 'dni',
+          numero_documento: row.numero_documento ?? '',
+          especialidad: row.especialidad ?? '',
+          colegiatura: row.colegiatura ?? '',
+        },
+      },
+    }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
   }
 
-  asignarAlumnos(row: PsicologaRow) {
+  asignarAlumnos(row: PsicologaRow): void {
     this.dialog.open(AssignStudentsDialog, {
       width: '640px', maxHeight: '85vh', autoFocus: false,
-      data: { psicologaId: row.id, psicologaNombre: `${row.nombres} ${row.apellidos}`.trim() },
+      data: {
+        psicologaId: row.id,
+        psicologaNombre: `${row.nombre} ${row.apellido_paterno}`.trim(),
+      },
     });
   }
 
-  resetPassword(row: PsicologaRow) {
-    this.dialog.open(ResetPasswordDialog, {
-      width: '400px',
-      data: { id: row.id, nombre: `${row.nombres} ${row.apellidos}` },
+  verDetalle(row: PsicologaRow): void {
+    this.dialog.open(UserDetailDialog, {
+      width: '580px', maxHeight: '90vh', autoFocus: false,
+      data: { id: row.id, tipo: 'psicologos' },
     });
   }
 
-  toggleEstado(row: PsicologaRow) {
+  toggleEstado(row: PsicologaRow): void {
+    const activo = row.activo ?? true;
     this.dialog.open(ConfirmDialog, {
       width: '380px',
       data: {
-        title: row.activo ? '¿Desactivar cuenta?' : '¿Reactivar cuenta?',
-        message: `Estás por ${row.activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombres}.`,
-        confirm: row.activo ? 'Desactivar' : 'Reactivar',
-        danger: row.activo,
+        title: activo ? '¿Desactivar cuenta?' : '¿Reactivar cuenta?',
+        message: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
+        confirm: activo ? 'Desactivar' : 'Reactivar',
+        cancel: 'Cancelar',
+        danger: activo,
       },
     }).afterClosed().subscribe(ok => {
       if (!ok) return;
-      const req$ = row.activo
+      const req$ = activo
         ? this.api.delete(`admin/users/${row.id}`)
         : this.api.patch(`admin/users/${row.id}/reactivar`, {});
       req$.subscribe({
         next: () => { this.toastr.success('Cambios guardados', 'Éxito'); this.loadData(); },
         error: () => this.toastr.error('Error al procesar la solicitud', 'Error'),
       });
-    });
-  }
-  verDetalle(row: PsicologaRow) {
-    this.dialog.open(UserDetailDialog, {
-      width: '580px',
-      maxHeight: '90vh',
-      autoFocus: false,
-      data: { id: row.id, tipo: 'psicologos' },
     });
   }
 }

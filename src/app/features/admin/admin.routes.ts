@@ -81,6 +81,6 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'importar',
     loadComponent: () =>
-      import('./import-students/import-students-dialog').then(c => c.ImportStudentsDialog),
+      import('../../shared/components/import-students/import-students-dialog').then(c => c.ImportStudentsDialog),
   },
 ];

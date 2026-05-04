@@ -6,7 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../core/auth/auth';
 import { ApiService } from '../../core/services/api';
 import { UserRole } from '../../shared/components/sidebar/navigation.config';
-import { EditProfileDialog } from '../../shared/components/edit-profile-dialog/edit-profile-dialog';
+import { UserDialog } from '../../shared/components/user-dialog/user-dialog';
 
 @Component({
     selector: 'app-perfil',
@@ -49,15 +49,23 @@ export class Perfil {
     roleColor = () => this.roleColors[this.user()?.rol as UserRole] ?? '#64748b';
 
     openEditProfileDialog() {
-        const ref = this.dialog.open(EditProfileDialog, {
-            data: { user: this.user(), isSelf: true },
-            width: '580px',
+        const user = this.user();
+        if (!user) return;
+
+        const ref = this.dialog.open(UserDialog, {
+            width: '700px',
             maxWidth: '95vw',
+            disableClose: true,
+            data: {
+                mode: 'edit',
+                rol: user.rol,
+                isSelf: true,
+                user,
+            },
         });
 
         ref.afterClosed().subscribe((result) => {
             if (!result?.updated) return;
-
             this.api.get<any>('users/me').subscribe({
                 next: (res) => {
                     const fresh = res?.data ?? res;

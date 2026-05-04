@@ -1,0 +1,168 @@
+<div class="modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+        <div class="header-content">
+            <div class="icon-box">
+                <mat-icon>upload_file</mat-icon>
+            </div>
+            <div>
+                <h2 class="modal-title">Carga masiva de alumnos</h2>
+                <p class="modal-subtitle">Importa estudiantes desde Excel o CSV y matricúlalos automáticamente</p>
+            </div>
+        </div>
+        <button mat-icon-button class="close-btn" (click)="cerrar()" [disabled]="uploading()" matTooltip="Cerrar">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="modal-body">
+        <!-- Paso 1: Descargar plantilla -->
+        <div class="info-banner">
+            <div class="banner-icon">
+                <mat-icon>lightbulb</mat-icon>
+            </div>
+            <div class="banner-text">
+                <span class="banner-title">Paso 1: Usa la plantilla oficial</span>
+                <span class="banner-desc">Descarga nuestra plantilla para evitar errores de formato en la
+                    importación.</span>
+            </div>
+            <button mat-stroked-button color="primary" class="download-btn" (click)="descargarPlantilla()">
+                <mat-icon>download</mat-icon> Descargar CSV
+            </button>
+        </div>
+
+        <div class="step-title">Paso 2: Configura el destino</div>
+        <form [formGroup]="form" novalidate class="form-grid">
+            <!-- Sección -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Sección destino</mat-label>
+                <mat-select formControlName="seccion_id">
+                    @for (s of secciones(); track s.id) {
+                    <mat-option [value]="s.id">
+                        {{ s.grado?.nombre ?? '' }} — Sección {{ s.nombre }}
+                    </mat-option>
+                    }
+                </mat-select>
+                @if (form.get('seccion_id')?.hasError('required') && form.get('seccion_id')?.touched) {
+                <mat-error>Selecciona una sección</mat-error>
+                }
+            </mat-form-field>
+
+            <!-- Periodo -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Periodo</mat-label>
+                <mat-select formControlName="periodo_id">
+                    @for (p of periodos(); track p.id) {
+                    <mat-option [value]="p.id">
+                        {{ p.nombre }} @if(p.activo) { <span class="active-tag">• Activo</span> }
+                    </mat-option>
+                    }
+                </mat-select>
+                @if (form.get('periodo_id')?.hasError('required') && form.get('periodo_id')?.touched) {
+                <mat-error>Selecciona un periodo</mat-error>
+                }
+            </mat-form-field>
+        </form>
+
+        <div class="step-title">Paso 3: Sube tu archivo</div>
+
+        <!-- Drag & Drop Area -->
+        @if (!archivo() && !resultado()) {
+        <div class="upload-dropzone" [class.dragging]="isDragging()" (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+
+            <input type="file" #fileInput hidden accept=".csv, .xls, .xlsx" (change)="pickFile($event)">
+
+            <div class="dropzone-content">
+                <div class="upload-icon">
+                    <mat-icon>cloud_upload</mat-icon>
+                </div>
+                <h3>Arrastra y suelta tu archivo aquí</h3>
+                <p>Soporta archivos Excel (.xlsx, .xls) y .CSV</p>
+                <button mat-flat-button color="primary" class="browse-btn" (click)="fileInput.click()">
+                    Explorar archivos
+                </button>
+            </div>
+        </div>
+        }
+
+        <!-- Archivo Seleccionado Preview -->
+        @if (archivo() && !resultado()) {
+        <div class="file-preview-card">
+            <div class="file-info">
+                <mat-icon class="file-type-icon fallback">description</mat-icon>
+                <div class="details">
+                    <span class="file-name">{{ archivo()?.name }}</span>
+                    <span class="file-size">{{ formatBytes(archivo()!.size) }}</span>
+                </div>
+            </div>
+            <button mat-icon-button color="warn" matTooltip="Quitar archivo" (click)="removeFile()"
+                [disabled]="uploading()">
+                <mat-icon>delete</mat-icon>
+            </button>
+        </div>
+        }
+
+        <!-- Loader -->
+        @if (uploading()) {
+        <div class="uploading-row">
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            <span class="uploading-label">Procesando archivo, por favor espera...</span>
+        </div>
+        }
+
+        <!-- Resultados -->
+        @if (resultado(); as r) {
+        <div class="result-panel">
+            <div class="result-header" [class.has-errors]="r.errores.length > 0">
+                <mat-icon class="result-icon">{{ r.errores.length === 0 ? 'check_circle' : 'warning' }}</mat-icon>
+                <span>{{ r.errores.length === 0 ? 'Importación exitosa' : 'Importación con observaciones' }}</span>
+            </div>
+
+            <div class="result-counters">
+                <div class="counter"><span class="counter-val">{{ r.total }}</span><span class="counter-lbl">Total
+                        filas</span></div>
+                <div class="counter ok"><span class="counter-val">{{ r.creados }}</span><span
+                        class="counter-lbl">Nuevos</span></div>
+                <div class="counter ok"><span class="counter-val">{{ r.matriculados }}</span><span
+                        class="counter-lbl">Matriculados</span></div>
+                <div class="counter warn"><span class="counter-val">{{ r.omitidos }}</span><span
+                        class="counter-lbl">Omitidos</span></div>
+                @if (r.errores.length) {
+                <div class="counter danger"><span class="counter-val">{{ r.errores.length }}</span><span
+                        class="counter-lbl">Errores</span></div>
+                }
+            </div>
+
+            @if (r.errores.length) {
+            <div class="error-list">
+                <p class="error-list-title">Revisa las siguientes filas:</p>
+                <div class="error-rows-container">
+                    @for (e of r.errores; track e.fila) {
+                    <div class="error-row">
+                        <span class="error-fila">Fila {{ e.fila }}</span>
+                        <span class="error-doc">Doc: {{ e.numero_documento || 'N/A' }}</span>
+                        <span class="error-motivo">{{ e.motivo }}</span>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+        <button mat-button (click)="cerrar()" [disabled]="uploading()">
+            {{ resultado() ? 'Cerrar' : 'Cancelar' }}
+        </button>
+        <button mat-flat-button color="primary" class="submit-btn" (click)="importar()"
+            [disabled]="uploading() || !archivo() || (resultado() !== null)">
+            <mat-icon [class.spinner]="uploading()">
+                {{ uploading() ? 'sync' : 'rocket_launch' }}
+            </mat-icon>
+            <span>{{ uploading() ? 'Importando...' : 'Iniciar importación' }}</span>
+        </button>
+    </div>
+</div>

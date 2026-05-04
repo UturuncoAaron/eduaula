@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,13 +11,11 @@ import { AuthService } from '../../../core/auth/auth';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
+    MatFormFieldModule, MatInputModule,
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule,
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',
@@ -25,6 +24,7 @@ export class Login {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   loading = signal(false);
   error = signal('');
@@ -35,9 +35,7 @@ export class Login {
     password: ['', [Validators.required, Validators.minLength(4)]],
   });
 
-  togglePassword() {
-    this.showPassword.update(v => !v);
-  }
+  togglePassword() { this.showPassword.update(v => !v); }
 
   submit() {
     if (this.form.invalid) return;
@@ -45,7 +43,7 @@ export class Login {
     this.error.set('');
 
     this.auth.login(this.form.value as any).subscribe({
-      next: () => {
+      next: async () => {
         const user = this.auth.currentUser();
 
         if (!user?.rol) {
@@ -54,7 +52,20 @@ export class Login {
           this.auth.logout();
           return;
         }
+        if (user.password_changed === false) {
+          this.loading.set(false);
 
+          const { ChangePasswordDialog } = await import(
+            '../../../shared/components/change-password-dialog/change-password-dialog'
+          );
+          this.dialog.open(ChangePasswordDialog, {
+            width: '440px',
+            disableClose: true,
+          }).afterClosed().subscribe(() => {
+            this.redirectByRole(user.rol);
+          });
+          return;
+        }
         this.redirectByRole(user.rol);
       },
       error: (msg: string) => {

@@ -1,7 +1,8 @@
-import { Component, inject, effect, ViewChild, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ViewChild, OnInit, signal, inject } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -13,10 +14,8 @@ import { MatInputModule } from '@angular/material/input';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
-import { UserEditService } from '../../../../../core/services/user-edit.service';
-import { ResetPasswordDialog } from '../../../../../shared/components/reset-password-dialog/reset-password-dialog';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
-import { CreateUserDialog } from '../../../create-user-dialog/create-user-dialog/create-user-dialog';
+import { UserDialog } from '../../../../../shared/components/user-dialog/user-dialog';
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 
@@ -32,13 +31,13 @@ export interface AdminRow {
   telefono?: string;
   foto_url?: string | null;
   activo: boolean;
-  created_at: string;
 }
 
 @Component({
   selector: 'app-tab-admins',
   standalone: true,
   imports: [
+    ReactiveFormsModule,
     MatTableModule, MatPaginatorModule, MatIconModule,
     MatButtonModule, MatMenuModule, MatDialogModule,
     MatDivider, UpperCasePipe,
@@ -52,37 +51,48 @@ export class TabAdmins implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
-  private router = inject(Router);
-  private userEdit = inject(UserEditService);
 
-  searchTerm = signal('');
+  // ── Búsqueda ──────────────────────────────────────────────────
+  busqueda = new FormControl('');
+
+  // ── Datos ─────────────────────────────────────────────────────
   loading = signal(true);
   dataSource = new MatTableDataSource<AdminRow>([]);
   displayedColumns = ['documento', 'nombre', 'cargo', 'estado', 'acciones'];
 
+  // ── Paginación server-side ────────────────────────────────────
+  total = signal(0);
+  page = signal(1);
+  pageSize = signal(20);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor() {
-    effect(() => {
-      this.dataSource.filter = this.searchTerm().trim().toLowerCase();
-      if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+  ngOnInit(): void {
+    this.loadData();
+
+    this.busqueda.valueChanges.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      map(v => v?.trim() ?? ''),
+    ).subscribe(() => {
+      this.page.set(1);
+      this.loadData();
     });
   }
 
-  ngOnInit() {
-    this.dataSource.filterPredicate = (row: AdminRow, f: string) =>
-      [row.numero_documento, row.nombre, row.apellido_paterno,
-      row.apellido_materno ?? '', row.cargo ?? '']
-        .join(' ').toLowerCase().includes(f);
-    this.loadData();
-  }
+  loadData(): void {
+    const q = this.busqueda.value?.trim();
+    const params = new URLSearchParams();
+    if (q && q.length >= 2) params.set('q', q);
+    params.set('page', String(this.page()));
+    params.set('limit', String(this.pageSize()));
 
-  loadData() {
     this.loading.set(true);
-    this.api.get<any>('admin/users/admins').subscribe({
+    this.api.get<any>(`admin/users/admins?${params.toString()}`).subscribe({
       next: res => {
-        this.dataSource.data = res.data ?? res ?? [];
-        setTimeout(() => { this.dataSource.paginator = this.paginator; });
+        const body = (res as any).data ?? res;
+        this.dataSource.data = Array.isArray(body) ? body : (body.data ?? []);
+        this.total.set(Array.isArray(body) ? body.length : (body.total ?? 0));
         this.loading.set(false);
       },
       error: () => {
@@ -92,20 +102,53 @@ export class TabAdmins implements OnInit {
     });
   }
 
-  abrirCrearAdmin() {
-    this.dialog.open(CreateUserDialog, {
-      width: '650px',
+  onPageChange(e: PageEvent): void {
+    this.page.set(e.pageIndex + 1);
+    this.pageSize.set(e.pageSize);
+    this.loadData();
+  }
+
+  limpiarBusqueda(): void {
+    this.busqueda.setValue('');
+    this.page.set(1);
+    this.loadData();
+  }
+
+  // ── Acciones ──────────────────────────────────────────────────
+  abrirCrearAdmin(): void {
+    this.dialog.open(UserDialog, {
+      width: '700px',
       disableClose: true,
-      data: { rol: 'admin' },
+      data: { mode: 'create', rol: 'admin' },
     }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
   }
 
-  async editarAdmin(row: AdminRow) {
-    const updated = await this.userEdit.openEdit(row as any, 'admin');
-    if (updated) this.loadData();
+  editarAdmin(row: AdminRow): void {
+    this.dialog.open(UserDialog, {
+      width: '700px',
+      disableClose: true,
+      data: {
+        mode: 'edit',
+        rol: 'admin',
+        isSelf: false,
+        user: {
+          id: row.id,
+          rol: 'admin',
+          nombre: row.nombre,
+          apellido_paterno: row.apellido_paterno,
+          apellido_materno: row.apellido_materno ?? '',
+          email: row.email ?? '',
+          telefono: row.telefono ?? '',
+          foto_url: row.foto_url ?? null,
+          tipo_documento: row.tipo_documento ?? 'dni',
+          numero_documento: row.numero_documento ?? '',
+          cargo: row.cargo ?? '',
+        },
+      },
+    }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
   }
 
-  verDetalle(row: AdminRow) {
+  verDetalle(row: AdminRow): void {
     this.dialog.open(UserDetailDialog, {
       width: '580px',
       maxHeight: '90vh',
@@ -114,14 +157,7 @@ export class TabAdmins implements OnInit {
     });
   }
 
-  resetPassword(row: AdminRow) {
-    this.dialog.open(ResetPasswordDialog, {
-      width: '400px',
-      data: { id: row.id, nombre: `${row.nombre} ${row.apellido_paterno}` },
-    });
-  }
-
-  toggleEstado(row: AdminRow) {
+  toggleEstado(row: AdminRow): void {
     const accion = row.activo ? 'desactivar' : 'reactivar';
     this.dialog.open(ConfirmDialog, {
       width: '380px',
@@ -129,6 +165,7 @@ export class TabAdmins implements OnInit {
         title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} cuenta?`,
         message: `Estás por ${accion} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
         confirm: accion.charAt(0).toUpperCase() + accion.slice(1),
+        cancel: 'Cancelar',
         danger: row.activo,
       },
     }).afterClosed().subscribe(ok => {
