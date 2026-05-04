@@ -2,88 +2,160 @@
 
 @if (loading()) {
 <div class="loading-center"><mat-spinner diameter="40" /></div>
-} @else if (auth.isDocente()) {
+}
 
-<div class="courses-list">
-    @for (c of courses(); track c.id) {
-    <mat-card class="course-grade-card">
-        <mat-card-content>
-            <div class="course-row">
-                <div class="course-icon">
-                    <mat-icon>menu_book</mat-icon>
-                </div>
-                <div class="course-info">
-                    <span class="course-name">{{ c.nombre }}</span>
-                    <span class="course-desc">{{ c.descripcion }}</span>
-                </div>
-                <div class="course-actions">
-                    @for (b of [1,2,3,4]; track b) {
-                    <a mat-stroked-button [routerLink]="['/notas/registrar']"
-                        [queryParams]="{ cursoId: c.id, bimestre: b, cursoNombre: c.nombre, periodoId: c.periodo_id }">
-                        B{{ b }}
-                    </a>
-                    }
-                </div>
-            </div>
-        </mat-card-content>
-    </mat-card>
-    } @empty {
-    <app-empty-state icon="menu_book" title="Sin cursos" message="No tienes cursos asignados." />
-    }
-</div>
+<!-- ═════════════ DOCENTE / ADMIN ═════════════ -->
+@else if (auth.isDocente()) {
 
+@if (courses().length === 0) {
+<app-empty-state icon="menu_book" title="Sin cursos asignados"
+    message="Todavía no tienes cursos a tu cargo. Contactá al administrador." />
 } @else {
 
-<div class="controls">
-    <mat-form-field appearance="outline">
+<div class="hint-bar">
+    <mat-icon>info</mat-icon>
+    <span>
+        @if (periodoService.activos().length === 0) {
+        No hay bimestres activos. Contactá al administrador para abrir uno.
+        } @else if (periodoService.activos().length === 1) {
+        Bimestre activo: <strong>{{ periodoService.activos()[0].nombre }}</strong>.
+        } @else {
+        Elegí un bimestre de cada curso para registrar las notas.
+        }
+    </span>
+</div>
+
+<div class="course-list">
+    @for (c of courses(); track c.id) {
+    <article class="course-card" [style.--curso-color]="c.color ?? '#6750a4'">
+        <div class="course-side">
+            <div class="course-icon">
+                <mat-icon>menu_book</mat-icon>
+            </div>
+        </div>
+
+        <div class="course-body">
+            <div class="course-head">
+                <h3 class="course-name">{{ c.nombre }}</h3>
+                @if (c.seccion) {
+                <span class="course-meta">
+                    <mat-icon>group</mat-icon>
+                    @if (c.seccion.grado) { {{ c.seccion.grado.nombre }} · }
+                    Sección {{ c.seccion.nombre }}
+                </span>
+                }
+            </div>
+            @if (c.descripcion) {
+            <p class="course-desc">{{ c.descripcion }}</p>
+            }
+        </div>
+
+        <div class="course-actions">
+            <span class="actions-label">
+                @if (periodoService.activos().length === 0) {
+                Sin bimestres activos
+                } @else {
+                Bimestre
+                }
+            </span>
+
+            @if (periodoService.activos().length > 0) {
+            <div class="bim-buttons">
+                @for (p of periodoService.activos(); track p.id) {
+                <a class="bim-btn" [routerLink]="['/notas/registrar']" [queryParams]="{
+                                           cursoId: c.id,
+                                           bimestre: p.bimestre,
+                                           cursoNombre: c.nombre,
+                                           periodoId: p.id
+                                       }" matTooltip="Ir al {{ p.nombre }}">
+                    B{{ p.bimestre }}
+                </a>
+                }
+            </div>
+            }
+        </div>
+    </article>
+    }
+</div>
+}
+}
+
+<!-- ═════════════ ALUMNO / PADRE ═════════════ -->
+@else {
+
+@if (bimestresConData().length > 1) {
+<div class="filter-bar">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="bim-field">
         <mat-label>Bimestre</mat-label>
         <mat-select [(ngModel)]="bimestre">
-            <mat-option [value]="1">1er Bimestre</mat-option>
-            <mat-option [value]="2">2do Bimestre</mat-option>
-            <mat-option [value]="3">3er Bimestre</mat-option>
-            <mat-option [value]="4">4to Bimestre</mat-option>
+            @for (b of bimestresConData(); track b) {
+            <mat-option [value]="b">{{ b }}er Bimestre</mat-option>
+            }
         </mat-select>
     </mat-form-field>
 </div>
+} @else if (bimestresConData().length === 1) {
+<div class="filter-bar">
+    <span class="bim-hint">
+        <mat-icon>lock</mat-icon>
+        Mostrando tus notas del {{ bimestresConData()[0] }}er bimestre
+    </span>
+</div>
+}
 
-@if (filtered().length === 0) {
-<app-empty-state icon="grade" title="Sin notas" message="No hay notas registradas para este bimestre." />
+@if (!hasGroupedGrades()) {
+<app-empty-state icon="grade" title="Sin notas todavía" message="No hay notas registradas para este bimestre." />
 } @else {
-<mat-card class="table-card">
-    <div class="table-wrapper">
-        <table mat-table [dataSource]="filtered()">
-            <ng-container matColumnDef="curso">
-                <th mat-header-cell *matHeaderCellDef>Curso</th>
-                <td mat-cell *matCellDef="let g">{{ g.curso?.nombre ?? g.curso }}</td>
-            </ng-container>
-            <ng-container matColumnDef="examenes">
-                <th mat-header-cell *matHeaderCellDef>Exámenes</th>
-                <td mat-cell *matCellDef="let g">{{ g.nota_examenes ?? '—' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="tareas">
-                <th mat-header-cell *matHeaderCellDef>Tareas</th>
-                <td mat-cell *matCellDef="let g">{{ g.nota_tareas ?? '—' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="participacion">
-                <th mat-header-cell *matHeaderCellDef>Participación</th>
-                <td mat-cell *matCellDef="let g">{{ g.nota_participacion ?? '—' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="final">
-                <th mat-header-cell *matHeaderCellDef>Final</th>
-                <td mat-cell *matCellDef="let g">
-                    <strong>{{ g.nota_final ?? '—' }}</strong>
-                </td>
-            </ng-container>
-            <ng-container matColumnDef="escala">
-                <th mat-header-cell *matHeaderCellDef>Escala</th>
-                <td mat-cell *matCellDef="let g">
-                    <app-grade-badge [nota]="g.nota_final" />
-                </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="cols"></tr>
-            <tr mat-row *matRowDef="let row; columns: cols;"></tr>
-        </table>
-    </div>
-</mat-card>
+<mat-accordion class="grades-accordion" multi>
+    @for (curso of cursosAgrupados(); track curso.cursoId) {
+    <mat-expansion-panel class="curso-panel" [style.--curso-color]="curso.cursoColor ?? '#6750a4'">
+        <mat-expansion-panel-header collapsedHeight="68px" expandedHeight="68px">
+            <mat-panel-title>
+                <div class="curso-title">
+                    <div class="curso-dot"></div>
+                    <span class="curso-name">{{ curso.cursoNombre }}</span>
+                </div>
+            </mat-panel-title>
+            <mat-panel-description>
+                <span class="curso-count">{{ curso.notas.length }} notas</span>
+                <app-grade-badge [nota]="curso.promedio" />
+            </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="actividades">
+            @for (n of curso.notas; track n.id) {
+            <div class="actividad-row">
+                <div class="act-icon-wrap">
+                    <mat-icon>{{ TIPO_ICON[n.tipo] }}</mat-icon>
+                </div>
+                <div class="act-info">
+                    <div class="act-head">
+                        <span class="act-titulo">{{ n.titulo }}</span>
+                        <span class="act-tipo">{{ TIPO_LABEL[n.tipo] }}</span>
+                    </div>
+                    @if (n.fecha || n.observaciones) {
+                    <div class="act-meta">
+                        @if (n.fecha) {
+                        <span><mat-icon>event</mat-icon>{{ n.fecha }}</span>
+                        }
+                        @if (n.observaciones) {
+                        <span class="act-obs" [matTooltip]="n.observaciones">
+                            <mat-icon>chat</mat-icon>
+                            {{ n.observaciones }}
+                        </span>
+                        }
+                    </div>
+                    }
+                </div>
+                <div class="act-grade">
+                    <span class="nota-num">{{ n.nota ?? '—' }}</span>
+                    <app-grade-badge [nota]="n.nota" />
+                </div>
+            </div>
+            }
+        </div>
+    </mat-expansion-panel>
+    }
+</mat-accordion>
 }
 }

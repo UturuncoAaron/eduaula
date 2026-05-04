@@ -1,0 +1,55 @@
+<div class="dialog-header">
+    <div class="header-icon">
+        <mat-icon>fact_check</mat-icon>
+    </div>
+    <div class="header-text">
+        <h2 mat-dialog-title>Nueva actividad</h2>
+        <p class="subtitle">Esto agrega una columna a la planilla</p>
+    </div>
+    <button mat-icon-button (click)="cancel()" class="close-btn" aria-label="Cerrar">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+
+<mat-divider />
+
+<mat-dialog-content class="content">
+
+    <mat-form-field appearance="outline" class="full-w" subscriptSizing="dynamic">
+        <mat-label>Título de la actividad</mat-label>
+        <input matInput maxlength="200" [(ngModel)]="titulo" (ngModelChange)="onTitleChange()"
+            placeholder="Ej: Examen Bimestral, Práctica 2..." />
+        @if (duplicate()) {
+        <mat-error>Ya existe una actividad con ese título</mat-error>
+        }
+    </mat-form-field>
+
+    <div class="section-label">Tipo</div>
+    <div class="tipos-grid">
+        @for (t of tipos; track t.value) {
+        <button type="button" class="tipo-chip" [class.selected]="tipo === t.value" [style.--chip-color]="t.color"
+            (click)="selectTipo(t.value)">
+            <mat-icon>{{ t.icon }}</mat-icon>
+            <span>{{ t.label }}</span>
+        </button>
+        }
+    </div>
+
+    <mat-form-field appearance="outline" class="full-w" subscriptSizing="dynamic">
+        <mat-label>Fecha (opcional)</mat-label>
+        <input matInput [matDatepicker]="picker" [(ngModel)]="fecha" />
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-datepicker #picker />
+    </mat-form-field>
+
+</mat-dialog-content>
+
+<mat-divider />
+
+<mat-dialog-actions align="end" class="actions">
+    <button mat-stroked-button (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="!canSave()">
+        <mat-icon>add</mat-icon>
+        <span>Crear actividad</span>
+    </button>
+</mat-dialog-actions>

@@ -55,7 +55,7 @@ export class Matriculas implements OnInit {
   periodos = signal<Period[]>([]);
 
   gradoFiltro = new FormControl<number | null>(null);
-  seccionFiltro = new FormControl<number | null>(null);
+  seccionFiltro = new FormControl<string | null>(null);
   periodoFiltro = new FormControl<number | null>(null);
   busqueda = new FormControl('');
 

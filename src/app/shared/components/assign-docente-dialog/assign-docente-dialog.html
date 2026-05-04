@@ -1,55 +1,109 @@
-<h2 mat-dialog-title>Asignar Docente</h2>
-<p class="subtitle">{{ data.cursoNombre }}</p>
+<div class="dialog-header">
+  <div class="header-icon">
+    <mat-icon>school</mat-icon>
+  </div>
+  <div class="header-text">
+    <h2 mat-dialog-title>Asignar Docente</h2>
+    <p class="subtitle">{{ data.cursoNombre }}</p>
+  </div>
+  <button mat-icon-button (click)="cancel()" class="close-btn" aria-label="Cerrar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 
-<mat-dialog-content>
+<mat-divider />
 
-  <mat-form-field appearance="outline" class="full-width">
+<mat-dialog-content class="dialog-content">
+
+  <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
     <mat-label>Buscar docente</mat-label>
     <mat-icon matPrefix>search</mat-icon>
-    <input matInput [(ngModel)]="searchQuery" placeholder="Nombre o apellido..." />
+    <input matInput [(ngModel)]="searchQuery" placeholder="Nombre, apellido o especialidad..." autocomplete="off" />
+    @if (searchQuery) {
+    <button mat-icon-button matSuffix type="button" (click)="clearSearch()" aria-label="Limpiar búsqueda">
+      <mat-icon>close</mat-icon>
+    </button>
+    }
   </mat-form-field>
 
+  @if (!loading()) {
+  <p class="results-meta">{{ countLabel() }}</p>
+  }
+
   @if (loading()) {
-    <div class="loading-state">
-      <mat-progress-spinner diameter="32" mode="indeterminate" />
+  <div class="skeleton-list">
+    @for (_ of skeletonRows; track $index) {
+    <div class="skeleton-item">
+      <div class="skel-avatar"></div>
+      <div class="skel-text">
+        <div class="skel-line skel-line-1"></div>
+        <div class="skel-line skel-line-2"></div>
+      </div>
     </div>
+    }
+  </div>
   } @else {
-    <div class="docentes-list">
-      @for (d of docentesFiltrados(); track d.id) {
-        <div class="docente-item"
-             [class.selected]="selectedId() === d.id"
-             (click)="select(d.id)">
-          <div class="docente-avatar">
-            {{ d.nombre[0] }}{{ d.apellido_paterno[0] }}
-          </div>
-          <div class="docente-info">
-            <span class="docente-name">{{ d.nombre }} {{ d.apellido_paterno }}</span>
-            <span class="docente-esp">{{ d.especialidad ?? 'Sin especialidad' }}</span>
-          </div>
-          @if (selectedId() === d.id) {
-            <mat-icon class="check-icon">check_circle</mat-icon>
-          }
-        </div>
-      } @empty {
-        <div class="empty-state">
-          <mat-icon>person_off</mat-icon>
-          <p>No se encontraron docentes</p>
-        </div>
+  <div class="docentes-list">
+    @for (d of docentesFiltrados(); track d.id) {
+    <button class="docente-item" type="button" [class.selected]="selectedId() === d.id"
+      [class.is-current]="data.docenteActualId === d.id" (click)="select(d.id)">
+      <app-user-avatar [nombre]="d.nombre" [apellidoPaterno]="d.apellido_paterno" [rol]="'docente'"
+        [fotoUrl]="d.foto_url ?? null" [size]="44" />
+
+      <div class="docente-info">
+        <span class="docente-name">
+          {{ d.nombre }} {{ d.apellido_paterno }}
+          @if (d.apellido_materno) { {{ d.apellido_materno }} }
+        </span>
+        <span class="docente-esp">
+          <mat-icon class="esp-icon">menu_book</mat-icon>
+          {{ d.especialidad ?? 'Sin especialidad' }}
+        </span>
+      </div>
+
+      @if (data.docenteActualId === d.id) {
+      <span class="badge-actual">Actual</span>
       }
+      <div class="check-wrapper" [class.visible]="selectedId() === d.id">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+    </button>
+    } @empty {
+    <div class="empty-state">
+      <div class="empty-icon-wrapper">
+        <mat-icon>person_off</mat-icon>
+      </div>
+      <p class="empty-title">
+        @if (searchQuery) { Sin coincidencias }
+        @else { No hay docentes registrados }
+      </p>
+      <p class="empty-subtitle">
+        @if (searchQuery) {
+        Intenta con otro nombre o especialidad
+        } @else {
+        Registra docentes desde el módulo de Usuarios
+        }
+      </p>
     </div>
+    }
+  </div>
   }
 
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-stroked-button (click)="cancel()">Cancelar</button>
-  <button mat-flat-button color="primary"
-          (click)="submit()"
-          [disabled]="!selectedId() || saving()">
+<mat-divider />
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button (click)="cancel()" [disabled]="saving()">
+    Cancelar
+  </button>
+  <button mat-flat-button color="primary" (click)="submit()" [disabled]="!canSubmit() || saving()">
     @if (saving()) {
-      <mat-progress-spinner diameter="18" mode="indeterminate" />
-    } @else {
-      Asignar
-    }
+    <mat-progress-spinner diameter="18" mode="indeterminate" />
+    <span class="btn-label">Guardando...</span>
+    } @else { <ng-container>
+      <mat-icon>check</mat-icon>
+      <span class="btn-label">{{ submitLabel() }}</span>
+    </ng-container>}
   </button>
 </mat-dialog-actions>
