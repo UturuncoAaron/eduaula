@@ -1,5 +1,9 @@
 export type TipoDocumento = 'dni' | 'ce' | 'pasaporte';
-export type Rol = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa';
+export type Rol = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa' | 'auxiliar';
+export interface SeccionTutorada {
+    id: string;
+    nombre: string;
+}
 
 export interface User {
     id: string;
@@ -15,21 +19,17 @@ export interface User {
     password_changed: boolean;
     email: string | null;
     telefono: string | null;
-    // Alumno
     codigo_estudiante: string | null;
     fecha_nacimiento: string | null;
     grado?: string | null;
     seccion?: string | null;
-    // Docente
     especialidad: string | null;
     titulo_profesional: string | null;
-    // Padre
     relacion_familiar: string | null;
-    // Admin
     cargo: string | null;
-    // Psicóloga
     colegiatura?: string | null;
-    // Auditoría
+    modulos: string[];
+    es_tutor_de: SeccionTutorada[];
     created_at?: string | null;
 }
 

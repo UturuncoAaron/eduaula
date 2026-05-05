@@ -1,3 +1,6 @@
+// 📁 PATH: src/app/shared/components/navbar/navbar.ts
+// (Reemplaza el actual)
+
 import {
   Component, inject, signal, input, output,
   OnInit, ChangeDetectionStrategy
@@ -10,7 +13,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
-import { UserRole } from '../sidebar/navigation.config';
+import { Rol } from '../../../core/models/user';
 
 @Component({
   selector: 'app-navbar',
@@ -46,29 +49,31 @@ export class Navbar implements OnInit {
     ).toUpperCase() || 'U';
   };
 
-  private roleLabels: Record<UserRole, string> = {
+  private roleLabels: Record<Rol, string> = {
     alumno: 'Estudiante',
     docente: 'Docente',
     admin: 'Administrador',
     padre: 'Padre / Tutor',
     psicologa: 'Psicóloga',
+    auxiliar: 'Auxiliar', // 🆕
   };
 
-  private roleColors: Record<UserRole, string> = {
+  private roleColors: Record<Rol, string> = {
     alumno: '#10b981',
     docente: '#f59e0b',
     admin: '#ef4444',
     padre: '#8b5cf6',
     psicologa: '#0ea5e9',
+    auxiliar: '#14b8a6', // 🆕 teal
   };
 
   roleLabel = () => {
-    const rol = this.user()?.rol as UserRole;
+    const rol = this.user()?.rol as Rol;
     return rol ? this.roleLabels[rol] : 'Usuario';
   };
 
   roleColor = () => {
-    const rol = this.user()?.rol as UserRole;
+    const rol = this.user()?.rol as Rol;
     return rol ? this.roleColors[rol] : '#64748b';
   };
 

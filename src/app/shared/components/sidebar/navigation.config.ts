@@ -1,15 +1,10 @@
-// ═══════════════════════════════════════════════════════════════
-// navigation.config.ts
-// ═══════════════════════════════════════════════════════════════
-
-export type UserRole = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa';
+import { MODULO, Modulo } from '../../../core/auth/modulos';
 
 export interface NavItem {
   label: string;
   icon: string;
   route?: string;
-  roles: UserRole[];
-  requiresTutor?: boolean;
+  modulos: Modulo[];
   children?: NavItem[];
   exactMatch?: boolean;
   dividerBefore?: boolean;
@@ -17,127 +12,104 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
 
-  // ─── Común ────────────────────────────────────────────────────────────────
+  // ─── Dashboard (todos los roles) ──────────────────────────────────────────
   {
     label: 'Dashboard',
     icon: 'dashboard',
     route: '/dashboard',
-    roles: ['alumno', 'docente', 'admin', 'padre', 'psicologa'], // Agregado psicologa
+    modulos: [MODULO.DASHBOARD],
     exactMatch: true,
   },
 
-  // ─── Alumno y Docente ──────────────────────────────────────────────────────
-  {
-    label: 'Mis cursos',
-    icon: 'menu_book',
-    route: '/cursos',
-    roles: ['alumno', 'docente'],
-  },
-  {
-    label: 'Tareas',
-    icon: 'task_alt',
-    route: '/tareas',
-    roles: ['alumno', 'docente'],
-  },
-  {
-    label: 'Notas',
-    icon: 'grade',
-    route: '/notas',
-    roles: ['alumno', 'docente'],
-  },
-  {
-    label: 'Foro',
-    icon: 'forum',
-    route: '/foro',
-    roles: ['alumno', 'docente'],
-  },
-  {
-    label: 'Clases en vivo',
-    icon: 'videocam',
-    route: '/clases-vivo',
-    roles: ['alumno', 'docente'],
-  },
+  // ─── Alumno + Docente ──────────────────────────────────────────────────────
+  { label: 'Mis cursos', icon: 'menu_book', route: '/cursos', modulos: [MODULO.MIS_CURSOS, MODULO.CURSOS_DOCENTE] },
+  { label: 'Tareas', icon: 'task_alt', route: '/tareas', modulos: [MODULO.MIS_TAREAS, MODULO.TAREAS_GESTIONAR] },
+  { label: 'Notas', icon: 'grade', route: '/notas', modulos: [MODULO.MIS_NOTAS, MODULO.NOTAS_CURSO] },
+  { label: 'Foro', icon: 'forum', route: '/foro', modulos: [MODULO.FORO] },
+  { label: 'Clases en vivo', icon: 'videocam', route: '/clases-vivo', modulos: [MODULO.CLASES_VIVO] },
 
-  // ─── Solo Docente ──────────────────────────────────────────────────────────
+  // ─── Tutor (docente con secciones.tutor_id) ────────────────────────────────
   {
     label: 'Mi Tutoría',
     icon: 'school',
     route: '/mi-tutoria',
-    roles: ['docente'], // CORRECCIÓN: Quitamos 'admin', solo los docentes pueden ser tutores
-    requiresTutor: true,
+    modulos: [MODULO.TUTORIA],
     exactMatch: true,
     dividerBefore: true,
   },
+
+  // ─── ASISTENCIAS ────────────────────────────────────────────────────────────
+  { label: 'Asistencia entrada', icon: 'how_to_reg', route: '/asistencia/general', modulos: [MODULO.ASIST_GENERAL] },
+  { label: 'Asistencia curso', icon: 'fact_check', route: '/asistencia/curso', modulos: [MODULO.ASIST_CURSO] },
 
   // ─── Solo Alumno ───────────────────────────────────────────────────────────
   {
     label: 'Mis libretas',
     icon: 'auto_stories',
     route: '/mis-libretas',
-    roles: ['alumno'],
+    modulos: [MODULO.MIS_LIBRETAS],
     dividerBefore: true,
   },
 
   // ─── Solo Padre ────────────────────────────────────────────────────────────
-  {
-    label: 'Portal Padres',
-    icon: 'family_restroom',
-    route: '/portal-padres',
-    roles: ['padre'],
-  },
+  { label: 'Portal Padres', icon: 'family_restroom', route: '/portal-padres', modulos: [MODULO.HIJOS] },
 
+  // ─── Comunicados (alumno, docente, padre, psicologa, auxiliar) ─────────────
   {
     label: 'Comunicados',
     icon: 'campaign',
     route: '/comunicados',
-    roles: ['alumno', 'docente', 'padre', 'psicologa'],
+    modulos: [MODULO.COMUNICADOS],
     dividerBefore: true,
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PSICOLOGÍA
   // ═══════════════════════════════════════════════════════════════════════════
-  // Sección PSICOLOGÍA — sin cambios de rutas, ya están correctas:
-  { label: 'Mis Alumnos', icon: 'groups', route: '/dashboard/psicologa/alumnos', roles: ['psicologa'], dividerBefore: true },
-  { label: 'Fichas', icon: 'folder_open', route: '/dashboard/psicologa/fichas', roles: ['psicologa'] },
-  { label: 'Agenda y Citas', icon: 'event', route: '/dashboard/psicologa/citas', roles: ['psicologa'] },
-  { label: 'Disponibilidad', icon: 'schedule', route: '/dashboard/psicologa/disponibilidad', roles: ['psicologa'] },
+  {
+    label: 'Mis Alumnos',
+    icon: 'groups',
+    route: '/dashboard/psicologa/alumnos',
+    modulos: [MODULO.CASOS],
+    dividerBefore: true,
+  },
+  { label: 'Fichas', icon: 'folder_open', route: '/dashboard/psicologa/fichas', modulos: [MODULO.FICHAS] },
+  { label: 'Agenda y Citas', icon: 'event', route: '/dashboard/psicologa/citas', modulos: [MODULO.CITAS] },
+  { label: 'Disponibilidad', icon: 'schedule', route: '/dashboard/psicologa/disponibilidad', modulos: [MODULO.DISPONIBILIDAD] },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ADMIN
   // ═══════════════════════════════════════════════════════════════════════════
-
-  // ... (El resto de tu configuración de Admin se mantiene exactamente igual)
   {
     label: 'Académico',
     icon: 'school',
-    roles: ['admin'],
+    modulos: [MODULO.GRADOS_SECCIONES, MODULO.PERIODOS, MODULO.MATRICULAS, MODULO.PADRE_HIJO_ADMIN],
     dividerBefore: true,
     children: [
-      { label: 'Grados y Cursos', icon: 'class', route: '/admin/academico', roles: ['admin'], exactMatch: true },
-      { label: 'Periodos', icon: 'calendar_month', route: '/admin/periodos', roles: ['admin'], exactMatch: true },
-      { label: 'Matrículas', icon: 'how_to_reg', route: '/admin/matriculas', roles: ['admin'], exactMatch: true },
-      { label: 'Vínculo Padre-Hijo', icon: 'family_restroom', route: '/admin/padre-hijo', roles: ['admin'], exactMatch: true },
+      { label: 'Grados y Cursos', icon: 'class', route: '/admin/academico', modulos: [MODULO.GRADOS_SECCIONES], exactMatch: true },
+      { label: 'Periodos', icon: 'calendar_month', route: '/admin/periodos', modulos: [MODULO.PERIODOS], exactMatch: true },
+      { label: 'Matrículas', icon: 'how_to_reg', route: '/admin/matriculas', modulos: [MODULO.MATRICULAS], exactMatch: true },
+      { label: 'Vínculo Padre-Hijo', icon: 'family_restroom', route: '/admin/padre-hijo', modulos: [MODULO.PADRE_HIJO_ADMIN], exactMatch: true },
     ],
   },
   {
     label: 'Usuarios',
     icon: 'manage_accounts',
-    roles: ['admin'],
+    modulos: [MODULO.USUARIOS],
     children: [
-      { label: 'Alumnos', icon: 'person', route: '/admin/usuarios/alumnos', roles: ['admin'], exactMatch: true },
-      { label: 'Padres', icon: 'family_restroom', route: '/admin/usuarios/padres', roles: ['admin'], exactMatch: true },
-      { label: 'Docentes', icon: 'badge', route: '/admin/usuarios/docentes', roles: ['admin'], exactMatch: true },
-      { label: 'Administración', icon: 'admin_panel_settings', route: '/admin/usuarios/admins', roles: ['admin'], exactMatch: true },
-      // Añadimos a la psicóloga al gestor de usuarios del Admin
-      { label: 'Psicología', icon: 'psychology', route: '/admin/usuarios/psicologos', roles: ['admin'], exactMatch: true },
+      { label: 'Alumnos', icon: 'person', route: '/admin/usuarios/alumnos', modulos: [MODULO.USUARIOS], exactMatch: true },
+      { label: 'Padres', icon: 'family_restroom', route: '/admin/usuarios/padres', modulos: [MODULO.USUARIOS], exactMatch: true },
+      { label: 'Docentes', icon: 'badge', route: '/admin/usuarios/docentes', modulos: [MODULO.USUARIOS], exactMatch: true },
+      { label: 'Auxiliares', icon: 'support_agent', route: '/admin/usuarios/auxiliares', modulos: [MODULO.USUARIOS], exactMatch: true },
+      { label: 'Psicología', icon: 'psychology', route: '/admin/usuarios/psicologos', modulos: [MODULO.USUARIOS], exactMatch: true },
+      { label: 'Administración', icon: 'admin_panel_settings', route: '/admin/usuarios/admins', modulos: [MODULO.USUARIOS], exactMatch: true },
     ],
   },
   {
     label: 'Comunicados',
     icon: 'campaign',
     route: '/admin/comunicados',
-    roles: ['admin'],
+    modulos: [MODULO.COMUNICADOS_ADMIN],
     exactMatch: true,
     dividerBefore: true,
   },
@@ -145,17 +117,17 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Reportes',
     icon: 'bar_chart',
     route: '/admin/reportes',
-    roles: ['admin'],
+    modulos: [MODULO.REPORTES_GLOBALES],
     exactMatch: true,
   },
   {
     label: 'Configuración',
     icon: 'settings',
-    roles: ['admin'],
+    modulos: [MODULO.IMPORTAR, MODULO.AJUSTES],
     dividerBefore: true,
     children: [
-      { label: 'Importar alumnos', icon: 'upload_file', route: '/admin/importar', roles: ['admin'], exactMatch: true },
-      { label: 'Ajustes del sistema', icon: 'tune', route: '/admin/ajustes', roles: ['admin'], exactMatch: true },
+      { label: 'Importar alumnos', icon: 'upload_file', route: '/admin/importar', modulos: [MODULO.IMPORTAR], exactMatch: true },
+      { label: 'Ajustes del sistema', icon: 'tune', route: '/admin/ajustes', modulos: [MODULO.AJUSTES], exactMatch: true },
     ],
   },
 ];

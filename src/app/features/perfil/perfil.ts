@@ -1,3 +1,6 @@
+// 📁 PATH: src/app/features/perfil/perfil.ts
+// (Reemplaza el actual)
+
 import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -5,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../core/auth/auth';
 import { ApiService } from '../../core/services/api';
-import { UserRole } from '../../shared/components/sidebar/navigation.config';
+import { Rol } from '../../core/models/user';
 import { UserDialog } from '../../shared/components/user-dialog/user-dialog';
 
 @Component({
@@ -24,20 +27,22 @@ export class Perfil {
 
     user = this.auth.currentUser;
 
-    private roleLabels: Record<UserRole, string> = {
+    private roleLabels: Record<Rol, string> = {
         alumno: 'Estudiante',
         docente: 'Docente',
         admin: 'Administrador',
         padre: 'Padre / Tutor',
         psicologa: 'Psicóloga',
+        auxiliar: 'Auxiliar', // 🆕
     };
 
-    private roleColors: Record<UserRole, string> = {
+    private roleColors: Record<Rol, string> = {
         alumno: '#10b981',
         docente: '#f59e0b',
         admin: '#ef4444',
         padre: '#8b5cf6',
         psicologa: '#0ea5e9',
+        auxiliar: '#14b8a6', // 🆕 teal
     };
 
     initials = () => {
@@ -45,8 +50,8 @@ export class Perfil {
         if (!u) return 'U';
         return ((u.nombre?.charAt(0) ?? '') + (u.apellido_paterno?.charAt(0) ?? '')).toUpperCase() || 'U';
     };
-    roleLabel = () => this.roleLabels[this.user()?.rol as UserRole] ?? 'Usuario';
-    roleColor = () => this.roleColors[this.user()?.rol as UserRole] ?? '#64748b';
+    roleLabel = () => this.roleLabels[this.user()?.rol as Rol] ?? 'Usuario';
+    roleColor = () => this.roleColors[this.user()?.rol as Rol] ?? '#64748b';
 
     openEditProfileDialog() {
         const user = this.user();

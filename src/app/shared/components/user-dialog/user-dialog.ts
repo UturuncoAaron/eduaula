@@ -1,3 +1,6 @@
+// 📁 PATH: src/app/shared/components/user-dialog/user-dialog.ts
+// (Reemplaza el actual)
+
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -13,12 +16,11 @@ import { Subscription } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api';
 import { AuthService } from '../../../core/auth/auth';
-import { UserRole } from '../sidebar/navigation.config';
-import { User } from '../../../core/models/user';
+import { Rol, User } from '../../../core/models/user'; // 🔁 Antes: UserRole desde navigation.config
 
 export interface UserDialogData {
   mode: 'create' | 'edit';
-  rol: UserRole;
+  rol: Rol; // 🔁 Antes: UserRole
   user?: User;
   isSelf?: boolean;
 }
@@ -30,12 +32,13 @@ interface RoleMeta {
   color: string;
 }
 
-const ROLE_META: Record<UserRole, RoleMeta> = {
+const ROLE_META: Record<Rol, RoleMeta> = {
   admin: { label: 'Administrador', icon: 'admin_panel_settings', endpoint: 'admin/users/admins', color: '#ef4444' },
   alumno: { label: 'Alumno', icon: 'school', endpoint: 'admin/users/alumnos', color: '#10b981' },
   docente: { label: 'Docente', icon: 'badge', endpoint: 'admin/users/docentes', color: '#f59e0b' },
   padre: { label: 'Padre / Tutor', icon: 'family_restroom', endpoint: 'admin/users/padres', color: '#8b5cf6' },
   psicologa: { label: 'Psicóloga', icon: 'psychology', endpoint: 'admin/users/psicologos', color: '#0ea5e9' },
+  auxiliar: { label: 'Auxiliar', icon: 'support_agent', endpoint: 'admin/users/auxiliares', color: '#14b8a6' }, // 🆕
 };
 
 @Component({
@@ -211,7 +214,7 @@ export class UserDialog implements OnInit, OnDestroy {
       ...(v.fecha_nacimiento && { fecha_nacimiento: this.toISODate(v.fecha_nacimiento as Date) }),
     };
 
-    const extras: Record<UserRole, Record<string, unknown>> = {
+    const extras: Record<Rol, Record<string, unknown>> = {
       alumno: {},
       docente: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
@@ -226,6 +229,13 @@ export class UserDialog implements OnInit, OnDestroy {
       psicologa: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.colegiatura?.trim() && { colegiatura: v.colegiatura }),
+      },
+      auxiliar: {
+        ...(v.cargo?.trim() && { cargo: v.cargo }),
+        tipo_contrato: v.tipo_contrato,
+        estado_contrato: v.estado_contrato,
+        ...(v.fecha_inicio_contrato && { fecha_inicio_contrato: this.toISODate(v.fecha_inicio_contrato as Date) }),
+        ...(v.fecha_fin_contrato && { fecha_fin_contrato: this.toISODate(v.fecha_fin_contrato as Date) }),
       },
     };
 

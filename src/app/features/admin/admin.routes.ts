@@ -1,3 +1,6 @@
+// 📁 PATH: src/app/features/admin/admin.routes.ts
+// (Reemplaza el actual)
+
 import { Routes } from '@angular/router';
 
 export const ADMIN_ROUTES: Routes = [
@@ -41,13 +44,13 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'usuarios/psicologos',
     loadComponent: () =>
-      // Nota: Deberás crear este componente 'tab-psicologos' en tu carpeta tabs 
-      // copiando la estructura de los otros para listar a los psicólogos
       import('./user-management/tabs/tab-psicologos/tab-psicologos').then(c => c.TabPsicologos),
   },
-
-  // 2. Ruta dinámica para el perfil individual (SIEMPRE AL FINAL DEL BLOQUE USUARIOS)
-
+  {
+    path: 'usuarios/auxiliares',
+    loadComponent: () =>
+      import('./user-management/tabs/tab-auxiliar/tab-auxiliar').then(c => c.TabAuxiliar),
+  },
 
   // ─── Matrículas ───────────────────────────────────────────────────────────
   {

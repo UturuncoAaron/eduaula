@@ -6,19 +6,58 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
-import { UserAvatar } from '../../../shared/components/user-avatar/user-avatar';
+import { UserAvatar, AvatarRole } from '../../../shared/components/user-avatar/user-avatar';
+//                       ^^^^^^^^^^ importar el tipo
+
+// ── Tipos ──────────────────────────────────────────────────────
+export type UserTipo = 'alumnos' | 'docentes' | 'padres' | 'admins' | 'psicologos';
 
 export interface UserDetailDialogData {
   id: string;
-  tipo: 'alumnos' | 'docentes' | 'padres' | 'admins' | 'psicologos';
+  tipo: UserTipo;
 }
 
-const TIPO_META: Record<string, { label: string; color: string; rol: any }> = {
-  alumnos:    { label: 'Alumno',        color: '#10b981', rol: 'alumno'    },
-  docentes:   { label: 'Docente',       color: '#f59e0b', rol: 'docente'   },
-  padres:     { label: 'Padre / Tutor', color: '#8b5cf6', rol: 'padre'     },
-  admins:     { label: 'Administrador', color: '#ef4444', rol: 'admin'     },
-  psicologos: { label: 'Psicóloga',     color: '#0ea5e9', rol: 'psicologa' },
+interface UserDetail {
+  id?: string;
+  nombre?: string;
+  nombres?: string;
+  apellido_paterno?: string;
+  apellido_materno?: string;
+  email?: string;
+  telefono?: string;
+  foto_url?: string | null;
+  tipo_documento?: string;
+  numero_documento?: string;
+  codigo_acceso?: string;
+  codigo_estudiante?: string;
+  activo?: boolean;
+  fecha_nacimiento?: string;
+  grado?: string;
+  seccion?: string;
+  relacion?: string;
+  cargo?: string;
+  especialidad?: string;
+  titulo_profesional?: string;
+  colegiatura?: string;
+  tipo_contrato?: string;
+  estado_contrato?: string;
+  fecha_inicio_contrato?: string;
+  fecha_fin_contrato?: string;
+}
+
+interface TipoMeta {
+  label: string;
+  color: string;
+  rol: AvatarRole;            // ← antes era `any`
+}
+
+// ── Constantes ─────────────────────────────────────────────────
+const TIPO_META: Record<UserTipo, TipoMeta> = {
+  alumnos: { label: 'Alumno', color: '#10b981', rol: 'alumno' },
+  docentes: { label: 'Docente', color: '#f59e0b', rol: 'docente' },
+  padres: { label: 'Padre / Tutor', color: '#8b5cf6', rol: 'padre' },
+  admins: { label: 'Administrador', color: '#ef4444', rol: 'admin' },
+  psicologos: { label: 'Psicóloga', color: '#0ea5e9', rol: 'psicologa' },
 };
 
 const RELACION_LABEL: Record<string, string> = {
@@ -36,24 +75,36 @@ const ESTADO_CONTRATO_LABEL: Record<string, string> = {
 @Component({
   selector: 'app-user-detail-dialog',
   standalone: true,
-  imports: [DatePipe, MatIconModule, MatButtonModule, MatDividerModule, MatDialogModule, UserAvatar,UpperCasePipe],
+  imports: [
+    DatePipe, UpperCasePipe,
+    MatIconModule, MatButtonModule,
+    MatDividerModule, MatDialogModule,
+    UserAvatar,
+  ],
   templateUrl: './user-detail-dialog.html',
-  styleUrl:    './user-detail-dialog.scss',
+  styleUrl: './user-detail-dialog.scss',
 })
 export class UserDetailDialog implements OnInit {
-  private api       = inject(ApiService);
-  private toastr    = inject(ToastService);
+  private api = inject(ApiService);
+  private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<UserDetailDialog>);
 
-  data    = inject<UserDetailDialogData>(MAT_DIALOG_DATA);
+  data = inject<UserDetailDialogData>(MAT_DIALOG_DATA);
   loading = signal(true);
-  user    = signal<any>(null);
+  user = signal<UserDetail | null>(null);
 
-  meta = computed(() => TIPO_META[this.data.tipo] ?? TIPO_META['alumnos']);
+  meta = computed<TipoMeta>(
+    () => TIPO_META[this.data.tipo] ?? TIPO_META.alumnos,
+  );
 
-  ngOnInit() {
+  // ── Lifecycle ────────────────────────────────────────────────
+  ngOnInit(): void {
     this.api.get<any>(`admin/users/${this.data.tipo}/${this.data.id}`).subscribe({
-      next: r => { this.user.set(r.data); this.loading.set(false); },
+      //         ^^^^ mantener `any` como tu original (evita conflicto con ApiService)
+      next: (r) => {
+        this.user.set(r.data as UserDetail);
+        this.loading.set(false);
+      },
       error: () => {
         this.toastr.error('No se pudo cargar el usuario', 'Error');
         this.dialogRef.close();
@@ -61,7 +112,7 @@ export class UserDetailDialog implements OnInit {
     });
   }
 
-  // ── Helpers ───────────────────────────────────────────────
+  // ── Derivados ────────────────────────────────────────────────
   nombreCompleto = computed(() => {
     const u = this.user();
     if (!u) return '';
@@ -78,7 +129,7 @@ export class UserDetailDialog implements OnInit {
     return (n + a).toUpperCase();
   });
 
-  edad = computed((): number | null => {
+  edad = computed<number | null>(() => {
     const u = this.user();
     if (!u?.fecha_nacimiento) return null;
     const hoy = new Date();
@@ -89,7 +140,23 @@ export class UserDetailDialog implements OnInit {
     return e;
   });
 
-  relacionLabel  = (r: string) => RELACION_LABEL[r]    ?? r;
-  contratoLabel  = (c: string) => CONTRATO_LABEL[c]    ?? c;
-  estadoConLabel = (e: string) => ESTADO_CONTRATO_LABEL[e] ?? e;
+  hasIdentidad = computed(() => {
+    const u = this.user();
+    return !!(u?.numero_documento || u?.codigo_acceso || u?.codigo_estudiante);
+  });
+
+  hasDatosPersonales = computed(() => {
+    const u = this.user();
+    return !!(u?.fecha_nacimiento || u?.grado || u?.relacion || u?.cargo);
+  });
+
+  hasProfesional = computed(() => {
+    const u = this.user();
+    return !!(u?.especialidad || u?.titulo_profesional || u?.colegiatura);
+  });
+
+  // ── Labels ───────────────────────────────────────────────────
+  relacionLabel = (r?: string) => (r && RELACION_LABEL[r]) ?? r ?? '';
+  contratoLabel = (c?: string) => (c && CONTRATO_LABEL[c]) ?? c ?? '';
+  estadoConLabel = (e?: string) => (e && ESTADO_CONTRATO_LABEL[e]) ?? e ?? '';
 }

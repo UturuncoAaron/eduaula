@@ -69,6 +69,7 @@ export class FormPanel {
             padre: '/dashboard/padre',
             admin: '/dashboard/admin',
             psicologa: '/dashboard/psicologa',
+            auxiliar: '/dashboard/auxiliar',
         };
         const route = routes[rol];
         if (route) {

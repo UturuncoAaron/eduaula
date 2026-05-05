@@ -6,10 +6,4 @@ export const authRoutes: Routes = [
         loadComponent: () =>
             import('./login-split/login-split').then(m => m.LoginSplit),
     },
-    {
-        // Ruta de fallback al login anterior si necesitas comparar
-        path: 'login-classic',
-        loadComponent: () =>
-            import('./login/login').then(m => m.Login),
-    },
 ];

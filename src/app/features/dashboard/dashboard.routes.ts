@@ -26,6 +26,12 @@ export const DASHBOARD_ROUTES: Routes = [
       import('./admin/admin-dashboard/admin-dashboard').then(c => c.AdminDashboard),
   },
   {
+    path: 'auxiliar',
+    canActivate: [roleGuard(['auxiliar'])],
+    loadComponent: () =>
+      import('./auxiliar/auxiliar-dashboard/auxiliar-dashboard').then(c => c.AuxiliarDashboard),
+  },
+  {
     path: 'padre',
     canActivate: [roleGuard(['padre'])],
     loadComponent: () =>

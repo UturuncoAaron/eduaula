@@ -1,192 +1,212 @@
-<div class="ud-dialog">
+<div class="udd" role="dialog" aria-modal="true" aria-labelledby="udd-title">
 
-    <!-- HEADER -->
-    <div class="ud-header">
-        <button class="ud-close" mat-dialog-close>
+    <!-- ── HEADER ──────────────────────────────────────────────── -->
+    <header class="udd__header" [style.--role-color]="meta().color">
+
+        <button class="udd__close" type="button" mat-dialog-close aria-label="Cerrar">
             <mat-icon>close</mat-icon>
         </button>
 
         @if (loading()) {
-        <div class="ud-header-skeleton">
-            <div class="sk-avatar"></div>
-            <div class="sk-lines">
-                <div class="sk-line sk-w60"></div>
-                <div class="sk-line sk-w40"></div>
+        <div class="udd__hero udd__hero--skeleton">
+            <div class="sk sk--avatar"></div>
+            <div class="sk__lines">
+                <div class="sk sk--line sk--w30"></div>
+                <div class="sk sk--line sk--w60"></div>
+                <div class="sk sk--line sk--w40"></div>
             </div>
         </div>
         } @else if (user(); as u) {
-        <div class="ud-hero">
-            <div class="ud-avatar-wrap">
+        <div class="udd__hero">
+            <div class="udd__avatar">
                 <app-user-avatar [nombre]="u.nombre ?? u.nombres ?? ''" [apellidoPaterno]="u.apellido_paterno ?? ''"
-                    [rol]="meta().rol" [fotoUrl]="u.foto_url ?? null" [size]="72" />
-                <span class="ud-status-dot" [class.active]="u.activo" [class.inactive]="!u.activo"></span>
+                    [rol]="meta().rol" [fotoUrl]="u.foto_url ?? null" [size]="76" />
+                <span class="udd__status" [class.is-active]="u.activo" [class.is-inactive]="!u.activo"
+                    [attr.aria-label]="u.activo ? 'Activo' : 'Inactivo'"></span>
             </div>
-            <div class="ud-hero-info">
-                <div class="ud-role-badge" [style.background]="meta().color + '18'" [style.color]="meta().color">
-                    {{ meta().label }}
-                </div>
-                <h2 class="ud-name">{{ nombreCompleto() }}</h2>
-                <p class="ud-sub">
-                    @if (u.email) { <span><mat-icon>alternate_email</mat-icon>{{ u.email }}</span> }
-                    @if (u.telefono) { <span><mat-icon>phone</mat-icon>{{ u.telefono }}</span> }
-                </p>
+
+            <div class="udd__hero-info">
+                <span class="udd__role">{{ meta().label }}</span>
+                <h2 id="udd-title" class="udd__name">{{ nombreCompleto() }}</h2>
+                <ul class="udd__contact">
+                    @if (u.email) {
+                    <li><mat-icon>alternate_email</mat-icon><span>{{ u.email }}</span></li>
+                    }
+                    @if (u.telefono) {
+                    <li><mat-icon>phone</mat-icon><span>{{ u.telefono }}</span></li>
+                    }
+                </ul>
             </div>
         </div>
         }
-    </div>
+    </header>
 
-    <!-- CONTENT -->
-    @if (!loading() && user(); as u) {
-    <div class="ud-body">
+    <!-- ── BODY ────────────────────────────────────────────────── -->
+    @if (loading()) {
+    <div class="udd__body">
+        <div class="sk sk--block"></div>
+        <div class="sk sk--block sk--short"></div>
+        <div class="sk sk--block"></div>
+    </div>
+    } @else if (user(); as u) {
+    <div class="udd__body">
 
         <!-- Identidad -->
-        <div class="ud-section">
-            <p class="ud-section-title">Identidad</p>
-            <div class="ud-grid">
+        @if (hasIdentidad() || u.activo !== undefined) {
+        <section class="udd__section">
+            <h3 class="udd__section-title">Identidad</h3>
+            <div class="udd__card">
                 @if (u.tipo_documento && u.numero_documento) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Documento</span>
-                    <span class="ud-val">
-                        <span class="doc-chip">{{ u.tipo_documento | uppercase }}</span>
-                        {{ u.numero_documento }}
+                <div class="udd__field">
+                    <span class="udd__lbl">Documento</span>
+                    <span class="udd__val">
+                        <span class="chip chip--muted">{{ u.tipo_documento | uppercase }}</span>
+                        <span class="udd__val-text">{{ u.numero_documento }}</span>
                     </span>
                 </div>
                 }
                 @if (u.codigo_acceso ?? u.codigo_estudiante) {
-                <div class="ud-field">
-                    <span class="ud-lbl">{{ u.codigo_estudiante ? 'Código estudiante' : 'Código acceso' }}</span>
-                    <span class="ud-val mono">{{ u.codigo_estudiante ?? u.codigo_acceso }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">
+                        {{ u.codigo_estudiante ? 'Código estudiante' : 'Código acceso' }}
+                    </span>
+                    <span class="udd__val udd__val--mono">
+                        {{ u.codigo_estudiante ?? u.codigo_acceso }}
+                    </span>
                 </div>
                 }
-                <div class="ud-field">
-                    <span class="ud-lbl">Estado de cuenta</span>
-                    <span class="ud-val">
-                        <span class="status-pill" [class.active]="u.activo" [class.inactive]="!u.activo">
-                            <span class="dot"></span>
+                <div class="udd__field">
+                    <span class="udd__lbl">Estado de cuenta</span>
+                    <span class="udd__val">
+                        <span class="pill" [class.pill--success]="u.activo" [class.pill--neutral]="!u.activo">
+                            <span class="pill__dot"></span>
                             {{ u.activo ? 'Activo' : 'Inactivo' }}
                         </span>
                     </span>
                 </div>
             </div>
-        </div>
-
-        <mat-divider />
+        </section>
+        }
 
         <!-- Datos personales -->
-        <div class="ud-section">
-            <p class="ud-section-title">Datos personales</p>
-            <div class="ud-grid">
+        @if (hasDatosPersonales()) {
+        <section class="udd__section">
+            <h3 class="udd__section-title">Datos personales</h3>
+            <div class="udd__card">
                 @if (u.fecha_nacimiento) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Fecha de nacimiento</span>
-                    <span class="ud-val">
-                        {{ u.fecha_nacimiento | date:'dd/MM/yyyy' }}
+                <div class="udd__field">
+                    <span class="udd__lbl">Fecha de nacimiento</span>
+                    <span class="udd__val">
+                        <span class="udd__val-text">
+                            {{ u.fecha_nacimiento | date:'dd/MM/yyyy' }}
+                        </span>
                         @if (edad() !== null) {
-                        <span class="ud-age">{{ edad() }} años</span>
+                        <span class="chip chip--info">{{ edad() }} años</span>
                         }
                     </span>
                 </div>
                 }
                 @if (u.grado) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Grado / Sección</span>
-                    <span class="ud-val">{{ u.grado }} {{ u.seccion }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">Grado / Sección</span>
+                    <span class="udd__val udd__val-text">
+                        {{ u.grado }} {{ u.seccion }}
+                    </span>
                 </div>
                 }
                 @if (u.relacion) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Relación familiar</span>
-                    <span class="ud-val">{{ relacionLabel(u.relacion) }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">Relación familiar</span>
+                    <span class="udd__val udd__val-text">{{ relacionLabel(u.relacion) }}</span>
                 </div>
                 }
                 @if (u.cargo) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Cargo</span>
-                    <span class="ud-val">{{ u.cargo }}</span>
+                <div class="udd__field udd__field--full">
+                    <span class="udd__lbl">Cargo</span>
+                    <span class="udd__val udd__val-text">{{ u.cargo }}</span>
                 </div>
                 }
             </div>
-        </div>
+        </section>
+        }
 
-        <!-- Datos profesionales (docente / psicóloga) -->
-        @if (u.especialidad || u.titulo_profesional || u.colegiatura) {
-        <mat-divider />
-        <div class="ud-section">
-            <p class="ud-section-title">
+        <!-- Datos profesionales / clínicos -->
+        @if (hasProfesional()) {
+        <section class="udd__section">
+            <h3 class="udd__section-title">
                 {{ data.tipo === 'psicologos' ? 'Datos clínicos' : 'Datos profesionales' }}
-            </p>
-            <div class="ud-grid">
+            </h3>
+            <div class="udd__card">
                 @if (u.especialidad) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Especialidad</span>
-                    <span class="ud-val">{{ u.especialidad }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">Especialidad</span>
+                    <span class="udd__val udd__val-text">{{ u.especialidad }}</span>
                 </div>
                 }
                 @if (u.titulo_profesional) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Título profesional</span>
-                    <span class="ud-val">{{ u.titulo_profesional }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">Título profesional</span>
+                    <span class="udd__val udd__val-text">{{ u.titulo_profesional }}</span>
                 </div>
                 }
                 @if (u.colegiatura) {
-                <div class="ud-field">
-                    <span class="ud-lbl">N° Colegiatura</span>
-                    <span class="ud-val mono">{{ u.colegiatura }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">N° Colegiatura</span>
+                    <span class="udd__val udd__val--mono">{{ u.colegiatura }}</span>
                 </div>
                 }
             </div>
-        </div>
+        </section>
         }
 
-        <!-- Contrato (docente) -->
+        <!-- Contrato -->
         @if (u.tipo_contrato) {
-        <mat-divider />
-        <div class="ud-section">
-            <p class="ud-section-title">Contrato</p>
-            <div class="ud-grid">
-                <div class="ud-field">
-                    <span class="ud-lbl">Tipo</span>
-                    <span class="ud-val">
-                        <span class="contrato-chip" [class.nombrado]="u.tipo_contrato === 'nombrado'">
+        <section class="udd__section">
+            <h3 class="udd__section-title">Contrato</h3>
+            <div class="udd__card">
+                <div class="udd__field">
+                    <span class="udd__lbl">Tipo</span>
+                    <span class="udd__val">
+                        <span class="pill" [class.pill--info]="u.tipo_contrato === 'nombrado'"
+                            [class.pill--warning]="u.tipo_contrato !== 'nombrado'">
                             {{ contratoLabel(u.tipo_contrato) }}
                         </span>
                     </span>
                 </div>
-                <div class="ud-field">
-                    <span class="ud-lbl">Estado</span>
-                    <span class="ud-val">{{ estadoConLabel(u.estado_contrato) }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">Estado</span>
+                    <span class="udd__val udd__val-text">
+                        {{ estadoConLabel(u.estado_contrato) }}
+                    </span>
                 </div>
                 @if (u.fecha_inicio_contrato) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Inicio</span>
-                    <span class="ud-val">{{ u.fecha_inicio_contrato | date:'dd/MM/yyyy' }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">Inicio</span>
+                    <span class="udd__val udd__val-text">
+                        {{ u.fecha_inicio_contrato | date:'dd/MM/yyyy' }}
+                    </span>
                 </div>
                 }
                 @if (u.fecha_fin_contrato) {
-                <div class="ud-field">
-                    <span class="ud-lbl">Vencimiento</span>
-                    <span class="ud-val">{{ u.fecha_fin_contrato | date:'dd/MM/yyyy' }}</span>
+                <div class="udd__field">
+                    <span class="udd__lbl">Vencimiento</span>
+                    <span class="udd__val udd__val-text">
+                        {{ u.fecha_fin_contrato | date:'dd/MM/yyyy' }}
+                    </span>
                 </div>
                 }
             </div>
-        </div>
+        </section>
         }
 
     </div>
-
-    <!-- FOOTER -->
-    <div class="ud-footer">
-        <button mat-button mat-dialog-close class="btn-close">Cerrar</button>
-    </div>
     }
 
-    <!-- LOADING -->
-    @if (loading()) {
-    <div class="ud-loading">
-        <div class="sk-block"></div>
-        <div class="sk-block sk-short"></div>
-        <div class="sk-block"></div>
-    </div>
-    }
+    <!-- ── FOOTER ──────────────────────────────────────────────── -->
+    <footer class="udd__footer">
+        <button type="button" mat-button mat-dialog-close class="udd__btn-close">
+            Cerrar
+        </button>
+    </footer>
 
 </div>

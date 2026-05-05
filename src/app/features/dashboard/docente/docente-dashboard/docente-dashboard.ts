@@ -12,7 +12,7 @@ import { Course } from '../../../../core/models/course';
   standalone: true,
   imports: [MatCardModule, MatIconModule, MatButtonModule, RouterLink],
   templateUrl: './docente-dashboard.html',
-  styleUrl: './docente-dashboard.scss'
+  styleUrl: './docente-dashboard.scss',
 })
 export class DocenteDashboard implements OnInit {
   readonly auth = inject(AuthService);
@@ -23,21 +23,19 @@ export class DocenteDashboard implements OnInit {
   alerts = signal({ sinCalificar: 0, notasPendientes: 0, examenes: 0 });
 
   ngOnInit() {
-    this.api.get<Course[]>('courses').subscribe({
+    this.api.get<any>('courses').subscribe({
       next: res => {
-        this.courses.set(res.data);
+        const body = res?.data ?? res ?? [];
+        const list = Array.isArray(body) ? body : (body.data ?? []);
+        this.courses.set(list);
         this.loading.set(false);
-        // TODO: reemplazar con API de alertas real
-        this.alerts.set({ sinCalificar: 5, notasPendientes: 2, examenes: 1 });
+        // TODO: reemplazar por endpoint real cuando exista
+        // this.api.get('docentes/me/alertas').subscribe(r => this.alerts.set(r.data))
       },
       error: () => {
-        this.courses.set([
-          { id: '1', nombre: 'Matemáticas 3A', descripcion: 'Sección A', docente_id: '', seccion_id: 1, periodo_id: 1, activo: true },
-          { id: '2', nombre: 'Matemáticas 3B', descripcion: 'Sección B', docente_id: '', seccion_id: 2, periodo_id: 1, activo: true },
-        ]);
-        this.alerts.set({ sinCalificar: 5, notasPendientes: 2, examenes: 1 });
+        this.courses.set([]);
         this.loading.set(false);
-      }
+      },
     });
   }
 }
