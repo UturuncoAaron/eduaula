@@ -191,7 +191,7 @@ export class TabAlumnos implements OnInit {
     this.dialog.open(UserDialog, {
       width: '650px',
       disableClose: true,
-      data: { rol: 'alumno', isCreate: true },
+      data: { mode: 'create', rol: 'alumno' },
     }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
   }
 
