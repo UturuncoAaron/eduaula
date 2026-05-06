@@ -159,7 +159,7 @@ export class TabMateriales implements OnInit {
 
   async openUploadDialog() {
     const { MaterialUpload } = await import(
-      '../../../material-upload/material-upload/material-upload'
+      '../../../material-upload/material-upload'
     );
     const ref = this.dialog.open(MaterialUpload, {
       data: this.courseId(), width: '560px', maxHeight: '90vh',

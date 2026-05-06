@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export const TASKS_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () => import('./task-list/task-list/task-list').then(c => c.TaskList),
+    loadComponent: () => import('./task-list/task-list').then(c => c.TaskList),
   },
   {
     path: 'crear',
@@ -11,7 +11,7 @@ export const TASKS_ROUTES: Routes = [
   },
   {
     path: ':id/entregar',
-    loadComponent: () => import('./task-submit/task-submit/task-submit').then(c => c.TaskSubmit),
+    loadComponent: () => import('./task-submit/task-submit').then(c => c.TaskSubmit),
   },
   {
     path: ':id/tomar',
@@ -23,6 +23,6 @@ export const TASKS_ROUTES: Routes = [
   },
   {
     path: ':id/calificar',
-    loadComponent: () => import('./task-grade/task-grade/task-grade').then(c => c.TaskGrade),
+    loadComponent: () => import('./task-grade/task-grade').then(c => c.TaskGrade),
   },
 ];

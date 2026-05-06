@@ -320,7 +320,7 @@ export class TabContenido implements OnInit {
   async crearMaterial(s: SemanaResumen, ev: Event): Promise<void> {
     ev.stopPropagation();
     const { MaterialUpload } = await import(
-      '../../../material-upload/material-upload/material-upload'
+      '../../../material-upload/material-upload'
     );
     const ref = this.dialog.open(MaterialUpload, {
       data: { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },

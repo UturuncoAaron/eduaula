@@ -4,11 +4,11 @@ export const COURSES_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./course-list/course-list/course-list').then(c => c.CourseList),
+      import('./course-list/course-list').then(c => c.CourseList),
   },
   {
     path: ':id',
     loadComponent: () =>
-      import('./course-detail/course-detail/course-detail').then(c => c.CourseDetail),
+      import('./course-detail/course-detail').then(c => c.CourseDetail),
   },
 ];
