@@ -6,6 +6,7 @@ import { throwError } from 'rxjs';
 import {
   User, LoginPayload, LoginResponse, ChangePasswordPayload,
 } from '../models/user';
+import { getMacroRol, isStaffRol } from './roles';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -23,11 +24,21 @@ export class AuthService {
   readonly token = this._token.asReadonly();
   readonly passwordChanged = this._passwordChanged.asReadonly();
   readonly isLoggedIn = computed(() => !!this._token());
+
+  // ── Roles individuales (uno por rol del backend) ─────────────
   readonly isAlumno = computed(() => this._user()?.rol === 'alumno');
-  readonly isDocente = computed(() => this._user()?.rol === 'docente');
-  readonly isAdmin = computed(() => this._user()?.rol === 'admin');
   readonly isPadre = computed(() => this._user()?.rol === 'padre');
+  readonly isAdmin = computed(() => this._user()?.rol === 'admin');
+  readonly isDocente = computed(() => this._user()?.rol === 'docente');
+  readonly isAuxiliar = computed(() => this._user()?.rol === 'auxiliar');
   readonly isPsicologa = computed(() => this._user()?.rol === 'psicologa');
+
+  // ── Macro-rol (alumno | padre | staff) ───────────────────────
+  // `isStaff()` agrupa admin + docente + auxiliar + psicologa.
+  // Úselo para layout/shell. Para granularidad use `MODULO`.
+  readonly isStaff = computed(() => isStaffRol(this._user()?.rol));
+  readonly macroRol = computed(() => getMacroRol(this._user()?.rol));
+
   readonly needsPasswordChange = computed(() => !this._passwordChanged());
 
   readonly fullName = computed(() => {
