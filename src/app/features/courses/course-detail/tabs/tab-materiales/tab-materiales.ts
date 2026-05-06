@@ -14,7 +14,6 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../../core/auth/auth';
 import { CourseService } from '../../../stores/course';
 import { Material } from '../../../../../core/models/course';
-import { RouterLink } from '@angular/router';
 
 interface MaterialGroup {
   bimestre: number | null;

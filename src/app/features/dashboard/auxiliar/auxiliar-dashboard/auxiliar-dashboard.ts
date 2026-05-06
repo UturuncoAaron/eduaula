@@ -3,7 +3,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth';
-import { ApiService } from '../../../../core/services/api';
 
 interface AuxiliarStats {
   asistencias: number;
@@ -20,7 +19,6 @@ interface AuxiliarStats {
 })
 export class AuxiliarDashboard implements OnInit {
   readonly auth = inject(AuthService);
-  private api = inject(ApiService);
 
   stats = signal<AuxiliarStats>({ asistencias: 0, tardanzas: 0, total: 0 });
   loading = signal(true);

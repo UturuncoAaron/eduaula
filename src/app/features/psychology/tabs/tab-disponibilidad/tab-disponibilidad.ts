@@ -16,7 +16,7 @@ import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/conf
 import { BlockFormDialog } from '../../dialogs/block-form-dialog/block-form-dialog';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 import {
-  PsychologistAvailability, PsychologistBlock, WeekDay,
+  PsychologistBlock, WeekDay,
 } from '../../../../core/models/psychology';
 
 interface DayRow {

@@ -145,7 +145,7 @@ export class ParentChildLink {
       padre_doc: padre.numero_documento ?? padre.id,
       alumno_doc: alumno.numero_documento ?? alumno.codigo_estudiante ?? alumno.id,
     }).subscribe({
-      next: (r) => {
+      next: () => {
         this.recentLinks.update(links => [
           {
             id: Date.now().toString(),
