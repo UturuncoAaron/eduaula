@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { TutoringStore } from '../tutoring.store';
+import { TutoringStore } from '../../data-access/tutoring.store';
 
 @Component({
   selector: 'app-my-tutoring',

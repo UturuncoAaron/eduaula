@@ -10,8 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
-import { TutoringStore } from '../../tutoring.store';
-import type { AlumnoTutoria } from '../../tutoring.types';
+import { TutoringStore } from '../../data-access/tutoring.store';
+import type { AlumnoTutoria } from '../../data-access/tutoring.types';
 
 @Component({
   selector: 'app-tutoring-student',

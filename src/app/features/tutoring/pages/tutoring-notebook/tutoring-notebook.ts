@@ -11,13 +11,13 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 
-import { TutoringStore } from '../../tutoring.store';
-import type { AlumnoTutoria, NotebookItem } from '../../tutoring.types';
+import { TutoringStore } from '../../data-access/tutoring.store';
+import type { AlumnoTutoria, NotebookItem } from '../../data-access/tutoring.types';
 import {
   NotebookUploadDrawer,
   NotebookUploadTarget,
 } from '../../../../shared/components/notebook-upload-drawer/notebook-upload-drawer';
-import { BulkUpload, BulkUploadData } from '../../shared/bulk-upload/bulk-upload';
+import { BulkUpload, BulkUploadData } from '../../ui/bulk-upload/bulk-upload';
 
 @Component({
   selector: 'app-tutoring-notebook',

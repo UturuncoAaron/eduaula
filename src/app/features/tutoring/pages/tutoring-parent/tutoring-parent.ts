@@ -5,8 +5,8 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 
-import { TutoringStore } from '../../tutoring.store';
-import type { PadreTutoria } from '../../tutoring.types';
+import { TutoringStore } from '../../data-access/tutoring.store';
+import type { PadreTutoria } from '../../data-access/tutoring.types';
 
 @Component({
   selector: 'app-tutoring-parent',

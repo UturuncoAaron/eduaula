@@ -1,4 +1,4 @@
-import type { AlumnoTutoria } from '../tutoring.types';
+import type { AlumnoTutoria } from '../data-access/tutoring.types';
 
 export type MatchConfidence = 'high' | 'medium' | 'none';
 

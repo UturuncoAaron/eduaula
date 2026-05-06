@@ -4,23 +4,23 @@ export const TUTORING_ROUTES: Routes = [
     {
         path: '',
         loadComponent: () =>
-            import('./my-tutoring/my-tutoring').then(m => m.MyTutoring),
+            import('./pages/my-tutoring/my-tutoring').then(m => m.MyTutoring),
         children: [
             { path: '', redirectTo: 'alumnos', pathMatch: 'full' },
             {
                 path: 'alumnos',
                 loadComponent: () =>
-                    import('./tabs/tutoring-student/tutoring-student').then(m => m.TutoringStudent),
+                    import('./pages/tutoring-student/tutoring-student').then(m => m.TutoringStudent),
             },
             {
                 path: 'padres',
                 loadComponent: () =>
-                    import('./tabs/tutoring-parent/tutoring-parent').then(m => m.TutoringParent),
+                    import('./pages/tutoring-parent/tutoring-parent').then(m => m.TutoringParent),
             },
             {
                 path: 'libretas',
                 loadComponent: () =>
-                    import('./tabs/tutoring-notebook/tutoring-notebook').then(m => m.TutoringNotebook),
+                    import('./pages/tutoring-notebook/tutoring-notebook').then(m => m.TutoringNotebook),
             },
         ],
     },

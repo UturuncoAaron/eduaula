@@ -18,7 +18,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { environment } from '../../../../../environments/environment';
-import type { AlumnoTutoria } from '../../tutoring.types';
+import type { AlumnoTutoria } from '../../data-access/tutoring.types';
 import { bestMatch, type MatchConfidence } from '../matching.util';
 
 export interface BulkUploadData {

@@ -95,7 +95,7 @@ export const routes: Routes = [
                 path: 'mi-tutoria',
                 canActivate: [permissionGuard([MODULO.TUTORIA])],
                 loadChildren: () =>
-                    import('./features/notebooks/tutoring.routes').then(r => r.TUTORING_ROUTES),
+                    import('./features/tutoring/tutoring.routes').then(r => r.TUTORING_ROUTES),
             },
             {
                 path: 'portal-padres',
