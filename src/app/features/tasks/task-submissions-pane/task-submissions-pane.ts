@@ -11,7 +11,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { ToastService } from 'ngx-toastr-notifier';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { Submission, Task, tipoEntregaTarea } from '../../../core/models/task';
-import { TaskService } from '../stores/task';
+import { TaskService } from '../data-access/task.store';
 
 export interface TaskSubmissionsPaneData {
   task: Task;
@@ -82,7 +82,7 @@ export class TaskSubmissionsPane implements OnInit {
       },
       error: () => {
         this.downloading.set(null);
-        this.toastr.success('No se pudo descargar el archivo', '�xito');
+        this.toastr.success('No se pudo descargar el archivo', '�xito');
       },
     });
   }
@@ -90,12 +90,12 @@ export class TaskSubmissionsPane implements OnInit {
   guardar(sub: Submission) {
     const cal = sub.calificacion_manual;
     if (cal == null || Number.isNaN(Number(cal))) {
-      this.toastr.success('Ingresá una calificación válida', '�xito');
+      this.toastr.success('Ingresá una calificación válida', '�xito');
       return;
     }
     const max = this.data.task.puntos_max;
     if (cal < 0 || cal > max) {
-      this.toastr.success(`La nota debe estar entre 0 y ${max}`, '�xito');
+      this.toastr.success(`La nota debe estar entre 0 y ${max}`, '�xito');
       return;
     }
     this.saving.set(sub.id);
@@ -109,11 +109,11 @@ export class TaskSubmissionsPane implements OnInit {
           list.map(s => s.id === sub.id ? { ...s, ...updated } : s),
         );
         this.saving.set(null);
-        this.toastr.success('Nota guardada', '�xito');
+        this.toastr.success('Nota guardada', '�xito');
       },
       error: () => {
         this.saving.set(null);
-        this.toastr.success('Error al guardar la nota', '�xito');
+        this.toastr.success('Error al guardar la nota', '�xito');
       },
     });
   }

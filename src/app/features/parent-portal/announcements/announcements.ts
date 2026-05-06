@@ -6,7 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { TimeAgoPipe } from '../../../shared/pipes/time-ago-pipe';
-import { ParentPortalService } from '../stores/parent-portal.store';
+import { ParentPortalService } from '../data-access/parent-portal.store';
 import { Announcement } from '../../../core/models/parent-portal';
 
 @Component({

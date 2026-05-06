@@ -7,7 +7,7 @@ import { MatTableModule } from '@angular/material/table';
 
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { ParentPortalService } from '../stores/parent-portal.store';
+import { ParentPortalService } from '../data-access/parent-portal.store';
 import { ChildGrade } from '../../../core/models/parent-portal';
 
 @Component({

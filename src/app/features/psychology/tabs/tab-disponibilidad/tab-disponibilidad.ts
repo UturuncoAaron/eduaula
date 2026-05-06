@@ -11,7 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { AuthService } from '../../../../core/auth/auth';
-import { PsychologyStore } from '../../stores/psychology.store';
+import { PsychologyStore } from '../../data-access/psychology.store';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { BlockFormDialog } from '../../dialogs/block-form-dialog/block-form-dialog';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';

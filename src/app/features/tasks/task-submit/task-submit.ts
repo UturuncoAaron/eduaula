@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastService } from 'ngx-toastr-notifier';
-import { TaskService } from '../stores/task';
+import { TaskService } from '../data-access/task.store';
 import { Task, tipoEntregaTarea } from '../../../core/models/task';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 

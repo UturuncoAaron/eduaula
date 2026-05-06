@@ -6,7 +6,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth';
-import { CourseService } from '../stores/course';
+import { CourseService } from '../data-access/course.store';
 
 @Component({
   selector: 'app-course-list',

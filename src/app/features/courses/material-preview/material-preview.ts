@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { CourseService } from '../stores/course';
+import { CourseService } from '../data-access/course.store';
 import { Material } from '../../../core/models/course';
 
 export interface MaterialPreviewData {

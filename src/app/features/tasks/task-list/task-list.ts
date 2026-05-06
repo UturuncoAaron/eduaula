@@ -19,7 +19,7 @@ import {
   tipoEntregaTarea,
   estadoAlumno as calcEstadoAlumno,
 } from '../../../core/models/task';
-import { TaskService } from '../stores/task';
+import { TaskService } from '../data-access/task.store';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { TaskSubmissionsPane } from '../task-submissions-pane/task-submissions-pane';

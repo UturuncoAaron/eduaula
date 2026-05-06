@@ -4,7 +4,7 @@ import { Location } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../../core/auth/auth';
-import { CourseService } from '../stores/course';
+import { CourseService } from '../data-access/course.store';
 import { Course } from '../../../core/models/course';
 
 import { TabContenido } from './tabs/tab-contenido/tab-contenido';

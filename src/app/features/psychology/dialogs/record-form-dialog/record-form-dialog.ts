@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastService } from 'ngx-toastr-notifier';
 
-import { PsychologyStore } from '../../stores/psychology.store';
+import { PsychologyStore } from '../../data-access/psychology.store';
 import {
   PsychologyRecord, RecordCategoria,
 } from '../../../../../app/core/models/psychology';

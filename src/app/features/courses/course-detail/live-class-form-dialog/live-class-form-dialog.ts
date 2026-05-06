@@ -8,7 +8,7 @@ import { ToastService } from 'ngx-toastr-notifier';
 import {
   MAT_DIALOG_DATA, MatDialogModule, MatDialogRef,
 } from '@angular/material/dialog';
-import { CourseService } from '../../stores/course';
+import { CourseService } from '../../data-access/course.store';
 import { LiveClass } from '../../../../core/models/course';
 
 export interface LiveClassFormDialogData {
@@ -72,7 +72,7 @@ export class LiveClassFormDialog {
 
     obs.subscribe({
       next: res => {
-        this.toastr.success(this.isEdit ? 'Videoconferencia actualizada' : 'Videoconferencia programada', 'Éxito');
+        this.toastr.success(this.isEdit ? 'Videoconferencia actualizada' : 'Videoconferencia programada', 'ï¿½xito');
         this.ref.close(res.data);
       },
       error: err => {

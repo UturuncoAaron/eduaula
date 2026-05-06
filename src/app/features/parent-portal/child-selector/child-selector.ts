@@ -8,7 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/auth/auth';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { ParentPortalService } from '../stores/parent-portal.store';
+import { ParentPortalService } from '../data-access/parent-portal.store';
 import { Child } from '../../../core/models/parent-portal';
 
 @Component({

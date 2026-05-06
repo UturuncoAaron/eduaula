@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { CourseService } from '../stores/course';
+import { CourseService } from '../data-access/course.store';
 import { TipoMaterial } from '../../../core/models/course';
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
