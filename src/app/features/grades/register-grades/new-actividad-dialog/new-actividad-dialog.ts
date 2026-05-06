@@ -11,7 +11,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDividerModule } from '@angular/material/divider';
 
 export type TipoNota =
-  | 'examen' | 'tarea' | 'practica'
+  | 'tarea' | 'practica'
   | 'participacion' | 'proyecto' | 'otro';
 
 export interface NewActividadResult {
@@ -47,13 +47,12 @@ export class NewActividadDialog {
   readonly data = inject<DialogData>(MAT_DIALOG_DATA);
 
   titulo = '';
-  tipo: TipoNota = 'examen';
+  tipo: TipoNota = 'tarea';
   fecha: Date | null = null;
 
   duplicate = signal(false);
 
   readonly tipos: TipoOpt[] = [
-    { value: 'examen', label: 'Examen', icon: 'description', color: '#1976d2' },
     { value: 'tarea', label: 'Tarea', icon: 'assignment', color: '#2e7d32' },
     { value: 'practica', label: 'Práctica', icon: 'edit_note', color: '#ed6c02' },
     { value: 'participacion', label: 'Participación', icon: 'forum', color: '#9c27b0' },

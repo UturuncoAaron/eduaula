@@ -26,7 +26,7 @@ interface Course {
 }
 
 type TipoNota =
-  | 'examen' | 'tarea' | 'practica'
+  | 'tarea' | 'practica'
   | 'participacion' | 'proyecto' | 'otro';
 
 interface MyGrade {
@@ -54,11 +54,11 @@ interface CursoAgrupado {
 }
 
 const TIPO_LABEL: Record<TipoNota, string> = {
-  examen: 'Examen', tarea: 'Tarea', practica: 'Práctica',
+  tarea: 'Tarea', practica: 'Práctica',
   participacion: 'Participación', proyecto: 'Proyecto', otro: 'Otro',
 };
 const TIPO_ICON: Record<TipoNota, string> = {
-  examen: 'description', tarea: 'assignment', practica: 'edit_note',
+  tarea: 'assignment', practica: 'edit_note',
   participacion: 'forum', proyecto: 'rocket_launch', otro: 'star',
 };
 

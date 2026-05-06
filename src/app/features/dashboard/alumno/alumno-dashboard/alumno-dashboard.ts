@@ -20,7 +20,7 @@ export interface TareaPendiente {
   titulo: string;
   cursoNombre: string;
   fechaLimite: string;
-  tipo: 'tarea' | 'examen';
+  tipo: 'tarea';
 }
 
 export interface Comunicado {

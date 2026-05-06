@@ -20,7 +20,7 @@ export class DocenteDashboard implements OnInit {
 
   courses = signal<Course[]>([]);
   loading = signal(true);
-  alerts = signal({ sinCalificar: 0, notasPendientes: 0, examenes: 0 });
+  alerts = signal({ sinCalificar: 0, notasPendientes: 0 });
 
   ngOnInit() {
     this.api.get<any>('courses').subscribe({

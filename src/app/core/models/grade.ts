@@ -6,7 +6,6 @@ export interface Grade {
     curso?: string;
     periodo_id: number;
     bimestre: 1 | 2 | 3 | 4;
-    nota_examenes?: number | null;
     nota_tareas?: number | null;
     nota_participacion?: number | null;
     nota_final?: number | null;

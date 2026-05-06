@@ -18,7 +18,7 @@
     <mat-form-field appearance="outline" class="full-w" subscriptSizing="dynamic">
         <mat-label>Título de la actividad</mat-label>
         <input matInput maxlength="200" [(ngModel)]="titulo" (ngModelChange)="onTitleChange()"
-            placeholder="Ej: Examen Bimestral, Práctica 2..." />
+            placeholder="Ej: Práctica 2, Proyecto Final..." />
         @if (duplicate()) {
         <mat-error>Ya existe una actividad con ese título</mat-error>
         }

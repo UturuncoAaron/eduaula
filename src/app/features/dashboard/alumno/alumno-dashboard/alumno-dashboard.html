@@ -79,9 +79,7 @@
                         <p class="task-meta">{{ tarea.cursoNombre }}</p>
                     </div>
                     <div class="task-right">
-                        <span class="task-tipo" [class]="tarea.tipo">
-                            {{ tarea.tipo === 'examen' ? 'Examen' : 'Tarea' }}
-                        </span>
+                        <span class="task-tipo" [class]="tarea.tipo">Tarea</span>
                         <span class="task-date">{{ tarea.fechaLimite | date:'d MMM' }}</span>
                     </div>
                 </div>

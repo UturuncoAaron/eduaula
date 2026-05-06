@@ -22,7 +22,7 @@ import { NewActividadDialog,NewActividadResult } from '../new-actividad-dialog/n
 
 
 type TipoNota =
-  | 'examen' | 'tarea' | 'practica'
+  | 'tarea' | 'practica'
   | 'participacion' | 'proyecto' | 'otro';
 
 interface Actividad {
@@ -70,15 +70,15 @@ interface PendingChange {
 }
 
 const TIPO_LABEL: Record<TipoNota, string> = {
-  examen: 'Examen', tarea: 'Tarea', practica: 'Práctica',
+  tarea: 'Tarea', practica: 'Práctica',
   participacion: 'Participación', proyecto: 'Proyecto', otro: 'Otro',
 };
 const TIPO_ICON: Record<TipoNota, string> = {
-  examen: 'description', tarea: 'assignment', practica: 'edit_note',
+  tarea: 'assignment', practica: 'edit_note',
   participacion: 'forum', proyecto: 'rocket_launch', otro: 'star',
 };
 const TIPO_COLOR: Record<TipoNota, string> = {
-  examen: '#1976d2', tarea: '#2e7d32', practica: '#ed6c02',
+  tarea: '#2e7d32', practica: '#ed6c02',
   participacion: '#9c27b0', proyecto: '#d32f2f', otro: '#616161',
 };
 
