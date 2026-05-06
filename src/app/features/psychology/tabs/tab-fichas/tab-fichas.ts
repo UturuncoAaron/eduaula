@@ -15,7 +15,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
 
-import { PsychologyStore } from '../../stores/psychology.store';
+import { PsychologyStore } from '../../data-access/psychology.store';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { RecordFormDialog } from '../../dialogs/record-form-dialog/record-form-dialog';

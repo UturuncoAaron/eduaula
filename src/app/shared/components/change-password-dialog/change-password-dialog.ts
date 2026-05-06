@@ -9,7 +9,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ApiService } from '../../../core/services/api';
 import { AuthService } from '../../../core/auth/auth';
 
 // ── Validador: confirmar coincidencia ──────────────────────────
@@ -60,7 +59,6 @@ const STRENGTH_TABLE: Record<number, StrengthLevel> = {
 })
 export class ChangePasswordDialog implements OnInit {
   private fb = inject(FormBuilder);
-  private api = inject(ApiService);
   private auth = inject(AuthService);
   private dialogRef = inject(MatDialogRef<ChangePasswordDialog>);
 

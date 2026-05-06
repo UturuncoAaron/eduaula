@@ -69,7 +69,7 @@ export class Notificaciones implements OnInit {
 
     iconForType(tipo: string): string {
         const map: Record<string, string> = {
-            tarea: 'assignment', examen: 'quiz', nota: 'grade',
+            tarea: 'assignment', nota: 'grade',
             comunicado: 'campaign', clase: 'videocam',
             libreta: 'menu_book', foro: 'forum',
         };
@@ -78,7 +78,7 @@ export class Notificaciones implements OnInit {
 
     colorForType(tipo: string): string {
         const map: Record<string, string> = {
-            tarea: '#f59e0b', examen: '#ef4444', nota: '#10b981',
+            tarea: '#f59e0b', nota: '#10b981',
             comunicado: '#1A3A6B', clase: '#3b82f6',
             libreta: '#8b5cf6', foro: '#0ea5e9',
         };

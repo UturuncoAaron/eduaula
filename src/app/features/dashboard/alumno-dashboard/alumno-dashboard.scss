@@ -1,0 +1,427 @@
+$text-main: #1e293b;
+$text-muted: #64748b;
+$border: #e2e8f0;
+$c-blue: #2563eb;
+$c-red: #ef4444;
+$c-amber: #f59e0b;
+$c-green: #10b981;
+
+.dashboard-container {
+    padding: 0 32px 48px;
+    max-width: 1600px;
+    margin: 0 auto;
+    font-family: 'Inter', sans-serif;
+
+    @media (max-width: 768px) {
+        padding: 0 16px 32px;
+    }
+}
+
+// ── BANNER ────────────────────────────────────────────────────────
+.welcome-banner {
+    background: #fff;
+    background-image: radial-gradient(circle at top right, #eff6ff 0%, #fff 60%);
+    border: 1px solid $border;
+    border-left: 5px solid $c-blue;
+    border-radius: 16px;
+    padding: 28px 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0 28px;
+    position: relative;
+    overflow: hidden;
+
+    .greeting {
+        font-size: 26px;
+        font-weight: 700;
+        color: $text-main;
+        margin: 0 0 6px;
+        letter-spacing: -0.4px;
+    }
+
+    .subtitle {
+        font-size: 14px;
+        color: $text-muted;
+        margin: 0;
+    }
+
+    .banner-decoration {
+        position: absolute;
+        right: 36px;
+        top: 50%;
+        transform: translateY(-50%) rotate(10deg);
+        opacity: 0.04;
+        pointer-events: none;
+
+        mat-icon {
+            font-size: 140px;
+            width: 140px;
+            height: 140px;
+        }
+    }
+}
+
+// ── ESTADOS ───────────────────────────────────────────────────────
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 80px 20px;
+    color: $text-muted;
+    font-size: 14px;
+
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid $border;
+        border-top-color: $c-blue;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border: 1px dashed $border;
+    border-radius: 16px;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        color: #cbd5e1;
+        margin-bottom: 12px;
+    }
+
+    h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0 0 4px;
+    }
+
+    p {
+        font-size: 14px;
+        margin: 0;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// ── SECCIÓN HORARIO ───────────────────────────────────────────────
+.section {
+    margin-bottom: 24px;
+}
+
+.section-header {
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: $text-main;
+    margin: 0;
+}
+
+// Grid de 5 días
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+
+    @media (max-width: 900px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.day-col {
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+
+    &.is-today {
+        border-color: rgba($c-blue, 0.3);
+        box-shadow: 0 0 0 2px rgba($c-blue, 0.12);
+
+        .day-header {
+            background: rgba($c-blue, 0.06);
+        }
+
+        .day-name {
+            color: $c-blue;
+        }
+    }
+}
+
+.day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid $border;
+}
+
+.day-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.today-pill {
+    font-size: 10px;
+    font-weight: 600;
+    background: $c-blue;
+    color: #fff;
+    border-radius: 20px;
+    padding: 2px 7px;
+}
+
+.day-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+}
+
+.schedule-slot {
+    border-radius: 6px;
+    padding: 7px 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    // border-left aplicado inline desde el componente
+}
+
+.slot-name {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    // color aplicado inline desde el componente
+}
+
+.slot-time {
+    font-size: 10px;
+    color: $text-muted;
+}
+
+.slot-aula {
+    font-size: 10px;
+    color: $text-muted;
+}
+
+.day-empty {
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 14px;
+    color: #cbd5e1;
+}
+
+// ── BOTTOM GRID (Tareas + Comunicados) ────────────────────────────
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 20px;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.widget-panel {
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.widget-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid $border;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+        font-size: 15px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0;
+    }
+
+    .view-all {
+        font-size: 12px;
+        color: $c-blue;
+        text-decoration: none;
+        font-weight: 500;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.widget-content {
+    padding: 8px 20px 12px;
+    flex: 1;
+}
+
+// ── TAREAS ────────────────────────────────────────────────────────
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.urgency-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.rojo {
+        background: $c-red;
+    }
+
+    &.ambar {
+        background: $c-amber;
+    }
+
+    &.verde {
+        background: $c-green;
+    }
+}
+
+.task-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.task-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: $text-main;
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task-meta {
+    font-size: 11px;
+    color: $text-muted;
+    margin: 0;
+}
+
+.task-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.task-tipo {
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 2px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+
+    &.tarea {
+        background: rgba($c-amber, 0.12);
+        color: #b45309;
+    }
+}
+
+.task-date {
+    font-size: 11px;
+    color: $text-muted;
+}
+
+// ── COMUNICADOS ───────────────────────────────────────────────────
+.comm-item {
+    padding: 11px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.comm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+
+    strong {
+        font-size: 13px;
+        color: $text-main;
+    }
+
+    small {
+        font-size: 11px;
+        color: $text-muted;
+    }
+}
+
+.comm-body {
+    font-size: 12px;
+    color: $text-muted;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+// ── EMPTY WIDGET ──────────────────────────────────────────────────
+.empty-widget {
+    text-align: center;
+    padding: 32px 0;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 30px;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 8px;
+        opacity: 0.4;
+        display: block;
+        margin-inline: auto;
+    }
+
+    p {
+        margin: 0;
+        font-size: 13px;
+    }
+}

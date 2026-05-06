@@ -10,7 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { PsychologyStore } from '../../stores/psychology.store';
+import { PsychologyStore } from '../../data-access/psychology.store';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 import { AssignedStudent } from '../../../../core/models/psychology';
 

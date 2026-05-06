@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastService } from 'ngx-toastr-notifier';
 import { FormsModule } from '@angular/forms';
-import { TaskService } from '../stores/task';
+import { TaskService } from '../data-access/task.store';
 import { Pregunta, Task } from '../../../core/models/task';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 
@@ -51,7 +51,7 @@ export class TaskTake implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.toastr.success('No se pudo cargar la tarea', 'Éxito');
+        this.toastr.success('No se pudo cargar la tarea', 'ï¿½xito');
         this.loading.set(false);
         this.router.navigate(['/tareas']);
       },
@@ -66,7 +66,7 @@ export class TaskTake implements OnInit {
     const q = this.questions().length;
     const a = Object.keys(this.answers()).length;
     if (a < q) {
-      this.toastr.success(`Faltan ${q - a} preguntas por responder`, 'Éxito');
+      this.toastr.success(`Faltan ${q - a} preguntas por responder`, 'ï¿½xito');
       return;
     }
     this.submitting.set(true);
@@ -77,11 +77,11 @@ export class TaskTake implements OnInit {
       next: r => {
         const data: any = r.data;
         const score = data?.calificacion_auto ?? data?.submission?.calificacion_auto ?? 'â€”';
-        this.toastr.success(`Tarea enviada. Puntaje: ${score}`, 'Éxito');
+        this.toastr.success(`Tarea enviada. Puntaje: ${score}`, 'ï¿½xito');
         this.router.navigate(['/tareas']);
       },
       error: () => {
-        this.toastr.success('Error al enviar la tarea', 'Éxito');
+        this.toastr.success('Error al enviar la tarea', 'ï¿½xito');
         this.submitting.set(false);
       },
     });

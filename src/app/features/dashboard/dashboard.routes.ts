@@ -11,37 +11,37 @@ export const DASHBOARD_ROUTES: Routes = [
     path: 'alumno',
     canActivate: [roleGuard(['alumno'])],
     loadComponent: () =>
-      import('./alumno/alumno-dashboard/alumno-dashboard').then(c => c.AlumnoDashboard),
+      import('./alumno-dashboard/alumno-dashboard').then(c => c.AlumnoDashboard),
   },
   {
     path: 'docente',
     canActivate: [roleGuard(['docente'])],
     loadComponent: () =>
-      import('./docente/docente-dashboard/docente-dashboard').then(c => c.DocenteDashboard),
+      import('./docente-dashboard/docente-dashboard').then(c => c.DocenteDashboard),
   },
   {
     path: 'admin',
     canActivate: [roleGuard(['admin'])],
     loadComponent: () =>
-      import('./admin/admin-dashboard/admin-dashboard').then(c => c.AdminDashboard),
+      import('./admin-dashboard/admin-dashboard').then(c => c.AdminDashboard),
   },
   {
     path: 'auxiliar',
     canActivate: [roleGuard(['auxiliar'])],
     loadComponent: () =>
-      import('./auxiliar/auxiliar-dashboard/auxiliar-dashboard').then(c => c.AuxiliarDashboard),
+      import('./auxiliar-dashboard/auxiliar-dashboard').then(c => c.AuxiliarDashboard),
   },
   {
     path: 'padre',
     canActivate: [roleGuard(['padre'])],
     loadComponent: () =>
-      import('./padre/padre-dashboard/padre-dashboard').then(c => c.PadreDashboard),
+      import('./padre-dashboard/padre-dashboard').then(c => c.PadreDashboard),
   },
   {
     path: 'psicologa',
     canActivate: [roleGuard(['psicologa'])],
     loadComponent: () =>
-      import('./psicologa/psychology-dashboard/psychology-dashboard').then(c => c.PsychologyDashboard),
+      import('./psychology-dashboard/psychology-dashboard').then(c => c.PsychologyDashboard),
     children: [
       { path: '', redirectTo: 'alumnos', pathMatch: 'full' },
       {

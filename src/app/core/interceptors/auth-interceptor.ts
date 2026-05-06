@@ -1,27 +1,18 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth';
 
+/**
+ * Adjunta el token JWT a cada request si existe.
+ * El manejo de 401 (logout + redirect) lo hace `errorInterceptor`.
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
-  const router = inject(Router);
   const token = auth.token();
+  if (!token) return next(req);
 
-  // Clonar la petición agregando el header Authorization si hay token
-  const authReq = token
-    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : req;
-
-  return next(authReq).pipe(
-    catchError((err: HttpErrorResponse) => {
-      // Si el backend devuelve 401, limpiar sesión y redirigir al login
-      if (err.status === 401) {
-        auth.logout();
-        router.navigate(['/auth/login']);
-      }
-      return throwError(() => err);
-    }),
-  );
+  const authReq = req.clone({
+    setHeaders: { Authorization: `Bearer ${token}` },
+  });
+  return next(authReq);
 };

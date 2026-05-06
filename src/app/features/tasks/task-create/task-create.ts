@@ -16,7 +16,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../core/services/api';
 import { Course } from '../../../core/models/course';
-import { TaskService, CreateTaskPayload } from '../stores/task';
+import { TaskService, CreateTaskPayload } from '../data-access/task.store';
 
 type TaskKind = 'archivo' | 'interactiva';
 
@@ -204,11 +204,11 @@ export class TaskCreate implements OnInit {
     const isInteractiva = this.kind() === 'interactiva';
 
     if (isInteractiva && this.preguntasArray.length === 0) {
-      this.toastr.success('Agrega al menos una pregunta', 'Éxito');
+      this.toastr.success('Agrega al menos una pregunta', 'ï¿½xito');
       return;
     }
     if (!isInteractiva && !v.permite_archivo && !v.permite_texto) {
-      this.toastr.success('Selecciona al menos un mÃ©todo de entrega (archivo o texto)', 'Éxito');
+      this.toastr.success('Selecciona al menos un mÃ©todo de entrega (archivo o texto)', 'ï¿½xito');
       return;
     }
 
@@ -255,7 +255,7 @@ export class TaskCreate implements OnInit {
         }
       },
       error: () => {
-        this.toastr.success('Error al crear la tarea', 'Éxito');
+        this.toastr.success('Error al crear la tarea', 'ï¿½xito');
         this.loading.set(false);
       },
     });
@@ -270,7 +270,7 @@ export class TaskCreate implements OnInit {
       },
       error: () => {
         this.uploading.set(false);
-        this.toastr.success('Tarea creada, pero fallÃ³ la subida del archivo de referencia', 'Éxito');
+        this.toastr.success('Tarea creada, pero fallÃ³ la subida del archivo de referencia', 'ï¿½xito');
         this.finishSuccess();
       },
     });
@@ -278,7 +278,7 @@ export class TaskCreate implements OnInit {
 
   private finishSuccess() {
     this.loading.set(false);
-    this.toastr.success('Tarea creada correctamente', 'Éxito');
+    this.toastr.success('Tarea creada correctamente', 'ï¿½xito');
     if (this.dialogRef) this.dialogRef.close(true);
     else this.router.navigate(['/tareas']);
   }

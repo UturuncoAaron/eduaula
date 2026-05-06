@@ -1,4 +1,4 @@
-export type TaskTipo = 'tarea' | 'examen';
+export type TaskTipo = 'tarea';
 export type TaskKind = 'archivo' | 'interactiva';
 export type EstadoTarea = 'pendiente' | 'vencida' | 'entregada' | 'calificada';
  

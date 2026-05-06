@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { CourseService } from '../stores/course';
+import { CourseService } from '../data-access/course.store';
 import { Material, TipoMaterial } from '../../../core/models/course';
 
 export interface MaterialEditData {
@@ -75,7 +75,7 @@ export class MaterialEdit {
 
     this.csSvc.updateMaterial(this.data.courseId, this.data.material.id, body).subscribe({
       next: () => {
-        this.toastr.success('Material actualizado', 'Éxito');
+        this.toastr.success('Material actualizado', 'ï¿½xito');
         this.dialogRef.close(true);
       },
       error: (err) => {

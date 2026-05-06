@@ -5,7 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TaskService } from '../stores/task';
+import { TaskService } from '../data-access/task.store';
 import { Submission, Task } from '../../../core/models/task';
 import { GradeBadge } from '../../../shared/components/grade-badge/grade-badge';
 import { PageHeader } from '../../../shared/components/page-header/page-header';

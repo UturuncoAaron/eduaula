@@ -9,7 +9,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { Submission, Task, tipoEntregaTarea } from '../../../core/models/task';
-import { TaskService } from '../stores/task';
+import { TaskService } from '../data-access/task.store';
 
 export interface MySubmissionViewData {
   task: Task;

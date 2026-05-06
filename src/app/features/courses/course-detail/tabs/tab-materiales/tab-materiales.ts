@@ -12,9 +12,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../../core/auth/auth';
-import { CourseService } from '../../../stores/course';
+import { CourseService } from '../../../data-access/course.store';
 import { Material } from '../../../../../core/models/course';
-import { RouterLink } from '@angular/router';
 
 interface MaterialGroup {
   bimestre: number | null;
@@ -160,7 +159,7 @@ export class TabMateriales implements OnInit {
 
   async openUploadDialog() {
     const { MaterialUpload } = await import(
-      '../../../material-upload/material-upload/material-upload'
+      '../../../material-upload/material-upload'
     );
     const ref = this.dialog.open(MaterialUpload, {
       data: this.courseId(), width: '560px', maxHeight: '90vh',

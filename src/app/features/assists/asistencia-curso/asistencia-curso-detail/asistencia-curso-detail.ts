@@ -21,8 +21,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../core/services/api';
-import { CourseService } from '../../../courses/stores/course';
-import { AssistsStore } from '../../stores/assists.store';
+import { CourseService } from '../../../courses/data-access/course.store';
+import { AssistsStore } from '../../data-access/assists.store';
 import {
     AsistenciaCursoRecord, BulkAsistenciaPayload,
     EstadoAsistencia, ESTADOS_ASISTENCIA,

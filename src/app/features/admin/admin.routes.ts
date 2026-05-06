@@ -56,14 +56,14 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'matriculas',
     loadComponent: () =>
-      import('./matriculas/matriculas/matriculas').then(c => c.Matriculas),
+      import('./matriculas/matriculas').then(c => c.Matriculas),
   },
 
   // ─── Vínculo Padre-Hijo ───────────────────────────────────────────────────
   {
     path: 'padre-hijo',
     loadComponent: () =>
-      import('./parent-child-link/parent-child-link/parent-child-link').then(c => c.ParentChildLink),
+      import('./parent-child-link/parent-child-link').then(c => c.ParentChildLink),
   },
 
   // ─── Comunicados ──────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'reportes',
     loadComponent: () =>
-      import('./reports/reports/reports').then(c => c.Reports),
+      import('./reports/reports').then(c => c.Reports),
   },
 
   // ─── Configuración ────────────────────────────────────────────────────────

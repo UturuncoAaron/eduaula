@@ -13,8 +13,8 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../../../../core/auth/auth';
 import { ApiService } from '../../../../../core/services/api';
-import { CourseService } from '../../../stores/course';
-import { TaskService } from '../../../../tasks/stores/task';
+import { CourseService } from '../../../data-access/course.store';
+import { TaskService } from '../../../../tasks/data-access/task.store';
 import { Course, LiveClass, Material, SemanaResumen } from '../../../../../core/models/course';
 import { Task } from '../../../../../core/models/task';
 import { Forum } from '../../../../../core/models/forum';
@@ -320,7 +320,7 @@ export class TabContenido implements OnInit {
   async crearMaterial(s: SemanaResumen, ev: Event): Promise<void> {
     ev.stopPropagation();
     const { MaterialUpload } = await import(
-      '../../../material-upload/material-upload/material-upload'
+      '../../../material-upload/material-upload'
     );
     const ref = this.dialog.open(MaterialUpload, {
       data: { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
