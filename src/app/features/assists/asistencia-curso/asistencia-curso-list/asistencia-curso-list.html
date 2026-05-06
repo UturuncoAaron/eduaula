@@ -1,0 +1,37 @@
+<app-page-header
+    title="Asistencia por curso"
+    subtitle="Elegí un curso para pasar lista." />
+
+@if (loading()) {
+<div class="loading-center">
+    <mat-spinner diameter="40"></mat-spinner>
+</div>
+} @else if (cursosActivos().length === 0) {
+<app-empty-state
+    icon="menu_book"
+    title="Sin cursos asignados"
+    message="No tienes cursos activos para registrar asistencia." />
+} @else {
+<div class="course-grid">
+    @for (curso of cursosActivos(); track curso.id) {
+    <a class="course-card" [routerLink]="['/asistencia/curso', curso.id]">
+        <div class="course-avatar">
+            <mat-icon>menu_book</mat-icon>
+        </div>
+        <div class="course-info">
+            <h3 class="course-name">{{ curso.nombre }}</h3>
+            @if (curso.descripcion) {
+            <p class="course-section">{{ curso.descripcion }}</p>
+            } @else if (curso.seccion?.nombre) {
+            <p class="course-section">Sección {{ curso.seccion?.nombre }}</p>
+            }
+        </div>
+        <div class="course-cta">
+            <mat-icon>fact_check</mat-icon>
+            <span class="hide-sm">Pasar lista</span>
+            <mat-icon class="chev">chevron_right</mat-icon>
+        </div>
+    </a>
+    }
+</div>
+}

@@ -1,0 +1,138 @@
+<app-page-header
+    [title]="'Asistencia · ' + (curso()?.nombre ?? 'Curso')"
+    [subtitle]="curso()?.seccion?.nombre ? ('Sección ' + curso()!.seccion!.nombre) : ''"
+    backRoute="/asistencia/curso" />
+
+<!-- ═══════════ Toolbar ═══════════ -->
+<div class="toolbar">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
+        <mat-label>Fecha</mat-label>
+        <input matInput [matDatepicker]="picker" [max]="hoy"
+            [ngModel]="fechaDate()" (ngModelChange)="onFechaChange($event)" readonly />
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <div class="spacer"></div>
+
+    <button mat-stroked-button [matMenuTriggerFor]="bulkMenu"
+        [disabled]="loading() || saving() || total() === 0">
+        <mat-icon>done_all</mat-icon>
+        <span class="hide-sm">Marcar todos…</span>
+    </button>
+    <mat-menu #bulkMenu="matMenu">
+        @for (e of ESTADOS; track e) {
+        <button mat-menu-item (click)="marcarTodos(e)">
+            <mat-icon [style.color]="ESTADO_COLOR[e]">{{ ESTADO_ICON[e] }}</mat-icon>
+            <span>{{ ESTADO_LABEL[e] }}</span>
+        </button>
+        }
+    </mat-menu>
+
+    <button mat-flat-button color="primary" (click)="guardar()"
+        [disabled]="loading() || saving() || total() === 0 || esFutura()">
+        @if (saving()) {
+        <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+        } @else {
+        <mat-icon>save</mat-icon>
+        }
+        <span>Guardar</span>
+    </button>
+</div>
+
+@if (loading()) {
+<div class="loading-center">
+    <mat-spinner diameter="40"></mat-spinner>
+</div>
+} @else if (total() === 0) {
+<app-empty-state
+    icon="people_outline"
+    title="Sin alumnos en la sección"
+    message="No hay alumnos matriculados en la sección de este curso." />
+} @else {
+
+<!-- Resumen / chips de filtro -->
+<div class="resumen" role="tablist" aria-label="Filtrar por estado">
+    <button class="chip"
+        type="button"
+        role="tab"
+        [attr.aria-selected]="filtro() === 'todos'"
+        [class.active]="filtro() === 'todos'"
+        (click)="setFiltro('todos')">
+        <span class="chip-num">{{ total() }}</span>
+        <span class="chip-label">Total</span>
+    </button>
+    @for (e of ESTADOS; track e) {
+    <button class="chip"
+        type="button"
+        role="tab"
+        [attr.aria-selected]="filtro() === e"
+        [class.active]="filtro() === e"
+        [style.--chip-color]="ESTADO_COLOR[e]"
+        (click)="setFiltro(e)">
+        <mat-icon>{{ ESTADO_ICON[e] }}</mat-icon>
+        <span class="chip-num">{{ contadores()[e] }}</span>
+        <span class="chip-label">{{ ESTADO_LABEL[e] }}</span>
+    </button>
+    }
+</div>
+
+@if (filasFiltradas().length === 0) {
+<app-empty-state
+    icon="filter_alt_off"
+    title="Sin resultados"
+    message="Ningún alumno coincide con el filtro seleccionado." />
+} @else {
+
+<!-- Lista editable -->
+<mat-card class="att-card">
+    <mat-card-content class="att-list">
+        @for (row of filasFiltradas(); track row.alumno_id) {
+        <article class="att-row" [style.--state-color]="ESTADO_COLOR[row.estado]">
+            <div class="alumno">
+                <div class="avatar"
+                    [style.background-image]="row.foto_url ? 'url(' + row.foto_url + ')' : null">
+                    @if (!row.foto_url) {
+                    <span>{{ iniciales(row) }}</span>
+                    }
+                </div>
+                <div class="alumno-info">
+                    <span class="alumno-name">{{ fullName(row) }}</span>
+                    @if (row.codigo_estudiante) {
+                    <span class="alumno-code">{{ row.codigo_estudiante }}</span>
+                    }
+                </div>
+            </div>
+
+            <div class="estado-toggles">
+                <mat-button-toggle-group
+                    hideSingleSelectionIndicator
+                    [value]="row.estado"
+                    (change)="onEstadoChange(row.alumno_id, $event)"
+                    [attr.aria-label]="'Estado de ' + fullName(row)">
+                    @for (e of ESTADOS; track e) {
+                    <mat-button-toggle [value]="e"
+                        [matTooltip]="ESTADO_LABEL[e]"
+                        [style.--chip-color]="ESTADO_COLOR[e]">
+                        <mat-icon>{{ ESTADO_ICON[e] }}</mat-icon>
+                        <span class="hide-sm">{{ ESTADO_LABEL[e] }}</span>
+                    </mat-button-toggle>
+                    }
+                </mat-button-toggle-group>
+            </div>
+
+            @if (row.estado === 'justificado' || row.estado === 'tardanza' || row.observacion) {
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="obs-field">
+                <mat-label>Observación</mat-label>
+                <input matInput maxlength="500"
+                    [ngModel]="row.observacion"
+                    (ngModelChange)="setObservacion(row.alumno_id, $event)"
+                    placeholder="Motivo o nota (opcional)" />
+            </mat-form-field>
+            }
+        </article>
+        }
+    </mat-card-content>
+</mat-card>
+}
+}

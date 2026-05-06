@@ -78,6 +78,14 @@ export const routes: Routes = [
                     import('./features/live-classes/live-classes.routes').then(r => r.LIVE_CLASSES_ROUTES),
             },
             {
+                path: 'asistencia',
+                canActivate: [permissionGuard([
+                    MODULO.ASIST_CURSO, MODULO.ASIST_GENERAL, MODULO.MI_ASISTENCIA,
+                ])],
+                loadChildren: () =>
+                    import('./features/assists/assists.routes').then(r => r.ASSISTS_ROUTES),
+            },
+            {
                 path: 'mis-libretas',
                 canActivate: [permissionGuard([MODULO.MIS_LIBRETAS])],
                 loadChildren: () =>

@@ -1,0 +1,217 @@
+:host {
+    display: block;
+}
+
+// ═══════════ Toolbar ═══════════
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.date-field {
+    width: 220px;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.btn-spinner {
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.loading-center {
+    display: flex;
+    justify-content: center;
+    padding: 48px 0;
+}
+
+// ═══════════ Resumen / chips ═══════════
+.resumen {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.chip {
+    --chip-color: #5C6BC0;
+    border: 1px solid #E0E3F1;
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    color: inherit;
+    font: inherit;
+    flex-shrink: 0;
+
+    mat-icon {
+        color: var(--chip-color);
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+    }
+
+    .chip-num {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1A237E;
+        line-height: 1;
+    }
+
+    .chip-label {
+        font-size: 12px;
+        color: #666;
+    }
+
+    &.active {
+        border-color: var(--chip-color);
+        box-shadow: 0 0 0 2px rgba(25, 118, 210, .12);
+
+        .chip-num {
+            color: var(--chip-color);
+        }
+    }
+
+    &:hover:not(.active) {
+        transform: translateY(-1px);
+    }
+}
+
+// ═══════════ Lista de asistencia ═══════════
+.att-card {
+    border-radius: 12px;
+}
+
+.att-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 8px;
+}
+
+.att-row {
+    --state-color: #2E7D32;
+
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto;
+    gap: 12px 16px;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #FAFBFF;
+    border-left: 4px solid var(--state-color);
+    transition: background-color .15s ease;
+
+    &:hover {
+        background: #F5F7FF;
+    }
+}
+
+.alumno {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #C5CAE9;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1A237E;
+    font-weight: 600;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.alumno-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.alumno-name {
+    font-weight: 500;
+    color: #1A237E;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.alumno-code {
+    font-size: 12px;
+    color: #777;
+    margin-top: 2px;
+}
+
+.estado-toggles {
+    justify-self: end;
+
+    mat-button-toggle-group {
+        border-radius: 8px;
+    }
+
+    mat-button-toggle {
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            margin-right: 4px;
+            color: var(--chip-color, #555);
+        }
+    }
+}
+
+.obs-field {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+.hide-sm {
+    display: inline;
+}
+
+// ═══════════ Responsive ═══════════
+@media (max-width: 720px) {
+    .att-row {
+        grid-template-columns: 1fr;
+
+        .estado-toggles {
+            justify-self: stretch;
+
+            mat-button-toggle-group {
+                width: 100%;
+            }
+        }
+    }
+
+    .hide-sm {
+        display: none;
+    }
+
+    .date-field {
+        width: 100%;
+    }
+
+    .toolbar {
+        > button {
+            flex: 1;
+        }
+    }
+}
