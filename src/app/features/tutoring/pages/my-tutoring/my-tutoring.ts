@@ -1,5 +1,8 @@
 import {
-  Component, ChangeDetectionStrategy, inject, OnInit,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -10,12 +13,24 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { TutoringStore } from '../../data-access/tutoring.store';
 
+interface NavTab {
+  readonly path: string;
+  readonly label: string;
+  readonly icon: string;
+}
+
 @Component({
   selector: 'app-my-tutoring',
+  standalone: true,
   imports: [
     CommonModule,
-    RouterLink, RouterLinkActive, RouterOutlet,
-    MatTabsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    MatTabsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
   ],
   providers: [TutoringStore],
   templateUrl: './my-tutoring.html',
@@ -25,9 +40,9 @@ import { TutoringStore } from '../../data-access/tutoring.store';
 export class MyTutoring implements OnInit {
   readonly store = inject(TutoringStore);
 
-  readonly tabs = [
-    { path: 'alumnos', label: 'Alumnos', icon: 'group' },
-    { path: 'padres', label: 'Padres', icon: 'family_restroom' },
+  readonly tabs: readonly NavTab[] = [
+    { path: 'alumnos',  label: 'Alumnos',  icon: 'group' },
+    { path: 'padres',   label: 'Padres',   icon: 'family_restroom' },
     { path: 'libretas', label: 'Libretas', icon: 'description' },
   ];
 

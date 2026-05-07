@@ -1,17 +1,28 @@
 import {
-  Component, ChangeDetectionStrategy, inject,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { TutoringStore } from '../../data-access/tutoring.store';
-import type { PadreTutoria } from '../../data-access/tutoring.types';
+import type { AlumnoTutoria, PadreTutoria } from '../../data-access/tutoring.types';
+
+const RELACION_LABELS: Readonly<Record<string, string>> = {
+  padre:     'Padre',
+  madre:     'Madre',
+  tutor:     'Tutor legal',
+  apoderado: 'Apoderado',
+};
 
 @Component({
   selector: 'app-tutoring-parent',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatChipsModule],
+  imports: [CommonModule, MatIconModule, MatChipsModule, MatTooltipModule],
   templateUrl: './tutoring-parent.html',
   styleUrl: './tutoring-parent.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,23 +30,36 @@ import type { PadreTutoria } from '../../data-access/tutoring.types';
 export class TutoringParent {
   readonly store = inject(TutoringStore);
 
+  readonly padres = computed<PadreTutoria[]>(() => this.store.data()?.padres ?? []);
+
+  readonly alumnosById = computed<Map<string, AlumnoTutoria>>(() => {
+    const list = this.store.data()?.alumnos ?? [];
+    return new Map(list.map((a) => [a.id, a]));
+  });
+
+  trackById = (_: number, p: PadreTutoria): string => p.id;
+
   relacionLabel(r: string): string {
-    const m: Record<string, string> = {
-      padre: 'Padre', madre: 'Madre',
-      tutor: 'Tutor legal', apoderado: 'Apoderado',
-    };
-    return m[r] ?? r;
+    return RELACION_LABELS[r] ?? r;
   }
 
   initials(p: PadreTutoria): string {
-    return `${(p.nombre[0] ?? '')}${(p.apellido_paterno[0] ?? '')}`.toUpperCase();
+    return `${p.nombre[0] ?? ''}${p.apellido_paterno[0] ?? ''}`.toUpperCase();
+  }
+
+  fullName(p: PadreTutoria): string {
+    return [p.apellido_paterno, p.apellido_materno].filter((s) => !!s).join(' ');
   }
 
   nombresHijos(p: PadreTutoria): string[] {
-    const alumnos = this.store.data()?.alumnos ?? [];
+    const map = this.alumnosById();
     return p.hijos_ids
-      .map(id => alumnos.find(a => a.id === id))
-      .filter((x): x is NonNullable<typeof x> => !!x)
-      .map(a => `${a.nombre} ${a.apellido_paterno}`);
+      .map((id) => map.get(id))
+      .filter((x): x is AlumnoTutoria => !!x)
+      .map((a) => `${a.nombre} ${a.apellido_paterno}`);
+  }
+
+  hasContact(p: PadreTutoria): boolean {
+    return Boolean(p.email) || Boolean(p.telefono);
   }
 }
