@@ -2,73 +2,77 @@
 
     <header class="welcome-banner">
         <div class="banner-content">
-            <h1 class="greeting">¡Hola, Administrador!</h1>
-            <p class="subtitle">Resumen general y accesos de EduAula al día de hoy.</p>
+            <h1 class="greeting">¡Bienvenido, Administrador!</h1>
+            <p class="subtitle">Resumen general del sistema al día de hoy.</p>
         </div>
-        <div class="banner-decoration">
+        <div class="banner-decoration" aria-hidden="true">
             <mat-icon>admin_panel_settings</mat-icon>
         </div>
     </header>
 
-    @if (errorStats()) {
+    @if (error()) {
     <div class="error-banner">
         <mat-icon>cloud_off</mat-icon>
-        <span>No se pudieron cargar las estadísticas desde la base de datos. Verifica tu conexión.</span>
+        <span>No se pudieron cargar los datos. Verifica tu conexión.</span>
     </div>
     }
 
-    <section class="stats-section">
-        <div class="stat-card students">
+    <!-- Contadores -->
+    <section class="stats-section" aria-label="Totales del sistema">
+
+        <div class="stat-card blue">
             <div class="icon-wrapper"><mat-icon>school</mat-icon></div>
             <div class="stat-info">
-                <span class="lbl">Total Alumnos</span>
+                <span class="lbl">Alumnos activos</span>
                 <span class="num">
-                    @if (loadingStats()) { <span class="loading-text">Cargando...</span> }
-                    @else { {{ stats().alumnos }} }
+                    @if (loading()) { <span class="skeleton"></span> }
+                    @else { {{ data()?.contadores?.totalAlumnos ?? '—' }} }
                 </span>
             </div>
         </div>
 
-        <div class="stat-card teachers">
+        <div class="stat-card purple">
             <div class="icon-wrapper"><mat-icon>badge</mat-icon></div>
             <div class="stat-info">
-                <span class="lbl">Docentes Activos</span>
+                <span class="lbl">Docentes activos</span>
                 <span class="num">
-                    @if (loadingStats()) { <span class="loading-text">Cargando...</span> }
-                    @else { {{ stats().docentes }} }
+                    @if (loading()) { <span class="skeleton"></span> }
+                    @else { {{ data()?.contadores?.totalDocentes ?? '—' }} }
                 </span>
             </div>
         </div>
 
-        <div class="stat-card parents">
+        <div class="stat-card orange">
             <div class="icon-wrapper"><mat-icon>family_restroom</mat-icon></div>
             <div class="stat-info">
-                <span class="lbl">Padres / Apoderados</span>
+                <span class="lbl">Padres registrados</span>
                 <span class="num">
-                    @if (loadingStats()) { <span class="loading-text">Cargando...</span> }
-                    @else { {{ stats().padres }} }
+                    @if (loading()) { <span class="skeleton"></span> }
+                    @else { {{ data()?.contadores?.totalPadres ?? '—' }} }
                 </span>
             </div>
         </div>
 
-        <div class="stat-card courses">
-            <div class="icon-wrapper"><mat-icon>menu_book</mat-icon></div>
+        <div class="stat-card teal">
+            <div class="icon-wrapper"><mat-icon>support_agent</mat-icon></div>
             <div class="stat-info">
-                <span class="lbl">Cursos Registrados</span>
+                <span class="lbl">Auxiliares</span>
                 <span class="num">
-                    @if (loadingStats()) { <span class="loading-text">Cargando...</span> }
-                    @else { {{ stats().cursos }} }
+                    @if (loading()) { <span class="skeleton"></span> }
+                    @else { {{ data()?.contadores?.totalAuxiliares ?? '—' }} }
                 </span>
             </div>
         </div>
+
     </section>
 
     <div class="dashboard-grid">
+
+        <!-- Accesos rápidos -->
         <section class="main-column">
             <div class="section-header">
-                <h2>Accesos Rápidos</h2>
+                <h2>Accesos rápidos</h2>
             </div>
-
             <div class="quick-grid">
                 @for (q of quickAccess; track q.route) {
                 <a [routerLink]="q.route" class="quick-action-card" [ngClass]="q.color">
@@ -85,34 +89,43 @@
             </div>
         </section>
 
+        <!-- Alertas operativas -->
         <aside class="side-column">
             <div class="section-header">
-                <h2>Actividad Reciente</h2>
+                <h2>Alertas operativas</h2>
+                @if (!loading() && data()?.alertas?.length) {
+                <span class="badge-count">{{ data()!.alertas.length }}</span>
+                }
             </div>
 
-            <mat-card class="activity-card">
-                <div class="activity-list">
-                    @for (act of recentActivity(); track act.id) {
-                    <div class="activity-item">
-                        <div class="act-icon" [ngClass]="act.tipo">
-                            <mat-icon>
-                                {{ act.tipo === 'user' ? 'person_add' : (act.tipo === 'alert' ? 'warning' : 'settings')
-                                }}
-                            </mat-icon>
+            <mat-card class="alerts-card">
+                @if (loading()) {
+                <div class="skeleton-list">
+                    @for (i of [1,2,3]; track i) {
+                    <div class="skeleton-item"></div>
+                    }
+                </div>
+                } @else if (!data()?.alertas?.length) {
+                <div class="empty-state">
+                    <mat-icon>check_circle</mat-icon>
+                    <p>Sin alertas pendientes. ¡Todo en orden!</p>
+                </div>
+                } @else {
+                <div class="alert-list">
+                    @for (alerta of data()!.alertas; track alerta.referencia) {
+                    <div class="alert-item" [ngClass]="alertaConfig[alerta.tipo].color">
+                        <div class="alert-icon">
+                            <mat-icon>{{ alertaConfig[alerta.tipo].icon }}</mat-icon>
                         </div>
-                        <div class="act-details">
-                            <p>{{ act.mensaje }}</p>
-                            <span>{{ act.fecha | date:'shortTime' }}</span>
+                        <div class="alert-details">
+                            <p>{{ alerta.descripcion }}</p>
                         </div>
-                    </div>
-                    } @empty {
-                    <div class="empty-state">
-                        <mat-icon>history</mat-icon>
-                        <p>No hay actividad reciente para mostrar.</p>
                     </div>
                     }
                 </div>
+                }
             </mat-card>
         </aside>
+
     </div>
 </div>

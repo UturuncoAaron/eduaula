@@ -66,16 +66,17 @@ export const NAV_ITEMS: NavItem[] = [
   // ═══════════════════════════════════════════════════════════════════════════
   // PSICOLOGÍA
   // ═══════════════════════════════════════════════════════════════════════════
-  {
-    label: 'Mis Alumnos',
-    icon: 'groups',
-    route: '/dashboard/psicologa/alumnos',
-    modulos: [MODULO.CASOS],
-    dividerBefore: true,
-  },
-  { label: 'Fichas', icon: 'folder_open', route: '/dashboard/psicologa/fichas', modulos: [MODULO.FICHAS] },
-  { label: 'Agenda y Citas', icon: 'event', route: '/dashboard/psicologa/citas', modulos: [MODULO.CITAS] },
-  { label: 'Disponibilidad', icon: 'schedule', route: '/dashboard/psicologa/disponibilidad', modulos: [MODULO.DISPONIBILIDAD] },
+// ═══ PSICOLOGÍA ═══════════════════════════════════════════════════════════
+{
+  label: 'Mis Alumnos',
+  icon: 'groups',
+  route: '/psicologa/alumnos',
+  modulos: [MODULO.CASOS],
+  dividerBefore: true,
+},
+{ label: 'Fichas',        icon: 'folder_open', route: '/psicologa/fichas',         modulos: [MODULO.FICHAS] },
+{ label: 'Agenda y Citas', icon: 'event',      route: '/psicologa/citas',          modulos: [MODULO.CITAS] },
+{ label: 'Disponibilidad', icon: 'schedule',   route: '/psicologa/disponibilidad', modulos: [MODULO.DISPONIBILIDAD] },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ADMIN

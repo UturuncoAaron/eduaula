@@ -1,18 +1,161 @@
 <div class="psy-dashboard">
 
-    <app-page-header title="Panel de psicología" subtitle="Gestiona alumnos, fichas, citas y disponibilidad" />
+    <header class="welcome-banner">
+        <div class="banner-content">
+            <h1 class="greeting">Panel de psicología</h1>
+            <p class="subtitle">Gestiona alumnos, fichas, citas y disponibilidad.</p>
+        </div>
+        <div class="banner-decoration" aria-hidden="true">
+            <mat-icon>psychology</mat-icon>
+        </div>
+    </header>
 
-    <nav class="tabs-nav">
-        @for (t of tabs; track t.route) {
-        <a [routerLink]="t.route" routerLinkActive="active" class="tab-link">
-            <mat-icon>{{ t.icon }}</mat-icon>
-            <span>{{ t.label }}</span>
-        </a>
-        }
-    </nav>
+    @if (loading()) {
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando información...</p>
+    </div>
 
-    <section class="tab-outlet">
-        <router-outlet />
-    </section>
+    } @else if (error()) {
+    <div class="empty-state">
+        <mat-icon>error_outline</mat-icon>
+        <h3>Ha ocurrido un error</h3>
+        <p>{{ error() }}</p>
+    </div>
+
+    } @else if (dashboardData(); as data) {
+
+    <div class="stats-grid">
+        <div class="stat-card coral">
+            <div class="icon-wrapper"><mat-icon>event</mat-icon></div>
+            <div class="stat-info">
+                <span class="stat-label">Citas hoy</span>
+                <span class="stat-num">{{ data.citasHoy.length }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card purple">
+            <div class="icon-wrapper"><mat-icon>people</mat-icon></div>
+            <div class="stat-info">
+                <span class="stat-label">Alumnos en seguimiento</span>
+                <span class="stat-num">{{ totalSeguimiento() }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card blue">
+            <div class="icon-wrapper"><mat-icon>campaign</mat-icon></div>
+            <div class="stat-info">
+                <span class="stat-label">Comunicados</span>
+                <span class="stat-num">{{ data.comunicados.length }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <section class="main-column">
+
+            <div class="widget-panel">
+                <div class="widget-header">
+                    <h2>Citas de hoy</h2>
+                    @if (tieneCitasHoy()) {
+                    <span class="badge-count">{{ data.citasHoy.length }}</span>
+                    }
+                </div>
+                <div class="widget-content">
+                    @for (cita of data.citasHoy; track cita.id) {
+                    <div class="cita-item">
+                        <div class="cita-hora">
+                            <span class="hora">{{ cita.fechaHora | date:'HH:mm' }}</span>
+                            <span class="duracion">{{ cita.duracionMin }}min</span>
+                        </div>
+                        <div class="cita-bar">
+                            <div class="cita-top">
+                                <span class="cita-titulo">
+                                    {{ tipoCitaLabel[cita.tipo] ?? cita.tipo }}
+                                </span>
+                                <span class="cita-estado" [class]="cita.estado">
+                                    {{ cita.estado === 'confirmada' ? 'Confirmada' : 'Pendiente' }}
+                                </span>
+                            </div>
+                            <p class="cita-alumno">
+                                <mat-icon>person</mat-icon>
+                                {{ cita.alumnoNombre }}
+                            </p>
+                            <p class="cita-modalidad">
+                                <mat-icon>{{ modalidadIcon[cita.modalidad] ?? 'event' }}</mat-icon>
+                                {{ cita.modalidad | titlecase }}
+                            </p>
+                        </div>
+                    </div>
+                    } @empty {
+                    <div class="empty-widget">
+                        <mat-icon>event_available</mat-icon>
+                        <p>No tienes citas programadas para hoy.</p>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <div class="widget-panel">
+                <div class="widget-header">
+                    <h2>Comunicados</h2>
+                </div>
+                <div class="widget-content">
+                    @for (com of data.comunicados; track com.id) {
+                    <div class="comm-item">
+                        <div class="comm-header">
+                            <strong>{{ com.titulo }}</strong>
+                            <small>{{ com.fecha | date:'d MMM' }}</small>
+                        </div>
+                        <p class="comm-body">{{ com.contenido }}</p>
+                    </div>
+                    } @empty {
+                    <div class="empty-widget">
+                        <mat-icon>notifications_none</mat-icon>
+                        <p>No hay comunicados recientes.</p>
+                    </div>
+                    }
+                </div>
+            </div>
+
+        </section>
+
+        <aside class="side-column">
+            <div class="widget-panel">
+                <div class="widget-header">
+                    <h2>Alumnos en seguimiento</h2>
+                    @if (totalSeguimiento() > 0) {
+                    <span class="badge-count purple">{{ totalSeguimiento() }}</span>
+                    }
+                </div>
+                <div class="widget-content">
+                    @for (alumno of data.alumnosEnSeguimiento; track alumno.alumnoId) {
+                    <div class="alumno-item">
+                        <div class="alumno-avatar">
+                            {{ alumno.nombre[0] }}{{ alumno.apellidoPaterno[0] }}
+                        </div>
+                        <div class="alumno-info">
+                            <p class="alumno-nombre">
+                                {{ alumno.nombre }} {{ alumno.apellidoPaterno }}
+                            </p>
+                            <p class="alumno-grado">
+                                {{ alumno.grado }} — Sec. {{ alumno.seccion }}
+                            </p>
+                        </div>
+                    </div>
+                    } @empty {
+                    <div class="empty-widget">
+                        <mat-icon>people</mat-icon>
+                        <p>No hay alumnos en seguimiento activo.</p>
+                    </div>
+                    }
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    }
 
 </div>

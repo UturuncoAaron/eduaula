@@ -1,4 +1,6 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import {
+  Component, inject, signal, OnInit, computed, ChangeDetectionStrategy,
+} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { DatePipe, NgStyle } from '@angular/common';
@@ -36,7 +38,8 @@ export interface AlumnoDashboardData {
   comunicados: Comunicado[];
 }
 
-const DIAS_ORDEN = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
+const DIAS_ORDEN = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'] as const;
+
 const DIAS_LABEL: Record<string, string> = {
   lunes: 'Lun', martes: 'Mar', miercoles: 'Mié', jueves: 'Jue', viernes: 'Vie',
 };
@@ -47,6 +50,7 @@ const DIAS_LABEL: Record<string, string> = {
   imports: [MatIconModule, RouterLink, DatePipe, NgStyle],
   templateUrl: './alumno-dashboard.html',
   styleUrl: './alumno-dashboard.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlumnoDashboard implements OnInit {
   readonly auth = inject(AuthService);
@@ -59,14 +63,12 @@ export class AlumnoDashboard implements OnInit {
   readonly diasSemana = DIAS_ORDEN;
   readonly diasLabel = DIAS_LABEL;
 
-  // Día actual en formato que coincide con la BD ('lunes', 'martes'...)
   readonly diaHoy = new Date()
     .toLocaleDateString('es-PE', { weekday: 'long' })
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, ''); // quita tildes → 'miercoles'
+    .replace(/[\u0300-\u036f]/g, '');
 
-  // Horario agrupado por día para el template
   readonly horarioPorDia = computed(() => {
     const data = this.dashboardData();
     if (!data) return {} as Record<string, HorarioItem[]>;
@@ -77,9 +79,8 @@ export class AlumnoDashboard implements OnInit {
   });
 
   ngOnInit() {
-    // TEMPORAL para pruebas sin token — cambiar a 'dashboard/alumno/resumen' con JWT
-    this.api.get<AlumnoDashboardData>('dashboard/alumno/resumen').subscribe({
-      next: (res) => {
+    this.api.get<AlumnoDashboardData>('dashboard/resumen').subscribe({
+      next: res => {
         this.dashboardData.set(res.data);
         this.loading.set(false);
       },
@@ -90,7 +91,6 @@ export class AlumnoDashboard implements OnInit {
     });
   }
 
-  // Urgencia de una tarea según días restantes
   getUrgencia(fechaLimite: string): 'rojo' | 'ambar' | 'verde' {
     const diff = (new Date(fechaLimite).getTime() - Date.now()) / 86_400_000;
     if (diff <= 1) return 'rojo';
@@ -98,10 +98,9 @@ export class AlumnoDashboard implements OnInit {
     return 'verde';
   }
 
-  // Color de fondo con opacidad para los bloques del horario
   getSlotStyle(color: string): Record<string, string> {
     return {
-      'background-color': `${color}18`, // hex con ~10% opacidad
+      'background-color': `${color}18`,
       'border-left': `3px solid ${color}`,
     };
   }

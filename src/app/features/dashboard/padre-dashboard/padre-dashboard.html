@@ -1,71 +1,166 @@
 <div class="padre-container">
 
-    <!-- Banner de bienvenida -->
-    <div class="welcome-banner">
+    <header class="welcome-banner">
         <div class="banner-content">
             <div class="banner-text">
-                <h1>¡Hola, {{ auth.currentUser()?.nombre ?? 'Familia' }}! 👋</h1>
-                <p>Sigue el progreso académico y la asistencia de tus hijos.</p>
+                <h1>¡Hola, {{ auth.currentUser()?.nombre ?? 'Familia' }}!</h1>
+                <p>Sigue el progreso académico de tus hijos.</p>
             </div>
-            <div class="banner-icon">
+            <div class="banner-icon" aria-hidden="true">
                 <mat-icon>family_restroom</mat-icon>
             </div>
         </div>
+    </header>
+
+    @if (loading()) {
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando información familiar...</p>
     </div>
 
-    <!-- Hijos -->
-    <div class="section">
+    } @else if (error()) {
+    <div class="empty-state">
+        <mat-icon>error_outline</mat-icon>
+        <h3>Ha ocurrido un error</h3>
+        <p>{{ error() }}</p>
+    </div>
+
+    } @else if (dashboardData(); as data) {
+
+    <!-- HIJOS -->
+    <section class="section">
         <h2 class="section-title">Estudiantes vinculados</h2>
 
-        @if (loading()) {
-        <div class="loading-state">
-            <mat-spinner diameter="36" />
-            <p>Cargando información familiar...</p>
-        </div>
-        } @else {
         <div class="children-grid">
-            @for (child of children(); track child.id) {
+            @for (hijo of data.hijos; track hijo.alumnoId) {
             <div class="child-card">
-
                 <div class="card-top">
-                    <div class="child-avatar">{{ getInitials(child) }}</div>
+                    <div class="child-avatar">{{ getInitials(hijo) }}</div>
                     <div class="child-info">
-                        <h3 class="child-name">{{ getFullName(child) }}</h3>
+                        <h3 class="child-name">{{ getFullName(hijo) }}</h3>
                         <span class="child-grade">
                             <mat-icon>school</mat-icon>
-                            {{ child.grado }} — Sec. {{ child.seccion }}
+                            {{ hijo.grado }} — Sec. {{ hijo.seccion }}
                         </span>
-                        @if (child.codigo_estudiante) {
-                        <span class="child-code">Cód: {{ child.codigo_estudiante }}</span>
-                        }
                     </div>
                 </div>
-
                 <div class="card-actions">
-                    <a mat-flat-button color="primary" [routerLink]="['/portal-padres', child.id, 'notas']">
-                        <mat-icon>grade</mat-icon>
-                        Ver notas
+                    <a mat-flat-button color="primary" [routerLink]="['/portal-padres', hijo.alumnoId, 'notas']">
+                        <mat-icon>grade</mat-icon>Ver notas
                     </a>
-                    <a mat-stroked-button [routerLink]="['/portal-padres', child.id, 'asistencia']">
-                        <mat-icon>event_available</mat-icon>
-                        Asistencia
+                    <a mat-stroked-button [routerLink]="['/portal-padres', hijo.alumnoId, 'asistencia']">
+                        <mat-icon>event_available</mat-icon>Asistencia
                     </a>
-                    <a mat-stroked-button [routerLink]="['/portal-padres', child.id, 'libreta']">
-                        <mat-icon>auto_stories</mat-icon>
-                        Libretas
+                    <a mat-stroked-button [routerLink]="['/portal-padres', hijo.alumnoId, 'libreta']">
+                        <mat-icon>auto_stories</mat-icon>Libretas
                     </a>
                 </div>
-
             </div>
             } @empty {
             <div class="empty-state">
                 <mat-icon>escalator_warning</mat-icon>
                 <h3>Sin estudiantes vinculados</h3>
-                <p>No hay hijos vinculados aún. Contacta al administrador del colegio.</p>
+                <p>Contacta al administrador del colegio.</p>
             </div>
             }
         </div>
-        }
+    </section>
+
+    <div class="bottom-grid">
+
+        <!-- CITAS PRÓXIMAS -->
+        <section class="widget-panel">
+            <div class="widget-header">
+                <h2>Próximas citas</h2>
+                @if (tieneCitas()) {
+                <span class="badge-count">{{ data.citasProximas.length }}</span>
+                }
+            </div>
+            <div class="widget-content">
+                @for (cita of data.citasProximas; track cita.id) {
+                <div class="cita-item">
+                    <div class="cita-icon">
+                        <mat-icon>{{ modalidadIcon[cita.modalidad] ?? 'event' }}</mat-icon>
+                    </div>
+                    <div class="cita-body">
+                        <p class="cita-titulo">
+                            {{ tipoCitaLabel[cita.tipo] ?? cita.tipo }}
+                            <span class="cita-alumno">· {{ cita.alumnoNombre }}</span>
+                        </p>
+                        <p class="cita-meta">
+                            {{ cita.fechaHora | date:'EEEE d MMM, HH:mm':'':'es' }}
+                            · {{ cita.convocadoPor }}
+                        </p>
+                    </div>
+                    <span class="cita-estado" [class]="cita.estado">
+                        {{ cita.estado === 'confirmada' ? 'Confirmada' : 'Pendiente' }}
+                    </span>
+                </div>
+                } @empty {
+                <div class="empty-widget">
+                    <mat-icon>event_available</mat-icon>
+                    <p>No tienes citas programadas.</p>
+                </div>
+                }
+            </div>
+        </section>
+
+        <div class="right-column">
+
+            <!-- LIBRETAS -->
+            <section class="widget-panel">
+                <div class="widget-header">
+                    <h2>Libretas disponibles</h2>
+                </div>
+                <div class="widget-content">
+                    @for (libreta of data.libretas; track libreta.id) {
+                    <div class="libreta-item">
+                        <mat-icon class="libreta-icon">picture_as_pdf</mat-icon>
+                        <div class="libreta-body">
+                            <p class="libreta-periodo">{{ libreta.periodoNombre }}</p>
+                            <p class="libreta-fecha">
+                                Disponible desde {{ libreta.creadaEn | date:'d MMM yyyy' }}
+                            </p>
+                        </div>
+                        <a mat-icon-button [routerLink]="['/portal-padres', 'libretas', libreta.id]"
+                            aria-label="Ver libreta">
+                            <mat-icon>open_in_new</mat-icon>
+                        </a>
+                    </div>
+                    } @empty {
+                    <div class="empty-widget">
+                        <mat-icon>auto_stories</mat-icon>
+                        <p>No hay libretas disponibles aún.</p>
+                    </div>
+                    }
+                </div>
+            </section>
+
+            <!-- COMUNICADOS -->
+            <section class="widget-panel">
+                <div class="widget-header">
+                    <h2>Comunicados</h2>
+                </div>
+                <div class="widget-content">
+                    @for (com of data.comunicados; track com.id) {
+                    <div class="comm-item">
+                        <div class="comm-header">
+                            <strong>{{ com.titulo }}</strong>
+                            <small>{{ com.fecha | date:'d MMM' }}</small>
+                        </div>
+                        <p class="comm-body">{{ com.contenido }}</p>
+                    </div>
+                    } @empty {
+                    <div class="empty-widget">
+                        <mat-icon>notifications_none</mat-icon>
+                        <p>No hay comunicados recientes.</p>
+                    </div>
+                    }
+                </div>
+            </section>
+
+        </div>
     </div>
+    }
 
 </div>

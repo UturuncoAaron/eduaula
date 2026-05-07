@@ -1,55 +1,111 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import {
+  Component, inject, signal, OnInit, computed, ChangeDetectionStrategy,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
 
-interface Child {
-  id: string;
+interface HijoItem {
+  alumnoId: string;
   nombre: string;
-  apellido_paterno: string;
-  apellido_materno: string | null;
-  codigo_estudiante: string | null;
-  foto_url: string | null;
+  apellidoPaterno: string;
+  apellidoMaterno: string | null;
   grado: string;
   seccion: string;
 }
 
+interface CitaItem {
+  id: string;
+  tipo: string;
+  modalidad: string;
+  fechaHora: string;
+  estado: string;
+  convocadoPor: string;
+  alumnoNombre: string;
+}
+
+interface LibretaItem {
+  id: string;
+  periodoNombre: string;
+  storageKey: string;
+  creadaEn: string;
+}
+
+interface ComunicadoItem {
+  id: string;
+  titulo: string;
+  contenido: string;
+  fecha: string;
+}
+
+interface PadreDashboardData {
+  hijos: HijoItem[];
+  citasProximas: CitaItem[];
+  comunicados: ComunicadoItem[];
+  libretas: LibretaItem[];
+}
+
 @Component({
   selector: 'app-padre-dashboard',
-  imports: [RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
+  standalone: true,
+  imports: [RouterLink, MatIconModule, MatButtonModule, DatePipe],
   templateUrl: './padre-dashboard.html',
   styleUrl: './padre-dashboard.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PadreDashboard implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
 
-  children = signal<Child[]>([]);
+  dashboardData = signal<PadreDashboardData | null>(null);
   loading = signal(true);
+  error = signal<string | null>(null);
+
+  // Tipo explícito con undefined para que ?? en el template sea válido
+  readonly tipoCitaLabel: Record<string, string | undefined> = {
+    academico: 'Académico',
+    conductual: 'Conductual',
+    psicologico: 'Psicológico',
+    familiar: 'Familiar',
+    otro: 'Otro',
+  };
+
+  readonly modalidadIcon: Record<string, string | undefined> = {
+    presencial: 'location_on',
+    virtual: 'videocam',
+    telefonico: 'phone',
+  };
+
+  readonly tieneCitas = computed(() =>
+    (this.dashboardData()?.citasProximas?.length ?? 0) > 0,
+  );
+
+  readonly tieneLibretas = computed(() =>
+    (this.dashboardData()?.libretas?.length ?? 0) > 0,
+  );
 
   ngOnInit() {
-    const padreId = this.auth.currentUser()?.id;
-    if (!padreId) { this.loading.set(false); return; }
-
-    // TODO: quitar ?padreId= cuando JWT esté activo
-    this.api.get<Child[]>('parent/children',).subscribe({
-      next: r => { this.children.set(r.data); this.loading.set(false); },
+    this.api.get<PadreDashboardData>('dashboard/resumen').subscribe({
+      next: res => {
+        this.dashboardData.set(res.data);
+        this.loading.set(false);
+      },
       error: () => {
-        // TODO: reemplazar con API real
-        this.children.set([]);
+        this.error.set('No se pudo cargar la información del dashboard.');
         this.loading.set(false);
       },
     });
   }
 
-  getInitials(child: Child): string {
-    return `${child.nombre[0]}${child.apellido_paterno[0]}`.toUpperCase();
+  getInitials(hijo: HijoItem): string {
+    return `${hijo.nombre[0]}${hijo.apellidoPaterno[0]}`.toUpperCase();
   }
 
-  getFullName(child: Child): string {
-    return `${child.nombre} ${child.apellido_paterno}${child.apellido_materno ? ' ' + child.apellido_materno : ''}`;
+  getFullName(hijo: HijoItem): string {
+    const mat = hijo.apellidoMaterno ? ` ${hijo.apellidoMaterno}` : '';
+    return `${hijo.nombre} ${hijo.apellidoPaterno}${mat}`;
   }
 }

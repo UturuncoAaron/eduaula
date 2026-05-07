@@ -1,17 +1,439 @@
+$text-main: #1e293b;
+$text-muted: #64748b;
+$border: #e2e8f0;
+$c-psy: #9333ea;
+$c-coral: #f43f5e;
+$c-blue: #2563eb;
+$c-green: #059669;
+$c-amber: #d97706;
+
 .psy-dashboard {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 24px;
-    min-height: 100%;
+    gap: 24px;
+    padding: 0 32px 48px;
+    max-width: 1600px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+        padding: 0 16px 32px;
+    }
 }
 
+// ── Banner ────────────────────────────────────────────────────────
+.welcome-banner {
+    background: #fff;
+    border: 1px solid $border;
+    border-left: 5px solid $c-psy;
+    border-radius: 16px;
+    padding: 28px 36px;
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+
+    .greeting {
+        font-size: 26px;
+        font-weight: 700;
+        color: $text-main;
+        margin: 0 0 6px;
+    }
+
+    .subtitle {
+        font-size: 14px;
+        color: $text-muted;
+        margin: 0;
+    }
+
+    .banner-decoration {
+        position: absolute;
+        right: 36px;
+        opacity: 0.04;
+
+        mat-icon {
+            font-size: 140px;
+            width: 140px;
+            height: 140px;
+        }
+    }
+}
+
+// ── Loading / error ───────────────────────────────────────────────
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 80px 20px;
+    color: $text-muted;
+    font-size: 14px;
+
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid $border;
+        border-top-color: $c-psy;
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border: 1px dashed $border;
+    border-radius: 16px;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        color: #cbd5e1;
+        margin-bottom: 12px;
+    }
+
+    h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0 0 4px;
+    }
+
+    p {
+        font-size: 14px;
+        margin: 0;
+    }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform .2s, box-shadow .2s;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px -6px rgba(0, 0, 0, .08);
+    }
+
+    .icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+        }
+    }
+
+    .stat-label {
+        font-size: 11px;
+        color: $text-muted;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .stat-num {
+        font-size: 28px;
+        font-weight: 700;
+        color: $text-main;
+        line-height: 1.1;
+    }
+
+    &.coral .icon-wrapper {
+        background: rgba($c-coral, .1);
+        color: $c-coral;
+    }
+
+    &.purple .icon-wrapper {
+        background: rgba($c-psy, .1);
+        color: $c-psy;
+    }
+
+    &.blue .icon-wrapper {
+        background: rgba($c-blue, .1);
+        color: $c-blue;
+    }
+}
+
+// ── Grid ─────────────────────────────────────────────────────────
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.main-column,
+.side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+// ── Widget panel ──────────────────────────────────────────────────
+.widget-panel {
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.widget-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid $border;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h2 {
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0;
+    }
+}
+
+.badge-count {
+    font-size: 11px;
+    font-weight: 700;
+    background: $c-coral;
+    color: #fff;
+    border-radius: 20px;
+    padding: 2px 8px;
+
+    &.purple {
+        background: $c-psy;
+    }
+}
+
+.widget-content {
+    padding: 8px 20px 12px;
+}
+
+// ── Citas ─────────────────────────────────────────────────────────
+.cita-item {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.cita-hora {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 48px;
+    padding-top: 3px;
+    flex-shrink: 0;
+
+    .hora {
+        font-size: 13px;
+        font-weight: 700;
+        color: $text-main;
+    }
+
+    .duracion {
+        font-size: 11px;
+        color: $text-muted;
+    }
+}
+
+.cita-bar {
+    flex: 1;
+    background: rgba($c-psy, .04);
+    border-left: 3px solid $c-psy;
+    border-radius: 0 6px 6px 0;
+    padding: 8px 12px;
+}
+
+.cita-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.cita-titulo {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-main;
+}
+
+.cita-estado {
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 2px 8px;
+
+    &.confirmada {
+        background: rgba($c-green, .12);
+        color: darken($c-green, 5%);
+    }
+
+    &.pendiente {
+        background: rgba($c-amber, .12);
+        color: darken($c-amber, 5%);
+    }
+}
+
+.cita-alumno,
+.cita-modalidad {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: $text-muted;
+    margin: 2px 0 0;
+
+    mat-icon {
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
+    }
+}
+
+// ── Alumnos en seguimiento ────────────────────────────────────────
+.alumno-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.alumno-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $c-psy, #6d28d9);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.alumno-info {
+    flex: 1;
+}
+
+.alumno-nombre {
+    font-size: 13px;
+    font-weight: 500;
+    color: $text-main;
+    margin: 0 0 2px;
+}
+
+.alumno-grado {
+    font-size: 11px;
+    color: $text-muted;
+    margin: 0;
+}
+
+.btn-ver {
+    display: flex;
+    align-items: center;
+    color: $text-muted;
+    text-decoration: none;
+    transition: color .15s;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+
+    &:hover {
+        color: $c-psy;
+    }
+}
+
+// ── Comunicados ───────────────────────────────────────────────────
+.comm-item {
+    padding: 10px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.comm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 3px;
+
+    strong {
+        font-size: 13px;
+        color: $text-main;
+    }
+
+    small {
+        font-size: 11px;
+        color: $text-muted;
+    }
+}
+
+.comm-body {
+    font-size: 12px;
+    color: $text-muted;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+// ── Tabs de navegación ────────────────────────────────────────────
 .tabs-nav {
     display: flex;
     gap: 6px;
     padding: 6px;
     background: #fff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid $border;
     border-radius: 12px;
     overflow-x: auto;
 
@@ -36,34 +458,46 @@
 
         &:hover {
             background: #f1f5f9;
-            color: #1e293b;
+            color: $text-main;
         }
 
         &.active {
-            background: #eff6ff;
-            color: #1d4ed8;
+            background: #f5f3ff;
+            color: $c-psy;
         }
     }
 }
 
+// ── Tab outlet ────────────────────────────────────────────────────
 .tab-outlet {
     background: #fff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid $border;
     border-radius: 12px;
     padding: 24px;
     min-height: 360px;
+
+    @media (max-width: 768px) {
+        padding: 16px;
+    }
 }
 
-@media (max-width: 720px) {
-    .psy-dashboard {
-        padding: 16px;
+// ── Empty widget ──────────────────────────────────────────────────
+.empty-widget {
+    text-align: center;
+    padding: 28px 0;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+        opacity: .4;
+        display: block;
+        margin: 0 auto 8px;
     }
 
-    .tab-outlet {
-        padding: 16px;
-    }
-
-    .tabs-nav .tab-link {
-        padding: 8px 12px;
+    p {
+        margin: 0;
+        font-size: 13px;
     }
 }

@@ -266,3 +266,174 @@ $c-auxiliar: #14b8a6;
         }
     }
 }
+// ── Agrega al final del scss existente ───────────────────────────
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 20px;
+  color: $text-muted;
+  font-size: 14px;
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid $border-light;
+    border-top-color: $c-auxiliar;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #fff;
+  border: 1px dashed $border-light;
+  border-radius: 16px;
+  color: $text-muted;
+
+  mat-icon { font-size: 40px; width: 40px; height: 40px; color: #cbd5e1; margin-bottom: 12px; }
+  h3 { font-size: 16px; font-weight: 600; color: $text-main; margin: 0 0 4px; }
+  p  { font-size: 14px; margin: 0; }
+}
+
+// ── Grid ──────────────────────────────────────────────────────────
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+
+  @media (max-width: 1024px) { grid-template-columns: 1fr; }
+}
+
+.main-column, .side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ── Secciones ─────────────────────────────────────────────────────
+.secciones-list {
+  background: #fff;
+  border: 1px solid $border-light;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.seccion-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background .15s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: #f8fafc; }
+
+  &.registrada { opacity: .75; }
+}
+
+.seccion-estado {
+  flex-shrink: 0;
+  .icon-ok      { color: $c-green; font-size: 20px; width: 20px; height: 20px; }
+  .icon-pending { color: #cbd5e1;  font-size: 20px; width: 20px; height: 20px; }
+}
+
+.seccion-info { flex: 1; }
+
+.seccion-nombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-main;
+  margin: 0 0 2px;
+}
+
+.seccion-meta {
+  font-size: 11px;
+  color: $text-muted;
+  margin: 0;
+}
+
+.btn-registrar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $c-auxiliar;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border: 1px solid rgba($c-auxiliar, .3);
+  border-radius: 8px;
+  transition: all .15s;
+
+  mat-icon { font-size: 15px; width: 15px; height: 15px; }
+  &:hover { background: rgba($c-auxiliar, .08); border-color: $c-auxiliar; }
+}
+
+// ── Widget panel ──────────────────────────────────────────────────
+.widget-panel {
+  background: #fff;
+  border: 1px solid $border-light;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.widget-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid $border-light;
+  h2 { font-size: 14px; font-weight: 600; color: $text-main; margin: 0; }
+}
+
+.widget-content { padding: 8px 20px 12px; }
+
+// ── Comunicados ───────────────────────────────────────────────────
+.comm-item {
+  padding: 10px 0;
+  border-bottom: 1px dashed $border-light;
+  &:last-child { border-bottom: none; }
+}
+
+.comm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 3px;
+  strong { font-size: 13px; color: $text-main; }
+  small  { font-size: 11px; color: $text-muted; }
+}
+
+.comm-body {
+  font-size: 12px;
+  color: $text-muted;
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ── Empty widget ──────────────────────────────────────────────────
+.empty-widget {
+  text-align: center;
+  padding: 28px 0;
+  color: $text-muted;
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    opacity: .4;
+    display: block;
+    margin: 0 auto 8px;
+  }
+
+  p { margin: 0; font-size: 13px; }
+}

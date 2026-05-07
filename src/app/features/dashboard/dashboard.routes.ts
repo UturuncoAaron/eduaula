@@ -1,79 +1,71 @@
 import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
 import { roleGuard } from '../../core/guards/role-guard';
+import { AuthService } from '../../core/auth/auth';
 
 export const DASHBOARD_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./dashboard-redirect').then(c => c.DashboardRedirect),
+    pathMatch: 'full',
+    redirectTo: () => {
+      const rol = inject(AuthService).currentUser()?.rol ?? '';
+      const map: Record<string, string> = {
+        alumno:    '/dashboard/alumno',
+        docente:   '/dashboard/docente',
+        admin:     '/dashboard/admin',
+        padre:     '/dashboard/padre',
+        auxiliar:  '/dashboard/auxiliar',
+        psicologa: '/dashboard/psicologa',
+      };
+      return map[rol] ?? '/auth/login';
+    },
   },
   {
     path: 'alumno',
     canActivate: [roleGuard(['alumno'])],
     loadComponent: () =>
-      import('./alumno-dashboard/alumno-dashboard').then(c => c.AlumnoDashboard),
+      import('./alumno-dashboard/alumno-dashboard')
+        .then(c => c.AlumnoDashboard),
+    title: 'Mi dashboard | EduAula',
   },
   {
     path: 'docente',
     canActivate: [roleGuard(['docente'])],
     loadComponent: () =>
-      import('./docente-dashboard/docente-dashboard').then(c => c.DocenteDashboard),
+      import('./docente-dashboard/docente-dashboard')
+        .then(c => c.DocenteDashboard),
+    title: 'Mi dashboard | EduAula',
   },
   {
     path: 'admin',
     canActivate: [roleGuard(['admin'])],
     loadComponent: () =>
-      import('./admin-dashboard/admin-dashboard').then(c => c.AdminDashboard),
-  },
-  {
-    path: 'auxiliar',
-    canActivate: [roleGuard(['auxiliar'])],
-    loadComponent: () =>
-      import('./auxiliar-dashboard/auxiliar-dashboard').then(c => c.AuxiliarDashboard),
+      import('./admin-dashboard/admin-dashboard')
+        .then(c => c.AdminDashboard),
+    title: 'Panel de administración | EduAula',
   },
   {
     path: 'padre',
     canActivate: [roleGuard(['padre'])],
     loadComponent: () =>
-      import('./padre-dashboard/padre-dashboard').then(c => c.PadreDashboard),
+      import('./padre-dashboard/padre-dashboard')
+        .then(c => c.PadreDashboard),
+    title: 'Mi dashboard | EduAula',
+  },
+  {
+    path: 'auxiliar',
+    canActivate: [roleGuard(['auxiliar'])],
+    loadComponent: () =>
+      import('./auxiliar-dashboard/auxiliar-dashboard')
+        .then(c => c.AuxiliarDashboard),
+    title: 'Mi dashboard | EduAula',
   },
   {
     path: 'psicologa',
     canActivate: [roleGuard(['psicologa'])],
     loadComponent: () =>
-      import('./psychology-dashboard/psychology-dashboard').then(c => c.PsychologyDashboard),
-    children: [
-      { path: '', redirectTo: 'alumnos', pathMatch: 'full' },
-      {
-        path: 'alumnos',
-        loadComponent: () =>
-          import('../psychology/tabs/tab-mis-alumnos/tab-mis-alumnos').then(c => c.TabMisAlumnos),
-        title: 'Mis Alumnos | EduAula',
-      },
-      {
-        path: 'fichas',
-        loadComponent: () =>
-          import('../psychology/tabs/tab-fichas/tab-fichas').then(c => c.TabFichas),
-        title: 'Fichas | EduAula',
-      },
-      {
-        path: 'fichas/:id',
-        loadComponent: () =>
-          import('../psychology/student-detail/student-detail').then(c => c.StudentDetail),
-        title: 'Ficha del alumno | EduAula',
-      },
-      {
-        path: 'citas',
-        loadComponent: () =>
-          import('../psychology/tabs/tab-citas/tab-citas').then(c => c.TabCitas),
-        title: 'Agenda y Citas | EduAula',
-      },
-      {
-        path: 'disponibilidad',
-        loadComponent: () =>
-          import('../psychology/tabs/tab-disponibilidad/tab-disponibilidad').then(c => c.TabDisponibilidad),
-        title: 'Disponibilidad | EduAula',
-      },
-    ],
+      import('./psychology-dashboard/psychology-dashboard')
+        .then(c => c.PsychologyDashboard),
+    title: 'Panel de psicología | EduAula',
   },
 ];

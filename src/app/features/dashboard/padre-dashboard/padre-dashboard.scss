@@ -1,17 +1,30 @@
+$text-main: #1e293b;
+$text-muted: #64748b;
+$border: #e2e8f0;
+$c-primary: #1a5276;
+$c-blue: #2e86c1;
+$c-green: #059669;
+$c-amber: #d97706;
+
 .padre-container {
-    padding: 24px;
-    max-width: 900px;
+    padding: 0 32px 48px;
+    max-width: 1600px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+        padding: 0 16px 32px;
+    }
 }
 
 // ── Banner ────────────────────────────────────────────────────────
 .welcome-banner {
-    background: linear-gradient(135deg, #1a5276 0%, #2e86c1 100%);
+    background: linear-gradient(135deg, $c-primary 0%, $c-blue 100%);
     border-radius: 16px;
     padding: 28px 32px;
-    margin-bottom: 32px;
+    margin: 16px 0 32px;
     color: #fff;
-    overflow: hidden;
     position: relative;
+    overflow: hidden;
 }
 
 .banner-content {
@@ -23,39 +36,94 @@
 .banner-text {
     h1 {
         margin: 0 0 6px;
-        font-size: 1.6rem;
+        font-size: 1.5rem;
         font-weight: 700;
     }
 
     p {
         margin: 0;
-        opacity: 0.85;
-        font-size: 0.95rem;
+        opacity: .85;
+        font-size: .9rem;
     }
 }
 
-.banner-icon {
+.banner-icon mat-icon {
+    font-size: 72px;
+    width: 72px;
+    height: 72px;
+    opacity: .15;
+}
+
+// ── Loading / error ───────────────────────────────────────────────
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 72px 20px;
+    color: $text-muted;
+    font-size: 14px;
+
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid $border;
+        border-top-color: $c-blue;
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+    }
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px;
+    gap: 8px;
+    color: $text-muted;
+    border: 2px dashed $border;
+    border-radius: 16px;
+    text-align: center;
+
     mat-icon {
-        font-size: 64px;
-        width: 64px;
-        height: 64px;
-        opacity: 0.2;
+        font-size: 44px;
+        width: 44px;
+        height: 44px;
+        opacity: .4;
+    }
+
+    h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: $text-main;
+    }
+
+    p {
+        margin: 0;
+        font-size: .85rem;
     }
 }
 
-// ── Section ───────────────────────────────────────────────────────
+// ── Secciones ─────────────────────────────────────────────────────
 .section {
     margin-bottom: 32px;
 }
 
 .section-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    color: var(--mat-sys-on-surface, #1a1a1a);
+    color: $text-main;
     margin: 0 0 16px;
 }
 
-// ── Children grid ─────────────────────────────────────────────────
+// ── Hijos ─────────────────────────────────────────────────────────
 .children-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -63,17 +131,17 @@
 }
 
 .child-card {
-    background: var(--mat-sys-surface, #fff);
+    background: #fff;
     border-radius: 16px;
-    border: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+    border: 1px solid $border;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow .2s;
 
     &:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
     }
 }
 
@@ -84,16 +152,16 @@
 }
 
 .child-avatar {
-    width: 52px;
-    height: 52px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #1a5276, #2e86c1);
+    background: linear-gradient(135deg, $c-primary, $c-blue);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     flex-shrink: 0;
 }
 
@@ -106,85 +174,263 @@
 
 .child-name {
     margin: 0;
-    font-size: 1rem;
+    font-size: .95rem;
     font-weight: 600;
-    color: var(--mat-sys-on-surface, #1a1a1a);
+    color: $text-main;
 }
 
 .child-grade {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.82rem;
-    color: var(--mat-sys-on-surface-variant, #666);
+    font-size: .8rem;
+    color: $text-muted;
 
     mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
     }
-}
-
-.child-code {
-    font-size: 0.75rem;
-    color: var(--mat-sys-on-surface-variant, #888);
 }
 
 .card-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 8px;
 
     a {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        font-size: 0.85rem;
+        gap: 4px;
+        font-size: .8rem;
 
         mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
+            font-size: 15px;
+            width: 15px;
+            height: 15px;
         }
     }
 }
 
-// ── Loading ───────────────────────────────────────────────────────
-.loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 48px;
-    gap: 12px;
-    color: var(--mat-sys-on-surface-variant, #666);
+// ── Bottom grid ───────────────────────────────────────────────────
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 24px;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+    }
 }
 
-// ── Empty ─────────────────────────────────────────────────────────
-.empty-state {
+.right-column {
     display: flex;
     flex-direction: column;
+    gap: 24px;
+}
+
+// ── Widget panel ──────────────────────────────────────────────────
+.widget-panel {
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.widget-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid $border;
+    display: flex;
     align-items: center;
-    padding: 48px;
-    gap: 8px;
-    color: var(--mat-sys-on-surface-variant, #999);
-    border: 2px dashed var(--mat-sys-outline-variant, #e0e0e0);
-    border-radius: 16px;
+    justify-content: space-between;
+
+    h2 {
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0;
+    }
+}
+
+.badge-count {
+    font-size: 11px;
+    font-weight: 700;
+    background: $c-blue;
+    color: #fff;
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+
+.widget-content {
+    padding: 8px 20px 12px;
+}
+
+// ── Citas ─────────────────────────────────────────────────────────
+.cita-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.cita-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba($c-blue, .1);
+    color: $c-blue;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 
     mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.cita-body {
+    flex: 1;
+}
+
+.cita-titulo {
+    font-size: 13px;
+    font-weight: 500;
+    color: $text-main;
+    margin: 0 0 3px;
+}
+
+.cita-alumno {
+    font-weight: 400;
+    color: $text-muted;
+}
+
+.cita-meta {
+    font-size: 11px;
+    color: $text-muted;
+    margin: 0;
+    text-transform: capitalize;
+}
+
+.cita-estado {
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 3px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &.confirmada {
+        background: rgba($c-green, .12);
+        color: darken($c-green, 5%);
     }
 
-    h3 {
-        margin: 0;
-        font-size: 1rem;
+    &.pendiente {
+        background: rgba($c-amber, .12);
+        color: darken($c-amber, 5%);
+    }
+}
+
+// ── Libretas ──────────────────────────────────────────────────────
+.libreta-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.libreta-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: #e53e3e;
+    flex-shrink: 0;
+}
+
+.libreta-body {
+    flex: 1;
+}
+
+.libreta-periodo {
+    font-size: 13px;
+    font-weight: 500;
+    color: $text-main;
+    margin: 0 0 2px;
+}
+
+.libreta-fecha {
+    font-size: 11px;
+    color: $text-muted;
+    margin: 0;
+}
+
+// ── Comunicados ───────────────────────────────────────────────────
+.comm-item {
+    padding: 11px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.comm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+
+    strong {
+        font-size: 13px;
+        color: $text-main;
+    }
+
+    small {
+        font-size: 11px;
+        color: $text-muted;
+    }
+}
+
+.comm-body {
+    font-size: 12px;
+    color: $text-muted;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+// ── Empty widget ──────────────────────────────────────────────────
+.empty-widget {
+    text-align: center;
+    padding: 28px 0;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+        opacity: .4;
+        display: block;
+        margin: 0 auto 8px;
     }
 
     p {
         margin: 0;
-        font-size: 0.85rem;
-        text-align: center;
+        font-size: 13px;
     }
 }

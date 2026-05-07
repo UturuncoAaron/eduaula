@@ -2,65 +2,152 @@
 
     <header class="welcome-banner">
         <div class="banner-content">
-            <h1 class="greeting">¡Hola, {{ auth.currentUser()?.apellido_paterno ?? 'Auxiliar' }}!</h1>
-            <p class="subtitle">Registra la asistencia escaneando el carnet QR de los alumnos.</p>
+            <h1 class="greeting">
+                ¡Hola, {{ auth.currentUser()?.apellido_paterno ?? 'Auxiliar' }}!
+            </h1>
+            <p class="subtitle">Registra la asistencia general de los alumnos.</p>
         </div>
-        <div class="banner-decoration">
+        <div class="banner-decoration" aria-hidden="true">
             <mat-icon>support_agent</mat-icon>
         </div>
     </header>
 
+    @if (loading()) {
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando información del día...</p>
+    </div>
+
+    } @else if (error()) {
+    <div class="empty-state">
+        <mat-icon>error_outline</mat-icon>
+        <h3>Ha ocurrido un error</h3>
+        <p>{{ error() }}</p>
+    </div>
+
+    } @else if (dashboardData(); as data) {
+
+    <!-- STATS DEL DÍA — derivados del backend, sin hardcode -->
     <div class="stats-grid">
         <div class="stat-card green">
             <div class="icon-wrapper"><mat-icon>check_circle</mat-icon></div>
             <div class="stat-info">
-                <span class="stat-label">Asistencias hoy</span>
-                <span class="stat-num">{{ stats().asistencias }}</span>
+                <span class="stat-label">Secciones registradas</span>
+                <span class="stat-num">{{ seccionesRegistradas() }}</span>
             </div>
         </div>
 
         <div class="stat-card orange">
-            <div class="icon-wrapper"><mat-icon>schedule</mat-icon></div>
+            <div class="icon-wrapper"><mat-icon>pending_actions</mat-icon></div>
             <div class="stat-info">
-                <span class="stat-label">Tardanzas hoy</span>
-                <span class="stat-num">{{ stats().tardanzas }}</span>
+                <span class="stat-label">Secciones pendientes</span>
+                <span class="stat-num">{{ seccionesPendientes() }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card red">
+            <div class="icon-wrapper"><mat-icon>person_off</mat-icon></div>
+            <div class="stat-info">
+                <span class="stat-label">Faltas hoy</span>
+                <span class="stat-num">{{ totalFaltas() }}</span>
             </div>
         </div>
 
         <div class="stat-card blue">
-            <div class="icon-wrapper"><mat-icon>qr_code_scanner</mat-icon></div>
+            <div class="icon-wrapper"><mat-icon>schedule</mat-icon></div>
             <div class="stat-info">
-                <span class="stat-label">Total escaneados</span>
-                <span class="stat-num">{{ stats().total }}</span>
+                <span class="stat-label">Tardanzas hoy</span>
+                <span class="stat-num">{{ totalTardanzas() }}</span>
             </div>
         </div>
     </div>
 
-    <div class="section-header">
-        <h2 class="section-title">Acciones rápidas</h2>
-    </div>
+    <div class="dashboard-grid">
 
-    <div class="actions-grid">
-        <a class="action-card primary" routerLink="/asistencia/general/scan">
-            <div class="action-icon">
-                <mat-icon>qr_code_scanner</mat-icon>
+        <!-- COLUMNA IZQUIERDA: secciones del día -->
+        <section class="main-column">
+            <div class="section-header">
+                <h2 class="section-title">Secciones de hoy</h2>
             </div>
-            <div class="action-info">
-                <h3>Escanear QR</h3>
-                <p>Abrí la cámara y escaneá el carnet del alumno</p>
-            </div>
-            <mat-icon class="arrow">chevron_right</mat-icon>
-        </a>
 
-        <a class="action-card" routerLink="/comunicados">
-            <div class="action-icon">
-                <mat-icon>campaign</mat-icon>
+            <div class="secciones-list">
+                @for (seccion of data.seccionesHoy; track seccion.seccionId) {
+                <div class="seccion-item" [class.registrada]="seccion.registrada">
+                    <div class="seccion-estado">
+                        @if (seccion.registrada) {
+                        <mat-icon class="icon-ok">check_circle</mat-icon>
+                        } @else {
+                        <mat-icon class="icon-pending">radio_button_unchecked</mat-icon>
+                        }
+                    </div>
+                    <div class="seccion-info">
+                        <p class="seccion-nombre">
+                            {{ seccion.gradoNombre }} — Sec. {{ seccion.seccionNombre }}
+                        </p>
+                        <p class="seccion-meta">
+                            {{ seccion.totalAlumnos }} alumnos
+                            @if (seccion.registrada) {
+                            · {{ seccion.totalFaltas }} falta{{ seccion.totalFaltas !== 1 ? 's' : '' }}
+                            · {{ seccion.totalTardanzas }} tardanza{{ seccion.totalTardanzas !== 1 ? 's' : '' }}
+                            }
+                        </p>
+                    </div>
+                    @if (!seccion.registrada) {
+                    <a class="btn-registrar" [routerLink]="['/asistencia', 'general', seccion.seccionId]">
+                        <mat-icon>edit_note</mat-icon>
+                        Registrar
+                    </a>
+                    }
+                </div>
+                } @empty {
+                <div class="empty-widget">
+                    <mat-icon>event_busy</mat-icon>
+                    <p>No hay secciones activas para hoy.</p>
+                </div>
+                }
             </div>
-            <div class="action-info">
-                <h3>Comunicados</h3>
-                <p>Avisos y novedades del colegio</p>
-            </div>
-            <mat-icon class="arrow">chevron_right</mat-icon>
-        </a>
+        </section>
+
+        <!-- COLUMNA DERECHA: acceso rápido + comunicados -->
+        <aside class="side-column">
+
+            <!-- ACCIÓN PRINCIPAL -->
+            <a class="action-card primary" routerLink="/asistencia/general/scan">
+                <div class="action-icon">
+                    <mat-icon>qr_code_scanner</mat-icon>
+                </div>
+                <div class="action-info">
+                    <h3>Escanear QR</h3>
+                    <p>Abre la cámara y escanea el carnet del alumno</p>
+                </div>
+                <mat-icon class="arrow">chevron_right</mat-icon>
+            </a>
+
+            <!-- COMUNICADOS -->
+            <section class="widget-panel">
+                <div class="widget-header">
+                    <h2>Comunicados</h2>
+                </div>
+                <div class="widget-content">
+                    @for (com of data.comunicados; track com.id) {
+                    <div class="comm-item">
+                        <div class="comm-header">
+                            <strong>{{ com.titulo }}</strong>
+                            <small>{{ com.fecha | date:'d MMM' }}</small>
+                        </div>
+                        <p class="comm-body">{{ com.contenido }}</p>
+                    </div>
+                    } @empty {
+                    <div class="empty-widget">
+                        <mat-icon>notifications_none</mat-icon>
+                        <p>No hay comunicados recientes.</p>
+                    </div>
+                    }
+                </div>
+            </section>
+
+        </aside>
     </div>
+    }
+
 </div>

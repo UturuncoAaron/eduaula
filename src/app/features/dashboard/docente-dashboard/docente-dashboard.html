@@ -2,72 +2,145 @@
 
     <header class="welcome-banner">
         <div class="banner-content">
-            <h1 class="greeting">¡Hola, Prof. {{ auth.currentUser()?.apellido_paterno ?? 'Docente' }}!</h1>
-            <p class="subtitle">Este es el estado de tus clases y tareas pendientes para hoy.</p>
+            <h1 class="greeting">
+                ¡Hola, Prof. {{ auth.currentUser()?.apellido_paterno ?? 'Docente' }}!
+            </h1>
+            <p class="subtitle">Estado de tus clases y pendientes para hoy.</p>
         </div>
-        <div class="banner-decoration">
+        <div class="banner-decoration" aria-hidden="true">
             <mat-icon>history_edu</mat-icon>
         </div>
     </header>
 
-    <div class="stats-grid">
-        <div class="stat-card orange">
-            <div class="icon-wrapper"><mat-icon>assignment_late</mat-icon></div>
-            <div class="stat-info">
-                <span class="stat-label">Entregas sin calificar</span>
-                <span class="stat-num">{{ alerts().sinCalificar }}</span>
-            </div>
-        </div>
-
-        <div class="stat-card red">
-            <div class="icon-wrapper"><mat-icon>notification_important</mat-icon></div>
-            <div class="stat-info">
-                <span class="stat-label">Notas bimestrales pend.</span>
-                <span class="stat-num">{{ alerts().notasPendientes }}</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="section-header">
-        <h2 class="section-title">Mis cursos asignados</h2>
-    </div>
-
     @if (loading()) {
     <div class="loading-state">
-        <p>Cargando tus cursos...</p>
+        <div class="spinner"></div>
+        <p>Cargando tu información...</p>
     </div>
-    } @else {
-    <div class="courses-grid">
-        @for (c of courses(); track c.id) {
-        <div class="course-card">
-            <div class="card-header">
-                <div class="course-icon">
-                    <mat-icon>co_present</mat-icon>
-                </div>
-            </div>
 
-            <div class="card-body">
-                <h3>{{ c.nombre }}</h3>
-                <p>{{ c.descripcion }}</p>
-            </div>
+    } @else if (error()) {
+    <div class="empty-state">
+        <mat-icon>error_outline</mat-icon>
+        <h3>Ha ocurrido un error</h3>
+        <p>{{ error() }}</p>
+    </div>
 
-            <div class="card-footer">
-                <a mat-stroked-button class="btn-outline w-full" [routerLink]="['/notas', 'registrar']"
-                    [queryParams]="{ cursoId: c.id, cursoNombre: c.nombre, bimestre: 1, periodoId: c.periodo_id }">
-                    <mat-icon>grading</mat-icon> Notas
-                </a>
-                <a mat-flat-button class="btn-primary w-full" [routerLink]="['/cursos', c.id]">
-                    Gestionar
-                </a>
-            </div>
-        </div>
-        } @empty {
-        <div class="empty-state">
-            <mat-icon>co_present</mat-icon>
-            <h3>Sin cursos asignados</h3>
-            <p>No tienes cursos asignados para este periodo académico.</p>
-        </div>
-        }
+    } @else if (dashboardData(); as data) {
+
+    <!-- BANNER ALERTA: entregas sin calificar -->
+    @if (totalSinCalificar() > 0) {
+    <div class="alert-banner orange">
+        <mat-icon>assignment_late</mat-icon>
+        <span>
+            Tienes <strong>{{ totalSinCalificar() }} entrega{{ totalSinCalificar() > 1 ? 's' : '' }}</strong>
+            pendiente{{ totalSinCalificar() > 1 ? 's' : '' }} de calificar.
+        </span>
+        <a routerLink="/cursos" class="alert-link">Ir a calificar</a>
     </div>
     }
+
+    <div class="dashboard-grid">
+
+        <!-- COLUMNA IZQUIERDA -->
+        <div class="main-column">
+
+            <!-- HORARIO DE HOY -->
+            <section class="widget-panel">
+                <div class="widget-header">
+                    <h2>Horario de hoy</h2>
+                </div>
+                <div class="widget-content">
+                    @if (!tieneClasesHoy()) {
+                    <div class="empty-widget">
+                        <mat-icon>event_available</mat-icon>
+                        <p>No tienes clases programadas para hoy.</p>
+                    </div>
+                    } @else {
+                    @for (slot of data.horarioHoy; track slot.horaInicio) {
+                    <div class="schedule-item">
+                        <div class="schedule-time">
+                            <span class="time-start">{{ slot.horaInicio }}</span>
+                            <span class="time-end">{{ slot.horaFin }}</span>
+                        </div>
+                        <div class="schedule-bar" [style.background-color]="slot.color + '22'"
+                            [style.border-left]="'3px solid ' + slot.color">
+                            <span class="schedule-curso" [style.color]="slot.color">
+                                {{ slot.cursoNombre }}
+                            </span>
+                            <span class="schedule-seccion">{{ slot.seccionNombre }}</span>
+                            @if (slot.aula) {
+                            <span class="schedule-aula">
+                                <mat-icon>room</mat-icon>{{ slot.aula }}
+                            </span>
+                            }
+                        </div>
+                    </div>
+                    }
+                    }
+                </div>
+            </section>
+
+            <!-- COMUNICADOS -->
+            <section class="widget-panel">
+                <div class="widget-header">
+                    <h2>Comunicados</h2>
+                </div>
+                <div class="widget-content">
+                    @for (com of data.comunicados; track com.id) {
+                    <div class="comm-item">
+                        <div class="comm-header">
+                            <strong>{{ com.titulo }}</strong>
+                            <small>{{ com.fecha | date:'d MMM' }}</small>
+                        </div>
+                        <p class="comm-body">{{ com.contenido }}</p>
+                    </div>
+                    } @empty {
+                    <div class="empty-widget">
+                        <mat-icon>notifications_none</mat-icon>
+                        <p>No hay comunicados recientes.</p>
+                    </div>
+                    }
+                </div>
+            </section>
+
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <aside class="side-column">
+
+            <!-- ENTREGAS SIN CALIFICAR -->
+            <section class="widget-panel">
+                <div class="widget-header">
+                    <h2>Entregas sin calificar</h2>
+                    @if (totalSinCalificar() > 0) {
+                    <span class="badge-count">{{ totalSinCalificar() }}</span>
+                    }
+                </div>
+                <div class="widget-content">
+                    @for (entrega of data.entregasSinCalificar; track entrega.tareaId) {
+                    <div class="task-item">
+                        <span class="urgency-dot" [class]="getUrgencia(entrega.fechaLimite)"></span>
+                        <div class="task-body">
+                            <p class="task-name">{{ entrega.tareaTitulo }}</p>
+                            <p class="task-meta">{{ entrega.cursoNombre }}</p>
+                        </div>
+                        <div class="task-right">
+                            <span class="badge-alumnos">{{ entrega.totalSinCalificar }}</span>
+                            <span class="task-date">{{ entrega.fechaLimite | date:'d MMM' }}</span>
+                        </div>
+                    </div>
+                    } @empty {
+                    <div class="empty-widget">
+                        <mat-icon>done_all</mat-icon>
+                        <p>¡Todo calificado! Sin pendientes.</p>
+                    </div>
+                    }
+                </div>
+            </section>
+
+        </aside>
+
+    </div>
+    }
+
 </div>

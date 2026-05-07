@@ -1,302 +1,137 @@
-/* ==========================================================================
-   VARIABLES (Consistencia Visual EduAula)
-   ========================================================================== */
-$bg-color: transparent;
 $text-main: #1e293b;
 $text-muted: #64748b;
-$border-light: #e2e8f0;
-
-/* Colores Semánticos */
+$border: #e2e8f0;
 $c-blue: #2563eb;
+$c-teacher: #4f46e5;
 $c-orange: #f59e0b;
 $c-red: #ef4444;
-$c-teacher: #4f46e5;
-/* Indigo para el docente */
+$c-amber: #f59e0b;
+$c-green: #10b981;
 
 .dashboard-container {
-    padding: 0 32px 40px 32px;
-    font-family: 'Inter', sans-serif;
+    padding: 0 32px 48px;
     max-width: 1600px;
     margin: 0 auto;
 
     @media (max-width: 768px) {
-        padding: 0 16px 24px;
+        padding: 0 16px 32px;
     }
 }
 
-/* ==========================================================================
-   BANNER DE BIENVENIDA (Estilo "Clean & Bright")
-   ========================================================================== */
+// ── Banner ────────────────────────────────────────────────────────
 .welcome-banner {
-    background: #ffffff;
-    background-image: radial-gradient(circle at top right, #eff6ff 0%, #ffffff 60%);
-    border: 1px solid $border-light;
-    border-left: 6px solid $c-blue;
+    background: #fff;
+    border: 1px solid $border;
+    border-left: 5px solid $c-teacher;
     border-radius: 16px;
-    padding: 32px 40px;
+    padding: 28px 36px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 16px;
-    margin-bottom: 32px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    margin: 16px 0 28px;
     position: relative;
     overflow: hidden;
 
-    .banner-content {
-        z-index: 2;
+    .greeting {
+        font-size: 26px;
+        font-weight: 700;
+        color: $text-main;
+        margin: 0 0 6px;
+    }
 
-        .greeting {
-            font-size: 28px;
-            font-weight: 700;
-            color: $text-main;
-            margin: 0 0 8px 0;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            font-size: 15px;
-            color: $text-muted;
-            margin: 0;
-        }
+    .subtitle {
+        font-size: 14px;
+        color: $text-muted;
+        margin: 0;
     }
 
     .banner-decoration {
         position: absolute;
-        right: 40px;
-        top: 50%;
-        transform: translateY(-50%) rotate(-10deg);
+        right: 36px;
         opacity: 0.04;
-        color: $c-blue;
-        pointer-events: none;
 
         mat-icon {
-            font-size: 160px;
-            width: 160px;
-            height: 160px;
+            font-size: 140px;
+            width: 140px;
+            height: 140px;
         }
     }
 }
 
-/* ==========================================================================
-   TARJETAS DE ALERTAS
-   ========================================================================== */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.stat-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 24px;
+// ── Alert banner ──────────────────────────────────────────────────
+.alert-banner {
     display: flex;
     align-items: center;
-    gap: 16px;
-    border: 1px solid $border-light;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-    transition: transform 0.2s, box-shadow 0.2s;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 24px;
 
-    &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.08);
-    }
-
-    .icon-wrapper {
-        width: 52px;
-        height: 52px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-
-        mat-icon {
-            font-size: 26px;
-            width: 26px;
-            height: 26px;
-        }
-    }
-
-    .stat-info {
-        display: flex;
-        flex-direction: column;
-
-        .stat-label {
-            font-size: 12px;
-            color: $text-muted;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .stat-num {
-            font-size: 28px;
-            font-weight: 700;
-            color: $text-main;
-            line-height: 1;
-        }
-    }
-
-    /* Temas de Color */
-    &.blue .icon-wrapper {
-        background: rgba($c-blue, 0.1);
-        color: $c-blue;
-    }
-
-    &.orange .icon-wrapper {
-        background: rgba($c-orange, 0.1);
-        color: $c-orange;
-    }
-
-    &.red .icon-wrapper {
-        background: rgba($c-red, 0.1);
-        color: $c-red;
-    }
-}
-
-/* ==========================================================================
-   MIS CURSOS (Estilo Docente)
-   ========================================================================== */
-.section-header {
-    margin-bottom: 20px;
-
-    .section-title {
+    mat-icon {
         font-size: 20px;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    span {
+        flex: 1;
+    }
+
+    .alert-link {
+        font-size: 13px;
         font-weight: 600;
-        color: $text-main;
-        margin: 0;
+        text-decoration: none;
+        white-space: nowrap;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &.orange {
+        background: rgba($c-orange, .1);
+        color: darken($c-orange, 20%);
+        border: 1px solid rgba($c-orange, .25);
+
+        .alert-link {
+            color: darken($c-orange, 20%);
+        }
     }
 }
 
-.courses-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 24px;
+// ── Loading / error ───────────────────────────────────────────────
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-.course-card {
+.loading-state {
     display: flex;
     flex-direction: column;
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid $border-light;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    align-items: center;
+    gap: 16px;
+    padding: 80px 20px;
+    color: $text-muted;
+    font-size: 14px;
 
-    &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px -8px rgba($c-teacher, 0.15);
-        border-color: #c7d2fe;
-
-        .card-header {
-            background-size: 120% 120%;
-            /* Efecto de zoom sutil */
-        }
-    }
-
-    /* Cabecera con Degradado Índigo/Morado para docentes */
-    .card-header {
-        height: 80px;
-        background: linear-gradient(135deg, $c-teacher 0%, #312e81 100%);
-        position: relative;
-        display: flex;
-        align-items: flex-end;
-        padding: 0 20px;
-        transition: background-size 0.3s;
-
-        .course-icon {
-            width: 48px;
-            height: 48px;
-            background: #ffffff;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transform: translateY(20px);
-            color: $c-teacher;
-
-            mat-icon {
-                font-size: 24px;
-                width: 24px;
-                height: 24px;
-            }
-        }
-    }
-
-    /* Cuerpo de la tarjeta */
-    .card-body {
-        padding: 32px 20px 20px 20px;
-        flex: 1;
-
-        h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: $text-main;
-            margin: 0 0 4px 0;
-        }
-
-        p {
-            font-size: 13px;
-            color: $text-muted;
-            margin: 0;
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-    }
-
-    /* Pie con Botones */
-    .card-footer {
-        padding: 16px 20px;
-        border-top: 1px solid #f1f5f9;
-        display: flex;
-        gap: 12px;
-
-        .w-full {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            border-radius: 6px;
-        }
-
-        .btn-primary {
-            background: $c-teacher;
-            color: white;
-        }
-
-        .btn-outline {
-            border: 1px solid #cbd5e1;
-            color: $text-main;
-
-            mat-icon {
-                margin-right: 4px;
-                font-size: 18px;
-                width: 18px;
-                height: 18px;
-            }
-
-            &:hover {
-                background: #f8fafc;
-            }
-        }
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid $border;
+        border-top-color: $c-teacher;
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
     }
 }
 
-/* ==========================================================================
-   ESTADOS GLOBALES
-   ========================================================================== */
-.loading-state,
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    background: #ffffff;
-    border: 1px dashed $border-light;
+    background: #fff;
+    border: 1px dashed $border;
     border-radius: 16px;
     color: $text-muted;
 
@@ -312,11 +147,263 @@ $c-teacher: #4f46e5;
         font-size: 16px;
         font-weight: 600;
         color: $text-main;
-        margin: 0 0 4px 0;
+        margin: 0 0 4px;
     }
 
     p {
         font-size: 14px;
         margin: 0;
+    }
+}
+
+// ── Grid ─────────────────────────────────────────────────────────
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.main-column,
+.side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+// ── Widget panel ──────────────────────────────────────────────────
+.widget-panel {
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.widget-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid $border;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h2 {
+        font-size: 15px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0;
+    }
+}
+
+.widget-content {
+    padding: 8px 20px 12px;
+}
+
+// ── Horario ───────────────────────────────────────────────────────
+.schedule-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.schedule-time {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 44px;
+    padding-top: 4px;
+
+    .time-start {
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-main;
+    }
+
+    .time-end {
+        font-size: 11px;
+        color: $text-muted;
+    }
+}
+
+.schedule-bar {
+    flex: 1;
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.schedule-curso {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.schedule-seccion {
+    font-size: 11px;
+    color: $text-muted;
+}
+
+.schedule-aula {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+    }
+}
+
+// ── Tareas / entregas ─────────────────────────────────────────────
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.urgency-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.rojo {
+        background: $c-red;
+    }
+
+    &.ambar {
+        background: $c-amber;
+    }
+
+    &.verde {
+        background: $c-green;
+    }
+}
+
+.task-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.task-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: $text-main;
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task-meta {
+    font-size: 11px;
+    color: $text-muted;
+    margin: 0;
+}
+
+.task-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.badge-alumnos {
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba($c-orange, .15);
+    color: darken($c-orange, 18%);
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+
+.badge-count {
+    font-size: 11px;
+    font-weight: 700;
+    background: $c-orange;
+    color: #fff;
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+
+.task-date {
+    font-size: 11px;
+    color: $text-muted;
+}
+
+// ── Comunicados ───────────────────────────────────────────────────
+.comm-item {
+    padding: 11px 0;
+    border-bottom: 1px dashed $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.comm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+
+    strong {
+        font-size: 13px;
+        color: $text-main;
+    }
+
+    small {
+        font-size: 11px;
+        color: $text-muted;
+    }
+}
+
+.comm-body {
+    font-size: 12px;
+    color: $text-muted;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+// ── Empty widget ──────────────────────────────────────────────────
+.empty-widget {
+    text-align: center;
+    padding: 32px 0;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 30px;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 8px;
+        opacity: .4;
+        display: block;
+        margin-inline: auto;
+    }
+
+    p {
+        margin: 0;
+        font-size: 13px;
     }
 }

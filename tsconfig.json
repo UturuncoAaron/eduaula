@@ -16,15 +16,28 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "preserve",
-    "baseUrl": ".",
     "paths": {
-      "@core": ["src/app/core"],
-      "@core/*": ["src/app/core/*"],
-      "@shared": ["src/app/shared"],
-      "@shared/*": ["src/app/shared/*"],
-      "@features/*": ["src/app/features/*"],
-      "@layouts/*": ["src/app/layouts/*"],
-      "@env/*": ["src/environments/*"]
+      "@core": [
+        "./src/app/core"
+      ],
+      "@core/*": [
+        "./src/app/core/*"
+      ],
+      "@shared": [
+        "./src/app/shared"
+      ],
+      "@shared/*": [
+        "./src/app/shared/*"
+      ],
+      "@features/*": [
+        "./src/app/features/*"
+      ],
+      "@layouts/*": [
+        "./src/app/layouts/*"
+      ],
+      "@env/*": [
+        "./src/environments/*"
+      ]
     }
   },
   "angularCompilerOptions": {
