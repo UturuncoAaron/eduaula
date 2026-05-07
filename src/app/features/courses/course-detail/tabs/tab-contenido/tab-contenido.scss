@@ -721,10 +721,20 @@ $radius-sm: 6px;
   box-shadow: none !important;
   overflow: hidden;
 
+  // Padding solo horizontal — los paneles dejan que mat-expansion controle
+  // la altura (defaults: 48px collapsed / 64px expanded). Padding vertical
+  // pelea con esa animación.
   ::ng-deep .mat-expansion-panel-header {
-    height: auto;
-    min-height: 56px;
-    padding: 14px 24px;
+    padding: 0 24px;
+  }
+
+  // Reset del margen extra (16px) que Material aplica al panel expandido vía
+  // .mat-expansion-panel-spacing. Sin este reset, abrir un panel rompe el
+  // ritmo del gap de 8px del .bb-accordion (la lista de semanas/secciones
+  // se descoloca al desplegar).
+  &.mat-expansion-panel-spacing,
+  ::ng-deep .mat-expansion-panel-spacing {
+    margin: 0;
   }
 
   ::ng-deep .mat-expansion-panel-body {

@@ -77,7 +77,7 @@ export class WeekAccordion {
   iconOf(item: SemanaItem): string {
     if (item.kind === 'tarea') {
       const t = item.raw as Task;
-      return t.permite_alternativas ? 'quiz' : 'fact_check';
+      return t.permite_alternativas ? 'task_alt' : 'fact_check';
     }
     if (item.kind === 'foro') return 'forum';
     const m = item.raw as Material;

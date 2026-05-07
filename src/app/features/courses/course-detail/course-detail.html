@@ -7,15 +7,49 @@
             </button>
             <div class="header-titles">
                 @if (course(); as c) {
-                <div class="badge-active">Curso activo</div>
+                <div class="badge-active">
+                    <span class="dot-pulse"></span>
+                    Curso activo
+                </div>
                 <h1>{{ c.nombre }}</h1>
                 @if (c.descripcion) {
-                <p>{{ c.descripcion }}</p>
+                <p class="course-desc">{{ c.descripcion }}</p>
                 }
+                <div class="meta-row">
+                    @if (c.seccion?.nombre; as seccion) {
+                    <span class="meta-chip">
+                        <mat-icon>class</mat-icon>
+                        Sección {{ seccion }}
+                    </span>
+                    }
+                    @if (periodoLabel(); as periodo) {
+                    <span class="meta-chip">
+                        <mat-icon>event</mat-icon>
+                        {{ periodo }}
+                    </span>
+                    }
+                    @if (semanasCount() > 0) {
+                    <span class="meta-chip">
+                        <mat-icon>auto_stories</mat-icon>
+                        {{ semanasCount() }} {{ semanasCount() === 1 ? 'semana' : 'semanas' }}
+                    </span>
+                    }
+                    @if (bimestresCount() > 0) {
+                    <span class="meta-chip">
+                        <mat-icon>calendar_month</mat-icon>
+                        {{ bimestresCount() }} {{ bimestresCount() === 1 ? 'bimestre' : 'bimestres' }}
+                    </span>
+                    }
+                </div>
                 } @else {
                 <app-course-header-skeleton />
                 }
             </div>
+        </div>
+        <div class="header-decoration" aria-hidden="true">
+            <div class="deco-circle deco-circle-1"></div>
+            <div class="deco-circle deco-circle-2"></div>
+            <mat-icon class="deco-icon">auto_awesome</mat-icon>
         </div>
     </header>
 

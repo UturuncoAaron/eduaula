@@ -27,15 +27,25 @@ $radius-md: 10px;
         border-color: #cbd5e1 !important;
     }
 
+    // Padding solo horizontal: la altura la fija collapsedHeight/expandedHeight
+    // del HTML (64px). Cualquier padding vertical pelea con la animación de
+    // mat-expansion y produce el "jank" al desplegar.
     ::ng-deep .mat-expansion-panel-header {
-        height: auto;
-        min-height: 56px;
-        padding: 14px 24px;
+        padding: 0 24px;
         transition: background .15s;
 
         &:hover {
             background: #f8fafc;
         }
+    }
+
+    // Material agrega `margin: 16px 0` (vía .mat-expansion-panel-spacing) al
+    // panel cuando está expandido, lo que rompe el ritmo del gap fijo de 8px
+    // del .bb-accordion. Lo reseteamos para que el espaciado entre semanas
+    // sea constante esté el panel abierto o cerrado.
+    &.mat-expansion-panel-spacing,
+    ::ng-deep .mat-expansion-panel-spacing {
+        margin: 0;
     }
 
     ::ng-deep .mat-expansion-panel-body {
@@ -318,16 +328,18 @@ $radius-md: 10px;
 }
 
 // ── Acciones ──────────────────────────────────────────────────
+// Los 3 botones (download/open/menu) comparten el mismo footprint y un mismo
+// patrón de hover: fondo transparente por defecto, círculo suave al hacer
+// hover. NO se sobreescribe width/height de mat-icon-button — eso rompe el
+// ripple/hover-circle nativo de Material y produce el "hover disparejo".
 .item-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 
     button {
-        width: 36px;
-        height: 36px;
-        line-height: 36px;
-        transition: background .15s, color .15s;
+        color: $accent;
+        transition: color .15s;
 
         mat-icon {
             font-size: 20px;
@@ -336,31 +348,32 @@ $radius-md: 10px;
         }
     }
 
-    .action-download {
-        color: $accent;
-        background: $accent-soft;
-
-        &:hover {
-            background: rgba(24, 95, 165, .15);
-            color: #0f3d6e;
-        }
-    }
-
+    // Acción primaria (descargar / abrir) — color accent, círculo soft al hover.
+    .action-download,
     .action-open {
         color: $accent;
 
         &:hover {
-            background: $accent-soft;
+            color: #0f3d6e;
         }
     }
 
+    // Menú secundario — color muted, hover neutro.
     .action-menu {
-        color: #64748b;
+        color: $text-muted;
 
         &:hover {
-            background: #f1f5f9;
-            color: #1e293b;
+            color: $text-main;
         }
+    }
+}
+
+// El círculo de hover lo aplica el state-layer interno de mat-mdc-icon-button.
+// Tintamos esa capa con el color accent para que las 3 acciones se sientan
+// consistentes (Material por defecto usa un gris neutro).
+::ng-deep .item-actions .mat-mdc-icon-button {
+    .mat-mdc-button-persistent-ripple::before {
+        background-color: $accent !important;
     }
 }
 

@@ -11,6 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { AuthService } from '../../../core/auth/auth';
 import { LazyCourseStore } from '../data-access/lazy-course.store';
 import { Course } from '../../../core/models/course';
+import { PeriodoService } from '../../../core/services/periodo';
 import { CourseHeaderSkeleton } from '../../../shared/components/skeletons/skeletons';
 
 interface CourseTab {
@@ -34,15 +35,30 @@ export class CourseDetail implements OnInit {
   readonly auth = inject(AuthService);
   private route = inject(ActivatedRoute);
   private store = inject(LazyCourseStore);
+  private periodoSvc = inject(PeriodoService);
   private location = inject(Location);
   private destroyRef = inject(DestroyRef);
 
   course = signal<Course | null>(null);
   courseId = signal('');
+  semanasCount = signal(0);
+  bimestresCount = signal(0);
+
+  // Etiqueta legible del período del curso (ej. "Bim 1 · 2025"). Se resuelve
+  // contra PeriodoService.all() — si la lista no está cargada todavía, devuelve
+  // null y el chip simplemente no se muestra hasta que llegue la data.
+  readonly periodoLabel = computed<string | null>(() => {
+    const c = this.course();
+    if (!c) return null;
+    const id = String(c.periodo_id);
+    const p = this.periodoSvc.all().find(x => String(x.id) === id);
+    if (!p) return null;
+    return p.nombre?.trim() || `Bim ${p.bimestre} · ${p.anio}`;
+  });
 
   readonly tabs: CourseTab[] = [
-    { path: 'contenido',   label: 'Contenido',     icon: 'menu_book' },
-    { path: 'actividades', label: 'Actividades',   icon: 'assignment' },
+    { path: 'contenido',   label: 'Contenido',     icon: 'school' },
+    { path: 'actividades', label: 'Actividades',   icon: 'task_alt' },
     { path: 'foro',        label: 'Mensajes / Foro', icon: 'forum' },
     { path: 'materiales',  label: 'Materiales',    icon: 'folder' },
   ];
@@ -61,6 +77,9 @@ export class CourseDetail implements OnInit {
   ngOnInit() {
     this.courseId.set(this.route.snapshot.paramMap.get('id') ?? '');
     this.loadCourse();
+    // Carga la lista de períodos (idempotente, cacheada) para resolver el
+    // nombre del período del curso en el header.
+    this.periodoSvc.loadAll();
   }
 
   private loadCourse() {
@@ -71,6 +90,14 @@ export class CourseDetail implements OnInit {
     this.store.course$(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(c => this.course.set(c));
+    // Semanas también above-the-fold para mostrar el conteo en el header.
+    // Comparten cache con tab-contenido vía shareReplay.
+    this.store.semanas$(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(list => {
+        this.semanasCount.set(list.length);
+        this.bimestresCount.set(new Set(list.map(s => s.bimestre)).size);
+      });
   }
 
   goBack() { this.location.back(); }

@@ -22,7 +22,10 @@ $radius-sm: 6px;
 
 // ── Header ────────────────────────────────────────────────────
 .course-header {
-    background: $white;
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(135deg, #ffffff 0%, #ffffff 65%, #f8fafc 100%);
     border: 1px solid $border-color;
     border-left: 3px solid $accent;
     border-radius: $radius-lg;
@@ -45,6 +48,10 @@ $radius-sm: 6px;
         display: flex;
         align-items: flex-start;
         gap: 16px;
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        min-width: 0;
     }
 
     .btn-back {
@@ -52,6 +59,7 @@ $radius-sm: 6px;
         background: #f8fafc;
         border: 1px solid $border-color;
         transition: all .2s;
+        flex-shrink: 0;
 
         &:hover {
             color: $primary-blue;
@@ -61,16 +69,30 @@ $radius-sm: 6px;
     }
 
     .header-titles {
+        min-width: 0;
+
         .badge-active {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             background: $success-light;
             color: #047857;
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            padding: 4px 10px;
+            letter-spacing: .04em;
+            padding: 4px 10px 4px 8px;
             border-radius: 12px;
             margin-bottom: 8px;
+
+            .dot-pulse {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #10b981;
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, .6);
+                animation: dot-pulse 1.8s ease-out infinite;
+            }
         }
 
         h1 {
@@ -81,12 +103,127 @@ $radius-sm: 6px;
             line-height: 1.2;
         }
 
-        p {
+        .course-desc {
+            font-size: 14px;
+            color: $text-muted;
+            margin: 0 0 12px;
+            line-height: 1.45;
+            max-width: 720px;
+        }
+
+        // Compatibilidad: si `<p>` aparece sin clase (skeleton fallback,
+        // descripciones legacy), conserva el estilo tipográfico anterior.
+        p:not(.course-desc) {
             font-size: 14px;
             color: $text-muted;
             margin: 0;
         }
     }
+}
+
+// Chips de metadata bajo el título — sección, período, # semanas, # bimestres.
+.meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px 5px 10px;
+    background: #f1f5f9;
+    border: 1px solid $border-color;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: .1px;
+    transition: background .15s, border-color .15s, color .15s;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        color: $accent;
+    }
+
+    &:hover {
+        background: #eff6ff;
+        border-color: #c7d2fe;
+        color: $accent;
+    }
+}
+
+// Decoración del lado derecho — 2 círculos suaves + ícono de "sparkle"
+// para que el header no se vea tan plano. Pointer-events: none para
+// que no interfiera con clicks.
+.header-decoration {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 280px;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: .9;
+
+    @media (max-width: 768px) {
+        display: none;
+    }
+
+    .deco-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(
+            circle at 30% 30%,
+            rgba(24, 95, 165, .12),
+            rgba(24, 95, 165, 0) 70%
+        );
+    }
+
+    .deco-circle-1 {
+        width: 220px;
+        height: 220px;
+        top: -60px;
+        right: -60px;
+    }
+
+    .deco-circle-2 {
+        width: 140px;
+        height: 140px;
+        bottom: -40px;
+        right: 80px;
+        background: radial-gradient(
+            circle at 50% 50%,
+            rgba(99, 102, 241, .08),
+            rgba(99, 102, 241, 0) 70%
+        );
+    }
+
+    .deco-icon {
+        position: absolute;
+        top: 28px;
+        right: 32px;
+        font-size: 26px;
+        width: 26px;
+        height: 26px;
+        color: rgba(24, 95, 165, .35);
+        animation: deco-twinkle 3.5s ease-in-out infinite;
+    }
+}
+
+@keyframes dot-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, .55); }
+    70%  { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes deco-twinkle {
+    0%, 100% { transform: scale(1) rotate(0deg);    opacity: .35; }
+    50%      { transform: scale(1.12) rotate(8deg); opacity: .6;  }
 }
 
 // ── Tabs nav (mat-tab-nav-bar) ────────────────────────────────
