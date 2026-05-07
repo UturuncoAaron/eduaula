@@ -1,0 +1,115 @@
+:host {
+    display: block;
+    width: 100%;
+    min-width: 0; // el ancho lo define el dialog config (width/maxWidth)
+}
+
+[mat-dialog-title] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 1.05rem;
+    color: #0f172a;
+}
+
+.dialog-body {
+    padding: 18px 24px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    .row {
+        display: grid;
+        gap: 12px;
+
+        &.two   { grid-template-columns: 1fr 1fr; }
+        &.three { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .full { width: 100%; }
+
+    mat-form-field { width: 100%; }
+}
+
+.opt-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    .muted { color: #64748b; font-size: .75rem; }
+}
+
+.slots {
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 12px;
+    background: #f8fafc;
+
+    header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #334155;
+        font-size: .85rem;
+
+        mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    }
+
+    .muted { color: #64748b; font-size: .8rem; margin: 4px 0 0; }
+
+    mat-chip {
+        cursor: pointer;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        font-size: .8rem;
+
+        &:hover { background: #eff6ff; border-color: #93c5fd; }
+    }
+}
+
+.error-msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #b91c1c;
+    font-size: .85rem;
+    line-height: 1.35;
+
+    mat-icon {
+        flex: 0 0 auto;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    span { word-break: break-word; }
+}
+
+mat-dialog-actions {
+    padding: 12px 24px 16px;
+    border-top: 1px solid #f1f5f9;
+    gap: 8px;
+
+    button { gap: 6px; }
+}
+
+@media (max-width: 860px) {
+    .dialog-body .row.three { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 720px) {
+    .dialog-body .row.two,
+    .dialog-body .row.three { grid-template-columns: 1fr; }
+}

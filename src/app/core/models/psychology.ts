@@ -79,7 +79,8 @@ export interface UpdateRecordPayload {
 export interface Appointment {
     id: string;
     createdById: string;
-    parentId: string;
+    convocadoAId: string;
+    parentId: string | null;
     studentId: string;
     tipo: AppointmentTipo;
     modalidad: AppointmentModalidad;
@@ -94,14 +95,22 @@ export interface Appointment {
     createdAt: string;
     updatedAt: string;
     student?: AssignedStudent;
-    parent?: { id: string; nombre: string; apellido_paterno: string; apellido_materno: string | null };
+    parent?: { id: string; nombre: string; apellido_paterno: string; apellido_materno: string | null } | null;
+    convocadoA?: { id: string; nombre: string; apellido_paterno: string; apellido_materno?: string | null; rol: string } | null;
 }
 
+/**
+ * Coincide 1:1 con `CreateAppointmentDto` del backend.
+ * - `convocadoAId`: a quién va dirigida la cita (psicóloga/docente/admin/padre/auxiliar).
+ * - `parentId`: padre involucrado (opcional). El backend valida que pertenezca al alumno.
+ * - `modalidad`: opcional; si se omite el backend pone `presencial`.
+ */
 export interface CreateAppointmentPayload {
-    parentId: string;
+    convocadoAId: string;
     studentId: string;
+    parentId?: string;
     tipo: AppointmentTipo;
-    modalidad: AppointmentModalidad;
+    modalidad?: AppointmentModalidad;
     motivo: string;
     scheduledAt: string;
     durationMin?: number;
@@ -147,5 +156,21 @@ export interface CreateBlockPayload {
     endDate: string;
     motivo?: string;
 }
+
+// ── Directorio público de psicólogas ────────────────────────────────────────
+// Lo consumen padre/alumno para elegir a quién agendar.
+export interface Psicologa {
+    id: string;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+    especialidad: string | null;
+    email: string | null;
+    telefono: string | null;
+    foto_storage_key: string | null;
+}
+
+/** Slot disponible devuelto por GET /psychology/slots/:psychologistId */
+export type AvailableSlot = string; // ISO timestamp
 
 

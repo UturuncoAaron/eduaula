@@ -218,9 +218,10 @@ export class TabCitas {
       AppointmentFormDialogData,
       boolean
     >(AppointmentFormDialog, {
-      width: '560px',
+      width: '720px',
       maxWidth: '95vw',
       autoFocus: 'first-tabbable',
+      panelClass: 'appointment-dialog-panel',
       data: {},
     });
 

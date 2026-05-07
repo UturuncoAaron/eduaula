@@ -54,6 +54,14 @@ export const NAV_ITEMS: NavItem[] = [
   // ─── Solo Padre ────────────────────────────────────────────────────────────
   { label: 'Portal Padres', icon: 'family_restroom', route: '/portal-padres', modulos: [MODULO.HIJOS] },
 
+  // ─── Citas (alumno + padre) ────────────────────────────────────────────────
+  {
+    label: 'Mis citas',
+    icon: 'event_available',
+    route: '/mis-citas',
+    modulos: [MODULO.MIS_CITAS, MODULO.CITAS_AGENDADAS],
+  },
+
   // ─── Comunicados (alumno, docente, padre, psicologa, auxiliar) ─────────────
   {
     label: 'Comunicados',

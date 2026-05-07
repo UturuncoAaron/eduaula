@@ -12,6 +12,7 @@ export const MODULO = {
   MIS_NOTAS:         'mis_notas',
   MI_ASISTENCIA:     'mi_asistencia',
   MIS_LIBRETAS:      'mis_libretas',
+  MIS_CITAS:         'mis_citas',
 
   // ── Docente
   CURSOS_DOCENTE:    'cursos_docente',

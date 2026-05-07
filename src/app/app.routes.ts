@@ -98,6 +98,13 @@ export const routes: Routes = [
           import('./features/notebooks/notebooks.routes').then(r => r.NOTEBOOKS_ROUTES),
       },
       {
+        path: 'mis-citas',
+        canActivate: [permissionGuard([MODULO.MIS_CITAS, MODULO.CITAS_AGENDADAS])],
+        loadChildren: () =>
+          import('./features/appointments/appointments.routes')
+            .then(r => r.APPOINTMENTS_ROUTES),
+      },
+      {
         path: 'mi-tutoria',
         canActivate: [permissionGuard([MODULO.TUTORIA])],
         loadChildren: () =>

@@ -1,0 +1,248 @@
+<section class="mis-citas">
+
+    <!-- ── HERO ──────────────────────────────────────────────── -->
+    <header class="hero">
+        <div class="hero__text">
+            <div class="hero__icon"><mat-icon>event_available</mat-icon></div>
+            <div>
+                <h2>Mis citas</h2>
+                <p>
+                    @if (mode() === 'alumno') {
+                        Solicita y revisa tus citas con el área de psicología.
+                    } @else {
+                        Agenda y haz seguimiento de las citas de tus hijos con psicología.
+                    }
+                </p>
+            </div>
+        </div>
+
+        <button mat-flat-button color="primary" class="hero__cta" (click)="openRequest()">
+            <mat-icon>add</mat-icon>
+            <span>Solicitar cita</span>
+        </button>
+    </header>
+
+    <!-- ── KPIs ──────────────────────────────────────────────── -->
+    <div class="kpi-grid">
+        <article class="kpi kpi--total">
+            <div class="kpi__icon"><mat-icon>event_note</mat-icon></div>
+            <div class="kpi__body">
+                <span class="kpi__label">Total</span>
+                <strong class="kpi__value">{{ stats().total }}</strong>
+            </div>
+        </article>
+
+        <article class="kpi kpi--upcoming">
+            <div class="kpi__icon"><mat-icon>schedule</mat-icon></div>
+            <div class="kpi__body">
+                <span class="kpi__label">Próximas</span>
+                <strong class="kpi__value">{{ stats().upcoming }}</strong>
+            </div>
+        </article>
+
+        <article class="kpi kpi--pending">
+            <div class="kpi__icon"><mat-icon>hourglass_empty</mat-icon></div>
+            <div class="kpi__body">
+                <span class="kpi__label">Pendientes</span>
+                <strong class="kpi__value">{{ stats().pending }}</strong>
+            </div>
+        </article>
+
+        <article class="kpi kpi--done">
+            <div class="kpi__icon"><mat-icon>task_alt</mat-icon></div>
+            <div class="kpi__body">
+                <span class="kpi__label">Realizadas</span>
+                <strong class="kpi__value">{{ stats().done }}</strong>
+            </div>
+        </article>
+    </div>
+
+    <!-- ── Filtros ──────────────────────────────────────────── -->
+    <div class="filters">
+        <mat-form-field appearance="outline" class="filter-search">
+            <mat-label>Buscar</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput
+                   [value]="search()"
+                   (input)="search.set($any($event.target).value)"
+                   placeholder="Por motivo, alumno o psicóloga…" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-estado">
+            <mat-label>Estado</mat-label>
+            <mat-select [value]="filterEstado()" (valueChange)="filterEstado.set($event)">
+                @for (e of estados; track e.value) {
+                    <mat-option [value]="e.value">{{ e.label }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+    </div>
+
+    <!-- ── Estados ──────────────────────────────────────────── -->
+    @if (store.loadingAppointments()) {
+        <div class="state-center">
+            <mat-spinner diameter="36" />
+            <span>Cargando tus citas…</span>
+        </div>
+    } @else if (visible().length === 0) {
+        <app-empty-state
+            icon="event_busy"
+            [title]="store.appointments().length === 0 ? 'Aún no tienes citas' : 'Sin resultados'"
+            [message]="store.appointments().length === 0
+                ? (mode() === 'alumno'
+                    ? 'Cuando solicites tu primera cita aparecerá aquí.'
+                    : 'Cuando agendes una cita para tu hijo/a aparecerá aquí.')
+                : 'Intenta cambiar o limpiar los filtros para ver más resultados.'">
+            <button mat-flat-button color="primary" (click)="openRequest()">
+                <mat-icon>add</mat-icon>
+                <span>Solicitar cita</span>
+            </button>
+        </app-empty-state>
+    } @else {
+
+        <!-- Próximas -->
+        @if (upcoming().length > 0) {
+            <div class="section-block">
+                <header class="section-block__header">
+                    <span class="section-block__bullet section-block__bullet--upcoming"></span>
+                    <h3>Próximas</h3>
+                    <span class="section-block__count">{{ upcoming().length }}</span>
+                </header>
+
+                <div class="cards-grid">
+                    @for (a of upcoming(); track trackById($index, a)) {
+                        <article class="appt-card" [attr.data-estado]="a.estado">
+                            <div class="appt-card__date">
+                                <span class="appt-card__day">{{ a.scheduledAt | date: 'EEEE' }}</span>
+                                <span class="appt-card__big">{{ a.scheduledAt | date: 'd' }}</span>
+                                <span class="appt-card__month">{{ a.scheduledAt | date: 'MMM y' }}</span>
+                                <span class="appt-card__time">
+                                    <mat-icon>schedule</mat-icon>
+                                    {{ a.scheduledAt | date: 'HH:mm' }}
+                                </span>
+                            </div>
+
+                            <div class="appt-card__body">
+                                <header class="appt-card__head">
+                                    <span class="status-chip" [attr.data-estado]="a.estado">
+                                        <span class="status-dot"></span>
+                                        {{ estadoLabel(a.estado) }}
+                                    </span>
+                                    <span class="modalidad-chip" [attr.data-modalidad]="a.modalidad">
+                                        <mat-icon class="modalidad-icon">{{ modalidadIcon(a.modalidad) }}</mat-icon>
+                                        {{ a.modalidad }}
+                                    </span>
+                                    <span class="duration-chip">
+                                        <mat-icon>timer</mat-icon>
+                                        {{ a.durationMin }} min
+                                    </span>
+                                </header>
+
+                                <ul class="appt-card__meta">
+                                    <li>
+                                        <mat-icon class="meta-icon">school</mat-icon>
+                                        <div class="meta-text">
+                                            <span class="meta-label">Alumno</span>
+                                            <span class="meta-value">{{ studentName(a) }}</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <mat-icon class="meta-icon">psychology</mat-icon>
+                                        <div class="meta-text">
+                                            <span class="meta-label">Psicóloga</span>
+                                            <span class="meta-value">{{ psicologaName(a) }}</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <mat-icon class="meta-icon">subject</mat-icon>
+                                        <div class="meta-text">
+                                            <span class="meta-label">Motivo</span>
+                                            <span class="meta-value clamp-2">{{ a.motivo }}</span>
+                                        </div>
+                                    </li>
+                                </ul>
+
+                                <footer class="appt-card__actions">
+                                    <button mat-stroked-button color="warn"
+                                            [disabled]="!canCancel(a)"
+                                            (click)="cancelar(a)">
+                                        <mat-icon>cancel</mat-icon>
+                                        <span>Cancelar</span>
+                                    </button>
+                                </footer>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Historial -->
+        @if (past().length > 0) {
+            <div class="section-block section-block--past">
+                <header class="section-block__header">
+                    <span class="section-block__bullet section-block__bullet--past"></span>
+                    <h3>Historial</h3>
+                    <span class="section-block__count">{{ past().length }}</span>
+                </header>
+
+                <div class="cards-grid">
+                    @for (a of past(); track trackById($index, a)) {
+                        <article class="appt-card appt-card--past" [attr.data-estado]="a.estado">
+                            <div class="appt-card__date">
+                                <span class="appt-card__day">{{ a.scheduledAt | date: 'EEEE' }}</span>
+                                <span class="appt-card__big">{{ a.scheduledAt | date: 'd' }}</span>
+                                <span class="appt-card__month">{{ a.scheduledAt | date: 'MMM y' }}</span>
+                                <span class="appt-card__time">
+                                    <mat-icon>schedule</mat-icon>
+                                    {{ a.scheduledAt | date: 'HH:mm' }}
+                                </span>
+                            </div>
+
+                            <div class="appt-card__body">
+                                <header class="appt-card__head">
+                                    <span class="status-chip" [attr.data-estado]="a.estado">
+                                        <span class="status-dot"></span>
+                                        {{ estadoLabel(a.estado) }}
+                                    </span>
+                                    <span class="modalidad-chip" [attr.data-modalidad]="a.modalidad">
+                                        <mat-icon class="modalidad-icon">{{ modalidadIcon(a.modalidad) }}</mat-icon>
+                                        {{ a.modalidad }}
+                                    </span>
+                                    <span class="duration-chip">
+                                        <mat-icon>timer</mat-icon>
+                                        {{ a.durationMin }} min
+                                    </span>
+                                </header>
+
+                                <ul class="appt-card__meta">
+                                    <li>
+                                        <mat-icon class="meta-icon">school</mat-icon>
+                                        <div class="meta-text">
+                                            <span class="meta-label">Alumno</span>
+                                            <span class="meta-value">{{ studentName(a) }}</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <mat-icon class="meta-icon">psychology</mat-icon>
+                                        <div class="meta-text">
+                                            <span class="meta-label">Psicóloga</span>
+                                            <span class="meta-value">{{ psicologaName(a) }}</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <mat-icon class="meta-icon">subject</mat-icon>
+                                        <div class="meta-text">
+                                            <span class="meta-label">Motivo</span>
+                                            <span class="meta-value clamp-2">{{ a.motivo }}</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </div>
+        }
+    }
+</section>

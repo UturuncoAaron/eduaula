@@ -1,4 +1,8 @@
-:host { display: block; min-width: 640px; }
+:host {
+    display: block;
+    width: 100%;
+    min-width: 0; // el ancho lo controla el dialog config (width/maxWidth)
+}
 
 [mat-dialog-title] {
     display: flex;
@@ -12,25 +16,58 @@
 }
 
 .dialog-body {
-    padding: 18px 24px 4px;
+    padding: 18px 24px 8px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
+    max-height: 70vh;
+    overflow-y: auto;
 
     .row {
         display: grid;
         gap: 12px;
 
-        &.two { grid-template-columns: 1fr 1fr; }
+        &.two {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        &.three {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
     }
 
-    .full { width: 100%; }
+    .full {
+        width: 100%;
+    }
+
+    mat-form-field {
+        width: 100%;
+    }
 }
 
 .error-msg {
-    margin: 4px 0 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
     color: #b91c1c;
-    font-size: .8rem;
+    font-size: .85rem;
+    line-height: 1.35;
+
+    mat-icon {
+        flex: 0 0 auto;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    span {
+        word-break: break-word;
+    }
 }
 
 mat-dialog-actions {
@@ -38,10 +75,61 @@ mat-dialog-actions {
     border-top: 1px solid #f1f5f9;
     gap: 8px;
 
-    button { gap: 6px; }
+    button {
+        gap: 6px;
+    }
+}
+
+.selected-student {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    min-height: 56px;
+
+    .info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+
+        strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .muted {
+            color: #64748b;
+            font-size: .75rem;
+        }
+    }
+}
+
+.opt-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+
+    .muted {
+        color: #64748b;
+        font-size: .75rem;
+    }
+}
+
+@media (max-width: 860px) {
+    .dialog-body .row.three {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (max-width: 720px) {
-    :host { min-width: 0; width: 100%; }
-    .dialog-body .row.two { grid-template-columns: 1fr; }
+
+    .dialog-body .row.two,
+    .dialog-body .row.three {
+        grid-template-columns: 1fr;
+    }
 }

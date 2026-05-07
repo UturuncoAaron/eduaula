@@ -16,8 +16,10 @@ import { ApiService } from '../../../core/services/api';
 // ── Types ──────────────────────────────────────────────────────
 
 export interface ScheduleDialogData {
-  seccionId: number;
-  periodoId: number;
+  // En BD ambos son UUID (string). Antes estaban tipados como number y el
+  // backend usaba ParseIntPipe → 400. Ahora usa ParseUUIDPipe.
+  seccionId: string;
+  periodoId: string;
   seccionNombre: string;
   gradoNombre: string;
 }

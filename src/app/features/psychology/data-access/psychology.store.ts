@@ -4,12 +4,14 @@ import { ApiService } from '../../../core/services/api';
 import {
   Appointment,
   AssignedStudent,
+  AvailableSlot,
   CancelAppointmentPayload,
   CreateAppointmentPayload,
   CreateAvailabilityPayload,
   CreateBlockPayload,
   CreateRecordPayload,
   ParentOfStudent,
+  Psicologa,
   PsychologistAvailability,
   PsychologistBlock,
   PsychologyRecord,
@@ -122,6 +124,50 @@ export class PsychologyStore {
       ),
     );
     return unwrapList<ParentOfStudent>(res.data);
+  }
+
+  // ── DIRECTORIO (alumnos / psicólogas) ─────────────────────────
+  // Search abierto del directorio: lo usa la psicóloga para crear citas
+  // a alumnos que aún no están en su lista (al primer contacto el backend
+  // los autoasigna).
+  async searchAllStudents(query: string): Promise<AssignedStudent[]> {
+    const term = (query ?? '').trim();
+    if (!term) return [];
+    const res = await firstValueFrom(
+      this.api.get<AssignedStudent[] | { data: AssignedStudent[] }>(
+        'psychology/directory/students/search',
+        { q: term },
+      ),
+    );
+    return unwrapList<AssignedStudent>(res.data);
+  }
+
+  // Lista las psicólogas activas (visible para padre/alumno/staff).
+  async listPsicologas(query?: string): Promise<Psicologa[]> {
+    const params = query ? { q: query } : undefined;
+    const res = await firstValueFrom(
+      this.api.get<Psicologa[] | { data: Psicologa[] }>('psychology/psicologas', params),
+    );
+    return unwrapList<Psicologa>(res.data);
+  }
+
+  // Slots disponibles de una psicóloga para un rango (lo consume el formulario
+  // de agendar de padre/alumno y la psicóloga al crear su propia cita).
+  async getAvailableSlots(
+    psychologistId: string,
+    fromIso: string,
+    toIso: string,
+    durationMin?: number,
+  ): Promise<AvailableSlot[]> {
+    const params: Record<string, string> = { from: fromIso, to: toIso };
+    if (durationMin) params['durationMin'] = String(durationMin);
+    const res = await firstValueFrom(
+      this.api.get<AvailableSlot[] | { data: AvailableSlot[] }>(
+        `psychology/slots/${psychologistId}`,
+        params,
+      ),
+    );
+    return unwrapList<AvailableSlot>(res.data);
   }
 
   // ── RECORDS ───────────────────────────────────────────────────

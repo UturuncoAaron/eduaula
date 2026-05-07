@@ -1,0 +1,452 @@
+/* ───────────────────────────────────────────────────────────
+ * Mis Citas (alumno + padre)
+ * Diseño alineado con el resto del producto (KPIs + chips
+ * + tarjetas), tomando como referencia la pestaña de
+ * "Citas" de psicología y la sección de "Grados y Cursos".
+ * Sólo HTML/CSS — la lógica vive en mis-citas.ts.
+ * ─────────────────────────────────────────────────────────── */
+
+:host { display: block; }
+
+.mis-citas {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+/* ── HERO ──────────────────────────────────────────────── */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 26px;
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(99, 102, 241, .14) 0%, rgba(99, 102, 241, 0) 60%),
+    linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #4f46e5 100%);
+  color: #fff;
+  box-shadow: 0 10px 30px -12px rgba(37, 99, 235, .45);
+  overflow: hidden;
+  position: relative;
+
+  &__text {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .18);
+    backdrop-filter: blur(4px);
+
+    mat-icon {
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: .9rem;
+    color: rgba(255, 255, 255, .85);
+    max-width: 60ch;
+  }
+
+  &__cta {
+    flex-shrink: 0;
+    height: 42px;
+    border-radius: 999px !important;
+    background: #fff !important;
+    color: #1d4ed8 !important;
+    font-weight: 600;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, .12);
+
+    mat-icon { margin-right: 6px; }
+  }
+}
+
+/* ── KPI cards (mismo lenguaje visual que tab-citas) ───── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  transition: transform .15s ease, box-shadow .15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, .08);
+  }
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #eef2ff;
+    color: #4f46e5;
+
+    mat-icon { font-size: 22px; height: 22px; width: 22px; }
+  }
+
+  &__body  { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; }
+  &__label { font-size: .78rem; color: #64748b; }
+  &__value { font-size: 1.6rem; font-weight: 700; color: #0f172a; }
+
+  &--upcoming .kpi__icon { background: #eff6ff; color: #3b82f6; }
+  &--pending  .kpi__icon { background: #fffbeb; color: #d97706; }
+  &--done     .kpi__icon { background: #ecfdf5; color: #10b981; }
+}
+
+/* ── Filtros ───────────────────────────────────────────── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .filter-search { flex: 1 1 320px; min-width: 240px; }
+  .filter-estado { flex: 0 1 220px; }
+
+  .mat-mdc-form-field { margin: 0; }
+}
+
+/* ── Loader ────────────────────────────────────────────── */
+.state-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 24px;
+  color: #64748b;
+  font-size: .9rem;
+  background: #fff;
+  border: 1px dashed #e2e8f0;
+  border-radius: 14px;
+}
+
+/* ── Section header ────────────────────────────────────── */
+.section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+  }
+
+  &__bullet {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: 0 0 10px;
+
+    &--upcoming { background: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, .15); }
+    &--past     { background: #94a3b8; box-shadow: 0 0 0 3px rgba(148, 163, 184, .15); }
+  }
+
+  &__count {
+    font-size: .72rem;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  &--past .appt-card { opacity: .92; }
+}
+
+/* ── Cards grid ───────────────────────────────────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+}
+
+/* ── Appointment card ─────────────────────────────────── */
+.appt-card {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+  }
+
+  /* Lateral con la fecha — el color depende del estado */
+  &__date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 14px 8px;
+    color: #fff;
+    text-align: center;
+    background: linear-gradient(160deg, #2563eb 0%, #4f46e5 100%);
+    line-height: 1;
+  }
+
+  &__day {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    color: rgba(255, 255, 255, .85);
+  }
+
+  &__big {
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    margin: 2px 0;
+  }
+
+  &__month {
+    font-size: .72rem;
+    text-transform: capitalize;
+    color: rgba(255, 255, 255, .85);
+  }
+
+  &__time {
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .78rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, .18);
+    padding: 3px 8px;
+    border-radius: 999px;
+
+    mat-icon { font-size: 14px; height: 14px; width: 14px; }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+    min-width: 0;
+  }
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__meta {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .meta-icon {
+      flex: 0 0 18px;
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .meta-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .meta-label {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .meta-value {
+      font-size: .9rem;
+      color: #0f172a;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+
+    button { gap: 4px; }
+  }
+
+  /* Variantes del lateral según estado de la cita */
+  &[data-estado="confirmada"] .appt-card__date {
+    background: linear-gradient(160deg, #059669 0%, #10b981 100%);
+  }
+  &[data-estado="pendiente"] .appt-card__date {
+    background: linear-gradient(160deg, #d97706 0%, #f59e0b 100%);
+  }
+  &[data-estado="realizada"] .appt-card__date {
+    background: linear-gradient(160deg, #1e40af 0%, #3b82f6 100%);
+  }
+  &[data-estado="cancelada"] .appt-card__date {
+    background: linear-gradient(160deg, #b91c1c 0%, #ef4444 100%);
+  }
+  &[data-estado="no_asistio"] .appt-card__date {
+    background: linear-gradient(160deg, #475569 0%, #94a3b8 100%);
+  }
+
+  &--past .appt-card__date {
+    filter: saturate(.85);
+  }
+}
+
+/* ── Status / modalidad / duration chips ─────────────── */
+.status-chip,
+.modalidad-chip,
+.duration-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .76rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.status-chip {
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  &[data-estado="pendiente"]   { background: #fef3c7; color: #92400e; .status-dot { background: #f59e0b; } }
+  &[data-estado="confirmada"]  { background: #ecfdf5; color: #059669; .status-dot { background: #10b981; } }
+  &[data-estado="realizada"]   { background: #dbeafe; color: #1e40af; .status-dot { background: #3b82f6; } }
+  &[data-estado="cancelada"]   { background: #fef2f2; color: #dc2626; .status-dot { background: #ef4444; } }
+  &[data-estado="no_asistio"]  { background: #f1f5f9; color: #475569; .status-dot { background: #94a3b8; } }
+}
+
+.modalidad-chip {
+  background: #f1f5f9;
+  color: #334155;
+
+  .modalidad-icon { font-size: 14px; height: 14px; width: 14px; }
+
+  &[data-modalidad="presencial"] { background: #ecfeff; color: #0e7490; }
+  &[data-modalidad="virtual"]    { background: #eef2ff; color: #4f46e5; }
+  &[data-modalidad="telefonico"] { background: #fef3c7; color: #92400e; }
+}
+
+.duration-chip {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+
+  mat-icon { font-size: 14px; height: 14px; width: 14px; }
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  .mis-citas { padding: 16px; gap: 16px; }
+
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 20px;
+
+    &__cta { align-self: stretch; justify-content: center; }
+  }
+
+  .filters .filter-search,
+  .filters .filter-estado { flex: 1 1 100%; min-width: 0; }
+
+  .cards-grid { grid-template-columns: 1fr; }
+
+  .appt-card {
+    grid-template-columns: 84px 1fr;
+    &__big { font-size: 1.8rem; }
+  }
+}
+
+@media (max-width: 420px) {
+  .appt-card {
+    grid-template-columns: 1fr;
+
+    &__date {
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+    }
+    &__big { font-size: 1.4rem; margin: 0; }
+    &__time { margin-top: 0; }
+  }
+}

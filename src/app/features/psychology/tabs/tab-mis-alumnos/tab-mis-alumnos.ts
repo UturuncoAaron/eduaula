@@ -59,6 +59,7 @@ export class TabMisAlumnos implements OnInit {
   }
 
   verFicha(s: AssignedStudent) {
-    this.router.navigate(['/dashboard/psicologa/fichas', s.id]);
+    // La ruta hija real bajo /psicologa es 'student/:id' (definida en PSYCHOLOGY_ROUTES)
+    this.router.navigate(['/psicologa/student', s.id]);
   }
 }
