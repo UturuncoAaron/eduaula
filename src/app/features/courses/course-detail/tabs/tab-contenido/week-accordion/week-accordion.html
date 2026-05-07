@@ -1,0 +1,134 @@
+<mat-expansion-panel class="bb-panel semana-panel"
+    [class.is-hidden]="semana().oculta"
+    (opened)="opened.emit()">
+    <mat-expansion-panel-header collapsedHeight="64px" expandedHeight="64px">
+        <mat-panel-title>
+            <mat-icon class="bb-panel-icon">calendar_view_week</mat-icon>
+            <span class="semana-label">SEMANA {{ semana().semana }}</span>
+            <span class="bim-tag">Bim {{ semana().bimestre }}</span>
+            @if (semana().oculta && canManage()) {
+            <span class="hidden-pill"><mat-icon>visibility_off</mat-icon> Oculta</span>
+            }
+        </mat-panel-title>
+        <mat-panel-description>
+            <span class="semana-count">
+                @if (itemCount() > 0) {
+                <span class="bb-count">{{ itemCount() }} {{ itemCount() === 1 ? 'recurso' : 'recursos' }}</span>
+                } @else if (!isLoading()) {
+                <span class="bb-count empty">Sin contenido</span>
+                }
+            </span>
+            @if (canManage()) {
+            <button mat-icon-button class="header-eye"
+                [matTooltip]="semana().oculta ? 'Mostrar a alumnos' : 'Ocultar a alumnos'"
+                (click)="$event.stopPropagation(); toggleSemana.emit(semana())">
+                <mat-icon>{{ semana().oculta ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            }
+        </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <div class="bb-panel-body">
+        @if (canManage()) {
+        <div class="add-bar">
+            <button mat-stroked-button (click)="createMaterial.emit(semana())">
+                <mat-icon>folder_open</mat-icon> Material
+            </button>
+            <button mat-stroked-button (click)="createTarea.emit(semana())">
+                <mat-icon>assignment</mat-icon> Tarea
+            </button>
+            <button mat-stroked-button (click)="createForo.emit(semana())">
+                <mat-icon>forum</mat-icon> Foro
+            </button>
+        </div>
+        }
+
+        @if (isLoading()) {
+        <app-week-content-skeleton [count]="3" />
+        } @else if (itemCount() === 0) {
+        <p class="empty-msg">Está vacío o próximamente.</p>
+        } @else {
+        <div class="item-list">
+            @for (it of items(); track it.kind + ':' + it.id) {
+            @let chip = tipoChip(it);
+            <div class="item-row" [class.is-hidden]="it.oculto"
+                role="button" tabindex="0"
+                (click)="itemOpen.emit(it)"
+                (keydown.enter)="itemOpen.emit(it)">
+
+                <div class="item-icon" [style.background]="iconColor(it)">
+                    <mat-icon>{{ iconOf(it) }}</mat-icon>
+                </div>
+
+                <div class="item-info">
+                    <div class="item-head">
+                        <h4>{{ it.titulo }}</h4>
+                        <span class="type-chip"
+                            [style.color]="chip.color"
+                            [style.background-color]="chip.color + '14'"
+                            [style.border-color]="chip.color + '33'">
+                            {{ chip.label }}
+                        </span>
+                        @if (it.oculto) {
+                        <span class="hidden-pill compact">
+                            <mat-icon>visibility_off</mat-icon> Oculto
+                        </span>
+                        }
+                    </div>
+                    @if (it.descripcion) {
+                    <p class="item-desc">{{ it.descripcion }}</p>
+                    }
+                    <div class="meta-data">
+                        @for (p of metaParts(it); track $index; let isLast = $last) {
+                        <span>{{ p }}</span>
+                        @if (!isLast) { <span class="dot">·</span> }
+                        }
+                    </div>
+                </div>
+
+                <div class="item-actions">
+                    @if (canDownload(it)) {
+                    <button mat-icon-button class="action-download"
+                        matTooltip="Descargar"
+                        (click)="$event.stopPropagation(); materialDownload.emit(it)">
+                        <mat-icon>download</mat-icon>
+                    </button>
+                    } @else {
+                    <button mat-icon-button class="action-open"
+                        matTooltip="Abrir"
+                        (click)="$event.stopPropagation(); itemOpen.emit(it)">
+                        <mat-icon>open_in_new</mat-icon>
+                    </button>
+                    }
+                    @if (canManage()) {
+                    <button mat-icon-button class="action-menu"
+                        matTooltip="Más opciones"
+                        [matMenuTriggerFor]="itemMenu"
+                        (click)="$event.stopPropagation()">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #itemMenu="matMenu" xPosition="before">
+                        <button mat-menu-item (click)="itemOpen.emit(it)">
+                            <mat-icon>visibility</mat-icon>
+                            <span>Ver detalle</span>
+                        </button>
+                        <button mat-menu-item (click)="itemToggle.emit(it)">
+                            <mat-icon>{{ it.oculto ? 'visibility' : 'visibility_off' }}</mat-icon>
+                            <span>{{ it.oculto ? 'Mostrar a alumnos' : 'Ocultar a alumnos' }}</span>
+                        </button>
+                        @if (it.kind === 'material') {
+                        <button mat-menu-item class="danger"
+                            (click)="itemDelete.emit(it)">
+                            <mat-icon>delete</mat-icon>
+                            <span>Eliminar</span>
+                        </button>
+                        }
+                    </mat-menu>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </div>
+</mat-expansion-panel>

@@ -6,16 +6,40 @@
                 <mat-icon>arrow_back</mat-icon>
             </button>
             <div class="header-titles">
+                @if (course(); as c) {
                 <div class="badge-active">Curso activo</div>
-                <h1>{{ course()?.nombre ?? 'Cargando curso...' }}</h1>
-                @if (course()?.descripcion) {
-                <p>{{ course()!.descripcion }}</p>
+                <h1>{{ c.nombre }}</h1>
+                @if (c.descripcion) {
+                <p>{{ c.descripcion }}</p>
+                }
+                } @else {
+                <app-course-header-skeleton />
                 }
             </div>
         </div>
     </header>
 
-    <main class="main-content">
-        <app-tab-contenido [courseId]="courseId" [course]="course()"></app-tab-contenido>
-    </main>
+    <nav class="tabs-nav" mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false" mat-align-tabs="start">
+        @for (tab of tabs; track tab.path) {
+        <a mat-tab-link [routerLink]="['./', tab.path]" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
+            <mat-icon>{{ tab.icon }}</mat-icon>
+            {{ tab.label }}
+        </a>
+        }
+        @if (auth.isDocente() && calificacionesQueryParams(); as qp) {
+        <a mat-tab-link
+            [routerLink]="['/notas', 'registrar']"
+            [queryParams]="qp"
+            routerLinkActive #rlaCal="routerLinkActive" [active]="rlaCal.isActive">
+            <mat-icon>star</mat-icon>
+            Calificaciones
+        </a>
+        }
+    </nav>
+
+    <mat-tab-nav-panel #tabPanel>
+        <main class="main-content">
+            <router-outlet></router-outlet>
+        </main>
+    </mat-tab-nav-panel>
 </div>

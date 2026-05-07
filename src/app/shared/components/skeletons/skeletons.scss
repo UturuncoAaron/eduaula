@@ -1,0 +1,90 @@
+// Shimmer compartido por todos los skeletons.
+// Mismas variables que el resto del proyecto (#e2e8f0, #f1f5f9).
+
+@keyframes sk-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+%sk-base {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 0%,
+    #e2e8f0 40%,
+    #f1f5f9 80%
+  );
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.sk-line {
+  @extend %sk-base;
+  height: 14px;
+  margin: 6px 0;
+}
+
+.sk-line--badge    { width: 90px;  height: 18px; border-radius: 12px; }
+.sk-line--title    { width: 60%;   height: 22px; }
+.sk-line--subtitle { width: 40%;   height: 14px; }
+.sk-line--name     { width: 70%;   height: 14px; }
+.sk-line--meta     { width: 50%;   height: 12px; }
+.sk-line--row-title{ width: 65%;   height: 14px; }
+.sk-line--row-meta { width: 35%;   height: 12px; }
+
+.sk-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// ── Teacher ───────────────────────────────────────────────────
+.sk-teacher {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sk-avatar {
+  @extend %sk-base;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sk-teacher-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// ── Week content ──────────────────────────────────────────────
+.sk-week {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.sk-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sk-icon {
+  @extend %sk-base;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.sk-row-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

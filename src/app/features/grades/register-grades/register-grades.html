@@ -4,13 +4,13 @@
 <div class="toolbar">
     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="bim-field">
         <mat-label>Bimestre</mat-label>
-        <mat-select [(ngModel)]="periodoId" (ngModelChange)="onPeriodoChange()"
+        <mat-select [ngModel]="periodoId()" (ngModelChange)="onPeriodoChange($event)"
             [disabled]="periodoService.activos().length <= 1">
             @for (p of periodoService.activos(); track p.id) {
             <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
             }
             @if (periodoService.activos().length === 0) {
-            <mat-option [value]="periodoId" disabled>
+            <mat-option [value]="periodoId()" disabled>
                 Sin bimestres activos
             </mat-option>
             }
@@ -26,7 +26,7 @@
 
     <div class="spacer"></div>
 
-    @if (cursoId && hasAlumnos() && vistaActividad() === null) {
+    @if (cursoId() && hasAlumnos() && vistaActividad() === null) {
     <button mat-flat-button color="primary" class="btn-new" (click)="newActividad()">
         <mat-icon>add</mat-icon>
         <span>Nueva actividad</span>
@@ -36,7 +36,7 @@
 
 @if (loading()) {
 <div class="loading-center"><mat-spinner diameter="40" /></div>
-} @else if (!cursoId) {
+} @else if (!cursoId()) {
 <div class="pick-course">
     <app-empty-state icon="menu_book" title="Elegí un curso"
         message="Entrá desde el listado de Notas para elegir un curso y un bimestre." />
@@ -55,7 +55,7 @@
         <h2>{{ cursoNombre() }}</h2>
         <p>
             <mat-icon>calendar_today</mat-icon>
-            {{ bimestre }}er Bimestre · {{ filas().length }} alumnos · {{ actividades().length }} actividades
+            {{ bimestre() }}er Bimestre · {{ filas().length }} alumnos · {{ actividades().length }} actividades
         </p>
     </div>
 </div>

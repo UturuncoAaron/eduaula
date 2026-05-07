@@ -1,4 +1,7 @@
-import { Component, inject, input, signal, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy, Component,
+  inject, input, signal, OnInit,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,13 +18,16 @@ import { Task, Submission, tipoEntregaTarea, estadoAlumno as calcEstadoAlumno, E
   imports: [DatePipe, RouterLink, MatIconModule, MatButtonModule, MatChipsModule],
   templateUrl: './tab-tareas.html',
   styleUrl: './tab-tareas.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TabTareas implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
 
-  courseId = input.required<string>();
+  /** Recibe `id` del path param via withComponentInputBinding. */
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  courseId = input.required<string>({ alias: 'id' });
 
   tasks = signal<Task[]>([]);
   submissionByTask = signal<Record<string, Submission>>({});

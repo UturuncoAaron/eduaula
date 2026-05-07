@@ -1,4 +1,10 @@
-import { Component, inject, input, signal, computed, OnInit } from '@angular/core';
+
+
+import {
+  ChangeDetectionStrategy, Component, computed, DestroyRef,
+  inject, input, OnInit, signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,27 +15,17 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
 import { Router, RouterLink } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../../../../core/auth/auth';
-import { ApiService } from '../../../../../core/services/api';
+import { LazyCourseStore } from '../../../data-access/lazy-course.store';
 import { CourseService } from '../../../data-access/course.store';
 import { TaskService } from '../../../../tasks/data-access/task.store';
 import { Course, LiveClass, Material, SemanaResumen } from '../../../../../core/models/course';
 import { Task } from '../../../../../core/models/task';
 import { Forum } from '../../../../../core/models/forum';
-
-type ItemKind = 'material' | 'tarea' | 'foro';
-
-interface SemanaItem {
-  kind: ItemKind;
-  id: string;
-  titulo: string;
-  descripcion: string | null;
-  oculto: boolean;
-  fecha: string;
-  raw: Material | Task | Forum;
-}
+import {
+  TeacherCardSkeleton, WeekContentSkeleton,
+} from '../../../../../shared/components/skeletons/skeletons';
+import { WeekAccordion, SemanaItem } from './week-accordion/week-accordion';
 
 @Component({
   selector: 'app-tab-contenido',
@@ -38,165 +34,165 @@ interface SemanaItem {
     DatePipe, RouterLink,
     MatIconModule, MatButtonModule, MatExpansionModule,
     MatProgressSpinnerModule, MatMenuModule, MatTooltipModule,
+    WeekAccordion, TeacherCardSkeleton, WeekContentSkeleton,
   ],
   templateUrl: './tab-contenido.html',
   styleUrl: './tab-contenido.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TabContenido implements OnInit {
   readonly auth = inject(AuthService);
+  private store = inject(LazyCourseStore);
   private csSvc = inject(CourseService);
   private taskSvc = inject(TaskService);
-  private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
-  courseId = input.required<string>();
-  course = input<Course | null>(null);
+  /** Recibe `id` del path param via withComponentInputBinding. */
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  courseId = input.required<string>({ alias: 'id' });
 
+  // Fase 2 — above-the-fold
+  course = signal<Course | null>(null);
   semanas = signal<SemanaResumen[]>([]);
-  liveClasses = signal<LiveClass[]>([]);
-  materials = signal<Material[]>([]);
-  tasks = signal<Task[]>([]);
-  forums = signal<Forum[]>([]);
-
   loadingSemanas = signal(true);
-  loadingItems = signal(true);
-  loadingLiveClasses = signal(true);
 
-  /** Mapa semana → items combinados (materials + tasks + foros). */
-  itemsPorSemana = computed(() => {
-    const map = new Map<number, SemanaItem[]>();
+  // Fase 4 — lazy on first interaction
+  /** `null` ⇒ todavía no se cargó el bundle. */
+  private materialsByWeek = signal<Map<number, Material[]> | null>(null);
+  private tasksByWeek = signal<Map<number, Task[]> | null>(null);
+  private forumsByWeek = signal<Map<number, Forum[]> | null>(null);
+  loadingItems = signal(false);
+  private itemsLoaded = computed(() => this.materialsByWeek() !== null);
 
-    for (const m of this.materials()) {
-      const s = m.semana ?? 0;
-      if (!s) continue;
-      const arr = map.get(s) ?? [];
-      arr.push({
+  liveClasses = signal<LiveClass[] | null>(null);
+  loadingLive = signal(false);
+
+  readonly liveClassesCount = computed(() => this.liveClasses()?.length ?? 0);
+
+  ngOnInit(): void {
+    // Fase 2 — 2 fetches paralelos
+    this.store.course$(this.courseId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(c => this.course.set(c));
+
+    this.loadingSemanas.set(true);
+    this.store.semanas$(this.courseId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(list => {
+        this.semanas.set(list);
+        this.loadingSemanas.set(false);
+      });
+  }
+
+  // ── Fase 4: lazy load items bundle ────────────────────────────
+  onWeekOpened(): void {
+    if (this.itemsLoaded() || this.loadingItems()) return;
+    this.loadingItems.set(true);
+    this.store.items$(this.courseId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(bundle => {
+        this.materialsByWeek.set(bundle.materials);
+        this.tasksByWeek.set(bundle.tasks);
+        this.forumsByWeek.set(bundle.forums);
+        this.loadingItems.set(false);
+        this.schedulePrefetch();
+      });
+  }
+
+  /**
+   * Fase 5 — Prefetch en idle: tras la primera expansión, programar la
+   * carga de live-classes (más útil que una "siguiente semana" porque
+   * los items ya están todos cacheados en un único bundle).
+   */
+  private schedulePrefetch(): void {
+    if (this.liveClasses() !== null || this.loadingLive()) return;
+    const run = (): void => {
+      if (this.liveClasses() !== null || this.loadingLive()) return;
+      this.store.liveClasses$(this.courseId())
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(list => this.liveClasses.set(list));
+    };
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(run, { timeout: 4000 });
+    } else {
+      setTimeout(run, 2000);
+    }
+  }
+
+  // ── Live classes lazy ─────────────────────────────────────────
+  onLivePanelOpened(): void {
+    if (this.liveClasses() !== null || this.loadingLive()) return;
+    this.loadingLive.set(true);
+    this.store.liveClasses$(this.courseId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(list => {
+        this.liveClasses.set(list);
+        this.loadingLive.set(false);
+      });
+  }
+
+  /**
+   * Items combinados para una semana específica.
+   * Devuelve `null` mientras el bundle no llegó (estado de skeleton).
+   */
+  itemsForWeek(n: number): SemanaItem[] | null {
+    if (!this.itemsLoaded()) return null;
+    const out: SemanaItem[] = [];
+    for (const m of this.materialsByWeek()!.get(n) ?? []) {
+      out.push({
         kind: 'material', id: m.id, titulo: m.titulo,
         descripcion: m.descripcion ?? null,
         oculto: m.oculto ?? false,
         fecha: m.created_at, raw: m,
       });
-      map.set(s, arr);
     }
-    for (const t of this.tasks()) {
-      const s = t.semana ?? 0;
-      if (!s) continue;
-      const arr = map.get(s) ?? [];
-      arr.push({
+    for (const t of this.tasksByWeek()!.get(n) ?? []) {
+      out.push({
         kind: 'tarea', id: t.id, titulo: t.titulo,
         descripcion: t.instrucciones ?? null,
         oculto: !t.activo,
         fecha: t.created_at ?? t.fecha_limite, raw: t,
       });
-      map.set(s, arr);
     }
-    for (const f of this.forums()) {
-      const s = f.semana ?? 0;
-      if (!s) continue;
-      const arr = map.get(s) ?? [];
-      arr.push({
+    for (const f of this.forumsByWeek()!.get(n) ?? []) {
+      out.push({
         kind: 'foro', id: f.id, titulo: f.titulo,
         descripcion: f.descripcion ?? null,
         oculto: f.oculto ?? false,
         fecha: f.created_at, raw: f,
       });
-      map.set(s, arr);
     }
-
-    for (const arr of map.values()) {
-      arr.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
-    }
-    return map;
-  });
-
-  ngOnInit(): void {
-    this.loadSemanas();
-    this.loadItems();
-    this.loadLiveClasses();
+    out.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+    return out;
   }
 
-  private loadSemanas(): void {
-    this.loadingSemanas.set(true);
-    this.csSvc.getSemanas(this.courseId()).subscribe({
-      next: (r) => { this.semanas.set(r.data ?? []); this.loadingSemanas.set(false); },
-      error: () => { this.semanas.set([]); this.loadingSemanas.set(false); },
-    });
-  }
-
-  private loadItems(): void {
+  /** Refetch del bundle tras crear/editar/eliminar. */
+  private refreshItems(): void {
+    this.store.invalidateItems(this.courseId());
+    this.materialsByWeek.set(null);
+    this.tasksByWeek.set(null);
+    this.forumsByWeek.set(null);
     this.loadingItems.set(true);
-    forkJoin({
-      mats: this.csSvc.getMaterials(this.courseId()).pipe(catchError(() => of({ data: [] as Material[] }))),
-      tareas: this.taskSvc.getTasks(this.courseId()).pipe(catchError(() => of({ data: [] as Task[] }))),
-      foros: this.api.get<Forum[]>(`courses/${this.courseId()}/forums`).pipe(catchError(() => of({ data: [] as Forum[] }))),
-    }).subscribe({
-      next: ({ mats, tareas, foros }) => {
-        this.materials.set(mats.data ?? []);
-        this.tasks.set(tareas.data ?? []);
-        this.forums.set(foros.data ?? []);
+    this.store.items$(this.courseId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(bundle => {
+        this.materialsByWeek.set(bundle.materials);
+        this.tasksByWeek.set(bundle.tasks);
+        this.forumsByWeek.set(bundle.forums);
         this.loadingItems.set(false);
-      },
-      error: () => this.loadingItems.set(false),
-    });
+      });
   }
 
-  private loadLiveClasses(): void {
-    this.loadingLiveClasses.set(true);
-    this.csSvc.getLiveClasses(this.courseId()).subscribe({
-      next: (r) => {
-        this.liveClasses.set([...(r.data ?? [])].sort(
-          (a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime(),
-        ));
-        this.loadingLiveClasses.set(false);
-      },
-      error: () => { this.liveClasses.set([]); this.loadingLiveClasses.set(false); },
-    });
+  private refreshLiveClasses(): void {
+    this.store.invalidateLiveClasses(this.courseId());
+    this.liveClasses.set(null);
+    this.onLivePanelOpened();
   }
 
-  // ── Helpers ────────────────────────────────────────────────
-  itemsEnSemana(n: number): SemanaItem[] {
-    return this.itemsPorSemana().get(n) ?? [];
-  }
-
-  iconOf(item: SemanaItem): string {
-    if (item.kind === 'tarea') {
-      const t = item.raw as Task;
-      return t.permite_alternativas ? 'quiz' : 'fact_check';
-    }
-    if (item.kind === 'foro') return 'forum';
-    const m = item.raw as Material;
-    const map: Record<string, string> = {
-      pdf: 'picture_as_pdf', video: 'smart_display',
-      link: 'link', grabacion: 'videocam', otro: 'attach_file',
-    };
-    return map[m.tipo] ?? 'insert_drive_file';
-  }
-
-  iconColor(item: SemanaItem): string {
-    if (item.kind === 'tarea') return '#1d4ed8';
-    if (item.kind === 'foro') return '#0d9488';
-    const m = item.raw as Material;
-    const map: Record<string, string> = {
-      pdf: '#dc2626', video: '#2563eb',
-      link: '#16a34a', grabacion: '#9333ea', otro: '#4b5563',
-    };
-    return map[m.tipo] ?? '#94a3b8';
-  }
-
-  metaOf(item: SemanaItem): string {
-    if (item.kind === 'tarea') {
-      const t = item.raw as Task;
-      const f = new Date(t.fecha_limite);
-      return `Entrega ${f.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' })} · ${t.puntos_max} pts`;
-    }
-    if (item.kind === 'foro') return 'Foro de discusión';
-    const m = item.raw as Material;
-    return (m.tipo ?? '').toUpperCase();
-  }
-
-  // ── Click → abrir modal lateral según tipo ────────────────
+  // ── Click → abrir modal lateral según tipo ────────────────────
   async abrirItem(item: SemanaItem): Promise<void> {
     if (item.kind === 'material') {
       const m = item.raw as Material;
@@ -216,7 +212,6 @@ export class TabContenido implements OnInit {
     if (item.kind === 'tarea') {
       const t = item.raw as Task;
       if (this.auth.isAlumno()) {
-        // Cargar la entrega previa antes de abrir el modal para que el alumno vea su nota.
         this.taskSvc.getMySubmission(t.id).subscribe({
           next: async (r) => {
             const submission = r.data ?? null;
@@ -259,66 +254,90 @@ export class TabContenido implements OnInit {
       return;
     }
 
-    // foro
     const f = item.raw as Forum;
     this.router.navigate(['/foro', f.id]);
   }
 
-  // ── Toggles ────────────────────────────────────────────────
-  toggleSemana(s: SemanaResumen, ev: Event): void {
-    ev.stopPropagation();
+  // ── Toggles ──────────────────────────────────────────────────
+  toggleSemana(s: SemanaResumen): void {
     const oculta = !s.oculta;
     this.csSvc.toggleSemana(this.courseId(), s.semana, oculta).subscribe({
-      next: (r) => {
-        this.semanas.update((list) => list.map((x) => x.semana === s.semana ? r.data : x));
-        this.toastr.success(oculta ? 'Semana oculta para los alumnos' : 'Semana visible', '�xito');
+      next: r => {
+        this.semanas.update(list => list.map(x => x.semana === s.semana ? r.data : x));
+        this.store.invalidateSemanas(this.courseId());
+        this.toastr.success(oculta ? 'Semana oculta para los alumnos' : 'Semana visible', 'Éxito');
       },
       error: () => this.toastr.error('No se pudo actualizar la semana', 'Error'),
     });
   }
 
-  toggleItem(item: SemanaItem, ev: Event): void {
-    ev.stopPropagation();
+  toggleItem(item: SemanaItem): void {
     if (item.kind === 'material') {
       const oculto = !item.oculto;
       this.csSvc.toggleMaterial(this.courseId(), item.id, oculto).subscribe({
-        next: () => this.materials.update((list) => list.map((m) => m.id === item.id ? { ...m, oculto } : m)),
+        next: () => this.refreshItems(),
         error: () => this.toastr.error('No se pudo actualizar el material', 'Error'),
       });
     } else if (item.kind === 'tarea') {
-      const activo = item.oculto; // si estaba oculto, ahora pasa a activo=true
+      const activo = item.oculto;
       this.taskSvc.toggleTask(item.id, activo).subscribe({
-        next: () => this.tasks.update((list) => list.map((t) => t.id === item.id ? { ...t, activo } : t)),
+        next: () => this.refreshItems(),
         error: () => this.toastr.error('No se pudo actualizar la tarea', 'Error'),
       });
     } else {
       const oculto = !item.oculto;
       this.csSvc.toggleForum(this.courseId(), item.id, oculto).subscribe({
-        next: () => this.forums.update((list) => list.map((f) => f.id === item.id ? { ...f, oculto } : f)),
+        next: () => this.refreshItems(),
         error: () => this.toastr.error('No se pudo actualizar el foro', 'Error'),
       });
     }
   }
 
-  eliminarItem(item: SemanaItem, ev: Event): void {
-    ev.stopPropagation();
+  /**
+   * Descarga directa de un material sin abrir el preview modal.
+   * Reusa el endpoint `/materials/:id/download` (mismo que MaterialPreview).
+   * Para materiales tipo `link` el backend devuelve `kind: 'link'` y se
+   * abre en pestaña nueva en lugar de descargar.
+   */
+  descargarMaterial(item: SemanaItem): void {
+    if (item.kind !== 'material') return;
+    this.csSvc.getMaterialDownload(this.courseId(), item.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: r => {
+          const { url, filename, kind } = r.data;
+          if (kind === 'link') {
+            window.open(url, '_blank', 'noopener,noreferrer');
+            return;
+          }
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        },
+        error: () => this.toastr.error('No se pudo descargar el archivo', 'Error'),
+      });
+  }
+
+  eliminarItem(item: SemanaItem): void {
     if (item.kind !== 'material') {
-      this.toastr.success('Eliminar tareas y foros se implementará pronto', '�xito');
+      this.toastr.success('Eliminar tareas y foros se implementará pronto', 'Éxito');
       return;
     }
     if (!confirm(`¿Eliminar "${item.titulo}"?`)) return;
     this.csSvc.deleteMaterial(this.courseId(), item.id).subscribe({
       next: () => {
-        this.materials.update((list) => list.filter((m) => m.id !== item.id));
+        this.refreshItems();
         this.toastr.success('Material eliminado', 'Éxito');
       },
       error: () => this.toastr.error('No se pudo eliminar', 'Error'),
     });
   }
 
-  // ── Crear desde la semana ─────────────────────────────────
-  async crearMaterial(s: SemanaResumen, ev: Event): Promise<void> {
-    ev.stopPropagation();
+  // ── Crear desde la semana ─────────────────────────────────────
+  async crearMaterial(s: SemanaResumen): Promise<void> {
     const { MaterialUpload } = await import(
       '../../../material-upload/material-upload'
     );
@@ -326,11 +345,10 @@ export class TabContenido implements OnInit {
       data: { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
       width: '560px', maxHeight: '90vh',
     });
-    ref.afterClosed().subscribe((r) => { if (r) this.loadItems(); });
+    ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
 
-  async crearTarea(s: SemanaResumen, ev: Event): Promise<void> {
-    ev.stopPropagation();
+  async crearTarea(s: SemanaResumen): Promise<void> {
     const { TaskCreate } = await import(
       '../../../../tasks/task-create/task-create'
     );
@@ -338,11 +356,10 @@ export class TabContenido implements OnInit {
       data: { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
       width: '760px', maxHeight: '90vh',
     });
-    ref.afterClosed().subscribe((r) => { if (r) this.loadItems(); });
+    ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
 
-  async crearForo(s: SemanaResumen, ev: Event): Promise<void> {
-    ev.stopPropagation();
+  async crearForo(s: SemanaResumen): Promise<void> {
     const { ForumCreate } = await import(
       '../../../../forum/forum-create/forum-create'
     );
@@ -350,10 +367,10 @@ export class TabContenido implements OnInit {
       data: { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
       width: '520px', maxHeight: '90vh',
     });
-    ref.afterClosed().subscribe((r) => { if (r) this.loadItems(); });
+    ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
 
-  // ── Live classes (sin cambios) ────────────────────────────
+  // ── Live classes (sin cambios de UX) ──────────────────────────
   estadoClase(lc: LiveClass): 'proxima' | 'en-vivo' | 'finalizada' {
     const inicio = new Date(lc.fecha_hora).getTime();
     const fin = inicio + lc.duracion_min * 60_000;
@@ -370,7 +387,7 @@ export class TabContenido implements OnInit {
     const ref = this.dialog.open(LiveClassFormDialog, {
       data: { courseId: this.courseId() }, width: '600px', maxHeight: '90vh',
     });
-    ref.afterClosed().subscribe((r) => { if (r) this.loadLiveClasses(); });
+    ref.afterClosed().subscribe(r => { if (r) this.refreshLiveClasses(); });
   }
 
   async abrirEditarLiveClass(lc: LiveClass): Promise<void> {
@@ -380,23 +397,23 @@ export class TabContenido implements OnInit {
     const ref = this.dialog.open(LiveClassFormDialog, {
       data: { courseId: this.courseId(), liveClass: lc }, width: '600px', maxHeight: '90vh',
     });
-    ref.afterClosed().subscribe((r) => { if (r) this.loadLiveClasses(); });
+    ref.afterClosed().subscribe(r => { if (r) this.refreshLiveClasses(); });
   }
 
   eliminarLiveClass(lc: LiveClass): void {
     if (!confirm(`¿Eliminar "${lc.titulo}"?`)) return;
     this.csSvc.deleteLiveClass(lc.id).subscribe({
       next: () => {
-        this.liveClasses.update((list) => list.filter((c) => c.id !== lc.id));
-        this.toastr.success('Videoconferencia eliminada', '�xito');
+        this.liveClasses.update(list => (list ?? []).filter(c => c.id !== lc.id));
+        this.toastr.success('Videoconferencia eliminada', 'Éxito');
       },
-      error: (err) => this.toastr.error(err?.error?.message ?? 'Error', 'Error'),
+      error: err => this.toastr.error(err?.error?.message ?? 'Error', 'Error'),
     });
   }
 
   unirseClase(lc: LiveClass): void { window.open(lc.link_reunion, '_blank'); }
 
-  // ── Aside ─────────────────────────────────────────────────
+  // ── Aside ────────────────────────────────────────────────────
   iniciales(d?: { nombre?: string; apellido_paterno?: string } | null): string {
     if (!d) return 'D';
     return ((d.nombre?.[0] ?? '') + (d.apellido_paterno?.[0] ?? '')).toUpperCase() || 'D';

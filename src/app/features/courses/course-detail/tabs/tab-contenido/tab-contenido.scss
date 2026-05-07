@@ -18,7 +18,11 @@ $radius-sm: 6px;
 
 // ── Tab body ──────────────────────────────────────────────────
 .tab-body {
-  padding: 24px 0;
+  padding: 24px;
+
+  @media (max-width: 1100px) {
+    padding: 16px;
+  }
 }
 
 // ── Action bar ────────────────────────────────────────────────
@@ -460,9 +464,8 @@ $radius-sm: 6px;
 .content-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 28px;
+  gap: 1.5rem;
   align-items: start;
-  padding: 24px 0;
 
   @media (max-width: 1100px) {
     grid-template-columns: 1fr;
@@ -474,18 +477,27 @@ $radius-sm: 6px;
 }
 
 .content-title {
-  margin: 0 0 16px;
+  margin: 0 0 18px;
   font-size: 18px;
   font-weight: 600;
   color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: '';
+    width: 4px;
+    height: 22px;
+    background: #185FA5;
+    border-radius: 999px;
+  }
 }
 
 .content-aside {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  position: sticky;
-  top: 88px;
 
   @media (max-width: 1100px) {
     position: static;
@@ -494,38 +506,69 @@ $radius-sm: 6px;
 
 .aside-card {
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 0.5px solid #e2e8f0;
   border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  padding: 16px 20px;
+  box-shadow: none;
+  transition: border-color .15s;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
 }
 
 .aside-title {
-  margin: 0 0 12px;
-  font-size: 13px;
-  font-weight: 600;
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .04em;
-  color: #475569;
+  letter-spacing: .08em;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: '';
+    width: 3px;
+    height: 12px;
+    background: #185FA5;
+    border-radius: 999px;
+  }
+}
+
+.teacher-card {
+  padding-bottom: 8px;
 }
 
 .teacher-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .teacher-avatar {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #185FA5, #0f3d6e);
   color: #fff;
   display: grid;
   place-items: center;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 19px;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(24, 95, 165, .25);
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 2px solid rgba(24, 95, 165, .15);
+    pointer-events: none;
+  }
 }
 
 .teacher-info {
@@ -535,40 +578,28 @@ $radius-sm: 6px;
   flex: 1;
 
   strong {
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 600;
     color: #0f172a;
-    line-height: 1.2;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .teacher-role {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .06em;
-    color: #64748b;
-    margin-top: 2px;
-  }
-}
-
-.teacher-mail {
-  color: #2563eb;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  transition: background .2s;
-
-  &:hover {
-    background: rgba(37, 99, 235, .08);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: #185FA5;
+    margin-top: 4px;
   }
 }
 
 .teacher-meta {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   padding-top: 12px;
   border-top: 1px dashed #e2e8f0;
-  font-size: 13px;
+  font-size: 12.5px;
   color: #475569;
   line-height: 1.5;
 
@@ -578,40 +609,100 @@ $radius-sm: 6px;
   }
 }
 
+.teacher-contacts {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .contact-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    margin: 0 -8px;
+    border-radius: 8px;
+    color: #475569;
+    font-size: 12.5px;
+    text-decoration: none;
+    transition: background .15s, color .15s;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #185FA5;
+      flex-shrink: 0;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &:hover {
+      background: rgba(24, 95, 165, .06);
+      color: #185FA5;
+    }
+  }
+}
+
 .aside-actions {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
 
   li {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 6px;
+    gap: 12px;
+    padding: 10px 8px;
     border-radius: 8px;
-    transition: background .2s;
+    margin: 0 -8px;
+    transition: background .15s;
+    cursor: pointer;
+
+    &+li {
+      border-top: 1px dashed #f1f5f9;
+    }
 
     &:hover {
-      background: #f8fafc;
+      background: rgba(24, 95, 165, .06);
+
+      mat-icon {
+        color: #185FA5;
+      }
+
+      a,
+      .as-link {
+        color: #185FA5;
+      }
     }
 
     mat-icon {
-      color: #2563eb;
+      color: #64748b;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
       flex-shrink: 0;
+      transition: color .15s;
     }
 
-    a {
-      color: #1e293b;
-      font-size: 13.5px;
+    a,
+    .as-link {
+      color: #334155;
+      font-size: 13px;
       text-decoration: none;
       font-weight: 500;
-
-      &:hover {
-        color: #2563eb;
-      }
+      transition: color .15s;
+      flex: 1;
+      cursor: pointer;
     }
   }
 }
@@ -620,38 +711,41 @@ $radius-sm: 6px;
 .bb-accordion {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .bb-panel {
   background: #fff;
   border: 1px solid #e2e8f0 !important;
-  border-radius: 4px !important;
+  border-radius: 12px !important;
   box-shadow: none !important;
+  overflow: hidden;
 
   ::ng-deep .mat-expansion-panel-header {
-    height: 64px;
-    padding: 0 24px;
+    height: auto;
+    min-height: 56px;
+    padding: 14px 24px;
   }
 
   ::ng-deep .mat-expansion-panel-body {
-    padding: 16px 24px 20px;
+    padding: 14px 24px;
     background: #fafafa;
+    border-top: 0.5px solid #e2e8f0;
   }
 
   ::ng-deep .mat-panel-title {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 14px;
-    font-weight: 700;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
     color: #1e293b;
-    letter-spacing: .3px;
+    letter-spacing: .2px;
   }
 
   ::ng-deep .mat-panel-description {
     color: #64748b;
-    font-size: 13px;
+    font-size: 12px;
     justify-content: flex-end;
   }
 }
@@ -666,12 +760,15 @@ $radius-sm: 6px;
 }
 
 .bb-empty {
-  color: #64748b;
+  color: #94a3b8;
   font-size: 13px;
+  font-style: italic;
   margin: 0;
 }
 
 .bb-count {
+  font-size: 12px;
+  color: #64748b;
   font-weight: 500;
 
   &.empty {
@@ -682,39 +779,62 @@ $radius-sm: 6px;
 
 .bim-tag {
   margin-left: 8px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: #475569;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 999px;
   letter-spacing: .4px;
 }
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px 24px;
   margin: 0;
 
   div {
     margin: 0;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &.full-row {
+      grid-column: 1 / -1;
+    }
   }
 
   dt {
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 10.5px;
+    font-weight: 700;
     text-transform: uppercase;
     color: #64748b;
-    letter-spacing: .5px;
-    margin-bottom: 2px;
+    letter-spacing: .08em;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+      color: #185FA5;
+    }
   }
 
   dd {
     margin: 0;
-    color: #1e293b;
+    color: #0f172a;
     font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
   }
 }
 

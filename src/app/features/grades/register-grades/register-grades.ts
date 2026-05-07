@@ -1,5 +1,6 @@
 import {
-  Component, effect, inject, signal, computed, OnInit,
+  ChangeDetectionStrategy, Component, effect,
+  inject, signal, computed, OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -93,6 +94,7 @@ const TIPO_COLOR: Record<TipoNota, string> = {
   ],
   templateUrl: './register-grades.html',
   styleUrl: './register-grades.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterGrades implements OnInit {
   private api = inject(ApiService);
@@ -118,10 +120,10 @@ export class RegisterGrades implements OnInit {
   savingBulk = signal(false);
 
   // Curso / periodo
-  cursoId = '';
+  cursoId = signal('');
   cursoNombre = signal('');
-  bimestre = 1;
-  periodoId = 1;
+  bimestre = signal(1);
+  periodoId = signal(1);
 
   hasActividades = computed(() => this.actividades().length > 0);
   hasAlumnos = computed(() => this.filas().length > 0);
@@ -154,31 +156,38 @@ export class RegisterGrades implements OnInit {
 
   constructor() {
     // Cuando los periodos terminen de cargar, ajustar el bimestre actual
-    // si el queryParam apuntaba a uno no-activo.
+    // si el queryParam apuntaba a uno no-activo o inválido.
     effect(() => {
       if (!this.periodoService.loaded()) return;
       const activos = this.periodoService.activos();
       if (activos.length === 0) return;
-      const isCurrentActive = activos.some(p => p.id === this.periodoId);
-      if (!isCurrentActive) {
-        this.periodoId = activos[0].id;
-        this.bimestre = activos[0].bimestre;
-        if (this.cursoId) this.loadGrades();
+      const current = this.periodoId();
+      const isValid = Number.isFinite(current)
+        && activos.some(p => p.id === current);
+      if (!isValid) {
+        this.periodoId.set(activos[0].id);
+        this.bimestre.set(activos[0].bimestre);
+        if (this.cursoId()) this.loadGrades();
       }
     });
   }
 
   ngOnInit() {
     const qp = this.route.snapshot.queryParamMap;
-    this.cursoId = qp.get('cursoId') ?? '';
-    this.bimestre = parseInt(qp.get('bimestre') ?? '1', 10);
-    this.periodoId = parseInt(qp.get('periodoId') ?? String(this.bimestre), 10);
+    const rawBimestre = parseInt(qp.get('bimestre') ?? '1', 10);
+    const bimestre = Number.isFinite(rawBimestre) ? rawBimestre : 1;
+    const rawPeriodo = parseInt(qp.get('periodoId') ?? String(bimestre), 10);
+    const periodo = Number.isFinite(rawPeriodo) ? rawPeriodo : bimestre;
+
+    this.cursoId.set(qp.get('cursoId') ?? '');
+    this.bimestre.set(bimestre);
+    this.periodoId.set(periodo);
     this.cursoNombre.set(qp.get('cursoNombre') ?? 'Curso');
 
     // Singleton service: si ya cargó antes, es no-op
     this.periodoService.loadAll();
 
-    if (!this.cursoId) {
+    if (!this.cursoId()) {
       this.loading.set(false);
       return;
     }
@@ -186,7 +195,7 @@ export class RegisterGrades implements OnInit {
     this.loadGrades();
   }
 
-  onPeriodoChange() {
+  onPeriodoChange(nuevo: number) {
     if (this.hasPendingChanges()) {
       if (!confirm(
         `Hay ${this.pendingCount()} cambios sin guardar. ` +
@@ -195,8 +204,9 @@ export class RegisterGrades implements OnInit {
         return;
       }
     }
-    const p = this.periodoService.porId(this.periodoId);
-    if (p) this.bimestre = p.bimestre;
+    this.periodoId.set(nuevo);
+    const p = this.periodoService.porId(nuevo);
+    if (p) this.bimestre.set(p.bimestre);
     this.pendingChanges.set(new Map());
     this.vistaActividad.set(null);
     this.loadGrades();
@@ -205,10 +215,16 @@ export class RegisterGrades implements OnInit {
   // ── Carga de grilla ────────────────────────────────
 
   loadGrades() {
+    const cursoId = this.cursoId();
+    const periodoId = this.periodoId();
+    if (!cursoId || !Number.isFinite(periodoId)) {
+      this.loading.set(false);
+      return;
+    }
     this.loading.set(true);
     this.api
       .get<CourseGridResponse>(
-        `grades/course/${this.cursoId}?periodoId=${this.periodoId}`,
+        `grades/course/${cursoId}?periodoId=${periodoId}`,
       )
       .subscribe({
         next: r => {
@@ -301,6 +317,8 @@ export class RegisterGrades implements OnInit {
     const changes = [...this.pendingChanges().values()];
     if (changes.length === 0) return;
 
+    const cursoId = this.cursoId();
+    const periodoId = this.periodoId();
     const items = changes
       .map(({ row, titulo, act }) => {
         const cell = row.notas[titulo];
@@ -308,8 +326,8 @@ export class RegisterGrades implements OnInit {
         if (cell.nota == null && !cell.id) return null;
         return {
           alumno_id: row.alumno_id,
-          curso_id: this.cursoId,
-          periodo_id: this.periodoId,
+          curso_id: cursoId,
+          periodo_id: periodoId,
           titulo,
           tipo: act.tipo,
           nota: cell.nota,
@@ -327,7 +345,7 @@ export class RegisterGrades implements OnInit {
 
     this.savingBulk.set(true);
     this.api
-      .post(`grades/course/${this.cursoId}/bulk`, { items })
+      .post(`grades/course/${cursoId}/bulk`, { items })
       .subscribe({
         next: () => {
           this.savingBulk.set(false);

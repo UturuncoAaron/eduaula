@@ -1,4 +1,7 @@
-import { Component, inject, input, signal, computed, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy, Component,
+  inject, input, signal, computed, OnInit,
+} from '@angular/core';
 import { DatePipe, UpperCasePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,6 +35,7 @@ interface MaterialGroup {
   ],
   templateUrl: './tab-materiales.html',
   styleUrl: './tab-materiales.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TabMateriales implements OnInit {
   readonly auth = inject(AuthService);
@@ -39,7 +43,9 @@ export class TabMateriales implements OnInit {
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
 
-  courseId = input.required<string>();
+  /** Recibe `id` del path param via withComponentInputBinding. */
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  courseId = input.required<string>({ alias: 'id' });
 
   materials = signal<Material[]>([]);
   loadingMaterials = signal(true);
