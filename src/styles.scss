@@ -493,3 +493,51 @@ td.mat-mdc-cell {
     transform: translateX(100%);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// PANEL: Crear Periodo Dialog — bordes redondeados premium
+// y scrollable en móviles
+// ═══════════════════════════════════════════════════════════════
+.create-periodo-panel {
+
+  .mat-mdc-dialog-container,
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    border-radius: var(--r-xl) !important;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg) !important;
+  }
+
+  // Tablet
+  @media (max-width: 768px) {
+
+    .mat-mdc-dialog-container,
+    .mat-mdc-dialog-container .mdc-dialog__surface {
+      border-radius: var(--r-lg) !important;
+    }
+  }
+
+  // Mobile
+  @media (max-width: 520px) {
+    &.mat-mdc-dialog-panel {
+      max-width: 95vw !important;
+    }
+
+    .mat-mdc-dialog-container,
+    .mat-mdc-dialog-container .mdc-dialog__surface {
+      border-radius: var(--r-md) !important;
+    }
+  }
+
+  // Mobile muy pequeño
+  @media (max-width: 380px) {
+    &.mat-mdc-dialog-panel {
+      max-width: 100vw !important;
+      margin: 8px !important;
+    }
+
+    .mat-mdc-dialog-container,
+    .mat-mdc-dialog-container .mdc-dialog__surface {
+      border-radius: var(--r-sm) !important;
+    }
+  }
+}

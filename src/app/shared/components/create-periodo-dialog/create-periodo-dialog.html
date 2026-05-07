@@ -1,63 +1,158 @@
-<h2 mat-dialog-title>Nuevo Periodo</h2>
+<div class="create-periodo-dialog">
 
-<mat-dialog-content>
-    <form [formGroup]="form">
+    <!-- ── Header ────────────────────────────────────── -->
+    <div class="dialog-header">
+        <div class="header-icon">
+            <mat-icon>event_note</mat-icon>
+        </div>
+        <div class="header-text">
+            <h2 class="dialog-title">Nuevo Periodo</h2>
+            <p class="dialog-subtitle">Configura los datos del nuevo bimestre escolar</p>
+        </div>
+        <button mat-icon-button class="btn-close" (click)="onCancel()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nombre (ej: I Bimestre 2026)</mat-label>
-            <input matInput formControlName="nombre" />
-            @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
-            <mat-error>El nombre es obligatorio</mat-error>
-            }
-        </mat-form-field>
+    <!-- ── Divider ───────────────────────────────────── -->
+    <div class="dialog-divider"></div>
 
-        <div class="form-row">
-            <mat-form-field appearance="outline">
-                <mat-label>Año</mat-label>
-                <input matInput type="number" formControlName="anio" />
-                @if (form.get('anio')?.invalid && form.get('anio')?.touched) {
-                <mat-error>Año inválido</mat-error>
+    <!-- ── Form ──────────────────────────────────────── -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="dialog-form">
+
+        <!-- Nombre -->
+        <div class="form-section">
+            <label class="field-label">
+                <mat-icon class="label-icon">badge</mat-icon>
+                Nombre del periodo
+            </label>
+            <mat-form-field appearance="outline" class="field-full">
+                <input matInput formControlName="nombre" placeholder="Ej: I Bimestre 2026" />
+                <mat-hint>Nombre descriptivo para identificar el periodo</mat-hint>
+                @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+                <mat-error>El nombre es obligatorio</mat-error>
                 }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Bimestre</mat-label>
-                <mat-select formControlName="bimestre">
-                    @for (b of bimestres; track b.value) {
-                    <mat-option [value]="b.value">{{ b.label }}</mat-option>
-                    }
-                </mat-select>
             </mat-form-field>
         </div>
 
+        <!-- Año + Bimestre -->
         <div class="form-row">
-            <mat-form-field appearance="outline">
-                <mat-label>Fecha inicio</mat-label>
-                <input matInput type="date" formControlName="fecha_inicio" />
-                @if (form.get('fecha_inicio')?.hasError('required') && form.get('fecha_inicio')?.touched) {
-                <mat-error>Requerido</mat-error>
-                }
-            </mat-form-field>
+            <div class="form-section">
+                <label class="field-label">
+                    <mat-icon class="label-icon">calendar_today</mat-icon>
+                    Año
+                </label>
+                <mat-form-field appearance="outline" class="field-half">
+                    <input matInput type="number" formControlName="anio" placeholder="2026" />
+                    @if (form.get('anio')?.hasError('required') && form.get('anio')?.touched) {
+                    <mat-error>Requerido</mat-error>
+                    }
+                </mat-form-field>
+            </div>
 
-            <mat-form-field appearance="outline">
-                <mat-label>Fecha fin</mat-label>
-                <input matInput type="date" formControlName="fecha_fin" />
-                @if (form.get('fecha_fin')?.hasError('required') && form.get('fecha_fin')?.touched) {
-                <mat-error>Requerido</mat-error>
+            <div class="form-section">
+                <label class="field-label">
+                    <mat-icon class="label-icon">view_timeline</mat-icon>
+                    Bimestre
+                </label>
+                <mat-form-field appearance="outline" class="field-half">
+                    <mat-select formControlName="bimestre">
+                        <mat-option [value]="1">
+                            <span class="option-content">
+                                <span class="option-dot dot-1"></span> 1° Bimestre
+                            </span>
+                        </mat-option>
+                        <mat-option [value]="2">
+                            <span class="option-content">
+                                <span class="option-dot dot-2"></span> 2° Bimestre
+                            </span>
+                        </mat-option>
+                        <mat-option [value]="3">
+                            <span class="option-content">
+                                <span class="option-dot dot-3"></span> 3° Bimestre
+                            </span>
+                        </mat-option>
+                        <mat-option [value]="4">
+                            <span class="option-content">
+                                <span class="option-dot dot-4"></span> 4° Bimestre
+                            </span>
+                        </mat-option>
+                    </mat-select>
+                    @if (form.get('bimestre')?.hasError('required') && form.get('bimestre')?.touched) {
+                    <mat-error>Requerido</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Fechas -->
+        <div class="form-section">
+            <label class="field-label">
+                <mat-icon class="label-icon">date_range</mat-icon>
+                Rango de fechas
+            </label>
+            <div class="date-row">
+                <mat-form-field appearance="outline" class="field-half">
+                    <mat-label>Fecha inicio</mat-label>
+                    <input matInput [matDatepicker]="pickerInicio" formControlName="fecha_inicio" />
+                    <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerInicio></mat-datepicker>
+                    @if (form.get('fecha_inicio')?.hasError('required') && form.get('fecha_inicio')?.touched) {
+                    <mat-error>Requerida</mat-error>
+                    }
+                </mat-form-field>
+
+                <div class="date-connector">
+                    <mat-icon>arrow_forward</mat-icon>
+                </div>
+
+                <mat-form-field appearance="outline" class="field-half">
+                    <mat-label>Fecha fin</mat-label>
+                    <input matInput [matDatepicker]="pickerFin" formControlName="fecha_fin" />
+                    <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerFin></mat-datepicker>
+                    @if (form.get('fecha_fin')?.hasError('required') && form.get('fecha_fin')?.touched) {
+                    <mat-error>Requerida</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- ── Preview Card ────────────────────────────── -->
+        @if (form.valid) {
+        <div class="preview-section">
+            <span class="preview-label">Vista previa</span>
+            <div class="preview-card" [attr.data-bim]="form.get('bimestre')?.value">
+                <div class="preview-stripe"></div>
+                <div class="preview-body">
+                    <span class="preview-bim">{{ form.get('bimestre')?.value }}° Bimestre</span>
+                    <span class="preview-nombre">{{ form.get('nombre')?.value }}</span>
+                    <span class="preview-anio">Año {{ form.get('anio')?.value }}</span>
+                </div>
+            </div>
+        </div>
+        }
+
+        <!-- ── Divider ─────────────────────────────────── -->
+        <div class="dialog-divider"></div>
+
+        <!-- ── Actions ─────────────────────────────────── -->
+        <div class="dialog-actions">
+            <button mat-stroked-button type="button" class="btn-cancel" (click)="onCancel()">
+                Cancelar
+            </button>
+            <button mat-flat-button color="primary" type="submit" class="btn-submit"
+                [disabled]="form.invalid || submitting()">
+                @if (submitting()) {
+                <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                Creando...
+                } @else {
+                <mat-icon>add_circle</mat-icon>
+                Crear Periodo
                 }
-            </mat-form-field>
+            </button>
         </div>
 
     </form>
-</mat-dialog-content>
 
-<mat-dialog-actions align="end">
-    <button mat-stroked-button (click)="cancel()">Cancelar</button>
-    <button mat-flat-button color="primary" (click)="submit()" [disabled]="saving()">
-        @if (saving()) {
-        <mat-progress-spinner diameter="18" mode="indeterminate" />
-        } @else {
-        Crear Periodo
-        }
-    </button>
-</mat-dialog-actions>
+</div>

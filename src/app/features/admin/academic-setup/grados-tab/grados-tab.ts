@@ -215,6 +215,8 @@ export class GradosTab implements OnInit {
         const { CreateSeccionDialog } = await import('../../../../shared/components/create-seccion-dialog/create-seccion-dialog');
         const ref = this.dialog.open(CreateSeccionDialog, {
             width: '480px',
+            maxWidth: '95vw',
+            panelClass: 'create-seccion-panel',
             data: { gradoId: this.selectedGrado()!.id, gradoNombre: this.selectedGrado()!.nombre },
         });
         ref.afterClosed().subscribe(result => {
@@ -230,6 +232,37 @@ export class GradosTab implements OnInit {
                     this.toastr.success(c > 0 ? `Sección "${result.nombre}" creada · ${c} cursos generados` : `Sección "${result.nombre}" creada`, 'Éxito');
                 },
                 error: err => this.toastr.error(err.error?.message ?? 'Error al crear sección', 'Error'),
+            });
+        });
+    }
+
+    async openEditSeccion(seccion: Section): Promise<void> {
+        if (!this.selectedGrado()) return;
+        const { CreateSeccionDialog } = await import('../../../../shared/components/create-seccion-dialog/create-seccion-dialog');
+        const ref = this.dialog.open(CreateSeccionDialog, {
+            width: '480px',
+            maxWidth: '95vw',
+            panelClass: 'create-seccion-panel',
+            data: {
+                gradoId: this.selectedGrado()!.id,
+                gradoNombre: this.selectedGrado()!.nombre,
+                seccionId: seccion.id,
+                nombre: seccion.nombre,
+                capacidad: seccion.capacidad,
+                alumnosActuales: this.alumnos().length,
+            },
+        });
+        ref.afterClosed().subscribe(result => {
+            if (!result) return;
+            this.api.patch<any>(`academic/secciones/${seccion.id}`, {
+                nombre: result.nombre,
+                capacidad: result.capacidad,
+            }).subscribe({
+                next: () => {
+                    this.reloadSecciones();
+                    this.toastr.success(`Sección "${result.nombre}" actualizada`, 'Éxito');
+                },
+                error: err => this.toastr.error(err.error?.message ?? 'Error al actualizar sección', 'Error'),
             });
         });
     }

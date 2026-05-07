@@ -1,40 +1,139 @@
-<h2 mat-dialog-title>Nueva Sección — {{ data.gradoNombre }}</h2>
+<div class="seccion-dialog">
 
-<mat-dialog-content>
-    <form [formGroup]="form">
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nombre de la sección (ej: A, B, C)</mat-label>
-            <input matInput formControlName="nombre" maxlength="10" />
-            @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
-            <mat-error>El nombre es obligatorio</mat-error>
-            }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Capacidad de alumnos</mat-label>
-            <input matInput type="number" formControlName="capacidad" min="1" max="50" />
-            @if (form.get('capacidad')?.hasError('required') && form.get('capacidad')?.touched) {
-            <mat-error>La capacidad es obligatoria</mat-error>
-            }
-        </mat-form-field>
-
-        <div class="info-box">
-            <mat-icon>auto_awesome</mat-icon>
-            <span>Se generarán automáticamente los {{ 11 }} cursos del grado según el CNEB si hay un periodo
-                activo.</span>
+    <!-- ── Header ──────────────────────────────────────────────── -->
+    <div class="dialog-header">
+        <div class="header-icon" [class.edit-mode]="isEdit">
+            <mat-icon>{{ isEdit ? 'edit_note' : 'domain_add' }}</mat-icon>
         </div>
+        <div class="header-text">
+            <h2 class="dialog-title">{{ isEdit ? 'Editar Sección' : 'Nueva Sección' }}</h2>
+            <p class="dialog-subtitle">
+                {{ data.gradoNombre }}
+                @if (isEdit) {
+                — Sección {{ data.nombre }}
+                }
+            </p>
+        </div>
+        <button mat-icon-button class="btn-close" (click)="cancel()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="dialog-divider"></div>
+
+    <!-- ── Form ────────────────────────────────────────────────── -->
+    <div class="dialog-form">
+        <form [formGroup]="form">
+
+            <!-- Nombre -->
+            <div class="form-section">
+                <label class="field-label">
+                    <mat-icon class="label-icon">badge</mat-icon>
+                    Nombre de la sección
+                </label>
+                <mat-form-field appearance="outline" class="field-full">
+                    <mat-label>Ej: A, B, C</mat-label>
+                    <input matInput formControlName="nombre" maxlength="10" autocomplete="off" />
+                    @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+                    <mat-error>El nombre es obligatorio</mat-error>
+                    }
+                    <mat-hint>Máximo 10 caracteres</mat-hint>
+                </mat-form-field>
+            </div>
+
+            <!-- Capacidad -->
+            <div class="form-section">
+                <label class="field-label">
+                    <mat-icon class="label-icon">groups</mat-icon>
+                    Capacidad de alumnos
+                </label>
+                <mat-form-field appearance="outline" class="field-full">
+                    <mat-label>Capacidad</mat-label>
+                    <input matInput type="number" formControlName="capacidad" min="1" max="60" />
+                    @if (form.get('capacidad')?.hasError('required') && form.get('capacidad')?.touched) {
+                    <mat-error>La capacidad es obligatoria</mat-error>
+                    }
+                    @if (form.get('capacidad')?.hasError('min')) {
+                    <mat-error>Mínimo {{ data.alumnosActuales }} (alumnos actuales)</mat-error>
+                    }
+                    <mat-hint>
+                        @if (isEdit) {
+                        Actualmente {{ data.alumnosActuales }} alumnos matriculados
+                        } @else {
+                        Entre 1 y 60 alumnos
+                        }
+                    </mat-hint>
+                </mat-form-field>
+
+                <!-- Capacity preview (solo en modo editar) -->
+                @if (isEdit && form.get('capacidad')?.value) {
+                <div class="cap-preview">
+                    <div class="cap-preview-bar">
+                        <div class="cap-preview-fill" [style.width.%]="getCapPreviewPercent()"
+                            [class.warn]="getCapPreviewPercent() >= 80" [class.full]="getCapPreviewPercent() >= 100">
+                        </div>
+                    </div>
+                    <span class="cap-preview-text">
+                        {{ data.alumnosActuales }}/{{ form.get('capacidad')?.value }} ocupados
+                    </span>
+                </div>
+                }
+            </div>
+
+            <!-- Warning: capacidad menor que alumnos actuales -->
+            @if (isEdit && form.get('capacidad')?.value && (data.alumnosActuales ?? 0) > 0 &&
+            form.get('capacidad')!.value! < data.alumnosActuales!) { <div class="warning-box">
+                <mat-icon>warning</mat-icon>
+                <span>La capacidad no puede ser menor a los alumnos actuales ({{ data.alumnosActuales }}).</span>
+    </div>
+    }
+
+    <!-- Info box (solo en modo crear) -->
+    @if (!isEdit) {
+    <div class="info-box">
+        <div class="info-icon">
+            <mat-icon>auto_awesome</mat-icon>
+        </div>
+        <div class="info-content">
+            <span class="info-title">Generación automática</span>
+            <span class="info-desc">Se generarán automáticamente los {{ 11 }} cursos del grado según el CNEB si hay un
+                periodo activo.</span>
+        </div>
+    </div>
+    }
+
+    <!-- Info box editar -->
+    @if (isEdit) {
+    <div class="info-box edit-info">
+        <div class="info-icon">
+            <mat-icon>info</mat-icon>
+        </div>
+        <div class="info-content">
+            <span class="info-title">Edición de sección</span>
+            <span class="info-desc">Puedes aumentar la capacidad en cualquier momento del año si necesitas agregar más
+                alumnos.</span>
+        </div>
+    </div>
+    }
 
     </form>
-</mat-dialog-content>
+</div>
 
-<mat-dialog-actions align="end">
-    <button mat-stroked-button (click)="cancel()">Cancelar</button>
-    <button mat-flat-button color="primary" (click)="submit()" [disabled]="saving()">
+<!-- ── Actions ─────────────────────────────────────────────── -->
+<div class="dialog-divider"></div>
+<div class="dialog-actions">
+    <button mat-stroked-button class="btn-cancel" (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary" class="btn-submit" (click)="submit()"
+        [disabled]="saving() || !hasChanges()">
         @if (saving()) {
-        <mat-progress-spinner diameter="18" mode="indeterminate" />
+        <mat-progress-spinner diameter="18" mode="indeterminate" class="btn-spinner"></mat-progress-spinner>
         } @else {
-        Crear Sección
+        <ng-container>
+            <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
+            {{ isEdit ? 'Guardar cambios' : 'Crear Sección' }}
+        </ng-container>
         }
     </button>
-</mat-dialog-actions>
+</div>
+
+</div>

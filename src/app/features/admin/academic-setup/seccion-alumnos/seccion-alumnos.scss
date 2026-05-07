@@ -1,7 +1,12 @@
+// ═══════════════════════════════════════════════════════════════
+// seccion-alumnos.scss — Rediseño PREMIUM UX/UI v2
+// Variables globales de styles.scss
+// ═══════════════════════════════════════════════════════════════
+
 .alumnos-panel {
-    margin-top: 20px;
-    border-top: 1px solid #e8eaf6;
-    padding-top: 16px;
+    margin-top: 22px;
+    border-top: 1px solid var(--c-border);
+    padding-top: 22px;
 }
 
 // ── Header ────────────────────────────────────────────────────
@@ -9,104 +14,230 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
 }
 
-.panel-title {
+.panel-title-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #424242;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    gap: 12px;
 }
 
-.count-badge {
-    background: #e8eaf6;
-    color: #3949ab;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 20px;
-    letter-spacing: 0;
+.panel-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-sm);
+    background: linear-gradient(135deg, #eef2ff, #dbeafe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: var(--c-primary);
+    }
 }
 
-// ── Capacity bar ──────────────────────────────────────────────
-.capacity-bar-container {
+.panel-title-text {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 14px;
+}
+
+.panel-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--c-text-1);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eef2ff, #dbeafe);
+    color: var(--c-primary);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 4px rgba(26, 58, 107, 0.08);
+
+    &.warn {
+        background: linear-gradient(135deg, var(--c-warn-bg), #fef3c7);
+        color: var(--c-warn);
+        box-shadow: 0 1px 4px rgba(217, 119, 6, 0.1);
+    }
+
+    &.full {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        color: var(--c-danger);
+        box-shadow: 0 1px 4px rgba(220, 38, 38, 0.1);
+    }
+}
+
+.btn-matricular {
+    border-radius: var(--r-sm) !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    height: 38px;
+    padding: 0 18px !important;
+    box-shadow: 0 4px 14px rgba(26, 58, 107, 0.25);
+    transition: all 0.25s ease;
+
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(26, 58, 107, 0.35);
+    }
+
+    &:disabled {
+        box-shadow: none;
+        opacity: 0.5;
+    }
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+// ── Capacity bar ──────────────────────────────────────────────
+.capacity-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
 .capacity-bar {
     flex: 1;
-    height: 6px;
-    background: #e0e0e0;
-    border-radius: 3px;
+    height: 8px;
+    background: var(--c-border);
+    border-radius: 4px;
     overflow: hidden;
 }
 
 .capacity-fill {
     height: 100%;
-    background: #42a5f5;
-    border-radius: 3px;
-    transition: width 0.4s ease;
+    background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light));
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 
-    &.warning {
-        background: #ffa726;
+    &.warn {
+        background: linear-gradient(90deg, var(--c-warn), #fbbf24);
     }
 
     &.full {
-        background: #ef5350;
+        background: linear-gradient(90deg, var(--c-danger), #f87171);
+        animation: fullPulse 2s ease-in-out infinite;
+    }
+}
+
+@keyframes fullPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
     }
 }
 
 .capacity-label {
-    font-size: 11px;
-    color: #9e9e9e;
+    font-size: 12px;
+    color: var(--c-text-3);
     white-space: nowrap;
+    font-weight: 600;
 }
 
-// ── Loading / Empty ───────────────────────────────────────────
+// ── Loading ───────────────────────────────────────────────────
 .loading-state {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px 0;
-    color: #9e9e9e;
-    font-size: 13px;
-}
+    gap: 14px;
+    padding: 32px 0;
+    justify-content: center;
 
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 28px 0;
-    color: #bdbdbd;
-    text-align: center;
-
-    mat-icon {
-        font-size: 36px;
-        width: 36px;
-        height: 36px;
+    .loading-ring {
+        padding: 8px;
+        background: var(--c-surface);
+        border-radius: 50%;
+        box-shadow: var(--shadow-sm);
     }
 
     p {
         margin: 0;
         font-size: 14px;
-        color: #9e9e9e;
         font-weight: 500;
+        color: var(--c-text-3);
     }
+}
 
-    span {
-        font-size: 12px;
-        color: #bdbdbd;
+// ── Empty state ───────────────────────────────────────────────
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 16px;
+    text-align: center;
+}
+
+.empty-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--c-bg), var(--c-border));
+    border: 2px dashed var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    box-shadow: var(--shadow-sm);
+
+    mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: var(--c-text-3);
+    }
+}
+
+.empty-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--c-text-1);
+}
+
+.empty-hint {
+    font-size: 13px;
+    color: var(--c-text-2);
+    max-width: 300px;
+    line-height: 1.5;
+}
+
+.empty-cta {
+    margin-top: 8px;
+    border-radius: var(--r-sm) !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
     }
 }
 
@@ -120,33 +251,85 @@
 .alumno-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border: 1px solid #f0f0f0;
-    border-radius: 8px;
-    transition: background 0.15s;
+    gap: 14px;
+    padding: 12px 16px;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    transition: all 0.2s ease;
+    animation: rowSlideIn 0.3s ease-out backwards;
+
+    &[data-index="0"] {
+        animation-delay: 0.03s;
+    }
+
+    &[data-index="1"] {
+        animation-delay: 0.06s;
+    }
+
+    &[data-index="2"] {
+        animation-delay: 0.09s;
+    }
+
+    &[data-index="3"] {
+        animation-delay: 0.12s;
+    }
+
+    &[data-index="4"] {
+        animation-delay: 0.15s;
+    }
 
     &:hover {
-        background: #fafafa;
+        background: var(--c-bg);
+        border-color: var(--c-primary-light);
+        transform: translateX(4px);
+        box-shadow: var(--shadow-sm);
+
+        .alumno-avatar {
+            transform: scale(1.06);
+        }
+
+        .remove-btn {
+            opacity: 1;
+        }
     }
 
     &.inactive {
-        opacity: 0.55;
+        opacity: 0.45;
+        background: #fafafa;
+    }
+}
+
+@keyframes rowSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
     }
 }
 
 .alumno-avatar {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: #26a69a;
+    background: linear-gradient(135deg, #10b981, #34d399);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     flex-shrink: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+
+    &.inactive-avatar {
+        background: linear-gradient(135deg, var(--c-text-3), #cbd5e1);
+        box-shadow: none;
+    }
 }
 
 .alumno-info {
@@ -155,9 +338,9 @@
 
     .alumno-name {
         display: block;
-        font-size: 13px;
-        font-weight: 500;
-        color: #212121;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--c-text-1);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -166,8 +349,10 @@
     .alumno-code {
         display: block;
         font-size: 11px;
-        color: #9e9e9e;
+        color: var(--c-text-3);
         font-family: 'Courier New', monospace;
+        margin-top: 2px;
+        letter-spacing: 0.3px;
     }
 }
 
@@ -175,55 +360,332 @@
 .status-chip {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 11px;
     font-weight: 600;
-    padding: 3px 8px;
+    padding: 5px 12px;
     border-radius: 20px;
     white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
 
     .dot {
-        width: 6px;
-        height: 6px;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
     }
 
     &.active {
-        background: #e8f5e9;
-        color: #2e7d32;
+        background: var(--c-success-bg);
+        color: #166534;
 
         .dot {
-            background: #4caf50;
+            background: var(--c-success);
+            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+            animation: dotPulse 2s ease-in-out infinite;
         }
     }
 
     &.inactive {
-        background: #ffebee;
-        color: #c62828;
+        background: #fef2f2;
+        color: #991b1b;
 
         .dot {
-            background: #ef5350;
+            background: var(--c-danger);
         }
     }
 }
 
-.remove-btn {
-    opacity: 0.5;
-    transition: opacity 0.15s;
+@keyframes dotPulse {
 
-    &:hover {
-        opacity: 1;
+    0%,
+    100% {
+        box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 0 5px rgba(5, 150, 105, 0.06);
     }
 }
 
-// ── Responsive ────────────────────────────────────────────────
-@media (max-width: 600px) {
-    .panel-header {
-        flex-direction: column;
-        align-items: flex-start;
+.remove-btn {
+    opacity: 0.3;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    &:hover {
+        opacity: 1;
+        color: var(--c-danger) !important;
+        background: #fef2f2;
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ════════════════════════════════════════════════════════════════
+
+@media (max-width: 900px) {
+    .panel-title {
+        font-size: 12px;
     }
 
+    .count-badge {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+
+    .capacity-label {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 768px) {
+    .panel-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .btn-matricular {
+        width: 100%;
+        justify-content: center;
+        height: 42px;
+    }
+
+    .panel-title-row {
+        gap: 10px;
+    }
+
+    .panel-icon {
+        width: 32px;
+        height: 32px;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+}
+
+@media (max-width: 600px) {
     .status-chip {
         display: none;
+    }
+
+    .alumno-row {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .alumno-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 12px;
+    }
+
+    .alumno-info .alumno-name {
+        font-size: 13px;
+    }
+
+    .alumno-info .alumno-code {
+        font-size: 10px;
+    }
+
+    .capacity-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .capacity-label {
+        text-align: right;
+        font-size: 11px;
+    }
+
+    .panel-icon {
+        display: none;
+    }
+
+    .panel-title {
+        font-size: 11px;
+    }
+
+    .count-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+
+    .btn-matricular {
+        font-size: 12px !important;
+        height: 38px;
+        padding: 0 14px !important;
+    }
+
+    .empty-state {
+        padding: 36px 14px;
+    }
+
+    .empty-title {
+        font-size: 15px;
+    }
+
+    .empty-hint {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .alumnos-panel {
+        padding-top: 16px;
+        margin-top: 16px;
+    }
+
+    .alumno-row {
+        padding: 8px 10px;
+        gap: 8px;
+        border-radius: var(--r-sm);
+    }
+
+    .alumno-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 11px;
+    }
+
+    .alumno-info .alumno-name {
+        font-size: 12px;
+    }
+
+    .alumno-info .alumno-code {
+        font-size: 9px;
+    }
+
+    .remove-btn {
+        opacity: 1;
+    }
+
+    .empty-state {
+        padding: 28px 10px;
+    }
+
+    .empty-ring {
+        width: 52px;
+        height: 52px;
+
+        mat-icon {
+            font-size: 22px;
+            width: 22px;
+            height: 22px;
+        }
+    }
+
+    .empty-title {
+        font-size: 14px;
+    }
+
+    .empty-hint {
+        font-size: 11px;
+        max-width: 240px;
+    }
+
+    .empty-cta {
+        font-size: 12px !important;
+    }
+
+    .capacity-bar {
+        height: 6px;
+    }
+
+    .panel-title {
+        font-size: 10px;
+    }
+
+    .panel-title-text {
+        gap: 6px;
+    }
+
+    .count-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 12px;
+    }
+
+    .btn-matricular {
+        font-size: 11px !important;
+        height: 36px;
+        padding: 0 12px !important;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+}
+
+// ── Ultra-small phones (Galaxy Fold, iPhone SE) ───────────────
+@media (max-width: 380px) {
+    .alumnos-panel {
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .alumno-row {
+        padding: 6px 8px;
+        gap: 6px;
+    }
+
+    .alumno-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+    }
+
+    .alumno-info .alumno-name {
+        font-size: 11px;
+    }
+
+    .alumno-info .alumno-code {
+        font-size: 9px;
+    }
+
+    .remove-btn {
+        width: 28px !important;
+        height: 28px !important;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    .empty-state {
+        padding: 20px 8px;
+    }
+
+    .empty-ring {
+        width: 44px;
+        height: 44px;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .empty-title {
+        font-size: 13px;
+    }
+
+    .empty-hint {
+        font-size: 10px;
+    }
+
+    .panel-header {
+        gap: 8px;
+        margin-bottom: 10px;
     }
 }

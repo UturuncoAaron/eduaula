@@ -7,9 +7,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-export interface CreateSeccionData {
+export interface SeccionDialogData {
   gradoId: number;
   gradoNombre: string;
+  // ── Solo para editar ──
+  seccionId?: number;
+  nombre?: string;
+  capacidad?: number;
+  alumnosActuales?: number;
 }
 
 @Component({
@@ -25,18 +30,44 @@ export interface CreateSeccionData {
 export class CreateSeccionDialog {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<CreateSeccionDialog>);
-  readonly data = inject<CreateSeccionData>(MAT_DIALOG_DATA);
+  readonly data = inject<SeccionDialogData>(MAT_DIALOG_DATA);
 
   saving = signal(false);
 
+  /** true cuando se pasa seccionId → modo editar */
+  readonly isEdit = !!this.data.seccionId;
+
   form = this.fb.group({
-    nombre: ['', [Validators.required, Validators.maxLength(10)]],
-    capacidad: [35, [Validators.required, Validators.min(1), Validators.max(50)]],
+    nombre: [
+      this.data.nombre ?? '',
+      [Validators.required, Validators.maxLength(10)],
+    ],
+    capacidad: [
+      this.data.capacidad ?? 35,
+      [
+        Validators.required,
+        Validators.min(this.isEdit ? (this.data.alumnosActuales ?? 1) : 1),
+        Validators.max(60),
+      ],
+    ],
   });
+
+  /** En modo editar: solo habilita "Guardar" si hay cambios */
+  hasChanges(): boolean {
+    if (!this.isEdit) return true;
+    const v = this.form.value;
+    return v.nombre !== this.data.nombre || v.capacidad !== this.data.capacidad;
+  }
+
+  /** Preview de barra de capacidad (solo en modo editar) */
+  getCapPreviewPercent(): number {
+    const cap = this.form.get('capacidad')?.value ?? 1;
+    if (cap <= 0) return 0;
+    return Math.min(Math.round(((this.data.alumnosActuales ?? 0) / cap) * 100), 100);
+  }
 
   submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    // Devuelve los valores — el padre hace la llamada API
     this.dialogRef.close({
       nombre: this.form.value.nombre!.trim().toUpperCase(),
       capacidad: this.form.value.capacidad!,
