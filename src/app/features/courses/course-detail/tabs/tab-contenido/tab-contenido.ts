@@ -25,6 +25,7 @@ import { Forum } from '../../../../../core/models/forum';
 import {
   TeacherCardSkeleton, WeekContentSkeleton,
 } from '../../../../../shared/components/skeletons/skeletons';
+import { formDrawerConfig } from '../../../../../shared/utils/form-drawer';
 import { WeekAccordion, SemanaItem } from './week-accordion/week-accordion';
 
 @Component({
@@ -337,14 +338,20 @@ export class TabContenido implements OnInit {
   }
 
   // ── Crear desde la semana ─────────────────────────────────────
+  // Todos los formularios de creación se abren como drawer lateral derecho
+  // (mismo patrón que MaterialPreview/TaskSubmissionsPane), para mantener
+  // un único modelo mental de "panel de detalle" en toda la pantalla.
   async crearMaterial(s: SemanaResumen): Promise<void> {
     const { MaterialUpload } = await import(
       '../../../material-upload/material-upload'
     );
-    const ref = this.dialog.open(MaterialUpload, {
-      data: { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
-      width: '560px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      MaterialUpload,
+      formDrawerConfig(
+        { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
+        'md',
+      ),
+    );
     ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
 
@@ -352,10 +359,13 @@ export class TabContenido implements OnInit {
     const { TaskCreate } = await import(
       '../../../../tasks/task-create/task-create'
     );
-    const ref = this.dialog.open(TaskCreate, {
-      data: { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
-      width: '760px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      TaskCreate,
+      formDrawerConfig(
+        { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
+        'lg',
+      ),
+    );
     ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
 
@@ -363,10 +373,13 @@ export class TabContenido implements OnInit {
     const { ForumCreate } = await import(
       '../../../../forum/forum-create/forum-create'
     );
-    const ref = this.dialog.open(ForumCreate, {
-      data: { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
-      width: '520px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      ForumCreate,
+      formDrawerConfig(
+        { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
+        'md',
+      ),
+    );
     ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
 
@@ -384,9 +397,10 @@ export class TabContenido implements OnInit {
     const { LiveClassFormDialog } = await import(
       '../../live-class-form-dialog/live-class-form-dialog'
     );
-    const ref = this.dialog.open(LiveClassFormDialog, {
-      data: { courseId: this.courseId() }, width: '600px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      LiveClassFormDialog,
+      formDrawerConfig({ courseId: this.courseId() }, 'md'),
+    );
     ref.afterClosed().subscribe(r => { if (r) this.refreshLiveClasses(); });
   }
 
@@ -394,9 +408,10 @@ export class TabContenido implements OnInit {
     const { LiveClassFormDialog } = await import(
       '../../live-class-form-dialog/live-class-form-dialog'
     );
-    const ref = this.dialog.open(LiveClassFormDialog, {
-      data: { courseId: this.courseId(), liveClass: lc }, width: '600px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      LiveClassFormDialog,
+      formDrawerConfig({ courseId: this.courseId(), liveClass: lc }, 'md'),
+    );
     ref.afterClosed().subscribe(r => { if (r) this.refreshLiveClasses(); });
   }
 

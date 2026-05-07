@@ -17,6 +17,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../../core/auth/auth';
 import { CourseService } from '../../../data-access/course.store';
 import { Material } from '../../../../../core/models/course';
+import { formDrawerConfig } from '../../../../../shared/utils/form-drawer';
 
 interface MaterialGroup {
   bimestre: number | null;
@@ -167,18 +168,16 @@ export class TabMateriales implements OnInit {
     const { MaterialUpload } = await import(
       '../../../material-upload/material-upload'
     );
-    const ref = this.dialog.open(MaterialUpload, {
-      data: this.courseId(), width: '560px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(MaterialUpload, formDrawerConfig(this.courseId(), 'md'));
     ref.afterClosed().subscribe(r => { if (r) this.loadMaterials(); });
   }
 
   async openEditDialog(m: Material) {
     const { MaterialEdit } = await import('../../../material-edit/material-edit');
-    const ref = this.dialog.open(MaterialEdit, {
-      data: { courseId: this.courseId(), material: m },
-      width: '560px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      MaterialEdit,
+      formDrawerConfig({ courseId: this.courseId(), material: m }, 'md'),
+    );
     ref.afterClosed().subscribe(r => { if (r) this.loadMaterials(); });
   }
 

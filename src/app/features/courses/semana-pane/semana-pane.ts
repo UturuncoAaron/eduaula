@@ -16,6 +16,7 @@ import { TaskService } from '../../tasks/data-access/task.store';
 import { Material, SemanaResumen } from '../../../core/models/course';
 import { Task } from '../../../core/models/task';
 import { Forum } from '../../../core/models/forum';
+import { formDrawerConfig } from '../../../shared/utils/form-drawer';
 
 export interface SemanaPaneData {
   courseId: string;
@@ -160,18 +161,23 @@ export class SemanaPane implements OnInit {
   }
 
   // ── Crear desde la semana ──────────────────────────────────
+  // Drawer lateral derecho (formDrawerConfig) — mismo patrón visual que
+  // MaterialPreview, para que el flujo sea consistente.
   async crearMaterial(): Promise<void> {
     const { MaterialUpload } = await import(
       '../material-upload/material-upload'
     );
-    const ref = this.dialog.open(MaterialUpload, {
-      data: {
-        courseId: this.courseId,
-        bimestre: this.semana().bimestre,
-        semana: this.semana().semana,
-      },
-      width: '560px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      MaterialUpload,
+      formDrawerConfig(
+        {
+          courseId: this.courseId,
+          bimestre: this.semana().bimestre,
+          semana: this.semana().semana,
+        },
+        'md',
+      ),
+    );
     ref.afterClosed().subscribe((r) => { if (r) { this.touched = true; this.loadMaterials(); } });
   }
 
@@ -179,14 +185,17 @@ export class SemanaPane implements OnInit {
     const { TaskCreate } = await import(
       '../../tasks/task-create/task-create'
     );
-    const ref = this.dialog.open(TaskCreate, {
-      data: {
-        courseId: this.courseId,
-        bimestre: this.semana().bimestre,
-        semana: this.semana().semana,
-      },
-      width: '760px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      TaskCreate,
+      formDrawerConfig(
+        {
+          courseId: this.courseId,
+          bimestre: this.semana().bimestre,
+          semana: this.semana().semana,
+        },
+        'lg',
+      ),
+    );
     ref.afterClosed().subscribe((r) => { if (r) { this.touched = true; this.loadTasks(); } });
   }
 
@@ -194,14 +203,17 @@ export class SemanaPane implements OnInit {
     const { ForumCreate } = await import(
       '../../forum/forum-create/forum-create'
     );
-    const ref = this.dialog.open(ForumCreate, {
-      data: {
-        courseId: this.courseId,
-        bimestre: this.semana().bimestre,
-        semana: this.semana().semana,
-      },
-      width: '520px', maxHeight: '90vh',
-    });
+    const ref = this.dialog.open(
+      ForumCreate,
+      formDrawerConfig(
+        {
+          courseId: this.courseId,
+          bimestre: this.semana().bimestre,
+          semana: this.semana().semana,
+        },
+        'md',
+      ),
+    );
     ref.afterClosed().subscribe((r) => { if (r) { this.touched = true; this.loadForums(); } });
   }
 

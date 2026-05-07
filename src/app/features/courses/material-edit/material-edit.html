@@ -1,14 +1,21 @@
-<h2 mat-dialog-title class="dialog-title">
-    <mat-icon>edit</mat-icon>
-    Editar material
-</h2>
+<header class="drawer-header edit-header">
+    <div class="title-wrap">
+        <div class="icon-box">
+            <mat-icon>edit</mat-icon>
+        </div>
+        <h2 mat-dialog-title>Editar material</h2>
+    </div>
+    <button mat-icon-button mat-dialog-close [disabled]="loading()" aria-label="Cerrar" class="btn-close">
+        <mat-icon>close</mat-icon>
+    </button>
+</header>
 
 <mat-dialog-content class="dialog-content">
     <form [formGroup]="form" class="form">
 
         <mat-form-field appearance="outline" class="w100">
             <mat-label>Título</mat-label>
-            <input matInput formControlName="titulo" />
+            <input matInput formControlName="titulo" cdkFocusInitial />
             @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
             <mat-error>Mínimo 3 caracteres</mat-error>
             }

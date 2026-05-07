@@ -57,14 +57,12 @@ $border-color: #e2e8f0;
     }
 }
 
+// En modo drawer (panelClass: form-drawer-pane) el ancho lo controla
+// MatDialog. Aquí solo controlamos el padding y overflow del body.
 .dialog-body {
-    padding: 24px !important;
-    min-width: 500px;
     overflow-x: hidden;
 
     @media (max-width: 600px) {
-        min-width: unset;
-        width: 100%;
         padding: 16px !important;
     }
 }

@@ -11,6 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '../../../../../core/services/api';
 import { AuthService } from '../../../../../core/auth/auth';
 import { Task, Submission, tipoEntregaTarea, estadoAlumno as calcEstadoAlumno, EstadoTarea } from '../../../../../core/models/task';
+import { formDrawerConfig } from '../../../../../shared/utils/form-drawer';
 
 @Component({
   selector: 'app-tab-tareas',
@@ -114,7 +115,7 @@ export class TabTareas implements OnInit {
     const { TaskCreate } = await import(
       '../../../../tasks/task-create/task-create'
     );
-    const ref = this.dialog.open(TaskCreate, { data: this.courseId(), width: '600px' });
+    const ref = this.dialog.open(TaskCreate, formDrawerConfig(this.courseId(), 'lg'));
     ref.afterClosed().subscribe(r => { if (r) this.loadTasks(); });
   }
 }

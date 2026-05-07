@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '../../../../../core/services/api';
 import { AuthService } from '../../../../../core/auth/auth';
 import { Forum } from '../../../../../core/models/forum';
+import { formDrawerConfig } from '../../../../../shared/utils/form-drawer';
 
 @Component({
   selector: 'app-tab-foro',
@@ -39,7 +40,7 @@ export class TabForo implements OnInit {
     const { ForumCreate } = await import(
       '../../../../forum/forum-create/forum-create'
     );
-    const ref = this.dialog.open(ForumCreate, { data: this.courseId(), width: '500px' });
+    const ref = this.dialog.open(ForumCreate, formDrawerConfig(this.courseId(), 'md'));
     ref.afterClosed().subscribe(r => { if (r) this.loadForums(); });
   }
 }

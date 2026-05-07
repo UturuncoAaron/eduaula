@@ -1,14 +1,21 @@
-<h2 mat-dialog-title class="dialog-title">
-    <mat-icon>upload_file</mat-icon>
-    Subir material
-</h2>
+<header class="drawer-header upload-header">
+    <div class="title-wrap">
+        <div class="icon-box">
+            <mat-icon>upload_file</mat-icon>
+        </div>
+        <h2 mat-dialog-title>Subir material</h2>
+    </div>
+    <button mat-icon-button mat-dialog-close [disabled]="loading()" aria-label="Cerrar" class="btn-close">
+        <mat-icon>close</mat-icon>
+    </button>
+</header>
 
 <mat-dialog-content class="dialog-content">
     <form [formGroup]="form" class="form">
 
         <mat-form-field appearance="outline" class="w100">
             <mat-label>Título del material</mat-label>
-            <input matInput formControlName="titulo" placeholder="Ej: Semana 1 — Introducción" />
+            <input matInput formControlName="titulo" placeholder="Ej: Semana 1 — Introducción" cdkFocusInitial />
             @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
             <mat-error>El título es obligatorio (mín. 3 caracteres)</mat-error>
             }
