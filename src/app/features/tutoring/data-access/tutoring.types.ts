@@ -41,9 +41,9 @@ export interface PadreTutoria {
 
 export interface TutoriaData {
     seccion: {
-        id: number;
+        id: string;        // ← UUID, no number
         nombre: string;
-        grado_id: number;
+        grado_id: string;  // ← también UUID
         grado_nombre: string;
         grado_orden: number;
         capacidad: number;

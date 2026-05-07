@@ -12,12 +12,12 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 
 export interface AssignTutorDialogData {
-  seccionId: number;
+  seccionId: string;
   seccionNombre: string;
   gradoNombre: string;
   tutorActualId: string | null;
@@ -28,10 +28,9 @@ interface DocenteItem {
   nombre: string;
   apellido_paterno: string;
   apellido_materno: string | null;
-  /** Sección donde ya es tutor (si aplica) — para advertir al admin */
   tutoria_actual?: {
-    seccion_id: number;
-    seccion_label: string;          // ej: "1ro A — Secundaria"
+    seccion_id: string;
+    seccion_label: string;
   } | null;
 }
 
@@ -47,21 +46,21 @@ interface DocenteItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AssignTutorDialog implements OnInit {
-  private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
-  public ref = inject(MatDialogRef<AssignTutorDialog>);
-  public data = inject<AssignTutorDialogData>(MAT_DIALOG_DATA);
+  private api    = inject(ApiService);
+  private toastr = inject(ToastService);
+  public ref     = inject(MatDialogRef<AssignTutorDialog>);
+  public data    = inject<AssignTutorDialogData>(MAT_DIALOG_DATA);
 
-  docentes = signal<DocenteItem[]>([]);
-  loading = signal(true);
-  saving = signal(false);
+  docentes  = signal<DocenteItem[]>([]);
+  loading   = signal(true);
+  saving    = signal(false);
 
-  selectedId = signal<string | null>(null);
-  search = new FormControl('');
+  selectedId  = signal<string | null>(null);
+  search      = new FormControl('');
   searchValue = signal('');
 
   docentesFiltrados = computed(() => {
-    const q = this.searchValue().toLowerCase().trim();
+    const q    = this.searchValue().toLowerCase().trim();
     const list = this.docentes();
     if (!q) return list;
     return list.filter(d =>
@@ -74,21 +73,21 @@ export class AssignTutorDialog implements OnInit {
   ngOnInit() {
     this.selectedId.set(this.data.tutorActualId);
 
-    this.api.get<DocenteItem[]>('admin/users/docentes?include=tutoria')
+    this.api.get<DocenteItem[]>('admin/users/docentes/select?include=tutoria')
       .subscribe({
         next: (r: any) => {
-          this.docentes.set(r.data ?? r ?? []);
+          this.docentes.set(Array.isArray(r?.data) ? r.data : []);
           this.loading.set(false);
         },
         error: () => {
           this.loading.set(false);
-          this.snack.open('Error al cargar docentes', 'Cerrar', { duration: 3000 });
+          this.toastr.error('No se pudieron cargar los docentes', 'Error');
         },
       });
 
-    this.search.valueChanges.pipe(debounceTime(150)).subscribe(v =>
-      this.searchValue.set(v ?? ''),
-    );
+    this.search.valueChanges
+      .pipe(debounceTime(150))
+      .subscribe(v => this.searchValue.set(v ?? ''));
   }
 
   select(d: DocenteItem) {
@@ -96,7 +95,7 @@ export class AssignTutorDialog implements OnInit {
   }
 
   initials(d: DocenteItem): string {
-    return `${(d.nombre[0] ?? '')}${(d.apellido_paterno[0] ?? '')}`.toUpperCase();
+    return `${d.nombre[0] ?? ''}${d.apellido_paterno[0] ?? ''}`.toUpperCase();
   }
 
   isYaTutorDeOtra(d: DocenteItem): boolean {
@@ -107,16 +106,14 @@ export class AssignTutorDialog implements OnInit {
     const id = this.selectedId();
     if (!id) return;
 
-    const docente = this.docentes().find(d => d.id === id);
-    const yaTutor = docente && this.isYaTutorDeOtra(docente);
+    const docente  = this.docentes().find(d => d.id === id);
+    const yaTutor  = docente && this.isYaTutorDeOtra(docente);
 
-    // Si ya es tutor de otra sección, el backend devuelve 409 si no se fuerza.
-    // Aquí confirmamos antes de mandar `force: true`.
     if (yaTutor) {
       const ok = confirm(
         `${docente!.nombre} ${docente!.apellido_paterno} ya es tutor de ` +
         `${docente!.tutoria_actual!.seccion_label}.\n\n` +
-        `¿Quieres reemplazar y asignarlo a ${this.data.gradoNombre} ${this.data.seccionNombre}?`,
+        `¿Quieres reasignarlo a ${this.data.gradoNombre} – Sección ${this.data.seccionNombre}?`,
       );
       if (!ok) return;
     }
@@ -128,14 +125,14 @@ export class AssignTutorDialog implements OnInit {
     ).subscribe({
       next: () => {
         this.saving.set(false);
-        this.snack.open('Tutor asignado', 'OK', { duration: 2500 });
+        this.toastr.success('Tutor asignado correctamente', 'Éxito');
         this.ref.close({ docente_id: id });
       },
       error: (err) => {
         this.saving.set(false);
-        this.snack.open(
-          err?.error?.message ?? 'Error al asignar tutor',
-          'Cerrar', { duration: 4000 },
+        this.toastr.error(
+          err?.error?.message ?? 'No se pudo asignar el tutor',
+          'Error',
         );
       },
     });
@@ -143,6 +140,7 @@ export class AssignTutorDialog implements OnInit {
 
   quitar() {
     if (!confirm('¿Quitar el tutor de esta sección?')) return;
+
     this.saving.set(true);
     this.api.patch<any>(
       `academic/secciones/${this.data.seccionId}/tutor`,
@@ -150,12 +148,12 @@ export class AssignTutorDialog implements OnInit {
     ).subscribe({
       next: () => {
         this.saving.set(false);
-        this.snack.open('Tutor removido', 'OK', { duration: 2500 });
+        this.toastr.success('Tutor removido correctamente', 'Éxito');
         this.ref.close({ docente_id: null });
       },
       error: () => {
         this.saving.set(false);
-        this.snack.open('Error al quitar tutor', 'Cerrar', { duration: 3000 });
+        this.toastr.error('No se pudo quitar el tutor', 'Error');
       },
     });
   }

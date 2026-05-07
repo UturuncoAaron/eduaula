@@ -1,65 +1,111 @@
-<h2 mat-dialog-title>
-    <mat-icon>school</mat-icon>
-    Asignar tutor
-</h2>
+<div class="dialog-header">
+    <div class="header-icon">
+        <mat-icon>manage_accounts</mat-icon>
+    </div>
+    <div class="header-text">
+        <h2>Asignar tutor</h2>
+        <p class="header-subtitle">{{ data.gradoNombre }} &nbsp;·&nbsp; Sección {{ data.seccionNombre }}</p>
+    </div>
+    <button class="close-btn" mat-icon-button (click)="cancel()" [disabled]="saving()">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
 
 <mat-dialog-content class="dialog-body">
-    <p class="subtitle">
-        {{ data.gradoNombre }} · Sección {{ data.seccionNombre }}
-    </p>
 
-    <div class="search-wrap">
-        <mat-icon>search</mat-icon>
-        <input [formControl]="search" placeholder="Buscar docente…" />
+    <div class="search-wrap" [class.active]="search.value">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input [formControl]="search" placeholder="Buscar por nombre o apellido…" autocomplete="off" />
+        @if (search.value) {
+        <button class="clear-btn" type="button" (click)="search.setValue('')">
+            <mat-icon>close</mat-icon>
+        </button>
+        }
     </div>
 
     @if (loading()) {
-    <div class="state">
-        <mat-spinner diameter="32"></mat-spinner>
+    <div class="state-wrap">
+        <div class="spinner-ring"></div>
+        <p class="state-label">Cargando docentes…</p>
     </div>
     } @else if (docentesFiltrados().length === 0) {
-    <div class="state empty">
-        <mat-icon>person_off</mat-icon>
-        <p>No se encontraron docentes.</p>
+    <div class="state-wrap empty">
+        <div class="empty-icon-wrap">
+            <mat-icon>person_search</mat-icon>
+        </div>
+        <p class="state-label">No se encontraron docentes</p>
+        @if (search.value) {
+        <button class="link-btn" type="button" (click)="search.setValue('')">Limpiar búsqueda</button>
+        }
     </div>
     } @else {
-    <div class="docente-list">
+    <div class="list-meta">
+        <span class="list-count">{{ docentesFiltrados().length }} docente{{ docentesFiltrados().length !== 1 ? 's' : ''
+            }}</span>
+    </div>
+    <div class="docente-list" role="listbox" aria-label="Lista de docentes">
         @for (d of docentesFiltrados(); track d.id) {
-        <button type="button" class="docente-row" [class.selected]="d.id === selectedId()"
-            [class.warn]="isYaTutorDeOtra(d)" (click)="select(d)">
-            <span class="avatar">{{ initials(d) }}</span>
+        <button type="button" class="docente-row" role="option" [attr.aria-selected]="d.id === selectedId()"
+            [class.selected]="d.id === selectedId()" [class.warn]="isYaTutorDeOtra(d)"
+            [class.current]="d.id === data.tutorActualId && !isYaTutorDeOtra(d)" (click)="select(d)">
+
+            <span class="avatar" [class.avatar--warn]="isYaTutorDeOtra(d)"
+                [class.avatar--current]="d.id === data.tutorActualId">
+                {{ initials(d) }}
+            </span>
+
             <span class="info">
-                <span class="name">
-                    {{ d.apellido_paterno }} {{ d.apellido_materno }}, {{ d.nombre }}
-                </span>
+                <span class="name">{{ d.apellido_paterno }} {{ d.apellido_materno }}, {{ d.nombre }}</span>
                 @if (isYaTutorDeOtra(d)) {
-                <span class="warn-text">
-                    <mat-icon>warning</mat-icon>
-                    Ya es tutor de {{ d.tutoria_actual!.seccion_label }}
+                <span class="tag tag--warn">
+                    <mat-icon>swap_horiz</mat-icon>
+                    Tutor de {{ d.tutoria_actual!.seccion_label }}
                 </span>
                 } @else if (d.id === data.tutorActualId) {
-                <span class="hint-text">Tutor actual de esta sección</span>
+                <span class="tag tag--current">
+                    <mat-icon>verified</mat-icon>
+                    Tutor actual
+                </span>
                 }
             </span>
-            @if (d.id === selectedId()) {
-            <mat-icon class="check">check_circle</mat-icon>
-            }
+
+            <span class="row-indicator">
+                @if (d.id === selectedId()) {
+                <mat-icon class="check-icon">check_circle</mat-icon>
+                } @else {
+                <span class="radio-ring"></span>
+                }
+            </span>
+
         </button>
         }
     </div>
     }
+
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-    @if (data.tutorActualId) {
-    <button mat-button color="warn" (click)="quitar()" [disabled]="saving()">
-        <mat-icon>person_remove</mat-icon> Quitar tutor
-    </button>
-    }
-    <span class="spacer"></span>
-    <button mat-button (click)="cancel()" [disabled]="saving()">Cancelar</button>
-    <button mat-flat-button color="primary" (click)="save()"
-        [disabled]="!selectedId() || selectedId() === data.tutorActualId || saving()">
-        {{ saving() ? 'Guardando…' : 'Asignar' }}
-    </button>
+<mat-dialog-actions class="dialog-footer">
+    <div class="footer-left">
+        @if (data.tutorActualId) {
+        <button class="btn-remove" mat-button (click)="quitar()" [disabled]="saving()">
+            <mat-icon>person_remove</mat-icon>
+            Quitar tutor
+        </button>
+        }
+    </div>
+    <div class="footer-right">
+        <button class="btn-cancel" mat-button (click)="cancel()" [disabled]="saving()">
+            Cancelar
+        </button>
+        <button class="btn-assign" mat-flat-button (click)="save()"
+            [disabled]="!selectedId() || selectedId() === data.tutorActualId || saving()">
+            @if (saving()) {
+            <span class="btn-spinner"></span>
+            Guardando…
+            } @else { <ng-container>
+                <mat-icon>how_to_reg</mat-icon>
+                Asignar
+            </ng-container>}
+        </button>
+    </div>
 </mat-dialog-actions>

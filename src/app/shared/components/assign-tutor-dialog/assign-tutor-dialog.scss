@@ -1,169 +1,558 @@
-h2 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 4px;
+// ── Tokens locales ───────────────────────────────────────────────────────────
+// Todos referenciados a las variables de Material / CSS custom properties
+// para que funcionen en light y dark mode automáticamente.
 
-    mat-icon {
-        color: #5c6bc0;
-    }
+$primary:       #5c6bc0;
+$primary-light: #ede7f6;
+$primary-dark:  #3949ab;
+$warn:          #ef6c00;
+$warn-light:    #fff3e0;
+$warn-border:   #ffb74d;
+$current:       #00796b;
+$current-light: #e0f2f1;
+$radius-sm:     6px;
+$radius-md:     10px;
+$radius-lg:     14px;
+$transition:    0.14s ease;
+
+// ── Header ───────────────────────────────────────────────────────────────────
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 0;
 }
 
-.subtitle {
-    margin: 0 0 12px;
-    color: #757575;
-    font-size: 13px;
+.header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-md;
+  background: $primary-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon {
+    color: $primary;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
 }
+
+.header-text {
+  flex: 1;
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a2e;
+    line-height: 1.3;
+  }
+}
+
+.header-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #757575;
+  font-weight: 400;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 18px;
+    color: #9e9e9e;
+  }
+
+  &:hover mat-icon {
+    color: #424242;
+  }
+}
+
+// ── Body ─────────────────────────────────────────────────────────────────────
 
 .dialog-body {
-    min-width: 420px;
-    max-width: 520px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  width: 100%;
+  min-width: 460px;
+  max-width: 560px;
+  padding: 16px 20px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow: hidden;
 }
+
+// ── Search ───────────────────────────────────────────────────────────────────
 
 .search-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 6px 12px;
-    background: #fafafa;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8f8fc;
+  border: 1.5px solid #e8e8f0;
+  border-radius: $radius-md;
+  padding: 8px 12px;
+  transition: border-color $transition, box-shadow $transition;
 
-    mat-icon {
-        color: #9e9e9e;
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-    }
+  &:focus-within {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.08);
+    background: #fff;
+  }
 
-    input {
-        flex: 1;
-        border: none;
-        outline: none;
-        background: transparent;
-        font-size: 14px;
-    }
+  &.active {
+    background: #fff;
+  }
 }
 
-.state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 8px;
-    gap: 8px;
+.search-icon {
+  color: #9e9e9e;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: color $transition;
 
-    &.empty {
-        color: #9e9e9e;
-
-        mat-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
-        }
-
-        p {
-            margin: 0;
-            font-size: 13px;
-        }
-    }
+  .search-wrap:focus-within & {
+    color: $primary;
+  }
 }
+
+.search-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #212121;
+  font-family: inherit;
+
+  &::placeholder {
+    color: #bdbdbd;
+  }
+}
+
+.clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: #e0e0e0;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background $transition;
+
+  mat-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    color: #757575;
+  }
+
+  &:hover {
+    background: #bdbdbd;
+  }
+}
+
+// ── States ───────────────────────────────────────────────────────────────────
+
+.state-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  gap: 10px;
+}
+
+// Custom spinner (sin depender de mat-spinner para mejor control visual)
+.spinner-ring {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e8e8f0;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.state-label {
+  margin: 0;
+  font-size: 13px;
+  color: #9e9e9e;
+}
+
+.empty-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: #bdbdbd;
+  }
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: $primary;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: $radius-sm;
+  font-family: inherit;
+
+  &:hover {
+    background: $primary-light;
+  }
+}
+
+// ── List meta ────────────────────────────────────────────────────────────────
+
+.list-meta {
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+}
+
+.list-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: #bdbdbd;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// ── Docente list ─────────────────────────────────────────────────────────────
 
 .docente-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    max-height: 360px;
-    overflow-y: auto;
-    padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  max-height: calc(60vh - 160px);
+  padding-right: 2px;
+
+  // Scrollbar estilizado
+  scrollbar-width: thin;
+  scrollbar-color: #e0e0e0 transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 4px;
+  }
 }
+
+// ── Docente row ──────────────────────────────────────────────────────────────
 
 .docente-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    background: #fff;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    font-family: inherit;
-    transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid transparent;
+  border-radius: $radius-md;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  transition: background $transition, border-color $transition;
+  position: relative;
 
-    &:hover {
-        background: #f5f5f5;
-    }
+  &:hover {
+    background: #f8f8fc;
+    border-color: #e8e8f0;
+  }
+
+  // Estado: seleccionado
+  &.selected {
+    background: $primary-light;
+    border-color: rgba($primary, 0.3);
+
+    .name { color: $primary-dark; }
+  }
+
+  // Estado: ya es tutor de otra sección
+  &.warn {
+    &:hover { background: $warn-light; }
 
     &.selected {
-        border-color: #5c6bc0;
-        background: #ede7f6;
+      background: $warn-light;
+      border-color: $warn-border;
     }
+  }
 
-    &.warn {
-        background: #fff8e1;
+  // Estado: tutor actual de esta sección
+  &.current {
+    &:hover { background: $current-light; }
 
-        &.selected {
-            border-color: #fb8c00;
-            background: #fff3e0;
-        }
+    &.selected {
+      background: $current-light;
+      border-color: rgba($current, 0.35);
     }
+  }
 }
+
+// ── Avatar ───────────────────────────────────────────────────────────────────
 
 .avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #7e57c2;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7986cb, #5c6bc0);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+
+  &--warn {
+    background: linear-gradient(135deg, #ffb74d, $warn);
+  }
+
+  &--current {
+    background: linear-gradient(135deg, #4db6ac, $current);
+  }
 }
 
+// ── Info ─────────────────────────────────────────────────────────────────────
+
 .info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 }
 
 .name {
-    font-weight: 500;
-    font-size: 14px;
-    color: #212121;
+  font-weight: 500;
+  font-size: 13.5px;
+  color: #212121;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color $transition;
 }
 
-.warn-text {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: #ef6c00;
+// ── Tags ─────────────────────────────────────────────────────────────────────
 
-    mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px 2px 4px;
+  border-radius: 20px;
+  width: fit-content;
+
+  mat-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+  }
+
+  &--warn {
+    background: #fff3e0;
+    color: $warn;
+    border: 1px solid #ffcc80;
+  }
+
+  &--current {
+    background: #e0f2f1;
+    color: $current;
+    border: 1px solid #80cbc4;
+  }
+}
+
+// ── Row indicator (radio / check) ────────────────────────────────────────────
+
+.row-indicator {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-icon {
+  color: $primary;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.radio-ring {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #d0d0d8;
+  transition: border-color $transition;
+
+  .docente-row:hover & {
+    border-color: $primary;
+  }
+}
+
+// ── Footer ───────────────────────────────────────────────────────────────────
+
+.dialog-footer {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between !important;
+  padding: 12px 20px 16px !important;
+  border-top: 1px solid #f0f0f5;
+  gap: 8px;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// ── Buttons ──────────────────────────────────────────────────────────────────
+
+.btn-remove {
+  font-size: 13px !important;
+  color: #e53935 !important;
+  border-radius: $radius-sm !important;
+  padding: 0 10px !important;
+  height: 34px !important;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+  }
+
+  &:hover {
+    background: #ffebee !important;
+  }
+}
+
+.btn-cancel {
+  font-size: 13px !important;
+  color: #757575 !important;
+  border-radius: $radius-sm !important;
+  height: 34px !important;
+  padding: 0 14px !important;
+
+  &:hover {
+    background: #f5f5f5 !important;
+    color: #424242 !important;
+  }
+}
+
+.btn-assign {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  height: 36px !important;
+  padding: 0 18px !important;
+  border-radius: $radius-sm !important;
+  background: $primary !important;
+  color: #fff !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  letter-spacing: 0.2px;
+  transition: background $transition, transform $transition !important;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not([disabled]) {
+    background: $primary-dark !important;
+    transform: translateY(-1px);
+  }
+
+  &:active:not([disabled]) {
+    transform: translateY(0);
+  }
+
+  &[disabled] {
+    background: #e0e0e0 !important;
+    color: #bdbdbd !important;
+  }
+}
+
+// Spinner inline en botón guardar
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+
+@media (max-width: 599px) {
+  .dialog-body {
+    min-width: calc(100vw - 48px);
+    max-width: 100%;
+  }
+
+  .dialog-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .footer-left,
+    .footer-right {
+      justify-content: center;
+      width: 100%;
     }
-}
 
-.hint-text {
-    font-size: 12px;
-    color: #5c6bc0;
-}
-
-.check {
-    color: #5c6bc0;
-}
-
-.spacer {
-    flex: 1;
+    .btn-assign {
+      justify-content: center;
+      width: 100%;
+    }
+  }
 }

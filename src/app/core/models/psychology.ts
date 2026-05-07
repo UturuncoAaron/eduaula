@@ -14,6 +14,9 @@ export type AppointmentEstado =
     | 'pendiente' | 'confirmada' | 'realizada' | 'cancelada' | 'no_asistio';
 
 export type WeekDay = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes';
+export interface CancelAppointmentPayload {
+  motivo: string;
+}
 
 // ── Alumno mínimo (vista del psicólogo) ─────────────────────────────────────
 export interface AssignedStudent {
@@ -144,3 +147,5 @@ export interface CreateBlockPayload {
     endDate: string;
     motivo?: string;
 }
+
+

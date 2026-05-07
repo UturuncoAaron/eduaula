@@ -8,9 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 
+import { ToastService } from 'ngx-toastr-notifier';
 import { TutoringStore } from '../../data-access/tutoring.store';
 import type { AlumnoTutoria, NotebookItem } from '../../data-access/tutoring.types';
 import {
@@ -33,11 +33,11 @@ import { BulkUpload, BulkUploadData } from '../../ui/bulk-upload/bulk-upload';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TutoringNotebook {
-  readonly store = inject(TutoringStore);
-  private snack = inject(MatSnackBar);
-  private dialog = inject(MatDialog);
+  readonly store  = inject(TutoringStore);
+  private toastr  = inject(ToastService);
+  private dialog  = inject(MatDialog);
 
-  readonly drawerRef = viewChild<MatSidenav>('drawer');
+  readonly drawerRef    = viewChild<MatSidenav>('drawer');
   readonly uploadTarget = signal<NotebookUploadTarget | null>(null);
 
   readonly progresoPct = computed(() => {
@@ -47,7 +47,7 @@ export class TutoringNotebook {
   });
 
   initials(a: AlumnoTutoria): string {
-    return `${(a.nombre[0] ?? '')}${(a.apellido_paterno[0] ?? '')}`.toUpperCase();
+    return `${a.nombre[0] ?? ''}${a.apellido_paterno[0] ?? ''}`.toUpperCase();
   }
 
   libretaDe(a: AlumnoTutoria): NotebookItem | null {
@@ -61,17 +61,18 @@ export class TutoringNotebook {
   openUpload(a: AlumnoTutoria, libretaExistente: NotebookItem | null): void {
     const pid = this.store.periodoSeleccionadoId();
     if (!pid) {
-      this.snack.open('Selecciona un bimestre primero', 'Cerrar', { duration: 3000 });
+      this.toastr.warning('Selecciona un bimestre primero', 'Aviso');
       return;
     }
     const data = this.store.data();
     if (!data) return;
+
     const periodo = data.periodos.find(p => p.id === pid)!;
 
     this.uploadTarget.set({
-      cuenta_id: a.id,
+      cuenta_id:   a.id,
       cuenta_label: `${a.apellido_paterno} ${a.apellido_materno ?? ''}, ${a.nombre}`.trim(),
-      periodo_id: pid,
+      periodo_id:   pid,
       periodo_label: `Bim ${periodo.bimestre} · ${periodo.anio}`,
       tipo: 'alumno',
       libreta_existente: libretaExistente
@@ -92,12 +93,12 @@ export class TutoringNotebook {
     this.store.refresh();
   }
 
-  /** Abre el dialog de carga masiva con auto-match. */
   openBulkUpload(): void {
-    const pid = this.store.periodoSeleccionadoId();
+    const pid  = this.store.periodoSeleccionadoId();
     const data = this.store.data();
+
     if (!pid || !data) {
-      this.snack.open('Selecciona un bimestre primero', 'Cerrar', { duration: 3000 });
+      this.toastr.warning('Selecciona un bimestre primero', 'Aviso');
       return;
     }
 
@@ -109,9 +110,10 @@ export class TutoringNotebook {
     );
 
     const dialogData: BulkUploadData = {
-      alumnos: data.alumnos,
-      periodo_id: pid,
+      alumnos:       data.alumnos,
+      periodo_id:    pid,
       periodo_label: `Bim ${periodo.bimestre} · ${periodo.anio}`,
+      seccion_id:    data.seccion.id,   // ← campo requerido por BulkUploadData
       existentes,
     };
 

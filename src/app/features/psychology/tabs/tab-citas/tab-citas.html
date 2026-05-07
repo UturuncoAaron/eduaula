@@ -1,49 +1,108 @@
-<div class="tab-citas">
+<section class="tab-citas">
 
+    <!-- ── KPIs ────────────────────────────────────────────── -->
+    <div class="kpi-grid">
+        <article class="kpi kpi--total">
+            <div class="kpi__icon"><mat-icon>event</mat-icon></div>
+            <div class="kpi__body">
+                <span class="kpi__label">Total</span>
+                <strong class="kpi__value">{{ stats().total }}</strong>
+            </div>
+        </article>
+
+        <article class="kpi kpi--today">
+            <div class="kpi__icon"><mat-icon>today</mat-icon></div>
+            <div class="kpi__body">
+                <span class="kpi__label">Hoy</span>
+                <strong class="kpi__value">{{ stats().hoy }}</strong>
+            </div>
+        </article>
+
+        <article class="kpi kpi--upcoming">
+            <div class="kpi__icon"><mat-icon>schedule</mat-icon></div>
+            <div class="kpi__body">
+                <span class="kpi__label">Próximas</span>
+                <strong class="kpi__value">{{ stats().proximas }}</strong>
+            </div>
+        </article>
+
+        <article class="kpi kpi--pending">
+            <div class="kpi__icon"><mat-icon>hourglass_empty</mat-icon></div>
+            <div class="kpi__body">
+                <span class="kpi__label">Pendientes</span>
+                <strong class="kpi__value">{{ stats().pendientes }}</strong>
+            </div>
+        </article>
+    </div>
+
+    <!-- ── Header + filtros ────────────────────────────────── -->
     <header class="tab-header">
-        <div>
+        <div class="title-block">
             <h3>Agenda de citas</h3>
-            <p class="muted">{{ store.appointments().length }} cita(s) registradas</p>
+            <p class="muted">{{ visible().length }} de {{ stats().total }} cita(s) visibles</p>
         </div>
 
         <div class="header-actions">
+            <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Buscar alumno</mat-label>
+                <input matInput [ngModel]="search()" (ngModelChange)="onSearchChange($event)"
+                    placeholder="Nombre o apellido…" />
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
             <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Estado</mat-label>
-                <mat-select [ngModel]="filterEstado()"
-                            (ngModelChange)="onEstadoChange($event)">
+                <mat-select [ngModel]="filterEstado()" (ngModelChange)="onEstadoChange($event)">
                     @for (e of estados; track e.value) {
-                        <mat-option [value]="e.value">{{ e.label }}</mat-option>
+                    <mat-option [value]="e.value">{{ e.label }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
 
-            <button mat-flat-button color="primary" (click)="openCreate()">
+            <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Fecha</mat-label>
+                <mat-select [ngModel]="filterDate()" (ngModelChange)="onFechaChange($event)">
+                    @for (f of fechas; track f.value) {
+                    <mat-option [value]="f.value">{{ f.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <button mat-stroked-button type="button" class="clear-btn" (click)="clearFilters()"
+                matTooltip="Limpiar filtros">
+                <mat-icon>filter_alt_off</mat-icon>
+            </button>
+
+            <button mat-flat-button color="primary" type="button" (click)="openCreate()">
                 <mat-icon>add</mat-icon>
                 <span>Nueva cita</span>
             </button>
         </div>
     </header>
 
+    <!-- ── Estado de carga / vacío / lista ─────────────────── -->
     @if (store.loadingAppointments()) {
-        <div class="state-center">
-            <mat-spinner diameter="32" />
-            <span>Cargando citas...</span>
-        </div>
+    <div class="state-center">
+        <mat-spinner diameter="36" />
+        <span>Cargando citas…</span>
+    </div>
     } @else if (visible().length === 0) {
-        <app-empty-state
-            icon="event_busy"
-            title="Sin citas"
-            [message]="filterEstado() === 'all'
-                ? 'No tienes citas programadas. Crea una con el botón Nueva cita.'
-                : 'No hay citas en este estado.'" />
+    <app-empty-state icon="event_busy"
+        [title]="store.appointments().length === 0 ? 'Aún no tienes citas' : 'Sin resultados'" [message]="store.appointments().length === 0
+        ? 'Crea tu primera cita con el botón Nueva cita.'
+        : 'Intenta cambiar o limpiar los filtros.'" />
     } @else {
+    <div class="table-card">
         <div class="table-responsive">
-            <table mat-table [dataSource]="dataSource" class="users-table">
+            <table mat-table matSort [dataSource]="dataSource" class="users-table" [trackBy]="trackById">
 
                 <ng-container matColumnDef="fecha">
-                    <th mat-header-cell *matHeaderCellDef>Fecha y hora</th>
+                    <th mat-header-cell mat-sort-header *matHeaderCellDef>Fecha y hora</th>
                     <td mat-cell *matCellDef="let row">
-                        <span class="full-name">{{ row.scheduledAt | date:'short' }}</span>
+                        <div class="cell-fecha">
+                            <span class="cell-fecha__main">{{ row.scheduledAt | date:'mediumDate' }}</span>
+                            <span class="cell-fecha__sub">{{ row.scheduledAt | date:'shortTime' }}</span>
+                        </div>
                     </td>
                 </ng-container>
 
@@ -64,7 +123,14 @@
                 <ng-container matColumnDef="modalidad">
                     <th mat-header-cell *matHeaderCellDef>Modalidad</th>
                     <td mat-cell *matCellDef="let row">
-                        <span class="grado-chip">{{ row.modalidad }}</span>
+                        <span class="modalidad-chip" [attr.data-modalidad]="row.modalidad">
+                            <mat-icon class="modalidad-icon">
+                                {{ row.modalidad === 'virtual'
+                                ? 'videocam'
+                                : row.modalidad === 'telefonico' ? 'call' : 'meeting_room' }}
+                            </mat-icon>
+                            {{ row.modalidad }}
+                        </span>
                     </td>
                 </ng-container>
 
@@ -86,23 +152,29 @@
                 <ng-container matColumnDef="acciones">
                     <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
                     <td mat-cell *matCellDef="let row" class="col-actions">
-                        <button mat-icon-button [matMenuTriggerFor]="menu" class="menu-trigger">
+                        <button mat-icon-button type="button" [matMenuTriggerFor]="menu" class="menu-trigger"
+                            aria-label="Acciones de la cita">
                             <mat-icon>more_vert</mat-icon>
                         </button>
                         <mat-menu #menu="matMenu">
-                            <button mat-menu-item (click)="setEstado(row, 'confirmada')">
+                            <button mat-menu-item type="button" (click)="setEstado(row, 'confirmada')"
+                                [disabled]="!canConfirm(row)">
                                 <mat-icon>check</mat-icon>
                                 <span>Confirmar</span>
                             </button>
-                            <button mat-menu-item (click)="setEstado(row, 'realizada')">
+                            <button mat-menu-item type="button" (click)="setEstado(row, 'realizada')"
+                                [disabled]="!canFinish(row)">
                                 <mat-icon>task_alt</mat-icon>
                                 <span>Marcar como realizada</span>
                             </button>
-                            <button mat-menu-item (click)="setEstado(row, 'no_asistio')">
+                            <button mat-menu-item type="button" (click)="setEstado(row, 'no_asistio')"
+                                [disabled]="!canMarkNoShow(row)">
                                 <mat-icon>person_off</mat-icon>
                                 <span>No asistió</span>
                             </button>
-                            <button mat-menu-item (click)="cancelar(row)" class="danger">
+                            <mat-divider />
+                            <button mat-menu-item type="button" class="danger" (click)="cancelar(row)"
+                                [disabled]="!canCancel(row)">
                                 <mat-icon>cancel</mat-icon>
                                 <span>Cancelar cita</span>
                             </button>
@@ -115,10 +187,8 @@
             </table>
         </div>
 
-        <mat-paginator
-            [pageSizeOptions]="[10, 25, 50]"
-            [pageSize]="10"
-            showFirstLastButtons />
+        <mat-paginator [pageSizeOptions]="[10, 25, 50]" [pageSize]="10" showFirstLastButtons />
+    </div>
     }
 
-</div>
+</section>

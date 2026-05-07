@@ -1,60 +1,177 @@
-@use '../../../../features/admin/user-management/shared/_admin-table.scss' as admin-table;
+@use '../../../admin/user-management/shared/admin-table' as admin-table;
+
+:host { display: block; }
 
 .tab-citas {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 
-    @include admin-table.styles;
+  @include admin-table.styles;
 }
 
+/* ── KPI cards ───────────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  transition: transform .15s ease, box-shadow .15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, .08);
+  }
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #eef2ff;
+    color: #4f46e5;
+
+    mat-icon { font-size: 22px; height: 22px; width: 22px; }
+  }
+
+  &__body  { display: flex; flex-direction: column; line-height: 1.1; }
+  &__label { font-size: .78rem; color: #64748b; }
+  &__value { font-size: 1.6rem; font-weight: 700; color: #0f172a; }
+
+  &--today    .kpi__icon { background: #ecfdf5; color: #10b981; }
+  &--upcoming .kpi__icon { background: #eff6ff; color: #3b82f6; }
+  &--pending  .kpi__icon { background: #fffbeb; color: #d97706; }
+}
+
+/* ── Header + filtros ────────────────────────────────────── */
 .tab-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 
-    h3 {
-        margin: 0 0 4px;
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: #0f172a;
-    }
+  .title-block h3 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0f172a;
+  }
 
-    .muted {
-        margin: 0;
-        font-size: .82rem;
-        color: #64748b;
-    }
+  .muted {
+    margin: 0;
+    font-size: .82rem;
+    color: #64748b;
+  }
 
-    .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-
-        button { gap: 6px; }
-    }
-
-    .filter-field { min-width: 220px; }
-}
-
-.state-center {
+  .header-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 48px;
-    color: #64748b;
-    font-size: .9rem;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    button { gap: 6px; }
+  }
+
+  .search-field { min-width: 240px; }
+  .filter-field { min-width: 180px; }
+  .clear-btn    { min-width: 0; padding: 0 10px; }
+}
+
+/* ── Table card ──────────────────────────────────────────── */
+.table-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+
+.table-responsive { overflow-x: auto; }
+
+/* ── Cells ───────────────────────────────────────────────── */
+.cell-fecha {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+
+  &__main { font-weight: 600; color: #0f172a; }
+  &__sub  { font-size: .78rem; color: #64748b; }
+}
+
+/* ── Loader ─────────────────────────────────────────────── */
+.state-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 24px;
+  color: #64748b;
+  font-size: .9rem;
+  background: #fff;
+  border: 1px dashed #e2e8f0;
+  border-radius: 14px;
+}
+
+/* ── Modalidad chip ──────────────────────────────────────── */
+.modalidad-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 500;
+  background: #f1f5f9;
+  color: #334155;
+  text-transform: capitalize;
+
+  .modalidad-icon { font-size: 16px; height: 16px; width: 16px; }
+
+  &[data-modalidad="presencial"] { background: #ecfeff; color: #0e7490; }
+  &[data-modalidad="virtual"]    { background: #eef2ff; color: #4f46e5; }
+  &[data-modalidad="telefonico"] { background: #fef3c7; color: #92400e; }
+}
+
+/* ── Status chip ─────────────────────────────────────────── */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 500;
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  &[data-estado="pendiente"]   { background: #fef3c7; color: #92400e; .status-dot { background: #f59e0b; } }
+  &[data-estado="confirmada"]  { background: #ecfdf5; color: #059669; .status-dot { background: #10b981; } }
+  &[data-estado="realizada"]   { background: #dbeafe; color: #1e40af; .status-dot { background: #3b82f6; } }
+  &[data-estado="cancelada"]   { background: #fef2f2; color: #dc2626; .status-dot { background: #ef4444; } }
+  &[data-estado="no_asistio"]  { background: #f1f5f9; color: #475569; .status-dot { background: #94a3b8; } }
 }
 
 .danger { color: #dc2626; }
 
-// Estados de cita: colorea el chip
-.status-chip[data-estado="pendiente"]   { background: #fef3c7; color: #92400e; .status-dot { background: #f59e0b; } }
-.status-chip[data-estado="confirmada"]  { background: #ecfdf5; color: #059669; .status-dot { background: #10b981; } }
-.status-chip[data-estado="realizada"]   { background: #dbeafe; color: #1e40af; .status-dot { background: #3b82f6; } }
-.status-chip[data-estado="cancelada"]   { background: #fef2f2; color: #dc2626; .status-dot { background: #ef4444; } }
-.status-chip[data-estado="no_asistio"]  { background: #f1f5f9; color: #475569; .status-dot { background: #94a3b8; } }
+@media (max-width: 768px) {
+  .tab-header { flex-direction: column; align-items: stretch; }
+  .header-actions { justify-content: flex-start; }
+  .search-field, .filter-field { flex: 1 1 100%; min-width: 0; }
+}

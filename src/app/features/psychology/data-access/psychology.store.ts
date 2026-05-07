@@ -4,6 +4,7 @@ import { ApiService } from '../../../core/services/api';
 import {
   Appointment,
   AssignedStudent,
+  CancelAppointmentPayload,
   CreateAppointmentPayload,
   CreateAvailabilityPayload,
   CreateBlockPayload,
@@ -15,6 +16,19 @@ import {
   UpdateAppointmentPayload,
   UpdateRecordPayload,
 } from '../../../core/models/psychology';
+
+/**
+ * Algunos endpoints devuelven el array directamente (ej. /psychology/blocks),
+ * y otros lo envuelven en un objeto paginado { data, total, page, limit, totalPages }
+ * (ej. /appointments/mine). Este helper soporta ambos casos.
+ */
+function unwrapList<T>(payload: T[] | { data?: T[] } | null | undefined): T[] {
+  if (Array.isArray(payload)) return payload;
+  if (payload && Array.isArray((payload as { data?: T[] }).data)) {
+    return (payload as { data: T[] }).data;
+  }
+  return [];
+}
 
 @Injectable({ providedIn: 'root' })
 export class PsychologyStore {
@@ -28,14 +42,13 @@ export class PsychologyStore {
   readonly availability          = signal<PsychologistAvailability[]>([]);
   readonly blocks                = signal<PsychologistBlock[]>([]);
 
-  readonly loadingStudents      = signal(false);
-  readonly loadingRecords       = signal(false);
-  readonly loadingAppointments  = signal(false);
-  readonly loadingAvailability  = signal(false);
-  readonly loadingBlocks        = signal(false);
-  readonly error                = signal<string | null>(null);
+  readonly loadingStudents     = signal(false);
+  readonly loadingRecords      = signal(false);
+  readonly loadingAppointments = signal(false);
+  readonly loadingAvailability = signal(false);
+  readonly loadingBlocks       = signal(false);
+  readonly error               = signal<string | null>(null);
 
-  // ── Reset — llamar en ngOnDestroy del componente raíz ─────────
   reset(): void {
     this.appointments.set([]);
     this.myStudents.set([]);
@@ -47,15 +60,16 @@ export class PsychologyStore {
   }
 
   // ── APPOINTMENTS ──────────────────────────────────────────────
+  // Backend: @Controller('appointments') — sin prefijo "psychology/"
 
   async loadMyAppointments(): Promise<void> {
     this.loadingAppointments.set(true);
     this.error.set(null);
     try {
       const res = await firstValueFrom(
-        this.api.get<Appointment[]>('psychology/appointments/mine'),
+        this.api.get<Appointment[] | { data: Appointment[] }>('appointments/mine'),
       );
-      this.appointments.set(res.data ?? []);
+      this.appointments.set(unwrapList<Appointment>(res.data));
     } catch {
       this.error.set('Error al cargar las citas');
     } finally {
@@ -65,7 +79,7 @@ export class PsychologyStore {
 
   async createAppointment(payload: CreateAppointmentPayload): Promise<Appointment> {
     const res = await firstValueFrom(
-      this.api.post<Appointment>('psychology/appointments', payload),
+      this.api.post<Appointment>('appointments', payload),
     );
     await this.loadMyAppointments();
     return res.data;
@@ -73,24 +87,27 @@ export class PsychologyStore {
 
   async updateAppointment(id: string, payload: UpdateAppointmentPayload): Promise<Appointment> {
     const res = await firstValueFrom(
-      this.api.patch<Appointment>(`psychology/appointments/${id}`, payload),
+      this.api.patch<Appointment>(`appointments/${id}`, payload),
     );
     await this.loadMyAppointments();
     return res.data;
   }
 
+  async cancelAppointment(id: string, payload: CancelAppointmentPayload): Promise<void> {
+    await firstValueFrom(this.api.delete(`appointments/${id}`, payload));
+    await this.loadMyAppointments();
+  }
+
   // ── MY STUDENTS ───────────────────────────────────────────────
-  // El backend devuelve AssignedStudent[] directamente desde SQL raw
-  // (no un wrapper PsychologistStudentAssignment con .student dentro)
 
   async loadMyStudents(): Promise<void> {
     this.loadingStudents.set(true);
     this.error.set(null);
     try {
       const res = await firstValueFrom(
-        this.api.get<AssignedStudent[]>('psychology/my-students'),
+        this.api.get<AssignedStudent[] | { data: AssignedStudent[] }>('psychology/my-students'),
       );
-      this.myStudents.set(res.data ?? []);
+      this.myStudents.set(unwrapList<AssignedStudent>(res.data));
     } catch {
       this.error.set('Error al cargar los alumnos asignados');
     } finally {
@@ -100,9 +117,11 @@ export class PsychologyStore {
 
   async getStudentParents(studentId: string): Promise<ParentOfStudent[]> {
     const res = await firstValueFrom(
-      this.api.get<ParentOfStudent[]>(`psychology/students/${studentId}/parents`),
+      this.api.get<ParentOfStudent[] | { data: ParentOfStudent[] }>(
+        `psychology/directory/students/${studentId}/parents`,
+      ),
     );
-    return res.data ?? [];
+    return unwrapList<ParentOfStudent>(res.data);
   }
 
   // ── RECORDS ───────────────────────────────────────────────────
@@ -113,10 +132,14 @@ export class PsychologyStore {
     try {
       const [studentRes, recordsRes] = await Promise.all([
         firstValueFrom(this.api.get<AssignedStudent>(`users/alumnos/${studentId}`)),
-        firstValueFrom(this.api.get<PsychologyRecord[]>(`psychology/records/student/${studentId}`)),
+        firstValueFrom(
+          this.api.get<PsychologyRecord[] | { data: PsychologyRecord[] }>(
+            `psychology/records/student/${studentId}`,
+          ),
+        ),
       ]);
       this.currentStudent.set(studentRes.data ?? null);
-      this.currentStudentRecords.set(recordsRes.data ?? []);
+      this.currentStudentRecords.set(unwrapList<PsychologyRecord>(recordsRes.data));
     } catch {
       this.error.set('Error al cargar la ficha del alumno');
     } finally {
@@ -156,9 +179,11 @@ export class PsychologyStore {
     this.error.set(null);
     try {
       const res = await firstValueFrom(
-        this.api.get<PsychologistAvailability[]>(`psychology/availability/${psychologistId}`),
+        this.api.get<PsychologistAvailability[] | { data: PsychologistAvailability[] }>(
+          `psychology/availability/${psychologistId}`,
+        ),
       );
-      this.availability.set(res.data ?? []);
+      this.availability.set(unwrapList<PsychologistAvailability>(res.data));
     } catch {
       this.error.set('Error al cargar la disponibilidad');
     } finally {
@@ -170,7 +195,6 @@ export class PsychologyStore {
     const res = await firstValueFrom(
       this.api.post<PsychologistAvailability>('psychology/availability', payload),
     );
-    // Recarga para reflejar el estado actualizado
     return res.data;
   }
 
@@ -185,9 +209,9 @@ export class PsychologyStore {
     this.error.set(null);
     try {
       const res = await firstValueFrom(
-        this.api.get<PsychologistBlock[]>('psychology/blocks'),
+        this.api.get<PsychologistBlock[] | { data: PsychologistBlock[] }>('psychology/blocks'),
       );
-      this.blocks.set(res.data ?? []);
+      this.blocks.set(unwrapList<PsychologistBlock>(res.data));
     } catch {
       this.error.set('Error al cargar los bloqueos');
     } finally {
