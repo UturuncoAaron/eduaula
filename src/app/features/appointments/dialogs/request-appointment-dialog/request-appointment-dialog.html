@@ -68,6 +68,15 @@
             </mat-form-field>
         </div>
 
+        @if (isVirtual()) {
+            <mat-form-field appearance="outline" class="full">
+                <mat-label>Link de reunión (Meet, Zoom, etc.)</mat-label>
+                <input matInput formControlName="meetingLink"
+                       placeholder="https://meet.google.com/..." />
+                <mat-icon matPrefix>videocam</mat-icon>
+            </mat-form-field>
+        }
+
         <div class="row three">
             <mat-form-field appearance="outline">
                 <mat-label>Duración (min)</mat-label>
@@ -86,19 +95,11 @@
                        (click)="picker.open()" />
                 <mat-datepicker-toggle matIconSuffix [for]="picker" />
                 <mat-datepicker #picker />
-                <mat-hint>Selecciona en el calendario.</mat-hint>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
                 <mat-label>Hora</mat-label>
-                <mat-select formControlName="time">
-                    @if (availableTimes().length === 0) {
-                        <mat-option disabled>Sin horas válidas para hoy</mat-option>
-                    }
-                    @for (t of availableTimes(); track t) {
-                        <mat-option [value]="t">{{ t }}</mat-option>
-                    }
-                </mat-select>
+                <input matInput formControlName="time" placeholder="HH:mm" />
                 <mat-hint>Mínimo 15 min de anticipación.</mat-hint>
             </mat-form-field>
         </div>
@@ -107,22 +108,27 @@
             <section class="slots">
                 <header>
                     <mat-icon>schedule</mat-icon>
-                    <span>Horarios sugeridos</span>
-                    @if (store.loadingSlots()) { <mat-spinner diameter="14" /> }
+                    <span>Horarios disponibles</span>
+                    @if (loadingSlots()) { <mat-spinner diameter="14" /> }
                 </header>
-                @if (slots().length === 0 && !store.loadingSlots()) {
+                @if (slotsGroupedByDay().length === 0 && !loadingSlots()) {
                     <p class="muted">
-                        No hay horarios disponibles en los próximos días. Ingresa la fecha
-                        manualmente arriba o intenta otra duración.
+                        No hay horarios disponibles en los próximos días.
+                        Ingresa la fecha manualmente o intenta otra duración.
                     </p>
                 } @else {
-                    <mat-chip-set>
-                        @for (s of slots(); track s) {
-                            <mat-chip (click)="pickSlot(s)" matTooltip="Seleccionar este horario">
-                                {{ formatSlot(s) }}
-                            </mat-chip>
-                        }
-                    </mat-chip-set>
+                    @for (group of slotsGroupedByDay(); track group.label) {
+                        <div class="slot-day">
+                            <span class="day-label">{{ group.label }}</span>
+                            <mat-chip-set>
+                                @for (s of group.slots; track s) {
+                                    <mat-chip (click)="pickSlot(s)" matTooltip="Seleccionar">
+                                        {{ formatSlotTime(s) }}
+                                    </mat-chip>
+                                }
+                            </mat-chip-set>
+                        </div>
+                    }
                 }
             </section>
         }

@@ -45,6 +45,56 @@
     }
 }
 
+.participant-toggles {
+    display: flex;
+    gap: 16px;
+    padding: 4px 0 8px;
+}
+
+.slots {
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 12px;
+    background: #f8fafc;
+
+    header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #334155;
+        font-size: .85rem;
+
+        mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    }
+
+    .muted { color: #64748b; font-size: .8rem; margin: 4px 0 0; }
+
+    .slot-day {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+
+        .day-label {
+            font-size: .78rem;
+            font-weight: 600;
+            color: #475569;
+            min-width: 90px;
+        }
+    }
+
+    mat-chip {
+        cursor: pointer;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        font-size: .8rem;
+
+        &:hover { background: #eff6ff; border-color: #93c5fd; }
+    }
+}
+
 .error-msg {
     display: flex;
     align-items: flex-start;

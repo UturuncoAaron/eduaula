@@ -10,13 +10,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { PsychologyStore } from '../../data-access/psychology.store';
 import { AuthService } from '../../../../core/auth/auth';
 import {
   AppointmentModalidad, AppointmentTipo,
-  AssignedStudent, ParentOfStudent,
+  AssignedStudent, AvailableSlot, ParentOfStudent, SearchableParent,
 } from '../../../../core/models/psychology';
 
 export interface AppointmentFormDialogData {
@@ -28,11 +30,7 @@ export interface AppointmentFormDialogData {
  * Lo replicamos aquí para validar antes de enviar y dar feedback inmediato.
  */
 const MIN_LEAD_MINUTES = 15;
-/** Granularidad del select de hora (en minutos). */
-const TIME_STEP_MINUTES = 30;
-/** Rango horario "trabajable" para el select de hora. */
-const WORK_HOUR_START = 7;
-const WORK_HOUR_END   = 21;
+const DEFAULT_LOOKAHEAD_DAYS = 14;
 
 @Component({
   selector: 'app-appointment-form-dialog',
@@ -43,7 +41,7 @@ const WORK_HOUR_END   = 21;
     MatDialogModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatButtonModule, MatIconModule,
     MatProgressSpinnerModule, MatAutocompleteModule, MatTooltipModule,
-    MatDatepickerModule,
+    MatDatepickerModule, MatChipsModule, MatCheckboxModule,
   ],
   templateUrl: './appointment-form-dialog.html',
   styleUrl: './appointment-form-dialog.scss',
@@ -56,18 +54,26 @@ export class AppointmentFormDialog implements OnInit {
   readonly store = inject(PsychologyStore);
   private toastr = inject(ToastService);
 
-  // ── Estado UI ──────────────────────────────────────────────────
   loading        = signal(false);
   loadingParents = signal(false);
+  loadingSlots   = signal(false);
   searching      = signal(false);
+  searchingParent = signal(false);
   errorMsg       = signal('');
 
   parents             = signal<ParentOfStudent[]>([]);
   searchResults       = signal<AssignedStudent[]>([]);
+  parentSearchResults = signal<SearchableParent[]>([]);
   selectedStudent     = signal<AssignedStudent | null>(null);
+  selectedParent      = signal<SearchableParent | null>(null);
   studentSearchQuery  = signal('');
+  parentSearchQuery   = signal('');
 
-  /** Combina resultados de búsqueda + alumnos asignados (sin duplicados). */
+  includeStudent = signal(true);
+  includeParent  = signal(false);
+
+  slots = signal<AvailableSlot[]>([]);
+
   readonly availableStudents = computed<AssignedStudent[]>(() => {
     const search = this.searchResults();
     const mine   = this.store.myStudents();
@@ -100,36 +106,27 @@ export class AppointmentFormDialog implements OnInit {
     { value: 'telefonico', label: 'Telefónica' },
   ];
 
-  /**
-   * El backend exige que `convocadoAId` sea distinto del caller y que sea un
-   * rol válido (psicologa, docente, padre, admin, auxiliar — el alumno NO
-   * puede ser convocado). Para la psicóloga, la cita es una reunión con el
-   * padre/tutor del alumno: por eso el padre es **requerido** y se usa como
-   * `convocadoAId`.
-   */
-  /** Bandera reactiva para recomputar `availableTimes` al cambiar la fecha. */
-  selectedDate = signal<Date | null>(null);
-
-  /** Lista completa de horas (HH:mm) para el select. */
-  private readonly allTimes: string[] = buildTimeOptions(
-    WORK_HOUR_START, WORK_HOUR_END, TIME_STEP_MINUTES,
-  );
-
-  /** Horas disponibles según la fecha (filtra pasadas si es hoy). */
-  readonly availableTimes = computed<string[]>(() => {
-    const d = this.selectedDate();
-    if (!d) return this.allTimes;
-    if (!isSameDay(d, new Date())) return this.allTimes;
-    const minMs = Date.now() + MIN_LEAD_MINUTES * 60_000;
-    return this.allTimes.filter(t => combineDateAndTime(d, t).getTime() >= minMs);
-  });
-
-  /** Para `[min]` del datepicker: hoy. */
   readonly minDate = startOfDay(new Date());
 
+  modalidadValue = signal('presencial');
+  readonly isVirtual = computed(() => this.modalidadValue() === 'virtual');
+
+  readonly slotsGroupedByDay = computed<{ label: string; slots: AvailableSlot[] }[]>(() => {
+    const all = this.slots();
+    if (all.length === 0) return [];
+    const groups = new Map<string, AvailableSlot[]>();
+    for (const iso of all) {
+      const d = new Date(iso);
+      const key = d.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' });
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(iso);
+    }
+    return Array.from(groups.entries()).map(([label, slots]) => ({ label, slots }));
+  });
+
   form: FormGroup = this.fb.group({
-    studentId:   [this.data.preselectedStudentId ?? '', [Validators.required]],
-    parentId:    ['', [Validators.required]],
+    studentId:   [this.data.preselectedStudentId ?? ''],
+    parentId:    [''],
     tipo:        ['psicologico', [Validators.required]],
     modalidad:   ['presencial', [Validators.required]],
     motivo:      ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
@@ -137,6 +134,7 @@ export class AppointmentFormDialog implements OnInit {
     time:        ['', [Validators.required]],
     durationMin: [30, [Validators.required, Validators.min(15), Validators.max(180)]],
     priorNotes:  [''],
+    meetingLink: [''],
   });
 
   ngOnInit(): void {
@@ -145,17 +143,19 @@ export class AppointmentFormDialog implements OnInit {
     }
     if (this.data.preselectedStudentId) {
       this.loadParents(this.data.preselectedStudentId);
+      this.includeParent.set(true);
       const found = this.store.myStudents().find(s => s.id === this.data.preselectedStudentId);
       if (found) this.selectedStudent.set(found);
     }
-    // Mantenemos el signal sincronizado con el form para `availableTimes`.
-    this.form.get('date')?.valueChanges.subscribe((d: Date | null) => {
-      this.selectedDate.set(d);
-      const t = this.form.value.time as string;
-      if (t && !this.availableTimes().includes(t)) {
-        this.form.patchValue({ time: '' });
+
+    this.form.get('modalidad')?.valueChanges.subscribe((m: string) => {
+      this.modalidadValue.set(m);
+      if (m !== 'virtual') {
+        this.form.patchValue({ meetingLink: '' });
       }
     });
+
+    this.refreshSlots();
   }
 
   fullName(s: AssignedStudent): string {
@@ -188,17 +188,104 @@ export class AppointmentFormDialog implements OnInit {
 
   onStudentSelected(student: AssignedStudent) {
     this.selectedStudent.set(student);
-    this.form.patchValue({ studentId: student.id, parentId: '' });
-    this.parents.set([]);
-    this.loadParents(student.id);
+    this.form.patchValue({ studentId: student.id });
   }
 
   clearStudent() {
     this.selectedStudent.set(null);
     this.searchResults.set([]);
     this.studentSearchQuery.set('');
-    this.parents.set([]);
-    this.form.patchValue({ studentId: '', parentId: '' });
+    this.form.patchValue({ studentId: '' });
+  }
+
+  async onSearchParents(value: string) {
+    this.parentSearchQuery.set(value);
+    const term = value.trim();
+    if (term.length < 2) {
+      this.parentSearchResults.set([]);
+      return;
+    }
+    this.searchingParent.set(true);
+    try {
+      const found = await this.store.searchAllParents(term);
+      this.parentSearchResults.set(found);
+    } catch {
+      this.parentSearchResults.set([]);
+    } finally {
+      this.searchingParent.set(false);
+    }
+  }
+
+  onParentSelected(parent: SearchableParent) {
+    this.selectedParent.set(parent);
+    this.form.patchValue({ parentId: parent.id });
+  }
+
+  clearParent() {
+    this.selectedParent.set(null);
+    this.parentSearchResults.set([]);
+    this.parentSearchQuery.set('');
+    this.form.patchValue({ parentId: '' });
+  }
+
+  parentFullName(p: SearchableParent): string {
+    const rel = p.relacion ? ` (${p.relacion})` : '';
+    return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
+  }
+
+  toggleIncludeStudent(checked: boolean) {
+    this.includeStudent.set(checked);
+    if (!checked) {
+      this.clearStudent();
+      if (!this.includeParent()) this.includeParent.set(true);
+    }
+  }
+
+  toggleIncludeParent(checked: boolean) {
+    this.includeParent.set(checked);
+    if (!checked) {
+      this.clearParent();
+      if (!this.includeStudent()) this.includeStudent.set(true);
+    }
+  }
+
+  formatSlotTime(iso: string): string {
+    const d = new Date(iso);
+    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
+  pickSlot(iso: string) {
+    const d = new Date(iso);
+    const date = startOfDay(d);
+    const time = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    this.form.patchValue({ date, time });
+  }
+
+  async onDurationChange() {
+    this.form.patchValue({ date: null, time: '' });
+    await this.refreshSlots();
+  }
+
+  private async refreshSlots(): Promise<void> {
+    const psicologaId = this.auth.currentUser()?.id;
+    if (!psicologaId) return;
+    this.loadingSlots.set(true);
+    try {
+      const from = new Date();
+      const to = new Date();
+      to.setDate(to.getDate() + DEFAULT_LOOKAHEAD_DAYS);
+      const items = await this.store.getAvailableSlots(
+        psicologaId,
+        from.toISOString(),
+        to.toISOString(),
+        this.form.value.durationMin || 30,
+      );
+      this.slots.set(items);
+    } catch {
+      this.slots.set([]);
+    } finally {
+      this.loadingSlots.set(false);
+    }
   }
 
   private async loadParents(studentId: string) {
@@ -219,10 +306,19 @@ export class AppointmentFormDialog implements OnInit {
   cancel() { this.ref.close(false); }
 
   async submit() {
+    const hasStudent = this.includeStudent() && !!this.form.value.studentId;
+    const hasParent  = this.includeParent()  && !!this.form.value.parentId;
+
+    if (!hasStudent && !hasParent) {
+      this.errorMsg.set('Debe seleccionar al menos un alumno o un padre/tutor.');
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+
     const psicologaId = this.auth.currentUser()?.id;
     if (!psicologaId) {
       this.errorMsg.set('Sesión inválida, vuelve a iniciar sesión.');
@@ -230,7 +326,6 @@ export class AppointmentFormDialog implements OnInit {
     }
     const v = this.form.value;
 
-    // Validación local de fecha/hora — replica la regla del backend.
     const scheduled = combineDateAndTime(v.date as Date, v.time as string);
     const minStart  = Date.now() + MIN_LEAD_MINUTES * 60_000;
     if (Number.isNaN(scheduled.getTime()) || scheduled.getTime() < minStart) {
@@ -238,8 +333,9 @@ export class AppointmentFormDialog implements OnInit {
       return;
     }
 
-    if (v.parentId === psicologaId) {
-      this.errorMsg.set('No puedes convocarte a ti misma. Selecciona un padre/tutor distinto.');
+    const convocadoAId = hasParent ? v.parentId : v.studentId;
+    if (convocadoAId === psicologaId) {
+      this.errorMsg.set('No puedes convocarte a ti misma.');
       return;
     }
 
@@ -247,16 +343,16 @@ export class AppointmentFormDialog implements OnInit {
     this.errorMsg.set('');
     try {
       await this.store.createAppointment({
-        // El padre/tutor es la persona convocada (≠ caller).
-        convocadoAId: v.parentId,
-        studentId:    v.studentId,
-        parentId:     v.parentId,
+        convocadoAId,
+        studentId:    hasStudent ? v.studentId : undefined,
+        parentId:     hasParent  ? v.parentId  : undefined,
         tipo:         v.tipo,
         modalidad:    v.modalidad,
         motivo:       v.motivo,
         scheduledAt:  scheduled.toISOString(),
         durationMin:  v.durationMin,
         priorNotes:   v.priorNotes || undefined,
+        meetingLink:  v.modalidad === 'virtual' && v.meetingLink ? v.meetingLink : undefined,
       });
       this.toastr.success('Cita creada');
       this.ref.close(true);
@@ -281,25 +377,6 @@ function startOfDay(d: Date): Date {
   return c;
 }
 
-function isSameDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear()
-      && a.getMonth()    === b.getMonth()
-      && a.getDate()     === b.getDate();
-}
-
-/** Genera ['07:00','07:30',...,'21:00'] según los límites/step configurados. */
-function buildTimeOptions(hStart: number, hEnd: number, stepMin: number): string[] {
-  const out: string[] = [];
-  for (let h = hStart; h <= hEnd; h++) {
-    for (let m = 0; m < 60; m += stepMin) {
-      if (h === hEnd && m > 0) break;
-      out.push(`${pad2(h)}:${pad2(m)}`);
-    }
-  }
-  return out;
-}
-
-/** Combina fecha (sólo Y/M/D) + hora 'HH:mm' en una Date local. */
 function combineDateAndTime(date: Date, time: string): Date {
   const [hh, mm] = time.split(':').map(Number);
   const d = new Date(date);
@@ -307,10 +384,6 @@ function combineDateAndTime(date: Date, time: string): Date {
   return d;
 }
 
-/**
- * Helper compartido — entiende el formato del `HttpExceptionFilter`:
- * `{ message: string }` o `{ message: { message: string | string[] } }`.
- */
 export function parseApiError(err: unknown, fallback: string): string {
   const e = err as { error?: { message?: unknown } };
   const raw = e?.error?.message;

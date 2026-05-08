@@ -15,6 +15,7 @@ import {
   PsychologistAvailability,
   PsychologistBlock,
   PsychologyRecord,
+  SearchableParent,
   UpdateAppointmentPayload,
   UpdateRecordPayload,
 } from '../../../core/models/psychology';
@@ -126,10 +127,19 @@ export class PsychologyStore {
     return unwrapList<ParentOfStudent>(res.data);
   }
 
-  // ── DIRECTORIO (alumnos / psicólogas) ─────────────────────────
-  // Search abierto del directorio: lo usa la psicóloga para crear citas
-  // a alumnos que aún no están en su lista (al primer contacto el backend
-  // los autoasigna).
+  // ── DIRECTORIO (alumnos / padres / psicólogas) ───────────────
+  async searchAllParents(query: string): Promise<SearchableParent[]> {
+    const term = (query ?? '').trim();
+    if (!term) return [];
+    const res = await firstValueFrom(
+      this.api.get<SearchableParent[] | { data: SearchableParent[] }>(
+        'psychology/directory/parents/search',
+        { q: term },
+      ),
+    );
+    return unwrapList<SearchableParent>(res.data);
+  }
+
   async searchAllStudents(query: string): Promise<AssignedStudent[]> {
     const term = (query ?? '').trim();
     if (!term) return [];

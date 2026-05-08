@@ -52,6 +52,15 @@ export interface ParentOfStudent {
     codigo_acceso: string | null;
 }
 
+// ── Padre buscable (directorio independiente) ───────────────────────────────
+export interface SearchableParent {
+    id: string;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+    relacion?: string | null;
+}
+
 // ── Ficha psicológica ───────────────────────────────────────────────────────
 export interface PsychologyRecord {
     id: string;
@@ -81,7 +90,7 @@ export interface Appointment {
     createdById: string;
     convocadoAId: string;
     parentId: string | null;
-    studentId: string;
+    studentId: string | null;
     tipo: AppointmentTipo;
     modalidad: AppointmentModalidad;
     motivo: string;
@@ -91,6 +100,7 @@ export interface Appointment {
     priorNotes?: string | null;
     followUpNotes?: string | null;
     rescheduledFromId?: string | null;
+    meetingLink?: string | null;
     reminderSent: boolean;
     createdAt: string;
     updatedAt: string;
@@ -107,7 +117,7 @@ export interface Appointment {
  */
 export interface CreateAppointmentPayload {
     convocadoAId: string;
-    studentId: string;
+    studentId?: string;
     parentId?: string;
     tipo: AppointmentTipo;
     modalidad?: AppointmentModalidad;
@@ -115,6 +125,7 @@ export interface CreateAppointmentPayload {
     scheduledAt: string;
     durationMin?: number;
     priorNotes?: string;
+    meetingLink?: string;
 }
 
 export interface UpdateAppointmentPayload {
@@ -123,6 +134,7 @@ export interface UpdateAppointmentPayload {
     modalidad?: AppointmentModalidad;
     followUpNotes?: string;
     rescheduledFromId?: string;
+    meetingLink?: string;
 }
 
 // ── Disponibilidad ──────────────────────────────────────────────────────────

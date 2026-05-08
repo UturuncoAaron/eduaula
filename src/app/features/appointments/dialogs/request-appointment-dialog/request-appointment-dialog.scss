@@ -27,13 +27,22 @@
         display: grid;
         gap: 12px;
 
-        &.two   { grid-template-columns: 1fr 1fr; }
-        &.three { grid-template-columns: 1fr 1fr 1fr; }
+        &.two {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        &.three {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
     }
 
-    .full { width: 100%; }
+    .full {
+        width: 100%;
+    }
 
-    mat-form-field { width: 100%; }
+    mat-form-field {
+        width: 100%;
+    }
 }
 
 .opt-line {
@@ -41,7 +50,11 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;
-    .muted { color: #64748b; font-size: .75rem; }
+
+    .muted {
+        color: #64748b;
+        font-size: .75rem;
+    }
 }
 
 .slots {
@@ -59,10 +72,32 @@
         color: #334155;
         font-size: .85rem;
 
-        mat-icon { font-size: 18px; width: 18px; height: 18px; }
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
     }
 
-    .muted { color: #64748b; font-size: .8rem; margin: 4px 0 0; }
+    .muted {
+        color: #64748b;
+        font-size: .8rem;
+        margin: 4px 0 0;
+    }
+
+    .slot-day {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+
+        .day-label {
+            font-size: .78rem;
+            font-weight: 600;
+            color: #475569;
+            min-width: 90px;
+        }
+    }
 
     mat-chip {
         cursor: pointer;
@@ -70,7 +105,10 @@
         border: 1px solid #cbd5e1;
         font-size: .8rem;
 
-        &:hover { background: #eff6ff; border-color: #93c5fd; }
+        &:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+        }
     }
 }
 
@@ -94,7 +132,9 @@
         height: 18px;
     }
 
-    span { word-break: break-word; }
+    span {
+        word-break: break-word;
+    }
 }
 
 mat-dialog-actions {
@@ -102,14 +142,21 @@ mat-dialog-actions {
     border-top: 1px solid #f1f5f9;
     gap: 8px;
 
-    button { gap: 6px; }
+    button {
+        gap: 6px;
+    }
 }
 
 @media (max-width: 860px) {
-    .dialog-body .row.three { grid-template-columns: 1fr 1fr; }
+    .dialog-body .row.three {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (max-width: 720px) {
+
     .dialog-body .row.two,
-    .dialog-body .row.three { grid-template-columns: 1fr; }
+    .dialog-body .row.three {
+        grid-template-columns: 1fr;
+    }
 }

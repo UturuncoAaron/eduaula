@@ -40,13 +40,8 @@ export interface RequestAppointmentDialogData {
     preselectedChildId?: string;
 }
 
-/** Mismo umbral que valida el backend al crear la cita. */
 const MIN_LEAD_MINUTES = 15;
-/** Granularidad del select de hora (en minutos). */
-const TIME_STEP_MINUTES = 30;
-/** Rango horario "trabajable" para el select de hora. */
-const WORK_HOUR_START = 7;
-const WORK_HOUR_END   = 21;
+const DEFAULT_LOOKAHEAD_DAYS = 14;
 
 @Component({
     selector: 'app-request-appointment-dialog',
@@ -71,9 +66,10 @@ export class RequestAppointmentDialog implements OnInit {
     private toastr = inject(ToastService);
 
     // ── Estado UI ──────────────────────────────────────────────────
-    loading   = signal(false);
-    errorMsg  = signal('');
-    slots     = signal<AvailableSlot[]>([]);
+    loading      = signal(false);
+    errorMsg     = signal('');
+    loadingSlots = signal(false);
+    slots        = signal<AvailableSlot[]>([]);
 
     readonly tipos: { value: AppointmentTipo; label: string }[] = [
         { value: 'academico',   label: 'Académico' },
@@ -102,31 +98,25 @@ export class RequestAppointmentDialog implements OnInit {
         return this.store.psicologas().find(p => p.id === id) ?? null;
     });
 
-    /** Por defecto buscamos slots para los próximos 14 días. */
-    private readonly DEFAULT_LOOKAHEAD_DAYS = 14;
+    modalidadValue = signal('presencial');
+    readonly isVirtual = computed(() => this.modalidadValue() === 'virtual');
 
-    /** Bandera reactiva para recomputar `availableTimes` cuando cambia la fecha. */
-    selectedDate = signal<Date | null>(null);
-
-    /** Lista completa de horas (HH:mm) para el select. */
-    private readonly allTimes: string[] = buildTimeOptions(
-        WORK_HOUR_START, WORK_HOUR_END, TIME_STEP_MINUTES,
-    );
-
-    /** Horas disponibles en función de la fecha elegida (filtra pasadas si es hoy). */
-    readonly availableTimes = computed<string[]>(() => {
-        const d = this.selectedDate();
-        if (!d) return this.allTimes;
-        if (!isSameDay(d, new Date())) return this.allTimes;
-        const minMs = Date.now() + MIN_LEAD_MINUTES * 60_000;
-        return this.allTimes.filter(t => combineDateAndTime(d, t).getTime() >= minMs);
+    readonly slotsGroupedByDay = computed<{ label: string; slots: AvailableSlot[] }[]>(() => {
+        const all = this.slots();
+        if (all.length === 0) return [];
+        const groups = new Map<string, AvailableSlot[]>();
+        for (const iso of all) {
+            const d = new Date(iso);
+            const key = d.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' });
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key)!.push(iso);
+        }
+        return Array.from(groups.entries()).map(([label, slots]) => ({ label, slots }));
     });
 
-    /** Para `[min]` del datepicker: hoy. */
     readonly minDate = startOfDay(new Date());
 
     form: FormGroup = this.fb.group({
-        // Sólo se usa si mode === 'padre'.
         childId:      [this.data.preselectedChildId ?? ''],
         psicologaId:  ['', [Validators.required]],
         tipo:         ['psicologico', [Validators.required]],
@@ -136,6 +126,7 @@ export class RequestAppointmentDialog implements OnInit {
         time:         ['', [Validators.required]],
         motivo:       ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
         priorNotes:   [''],
+        meetingLink:  [''],
     });
 
     async ngOnInit(): Promise<void> {
@@ -156,11 +147,11 @@ export class RequestAppointmentDialog implements OnInit {
             this.form.patchValue({ psicologaId: this.store.psicologas()[0].id });
             await this.refreshSlots();
         }
-        // Mantenemos el signal sincronizado con el form para que `availableTimes`
-        // se recompute al cambiar la fecha desde el calendario.
-        this.form.get('date')?.valueChanges.subscribe((d: Date | null) => {
-            this.selectedDate.set(d);
-            this.recomputeTimeIfNeeded();
+        this.form.get('modalidad')?.valueChanges.subscribe((m: string) => {
+            this.modalidadValue.set(m);
+            if (m !== 'virtual') {
+                this.form.patchValue({ meetingLink: '' });
+            }
         });
     }
 
@@ -173,12 +164,9 @@ export class RequestAppointmentDialog implements OnInit {
         return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + especialidad;
     }
 
-    formatSlot(iso: string): string {
+    formatSlotTime(iso: string): string {
         const d = new Date(iso);
-        return d.toLocaleString(undefined, {
-            weekday: 'short', day: '2-digit', month: 'short',
-            hour: '2-digit', minute: '2-digit',
-        });
+        return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
     }
 
     async onPsicologaChange() {
@@ -198,31 +186,29 @@ export class RequestAppointmentDialog implements OnInit {
         this.form.patchValue({ date, time });
     }
 
-    private recomputeTimeIfNeeded() {
-        // Si la hora elegida ya no es válida para la fecha actual, la limpiamos.
-        const t = this.form.value.time as string;
-        if (!t) return;
-        if (!this.availableTimes().includes(t)) {
-            this.form.patchValue({ time: '' });
-        }
-    }
-
     private async refreshSlots(): Promise<void> {
         const psicologaId = this.form.value.psicologaId;
         if (!psicologaId) {
             this.slots.set([]);
             return;
         }
-        const from = new Date();
-        const to   = new Date();
-        to.setDate(to.getDate() + this.DEFAULT_LOOKAHEAD_DAYS);
-        const items = await this.store.getAvailableSlots(
-            psicologaId,
-            from.toISOString(),
-            to.toISOString(),
-            this.form.value.durationMin || 30,
-        );
-        this.slots.set(items);
+        this.loadingSlots.set(true);
+        try {
+            const from = new Date();
+            const to   = new Date();
+            to.setDate(to.getDate() + DEFAULT_LOOKAHEAD_DAYS);
+            const items = await this.store.getAvailableSlots(
+                psicologaId,
+                from.toISOString(),
+                to.toISOString(),
+                this.form.value.durationMin || 30,
+            );
+            this.slots.set(items);
+        } catch {
+            this.slots.set([]);
+        } finally {
+            this.loadingSlots.set(false);
+        }
     }
 
     cancel() { this.ref.close(false); }
@@ -267,7 +253,7 @@ export class RequestAppointmentDialog implements OnInit {
         this.errorMsg.set('');
         try {
             await this.store.createAppointment({
-                convocadoAId: v.psicologaId, // la psicóloga elegida es la convocada
+                convocadoAId: v.psicologaId,
                 studentId,
                 parentId,
                 tipo:         v.tipo,
@@ -276,6 +262,7 @@ export class RequestAppointmentDialog implements OnInit {
                 scheduledAt:  scheduled.toISOString(),
                 durationMin:  v.durationMin,
                 priorNotes:   v.priorNotes || undefined,
+                meetingLink:  v.modalidad === 'virtual' && v.meetingLink ? v.meetingLink : undefined,
             });
             this.toastr.success('Cita solicitada');
             this.ref.close(true);
@@ -297,25 +284,6 @@ function startOfDay(d: Date): Date {
     return c;
 }
 
-function isSameDay(a: Date, b: Date): boolean {
-    return a.getFullYear() === b.getFullYear()
-        && a.getMonth()    === b.getMonth()
-        && a.getDate()     === b.getDate();
-}
-
-/** Genera ['07:00','07:30',...,'21:00'] según los límites/step configurados. */
-function buildTimeOptions(hStart: number, hEnd: number, stepMin: number): string[] {
-    const out: string[] = [];
-    for (let h = hStart; h <= hEnd; h++) {
-        for (let m = 0; m < 60; m += stepMin) {
-            if (h === hEnd && m > 0) break;
-            out.push(`${pad2(h)}:${pad2(m)}`);
-        }
-    }
-    return out;
-}
-
-/** Combina fecha (sólo Y/M/D) + hora 'HH:mm' en una Date local. */
 function combineDateAndTime(date: Date, time: string): Date {
     const [hh, mm] = time.split(':').map(Number);
     const d = new Date(date);
@@ -323,11 +291,6 @@ function combineDateAndTime(date: Date, time: string): Date {
     return d;
 }
 
-/**
- * Acepta los formatos del `HttpExceptionFilter` del backend
- * (`{ message: string }` o `{ message: { message: string | string[] } }`)
- * y devuelve siempre un string para mostrar.
- */
 function parseApiError(err: unknown, fallback: string): string {
     const e = err as { error?: { message?: unknown } };
     const raw = e?.error?.message;

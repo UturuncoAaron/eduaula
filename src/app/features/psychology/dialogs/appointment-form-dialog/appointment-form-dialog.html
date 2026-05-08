@@ -6,73 +6,101 @@
 <form [formGroup]="form" (ngSubmit)="submit()">
     <mat-dialog-content class="dialog-body">
 
-        <div class="row two">
-            @if (selectedStudent(); as st) {
-                <div class="selected-student">
-                    <div class="info">
-                        <strong>{{ fullName(st) }}</strong>
-                        <span class="muted">{{ st.codigo_estudiante }}</span>
-                    </div>
-                    <button mat-icon-button type="button" (click)="clearStudent()"
-                            matTooltip="Cambiar alumno">
-                        <mat-icon>close</mat-icon>
-                    </button>
-                </div>
-            } @else {
-                <mat-form-field appearance="outline">
-                    <mat-label>Buscar alumno</mat-label>
-                    <input matInput
-                           [matAutocomplete]="studentAuto"
-                           [value]="studentSearchQuery()"
-                           (input)="onSearchStudents($any($event.target).value)"
-                           placeholder="Nombre, apellido o código" />
-                    @if (searching()) {
-                        <mat-spinner matSuffix diameter="18" />
-                    } @else {
-                        <mat-icon matSuffix>search</mat-icon>
-                    }
-                    <mat-autocomplete #studentAuto="matAutocomplete"
-                                      (optionSelected)="onStudentSelected($event.option.value)">
-                        @for (s of availableStudents(); track s.id) {
-                            <mat-option [value]="s">
-                                <div class="opt-line">
-                                    <span>{{ fullName(s) }}</span>
-                                    <small class="muted">{{ s.codigo_estudiante }}</small>
-                                </div>
-                            </mat-option>
-                        }
-                        @if (availableStudents().length === 0 && studentSearchQuery().length >= 2 && !searching()) {
-                            <mat-option disabled>Sin resultados</mat-option>
-                        }
-                    </mat-autocomplete>
-                </mat-form-field>
-            }
-
-            <mat-form-field appearance="outline">
-                <mat-label>Convocar a (padre / madre / tutor)</mat-label>
-                <mat-select formControlName="parentId" required>
-                    @if (loadingParents()) {
-                        <mat-option disabled>Cargando padres…</mat-option>
-                    } @else if (parents().length === 0 && !!form.value.studentId) {
-                        <mat-option disabled>Este alumno no tiene padre/tutor registrado</mat-option>
-                    }
-                    @for (p of parents(); track p.id) {
-                        <mat-option [value]="p.id">{{ parentName(p) }}</mat-option>
-                    }
-                </mat-select>
-                <mat-hint>La cita es entre la psicóloga y la persona convocada.</mat-hint>
-                @if (parents().length === 0 && !!form.value.studentId && !loadingParents()) {
-                    <mat-error>Sin padre/tutor asociado: regístrelo antes de agendar.</mat-error>
-                }
-            </mat-form-field>
+        <div class="participant-toggles">
+            <mat-checkbox [checked]="includeStudent()" (change)="toggleIncludeStudent($event.checked)">
+                Incluir alumno
+            </mat-checkbox>
+            <mat-checkbox [checked]="includeParent()" (change)="toggleIncludeParent($event.checked)">
+                Incluir padre/tutor
+            </mat-checkbox>
         </div>
+
+        @if (includeStudent()) {
+        <div class="row">
+            @if (selectedStudent(); as st) {
+            <div class="selected-student">
+                <div class="info">
+                    <strong>{{ fullName(st) }}</strong>
+                    <span class="muted">{{ st.codigo_estudiante }}</span>
+                </div>
+                <button mat-icon-button type="button" (click)="clearStudent()" matTooltip="Cambiar alumno">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+            } @else {
+            <mat-form-field appearance="outline" class="full">
+                <mat-label>Buscar alumno</mat-label>
+                <input matInput [matAutocomplete]="studentAuto" [value]="studentSearchQuery()"
+                    (input)="onSearchStudents($any($event.target).value)" placeholder="Nombre, apellido o código" />
+                @if (searching()) {
+                <mat-spinner matSuffix diameter="18" />
+                } @else {
+                <mat-icon matSuffix>search</mat-icon>
+                }
+                <mat-autocomplete #studentAuto="matAutocomplete"
+                    (optionSelected)="onStudentSelected($event.option.value)">
+                    @for (s of availableStudents(); track s.id) {
+                    <mat-option [value]="s">
+                        <div class="opt-line">
+                            <span>{{ fullName(s) }}</span>
+                            <small class="muted">{{ s.codigo_estudiante }}</small>
+                        </div>
+                    </mat-option>
+                    }
+                    @if (availableStudents().length === 0 && studentSearchQuery().length >= 2 && !searching()) {
+                    <mat-option disabled>Sin resultados</mat-option>
+                    }
+                </mat-autocomplete>
+            </mat-form-field>
+            }
+        </div>
+        }
+
+        @if (includeParent()) {
+        <div class="row">
+            @if (selectedParent(); as sp) {
+            <div class="selected-student">
+                <div class="info">
+                    <strong>{{ parentFullName(sp) }}</strong>
+                </div>
+                <button mat-icon-button type="button" (click)="clearParent()" matTooltip="Cambiar padre/tutor">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+            } @else {
+            <mat-form-field appearance="outline" class="full">
+                <mat-label>Buscar padre / madre / tutor</mat-label>
+                <input matInput [matAutocomplete]="parentAuto" [value]="parentSearchQuery()"
+                    (input)="onSearchParents($any($event.target).value)" placeholder="Nombre o código" />
+                @if (searchingParent()) {
+                <mat-spinner matSuffix diameter="18" />
+                } @else {
+                <mat-icon matSuffix>search</mat-icon>
+                }
+                <mat-autocomplete #parentAuto="matAutocomplete"
+                    (optionSelected)="onParentSelected($event.option.value)">
+                    @for (p of parentSearchResults(); track p.id) {
+                    <mat-option [value]="p">
+                        <div class="opt-line">
+                            <span>{{ parentFullName(p) }}</span>
+                        </div>
+                    </mat-option>
+                    }
+                    @if (parentSearchResults().length === 0 && parentSearchQuery().length >= 2 && !searchingParent()) {
+                    <mat-option disabled>Sin resultados</mat-option>
+                    }
+                </mat-autocomplete>
+            </mat-form-field>
+            }
+        </div>
+        }
 
         <div class="row two">
             <mat-form-field appearance="outline">
                 <mat-label>Tipo</mat-label>
                 <mat-select formControlName="tipo">
                     @for (t of tipos; track t.value) {
-                        <mat-option [value]="t.value">{{ t.label }}</mat-option>
+                    <mat-option [value]="t.value">{{ t.label }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
@@ -81,65 +109,88 @@
                 <mat-label>Modalidad</mat-label>
                 <mat-select formControlName="modalidad">
                     @for (m of modalidades; track m.value) {
-                        <mat-option [value]="m.value">{{ m.label }}</mat-option>
+                    <mat-option [value]="m.value">{{ m.label }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
         </div>
 
+        @if (isVirtual()) {
+        <mat-form-field appearance="outline" class="full">
+            <mat-label>Link de reunión (Meet, Zoom, etc.)</mat-label>
+            <input matInput formControlName="meetingLink" placeholder="https://meet.google.com/..." />
+            <mat-icon matPrefix>videocam</mat-icon>
+        </mat-form-field>
+        }
+
         <div class="row three">
             <mat-form-field appearance="outline">
+                <mat-label>Duración (min)</mat-label>
+                <input matInput type="number" min="15" max="180" formControlName="durationMin"
+                    (change)="onDurationChange()" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
                 <mat-label>Fecha</mat-label>
-                <input matInput
-                       [matDatepicker]="picker"
-                       [min]="minDate"
-                       formControlName="date"
-                       readonly
-                       (click)="picker.open()" />
+                <input matInput [matDatepicker]="picker" [min]="minDate" formControlName="date" readonly
+                    (click)="picker.open()" />
                 <mat-datepicker-toggle matIconSuffix [for]="picker" />
                 <mat-datepicker #picker />
-                <mat-hint>Selecciona en el calendario.</mat-hint>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
                 <mat-label>Hora</mat-label>
-                <mat-select formControlName="time">
-                    @if (availableTimes().length === 0) {
-                        <mat-option disabled>Sin horas válidas para hoy</mat-option>
-                    }
-                    @for (t of availableTimes(); track t) {
-                        <mat-option [value]="t">{{ t }}</mat-option>
-                    }
-                </mat-select>
+                <input matInput formControlName="time" placeholder="HH:mm" />
                 <mat-hint>Mínimo 15 min de anticipación.</mat-hint>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Duración (min)</mat-label>
-                <input matInput type="number" min="15" max="120" formControlName="durationMin" />
             </mat-form-field>
         </div>
 
+        <section class="slots">
+            <header>
+                <mat-icon>schedule</mat-icon>
+                <span>Horarios disponibles</span>
+                @if (loadingSlots()) { <mat-spinner diameter="14" /> }
+            </header>
+            @if (slotsGroupedByDay().length === 0 && !loadingSlots()) {
+            <p class="muted">
+                No hay horarios disponibles en los próximos días.
+                Configura tu disponibilidad o elige fecha/hora manualmente.
+            </p>
+            } @else {
+            @for (group of slotsGroupedByDay(); track group.label) {
+            <div class="slot-day">
+                <span class="day-label">{{ group.label }}</span>
+                <mat-chip-set>
+                    @for (s of group.slots; track s) {
+                    <mat-chip (click)="pickSlot(s)" matTooltip="Seleccionar">
+                        {{ formatSlotTime(s) }}
+                    </mat-chip>
+                    }
+                </mat-chip-set>
+            </div>
+            }
+            }
+        </section>
+
         <mat-form-field appearance="outline" class="full">
             <mat-label>Motivo</mat-label>
-            <input matInput formControlName="motivo"
-                   placeholder="Resumen breve del motivo de la cita" />
+            <input matInput formControlName="motivo" placeholder="Resumen breve del motivo de la cita" />
             @if (form.get('motivo')?.hasError('minlength') && form.get('motivo')?.touched) {
-                <mat-error>Mínimo 5 caracteres</mat-error>
+            <mat-error>Mínimo 5 caracteres</mat-error>
             }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full">
             <mat-label>Notas previas (opcional)</mat-label>
             <textarea matInput rows="3" formControlName="priorNotes"
-                      placeholder="Información de contexto antes de la sesión"></textarea>
+                placeholder="Información de contexto antes de la sesión"></textarea>
         </mat-form-field>
 
         @if (errorMsg()) {
-            <div class="error-msg" role="alert">
-                <mat-icon>error_outline</mat-icon>
-                <span>{{ errorMsg() }}</span>
-            </div>
+        <div class="error-msg" role="alert">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errorMsg() }}</span>
+        </div>
         }
 
     </mat-dialog-content>
@@ -148,8 +199,7 @@
         <button mat-button type="button" (click)="cancel()" [disabled]="loading()">
             Cancelar
         </button>
-        <button mat-flat-button color="primary" type="submit"
-                [disabled]="loading() || form.invalid">
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
             @if (loading()) { <mat-spinner diameter="18" /> }
             @else { <ng-container><mat-icon>event_available</mat-icon><span>Programar</span></ng-container> }
         </button>
