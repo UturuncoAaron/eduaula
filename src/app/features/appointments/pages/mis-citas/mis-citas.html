@@ -162,16 +162,6 @@
                                     </li>
                                 </ul>
 
-                                @if (a.modalidad === 'virtual' && a.meetingLink) {
-                                    <div class="meeting-link-row">
-                                        <a [href]="a.meetingLink" target="_blank" rel="noopener"
-                                           mat-flat-button color="primary" class="meeting-link-btn">
-                                            <mat-icon>videocam</mat-icon>
-                                            <span>Unirse a la reunión</span>
-                                        </a>
-                                    </div>
-                                }
-
                                 <footer class="appt-card__actions">
                                     <button mat-stroked-button color="warn"
                                             [disabled]="!canCancel(a)"
@@ -249,15 +239,6 @@
                                     </li>
                                 </ul>
 
-                                @if (a.modalidad === 'virtual' && a.meetingLink) {
-                                    <div class="meeting-link-row">
-                                        <a [href]="a.meetingLink" target="_blank" rel="noopener"
-                                           class="meeting-link-btn meeting-link-btn--past">
-                                            <mat-icon>videocam</mat-icon>
-                                            <span>Link de reunión</span>
-                                        </a>
-                                    </div>
-                                }
                             </div>
                         </article>
                     }

@@ -17,7 +17,7 @@ import { ToastService } from 'ngx-toastr-notifier';
 import { PsychologyStore } from '../../data-access/psychology.store';
 import { AuthService } from '../../../../core/auth/auth';
 import {
-  AppointmentModalidad, AppointmentTipo,
+  AppointmentTipo,
   AssignedStudent, AvailableSlot, ParentOfStudent, SearchableParent,
 } from '../../../../core/models/psychology';
 
@@ -100,16 +100,7 @@ export class AppointmentFormDialog implements OnInit {
     { value: 'otro',        label: 'Otro' },
   ];
 
-  readonly modalidades: { value: AppointmentModalidad; label: string }[] = [
-    { value: 'presencial', label: 'Presencial' },
-    { value: 'virtual',    label: 'Virtual' },
-    { value: 'telefonico', label: 'Telefónica' },
-  ];
-
   readonly minDate = startOfDay(new Date());
-
-  modalidadValue = signal('presencial');
-  readonly isVirtual = computed(() => this.modalidadValue() === 'virtual');
 
   readonly slotsGroupedByDay = computed<{ label: string; slots: AvailableSlot[] }[]>(() => {
     const all = this.slots();
@@ -128,13 +119,11 @@ export class AppointmentFormDialog implements OnInit {
     studentId:   [this.data.preselectedStudentId ?? ''],
     parentId:    [''],
     tipo:        ['psicologico', [Validators.required]],
-    modalidad:   ['presencial', [Validators.required]],
     motivo:      ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
     date:        [null as Date | null, [Validators.required]],
     time:        ['', [Validators.required]],
     durationMin: [30, [Validators.required, Validators.min(15), Validators.max(180)]],
     priorNotes:  [''],
-    meetingLink: [''],
   });
 
   ngOnInit(): void {
@@ -147,13 +136,6 @@ export class AppointmentFormDialog implements OnInit {
       const found = this.store.myStudents().find(s => s.id === this.data.preselectedStudentId);
       if (found) this.selectedStudent.set(found);
     }
-
-    this.form.get('modalidad')?.valueChanges.subscribe((m: string) => {
-      this.modalidadValue.set(m);
-      if (m !== 'virtual') {
-        this.form.patchValue({ meetingLink: '' });
-      }
-    });
 
     this.refreshSlots();
   }
@@ -347,12 +329,10 @@ export class AppointmentFormDialog implements OnInit {
         studentId:    hasStudent ? v.studentId : undefined,
         parentId:     hasParent  ? v.parentId  : undefined,
         tipo:         v.tipo,
-        modalidad:    v.modalidad,
         motivo:       v.motivo,
         scheduledAt:  scheduled.toISOString(),
         durationMin:  v.durationMin,
         priorNotes:   v.priorNotes || undefined,
-        meetingLink:  v.modalidad === 'virtual' && v.meetingLink ? v.meetingLink : undefined,
       });
       this.toastr.success('Cita creada');
       this.ref.close(true);

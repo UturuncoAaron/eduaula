@@ -65,8 +65,6 @@ export class PsychologyDashboard implements OnInit, OnDestroy {
 
   readonly modalidadIcon: Record<string, string | undefined> = {
     presencial: 'location_on',
-    virtual:    'videocam',
-    telefonico: 'phone',
   };
 
   readonly tipoCitaLabel: Record<string, string | undefined> = {

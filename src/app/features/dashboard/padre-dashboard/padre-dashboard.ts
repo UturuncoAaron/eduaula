@@ -75,8 +75,6 @@ export class PadreDashboard implements OnInit {
 
   readonly modalidadIcon: Record<string, string | undefined> = {
     presencial: 'location_on',
-    virtual: 'videocam',
-    telefonico: 'phone',
   };
 
   readonly tieneCitas = computed(() =>
