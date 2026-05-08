@@ -1,61 +1,34 @@
-<app-page-header title="Reportes y libretas" />
+<app-page-header title="Reportes" subtitle="Notas, asistencia y docentes" />
 
-<div class="reports-grid">
+<mat-tab-group animationDuration="200ms" class="reports-tabs" (selectedIndexChange)="onTabChange($event)">
+    <!-- TAB 0 — EXPORTAR NOTAS (eager: tab por defecto) -->
+    <mat-tab label="Exportar notas">
+        <app-export-grades-tab />
+    </mat-tab>
 
-    <!-- Exportar notas CSV -->
-    <mat-card class="report-card">
-        <mat-card-content>
-            <mat-icon class="card-icon" style="color:#1565C0">download</mat-icon>
-            <h3>Exportar notas bimestrales</h3>
-            <p>Descarga el reporte de notas de todos los alumnos en formato CSV.</p>
-            <mat-form-field appearance="outline" class="w100 mt">
-                <mat-label>Bimestre</mat-label>
-                <mat-select [(ngModel)]="bimestre">
-                    <mat-option [value]="1">1er Bimestre</mat-option>
-                    <mat-option [value]="2">2do Bimestre</mat-option>
-                    <mat-option [value]="3">3er Bimestre</mat-option>
-                    <mat-option [value]="4">4to Bimestre</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </mat-card-content>
-        <mat-card-actions>
-            <button mat-flat-button color="primary" (click)="downloadCSV()" [disabled]="downloading()">
-                <mat-icon>download</mat-icon>
-                {{ downloading() ? 'Descargando...' : 'Descargar CSV' }}
-            </button>
-        </mat-card-actions>
-    </mat-card>
+    <!-- TAB 1 — REPORTE POR SECCIÓN (lazy via @defer + matTabContent) -->
+    <mat-tab label="Reporte por sección">
+        <ng-template matTabContent>
+            @defer (on viewport) {
+            <app-section-report-tab />
+            } @placeholder {
+            <div class="defer-placeholder">
+                <mat-progress-bar mode="indeterminate" />
+            </div>
+            }
+        </ng-template>
+    </mat-tab>
 
-    <!-- Subir y asignar libreta -->
-    <mat-card class="report-card">
-        <mat-card-content>
-            <mat-icon class="card-icon" style="color:#6A1B9A">menu_book</mat-icon>
-            <h3>Asignar libreta al alumno</h3>
-            <p>Sube la URL del PDF de la libreta y asígnala al alumno correspondiente.</p>
-
-            <mat-form-field appearance="outline" class="w100 mt">
-                <mat-label>N° de documento del alumno</mat-label>
-                <mat-icon matPrefix>school</mat-icon>
-                <input matInput [(ngModel)]="libretaAlumno" placeholder="DNI del alumno" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w100">
-                <mat-label>URL del PDF de la libreta</mat-label>
-                <mat-icon matPrefix>link</mat-icon>
-                <input matInput [(ngModel)]="libretaUrl" placeholder="https://drive.google.com/..." />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w100">
-                <mat-label>Período (ej: 2025)</mat-label>
-                <input matInput [(ngModel)]="libretaPeriodo" />
-            </mat-form-field>
-        </mat-card-content>
-        <mat-card-actions>
-            <button mat-flat-button color="accent" (click)="assignLibreta()" [disabled]="uploadingLib()">
-                <mat-icon>send</mat-icon>
-                {{ uploadingLib() ? 'Asignando...' : 'Asignar libreta' }}
-            </button>
-        </mat-card-actions>
-    </mat-card>
-
-</div>
+    <!-- TAB 2 — ASISTENCIA DOCENTES (lazy via @defer + matTabContent) -->
+    <mat-tab label="Asistencia docentes">
+        <ng-template matTabContent>
+            @defer (on viewport) {
+            <app-teacher-attendance-tab />
+            } @placeholder {
+            <div class="defer-placeholder">
+                <mat-progress-bar mode="indeterminate" />
+            </div>
+            }
+        </ng-template>
+    </mat-tab>
+</mat-tab-group>

@@ -1,0 +1,49 @@
+<div class="tab-body">
+
+    <div class="section-hint">
+        <mat-icon>info_outline</mat-icon>
+        Descarga el reporte de notas de todos los alumnos. Usa los filtros para acotar el resultado.
+    </div>
+
+    <div class="filters-row">
+
+        <mat-form-field appearance="outline">
+            <mat-label>Grado</mat-label>
+            <mat-select [(ngModel)]="filtroGradoId" (ngModelChange)="onGradoChange($event)">
+                <mat-option value="">Todos los grados</mat-option>
+                @for (g of grados(); track g.id) {
+                <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Sección</mat-label>
+            <mat-select [(ngModel)]="filtroSeccionId" [disabled]="!filtroGradoId">
+                <mat-option value="">Todas las secciones</mat-option>
+                @for (s of secciones(); track s.id) {
+                <mat-option [value]="s.id">{{ s.nombre }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Periodo</mat-label>
+            <mat-select [(ngModel)]="filtroPeriodoId">
+                <mat-option value="">Todos los periodos</mat-option>
+                @for (p of periodos(); track p.id) {
+                <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+    </div>
+
+    <div class="action-row">
+        <button mat-flat-button color="primary" (click)="descargar()" [disabled]="store.downloading()">
+            <mat-icon>download</mat-icon>
+            {{ store.downloading() ? 'Descargando...' : 'Descargar CSV' }}
+        </button>
+    </div>
+
+</div>

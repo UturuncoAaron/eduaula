@@ -1,43 +1,18 @@
-.reports-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+// Shell de reports — estilos mínimos. Los tabs hijos importan su propio SCSS
+// y comparten ::ng-deep / partial _reports-styles.scss para tablas y chips.
+
+:host {
+  display: block;
 }
 
-.report-card {
-    border-radius: 12px;
+.reports-tabs {
+  width: 100%;
 
-    .card-icon {
-        font-size: 36px;
-        width: 36px;
-        height: 36px;
-        margin-bottom: 8px;
-    }
-
-    h3 {
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0 0 6px;
-    }
-
-    p {
-        font-size: 13px;
-        color: #666;
-        margin: 0;
-        line-height: 1.5;
-    }
-
-    .w100 {
-        width: 100%;
-    }
-
-    .mt {
-        margin-top: 12px;
-    }
+  ::ng-deep .mat-mdc-tab-body-content {
+    padding: 0;
+  }
 }
 
-@media (max-width: 600px) {
-    .reports-grid {
-        grid-template-columns: 1fr;
-    }
+.defer-placeholder {
+  padding: 24px;
 }

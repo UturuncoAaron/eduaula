@@ -1,0 +1,254 @@
+<div class="tab-body">
+
+    <!-- Filtros -->
+    <div class="filters-row">
+
+        <mat-form-field appearance="outline">
+            <mat-label>Grado</mat-label>
+            <mat-select [(ngModel)]="gradoId" (ngModelChange)="onGradoChange($event)">
+                <mat-option value="">Selecciona grado</mat-option>
+                @for (g of grados(); track g.id) {
+                <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Sección</mat-label>
+            <mat-select [(ngModel)]="seccionId" [disabled]="!gradoId">
+                <mat-option value="">Selecciona sección</mat-option>
+                @for (s of secciones(); track s.id) {
+                <mat-option [value]="s.id">{{ s.nombre }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Periodo</mat-label>
+            <mat-select [(ngModel)]="periodoId">
+                <mat-option value="">Selecciona periodo</mat-option>
+                @for (p of periodos(); track p.id) {
+                <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" (click)="cargar()"
+            [disabled]="!seccionId || !periodoId || store.seccionLoading() === 'loading'">
+            <mat-icon>search</mat-icon>
+            Generar reporte
+        </button>
+
+    </div>
+
+    <!-- Loading -->
+    @if (store.seccionLoading() === 'loading') {
+    <mat-progress-bar mode="indeterminate" class="progress" />
+    }
+
+    <!-- Error -->
+    @if (store.seccionLoading() === 'error') {
+    <div class="empty-state error">
+        <mat-icon>error_outline</mat-icon>
+        <p>{{ store.seccionError() }}</p>
+    </div>
+    }
+
+    <!-- Resultados -->
+    @if (seccionCargada()) {
+    @let resumen = store.seccionResumen()!;
+
+    <!-- Header de sección -->
+    <div class="seccion-header">
+        <div class="seccion-info">
+            <h2>{{ resumen.seccion.grado }} — Sección {{ resumen.seccion.nombre }}</h2>
+            <span class="meta">{{ resumen.periodo.nombre }}</span>
+            @if (resumen.seccion.tutor_nombre) {
+            <span class="meta">
+                <mat-icon inline>person</mat-icon> {{ resumen.seccion.tutor_nombre }}
+            </span>
+            }
+        </div>
+
+        <div class="seccion-stats">
+            <div class="stat-pill">
+                <span class="stat-value">{{ resumen.seccion.total_matriculados }}</span>
+                <span class="stat-label">alumnos</span>
+            </div>
+            <div class="stat-pill riesgo" [matTooltip]="'Promedio general < 11'">
+                <span class="stat-value">{{ store.alumnosEnRiesgo().length }}</span>
+                <span class="stat-label">en riesgo</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-value">{{ store.promedioEntregas() ?? '—' }}%</span>
+                <span class="stat-label">entrega tareas</span>
+            </div>
+        </div>
+
+        <button mat-stroked-button (click)="descargarXlsx()" [disabled]="store.downloading()">
+            <mat-icon>download</mat-icon>
+            {{ store.downloading() ? 'Generando…' : 'Exportar XLSX' }}
+        </button>
+    </div>
+
+    <!-- Sub-tabs de sección -->
+    <mat-tab-group class="inner-tabs" animationDuration="150ms">
+
+        <!-- ── Ranking ── -->
+        <mat-tab label="Ranking">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Alumno</th>
+                            <th class="num">Promedio</th>
+                            <th class="num">Cursos riesgo</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (a of resumen.ranking; track a.alumno_id; let i = $index) {
+                        <tr [class.row-riesgo]="a.categoria === 'riesgo'" [class.row-top]="a.categoria === 'top'">
+                            <td class="rank">{{ i + 1 }}</td>
+                            <td>
+                                <div class="alumno-cell">
+                                    <span class="nombre">{{ nombreCompleto(a) }}</span>
+                                    <span class="dni">{{ a.dni }}</span>
+                                </div>
+                            </td>
+                            <td class="num"><strong>{{ a.promedio_general ?? '—' }}</strong></td>
+                            <td class="num">{{ a.cursos_en_riesgo }}</td>
+                            <td>
+                                <span class="chip" [class]="categoriaChip(a.categoria)">
+                                    {{ a.categoria === 'sin-datos' ? 'Sin datos' : (a.categoria | titlecase) }}
+                                </span>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </mat-tab>
+
+        <!-- ── Notas por curso ── -->
+        <mat-tab label="Notas por curso">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Alumno</th>
+                            <th>Curso</th>
+                            <th class="num">Notas</th>
+                            <th class="num">Promedio</th>
+                            <th>Escala</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (n of resumen.notas_por_curso; track n.alumno_id + '-' + n.curso_id) {
+                        <tr>
+                            <td>
+                                <div class="alumno-cell">
+                                    <span class="nombre">{{ nombreCompleto(n) }}</span>
+                                    <span class="dni">{{ n.dni }}</span>
+                                </div>
+                            </td>
+                            <td>{{ n.curso }}</td>
+                            <td class="num">{{ n.total_notas }}</td>
+                            <td class="num"><strong>{{ n.promedio ?? '—' }}</strong></td>
+                            <td>
+                                <span class="chip" [class]="escalaChip(n.escala)">{{ n.escala }}</span>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </mat-tab>
+
+        <!-- ── Asistencia ── -->
+        <mat-tab label="Asistencia">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Alumno</th>
+                            <th class="num">Días reg.</th>
+                            <th class="num">Asistió</th>
+                            <th class="num">Tardanzas</th>
+                            <th class="num">Faltas</th>
+                            <th class="num">% Asistencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (a of resumen.resumen_asistencia; track a.alumno_id) {
+                        <tr [class.row-riesgo]="+(a.porcentaje_asistencia ?? 100) < 70">
+                            <td>
+                                <div class="alumno-cell">
+                                    <span class="nombre">{{ nombreCompleto(a) }}</span>
+                                    <span class="dni">{{ a.dni }}</span>
+                                </div>
+                            </td>
+                            <td class="num">{{ a.dias_registrados }}</td>
+                            <td class="num">{{ a.asistencias }}</td>
+                            <td class="num">{{ a.tardanzas }}</td>
+                            <td class="num">
+                                <span [class.text-danger]="a.faltas > 3">{{ a.faltas }}</span>
+                            </td>
+                            <td class="num">
+                                <strong [class.text-danger]="+(a.porcentaje_asistencia ?? 100) < 70">
+                                    {{ a.porcentaje_asistencia ? a.porcentaje_asistencia + '%' : '—' }}
+                                </strong>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </mat-tab>
+
+        <!-- ── Tareas ── -->
+        <mat-tab label="Tareas">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tarea</th>
+                            <th class="num">Entregaron</th>
+                            <th class="num">Pendientes</th>
+                            <th class="num">Con retraso</th>
+                            <th class="num">Promedio</th>
+                            <th class="num">% Entrega</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (t of resumen.entregas_por_tarea; track t.tarea_id) {
+                        <tr>
+                            <td>
+                                <div class="alumno-cell">
+                                    <span class="nombre">{{ t.titulo }}</span>
+                                    <span class="dni">Límite: {{ t.fecha_limite | date:'dd/MM/yyyy' }}</span>
+                                </div>
+                            </td>
+                            <td class="num">{{ t.entregaron }}</td>
+                            <td class="num">
+                                <span [class.text-danger]="t.pendientes > 0">{{ t.pendientes }}</span>
+                            </td>
+                            <td class="num">{{ t.con_retraso }}</td>
+                            <td class="num">{{ t.promedio_calificacion ?? '—' }}</td>
+                            <td class="num">
+                                <strong [class.text-danger]="+(t.porcentaje_entrega ?? 100) < 50">
+                                    {{ t.porcentaje_entrega ? t.porcentaje_entrega + '%' : '—' }}
+                                </strong>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </mat-tab>
+
+    </mat-tab-group>
+    }
+
+</div>

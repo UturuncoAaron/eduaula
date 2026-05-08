@@ -1,0 +1,358 @@
+// Estilos compartidos por los sub-componentes de reports.
+// Cada sub-componente importa este partial al inicio de su .scss:
+//   @use '../../_shared/reports-styles' as *;
+
+// ─── Layout base de un tab ───────────────────────────────────────────────────
+
+.tab-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.section-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(33, 150, 243, 0.08);
+  border-left: 3px solid #2196f3;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #455a64;
+
+  mat-icon {
+    color: #2196f3;
+  }
+}
+
+// ─── Filtros ─────────────────────────────────────────────────────────────────
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+
+  mat-form-field {
+    min-width: 180px;
+    flex: 0 1 220px;
+  }
+
+  button {
+    height: 56px;
+  }
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.progress {
+  margin: 16px 0;
+}
+
+// ─── Estados vacíos ──────────────────────────────────────────────────────────
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  color: #78909c;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  &.error {
+    color: #c62828;
+  }
+}
+
+// ─── Header de sección (Tab 1) ──────────────────────────────────────────────
+
+.seccion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.seccion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+  }
+
+  .meta {
+    color: #607d8b;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.seccion-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #eceff1;
+  border-radius: 8px;
+  min-width: 90px;
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: #78909c;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &.riesgo {
+    border-color: #ef9a9a;
+    .stat-value {
+      color: #c62828;
+    }
+  }
+}
+
+// ─── Sub-tabs internos ───────────────────────────────────────────────────────
+
+.inner-tabs {
+  margin-top: 8px;
+
+  ::ng-deep .mat-mdc-tab-body-content {
+    padding: 16px 0;
+  }
+}
+
+// ─── Tablas ──────────────────────────────────────────────────────────────────
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid #eceff1;
+  border-radius: 8px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  thead {
+    background: #fafafa;
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 600;
+      color: #455a64;
+      border-bottom: 2px solid #eceff1;
+      white-space: nowrap;
+
+      &.num {
+        text-align: right;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #f5f5f5;
+
+      &:hover {
+        background: #f9fbfc;
+      }
+
+      &.row-riesgo {
+        background: rgba(244, 67, 54, 0.04);
+      }
+
+      &.row-top {
+        background: rgba(76, 175, 80, 0.04);
+      }
+    }
+
+    td {
+      padding: 10px 12px;
+      vertical-align: middle;
+
+      &.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      &.rank {
+        font-weight: 600;
+        color: #607d8b;
+      }
+    }
+  }
+}
+
+.alumno-cell {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+
+  .nombre {
+    font-weight: 500;
+  }
+
+  .dni {
+    font-size: 11px;
+    color: #90a4ae;
+  }
+}
+
+.hora-cell {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.hora-llegada {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  color: #607d8b;
+}
+
+.obs-cell {
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #607d8b;
+}
+
+// ─── Chips ───────────────────────────────────────────────────────────────────
+
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+
+  &.chip-ad {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &.chip-a {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  &.chip-b {
+    background: #fff8e1;
+    color: #f57f17;
+  }
+
+  &.chip-c {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  &.chip-sin {
+    background: #eceff1;
+    color: #607d8b;
+  }
+}
+
+// ─── Texto de alerta ─────────────────────────────────────────────────────────
+
+.text-danger {
+  color: #c62828;
+  font-weight: 600;
+}
+
+// ─── Sección de alertas (Tab 2) ──────────────────────────────────────────────
+
+.alertas-section {
+  margin-top: 24px;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: #c62828;
+
+    mat-icon {
+      color: #f9a825;
+    }
+  }
+}
+
+.alertas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.alerta-card {
+  padding: 12px 16px;
+  background: #fff8e1;
+  border-left: 3px solid #f9a825;
+  border-radius: 4px;
+
+  .alerta-nombre {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .alerta-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 12px;
+    color: #607d8b;
+
+    strong {
+      color: #c62828;
+    }
+
+    .ultima {
+      margin-left: auto;
+      font-style: italic;
+    }
+  }
+}

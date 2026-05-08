@@ -1,0 +1,158 @@
+<div class="tab-body">
+
+    <mat-tab-group class="inner-tabs" animationDuration="150ms">
+
+        <!-- ── Reporte diario ── -->
+        <mat-tab label="Reporte diario">
+            <div class="filters-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Fecha</mat-label>
+                    <input matInput type="date" [(ngModel)]="fechaDocentes" />
+                </mat-form-field>
+
+                <button mat-flat-button color="primary" (click)="cargarDiario()">
+                    <mat-icon>search</mat-icon> Cargar
+                </button>
+
+                <button mat-stroked-button (click)="descargarDiario()" [disabled]="!store.reporteDiario().length">
+                    <mat-icon>download</mat-icon> XLSX
+                </button>
+            </div>
+
+            @if (store.reporteLoading() === 'loading') {
+            <mat-progress-bar mode="indeterminate" class="progress" />
+            }
+
+            @if (store.reporteDiario().length) {
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Docente</th>
+                            <th>Curso</th>
+                            <th>Sección</th>
+                            <th>Hora</th>
+                            <th>Estado</th>
+                            <th>Observación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (d of store.reporteDiario(); track d.horario_id) {
+                        <tr>
+                            <td>
+                                <div class="alumno-cell">
+                                    <span class="nombre">{{ d.docente_nombre }} {{ d.apellido_paterno }}</span>
+                                </div>
+                            </td>
+                            <td>{{ d.curso_nombre }}</td>
+                            <td>{{ d.grado_nombre }} — {{ d.seccion_nombre }}</td>
+                            <td class="hora-cell">{{ d.hora_inicio }} – {{ d.hora_fin }}</td>
+                            <td>
+                                <span class="chip" [class]="estadoDocenteChip(d.estado)">
+                                    {{ estadoDocenteLabel(d.estado) }}
+                                </span>
+                                @if (d.hora_llegada) {
+                                <span class="hora-llegada">{{ d.hora_llegada }}</span>
+                                }
+                            </td>
+                            <td class="obs-cell">{{ d.observacion ?? '—' }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+        </mat-tab>
+
+        <!-- ── Resumen por rango ── -->
+        <mat-tab label="Resumen por rango">
+            <div class="filters-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Desde</mat-label>
+                    <input matInput type="date" [(ngModel)]="rangoInicio" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Hasta</mat-label>
+                    <input matInput type="date" [(ngModel)]="rangoFin" />
+                </mat-form-field>
+
+                <button mat-flat-button color="primary" (click)="cargarResumen()">
+                    <mat-icon>search</mat-icon> Generar
+                </button>
+            </div>
+
+            @if (store.reporteLoading() === 'loading') {
+            <mat-progress-bar mode="indeterminate" class="progress" />
+            }
+
+            @if (store.resumenDocentes().length) {
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Docente</th>
+                            <th class="num">Esperados</th>
+                            <th class="num">Presentes</th>
+                            <th class="num">Tardanzas</th>
+                            <th class="num">Ausentes</th>
+                            <th class="num">Sin justif.</th>
+                            <th class="num">% Asistencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (d of store.resumenDocentes(); track d.docente_id) {
+                        <tr [class.row-riesgo]="+(d.porcentaje_asistencia ?? 100) < 80">
+                            <td>{{ d.docente_nombre }} {{ d.apellido_paterno }}</td>
+                            <td class="num">{{ d.total_bloques_esperados }}</td>
+                            <td class="num">{{ d.presentes }}</td>
+                            <td class="num">{{ d.tardanzas }}</td>
+                            <td class="num">
+                                <span [class.text-danger]="d.ausentes > 2">{{ d.ausentes }}</span>
+                            </td>
+                            <td class="num">
+                                <span [class.text-danger]="d.ausentes_sin_justificacion > 0">
+                                    {{ d.ausentes_sin_justificacion }}
+                                </span>
+                            </td>
+                            <td class="num">
+                                <strong [class.text-danger]="+(d.porcentaje_asistencia ?? 100) < 80">
+                                    {{ d.porcentaje_asistencia ? d.porcentaje_asistencia + '%' : '—' }}
+                                </strong>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Alertas -->
+            @if (store.alertasDocentes().length) {
+            <div class="alertas-section">
+                <h3>
+                    <mat-icon>warning_amber</mat-icon> Alertas — ausencias sin justificación
+                </h3>
+                <div class="alertas-grid">
+                    @for (a of store.alertasDocentes(); track a.docente_id) {
+                    <div class="alerta-card">
+                        <span class="alerta-nombre">
+                            {{ a.docente_nombre }} {{ a.apellido_paterno }}
+                        </span>
+                        <div class="alerta-stats">
+                            <span><strong>{{ a.sin_justificacion }}</strong> sin justif.</span>
+                            <span><strong>{{ a.clases_sin_cobertura }}</strong> sin cobertura</span>
+                            @if (a.ultima_ausencia) {
+                            <span class="ultima">Última: {{ a.ultima_ausencia | date:'dd/MM' }}</span>
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+            }
+        </mat-tab>
+
+    </mat-tab-group>
+
+</div>
