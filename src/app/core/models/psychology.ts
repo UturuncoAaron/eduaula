@@ -8,7 +8,7 @@ export type RecordCategoria =
 export type AppointmentTipo =
     | 'academico' | 'conductual' | 'psicologico' | 'familiar' | 'otro';
 
-export type AppointmentModalidad = 'presencial' | 'virtual' | 'telefonico';
+export type AppointmentModalidad = 'presencial';
 
 export type AppointmentEstado =
     | 'pendiente' | 'confirmada' | 'realizada' | 'cancelada' | 'no_asistio';
@@ -100,7 +100,6 @@ export interface Appointment {
     priorNotes?: string | null;
     followUpNotes?: string | null;
     rescheduledFromId?: string | null;
-    meetingLink?: string | null;
     reminderSent: boolean;
     createdAt: string;
     updatedAt: string;
@@ -113,28 +112,26 @@ export interface Appointment {
  * Coincide 1:1 con `CreateAppointmentDto` del backend.
  * - `convocadoAId`: a quién va dirigida la cita (psicóloga/docente/admin/padre/auxiliar).
  * - `parentId`: padre involucrado (opcional). El backend valida que pertenezca al alumno.
- * - `modalidad`: opcional; si se omite el backend pone `presencial`.
+ *
+ * Nota: la modalidad ya no es configurable; toda cita es **presencial** y el
+ * backend la fija automáticamente.
  */
 export interface CreateAppointmentPayload {
     convocadoAId: string;
     studentId?: string;
     parentId?: string;
     tipo: AppointmentTipo;
-    modalidad?: AppointmentModalidad;
     motivo: string;
     scheduledAt: string;
     durationMin?: number;
     priorNotes?: string;
-    meetingLink?: string;
 }
 
 export interface UpdateAppointmentPayload {
     estado?: AppointmentEstado;
     scheduledAt?: string;
-    modalidad?: AppointmentModalidad;
     followUpNotes?: string;
     rescheduledFromId?: string;
-    meetingLink?: string;
 }
 
 // ── Disponibilidad ──────────────────────────────────────────────────────────

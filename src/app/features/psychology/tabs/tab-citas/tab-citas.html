@@ -123,23 +123,10 @@
                 <ng-container matColumnDef="modalidad">
                     <th mat-header-cell *matHeaderCellDef>Modalidad</th>
                     <td mat-cell *matCellDef="let row">
-                        <div class="modalidad-cell">
-                            <span class="modalidad-chip" [attr.data-modalidad]="row.modalidad">
-                                <mat-icon class="modalidad-icon">
-                                    {{ row.modalidad === 'virtual'
-                                    ? 'videocam'
-                                    : row.modalidad === 'telefonico' ? 'call' : 'meeting_room' }}
-                                </mat-icon>
-                                {{ row.modalidad }}
-                            </span>
-                            @if (row.modalidad === 'virtual' && row.meetingLink) {
-                                <a [href]="row.meetingLink" target="_blank" rel="noopener"
-                                   class="meeting-link-inline" matTooltip="Abrir reunión virtual">
-                                    <mat-icon>open_in_new</mat-icon>
-                                    <span>Unirse</span>
-                                </a>
-                            }
-                        </div>
+                        <span class="modalidad-chip" [attr.data-modalidad]="row.modalidad">
+                            <mat-icon class="modalidad-icon">meeting_room</mat-icon>
+                            {{ row.modalidad }}
+                        </span>
                     </td>
                 </ng-container>
 

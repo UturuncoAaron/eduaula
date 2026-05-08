@@ -58,24 +58,14 @@
                 </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-                <mat-label>Modalidad</mat-label>
-                <mat-select formControlName="modalidad">
-                    @for (m of modalidades; track m.value) {
-                        <mat-option [value]="m.value">{{ m.label }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
+            <div class="modalidad-info" aria-live="polite">
+                <mat-icon class="modalidad-info__icon">meeting_room</mat-icon>
+                <div class="modalidad-info__text">
+                    <span class="modalidad-info__label">Modalidad</span>
+                    <strong>Presencial</strong>
+                </div>
+            </div>
         </div>
-
-        @if (isVirtual()) {
-            <mat-form-field appearance="outline" class="full">
-                <mat-label>Link de reunión (Meet, Zoom, etc.)</mat-label>
-                <input matInput formControlName="meetingLink"
-                       placeholder="https://meet.google.com/..." />
-                <mat-icon matPrefix>videocam</mat-icon>
-            </mat-form-field>
-        }
 
         <div class="row three">
             <mat-form-field appearance="outline">

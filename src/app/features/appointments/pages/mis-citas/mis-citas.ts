@@ -158,14 +158,13 @@ export class MisCitas {
         return `chip-${estado}`;
     }
 
-    /** Material icon que representa la modalidad de la cita. */
-    modalidadIcon(modalidad: string): string {
-        switch (modalidad) {
-            case 'virtual':    return 'videocam';
-            case 'telefonico': return 'call';
-            case 'presencial':
-            default:           return 'meeting_room';
-        }
+    /**
+     * Material icon que representa la modalidad de la cita. Hoy todas las
+     * citas son presenciales; se mantiene la función para que la UI siga
+     * tolerando datos históricos con otra modalidad.
+     */
+    modalidadIcon(_modalidad: string): string {
+        return 'meeting_room';
     }
 
     canCancel(a: Appointment): boolean {
@@ -213,11 +212,35 @@ export class MisCitas {
 
         try {
             await this.store.cancelAppointment(row.id, {
-                motivo: 'Cancelada por el solicitante',
+                motivo: this.mode() === 'alumno'
+                    ? 'Cancelada por el alumno'
+                    : 'Cancelada por el padre/tutor',
             });
             this.snack.open('Cita cancelada', 'OK', { duration: 2500 });
-        } catch {
-            this.snack.open('No se pudo cancelar la cita', 'OK', { duration: 4000 });
+        } catch (err: unknown) {
+            this.snack.open(
+                parseApiError(err, 'No se pudo cancelar la cita'),
+                'OK',
+                { duration: 4500 },
+            );
         }
     }
+}
+
+/**
+ * Convierte un error HTTP del backend (NestJS / class-validator) en un
+ * mensaje legible. Soporta tanto strings como arrays de validaciones.
+ */
+function parseApiError(err: unknown, fallback: string): string {
+    const e = err as { error?: { message?: unknown } };
+    const raw = e?.error?.message;
+    if (typeof raw === 'string') return raw;
+    if (raw && typeof raw === 'object') {
+        const inner = (raw as { message?: unknown }).message;
+        if (typeof inner === 'string') return inner;
+        if (Array.isArray(inner) && inner.length > 0 && typeof inner[0] === 'string') {
+            return inner.join(', ');
+        }
+    }
+    return fallback;
 }

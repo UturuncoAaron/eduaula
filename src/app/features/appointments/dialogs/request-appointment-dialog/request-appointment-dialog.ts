@@ -26,7 +26,6 @@ import { ToastService } from 'ngx-toastr-notifier';
 import { AppointmentsStore } from '../../data-access/appointments.store';
 import { AuthService } from '../../../../core/auth/auth';
 import {
-    AppointmentModalidad,
     AppointmentTipo,
     AvailableSlot,
     Psicologa,
@@ -79,12 +78,6 @@ export class RequestAppointmentDialog implements OnInit {
         { value: 'otro',        label: 'Otro' },
     ];
 
-    readonly modalidades: { value: AppointmentModalidad; label: string }[] = [
-        { value: 'presencial', label: 'Presencial' },
-        { value: 'virtual',    label: 'Virtual' },
-        { value: 'telefonico', label: 'Telefónica' },
-    ];
-
     /** Para padre: hijo seleccionado actual. */
     readonly selectedChild = computed<Child | null>(() => {
         const id = this.form?.value?.childId;
@@ -97,9 +90,6 @@ export class RequestAppointmentDialog implements OnInit {
         if (!id) return null;
         return this.store.psicologas().find(p => p.id === id) ?? null;
     });
-
-    modalidadValue = signal('presencial');
-    readonly isVirtual = computed(() => this.modalidadValue() === 'virtual');
 
     readonly slotsGroupedByDay = computed<{ label: string; slots: AvailableSlot[] }[]>(() => {
         const all = this.slots();
@@ -120,13 +110,11 @@ export class RequestAppointmentDialog implements OnInit {
         childId:      [this.data.preselectedChildId ?? ''],
         psicologaId:  ['', [Validators.required]],
         tipo:         ['psicologico', [Validators.required]],
-        modalidad:    ['presencial', [Validators.required]],
         durationMin:  [30, [Validators.required, Validators.min(15), Validators.max(180)]],
         date:         [null as Date | null, [Validators.required]],
         time:         ['', [Validators.required]],
         motivo:       ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
         priorNotes:   [''],
-        meetingLink:  [''],
     });
 
     async ngOnInit(): Promise<void> {
@@ -147,12 +135,6 @@ export class RequestAppointmentDialog implements OnInit {
             this.form.patchValue({ psicologaId: this.store.psicologas()[0].id });
             await this.refreshSlots();
         }
-        this.form.get('modalidad')?.valueChanges.subscribe((m: string) => {
-            this.modalidadValue.set(m);
-            if (m !== 'virtual') {
-                this.form.patchValue({ meetingLink: '' });
-            }
-        });
     }
 
     childLabel(c: Child): string {
@@ -257,12 +239,10 @@ export class RequestAppointmentDialog implements OnInit {
                 studentId,
                 parentId,
                 tipo:         v.tipo,
-                modalidad:    v.modalidad,
                 motivo:       v.motivo,
                 scheduledAt:  scheduled.toISOString(),
                 durationMin:  v.durationMin,
                 priorNotes:   v.priorNotes || undefined,
-                meetingLink:  v.modalidad === 'virtual' && v.meetingLink ? v.meetingLink : undefined,
             });
             this.toastr.success('Cita solicitada');
             this.ref.close(true);

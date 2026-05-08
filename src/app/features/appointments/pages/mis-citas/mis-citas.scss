@@ -364,48 +364,6 @@
   }
 }
 
-.meeting-link-row {
-  display: flex;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.meeting-link-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: .85rem;
-  font-weight: 600;
-  text-decoration: none;
-  color: #fff;
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, .3);
-  transition: transform .15s ease, box-shadow .15s ease;
-  cursor: pointer;
-
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(79, 70, 229, .4);
-  }
-
-  &--past {
-    background: #64748b;
-    box-shadow: 0 2px 8px rgba(100, 116, 139, .2);
-
-    &:hover {
-      box-shadow: 0 4px 12px rgba(100, 116, 139, .3);
-    }
-  }
-}
-
 /* ── Status / modalidad / duration chips ─────────────── */
 .status-chip,
 .modalidad-chip,
@@ -443,8 +401,6 @@
   .modalidad-icon { font-size: 14px; height: 14px; width: 14px; }
 
   &[data-modalidad="presencial"] { background: #ecfeff; color: #0e7490; }
-  &[data-modalidad="virtual"]    { background: #eef2ff; color: #4f46e5; }
-  &[data-modalidad="telefonico"] { background: #fef3c7; color: #92400e; }
 }
 
 .duration-chip {
