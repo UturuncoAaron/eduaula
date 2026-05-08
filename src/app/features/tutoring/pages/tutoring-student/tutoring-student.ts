@@ -1,5 +1,9 @@
 import {
-  Component, ChangeDetectionStrategy, inject, computed, signal,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { TutoringStore } from '../../data-access/tutoring.store';
 import type { AlumnoTutoria } from '../../data-access/tutoring.types';
@@ -17,9 +22,15 @@ import type { AlumnoTutoria } from '../../data-access/tutoring.types';
   selector: 'app-tutoring-student',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
-    MatChipsModule, MatFormFieldModule, MatInputModule,
-    MatIconModule, MatButtonModule, MatProgressBarModule,
+    CommonModule,
+    FormsModule,
+    MatChipsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatButtonModule,
+    MatProgressBarModule,
+    MatTooltipModule,
   ],
   templateUrl: './tutoring-student.html',
   styleUrl: './tutoring-student.scss',
@@ -30,19 +41,33 @@ export class TutoringStudent {
 
   readonly search = signal('');
 
-  readonly alumnosFiltrados = computed(() => {
+  readonly alumnosFiltrados = computed<AlumnoTutoria[]>(() => {
     const list = this.store.data()?.alumnos ?? [];
     const q = this.search().trim().toLowerCase();
     if (!q) return list;
-    return list.filter(a =>
-      `${a.nombre} ${a.apellido_paterno} ${a.apellido_materno ?? ''} ${a.codigo_estudiante}`
+    return list.filter((a) =>
+      [a.nombre, a.apellido_paterno, a.apellido_materno ?? '', a.codigo_estudiante]
+        .join(' ')
         .toLowerCase()
         .includes(q),
     );
   });
 
+  readonly stats = computed(() => {
+    const list = this.store.data()?.alumnos ?? [];
+    const completos = list.filter((a) => this.isCompleto(a)).length;
+    const pendientes = list.length - completos;
+    return { total: list.length, completos, pendientes };
+  });
+
+  trackById = (_: number, a: AlumnoTutoria): string => a.id;
+
   initials(a: AlumnoTutoria): string {
-    return `${(a.nombre[0] ?? '')}${(a.apellido_paterno[0] ?? '')}`.toUpperCase();
+    return `${a.nombre[0] ?? ''}${a.apellido_paterno[0] ?? ''}`.toUpperCase();
+  }
+
+  fullName(a: AlumnoTutoria): string {
+    return [a.apellido_paterno, a.apellido_materno].filter((s) => !!s).join(' ');
   }
 
   progresoAlumno(a: AlumnoTutoria): number {

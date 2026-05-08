@@ -1,29 +1,37 @@
-<mat-sidenav-container class="notebook-tab">
+<mat-sidenav-container class="notebook-tab" autosize>
     <mat-sidenav-content>
 
-        <div class="periodo-bar">
+        <!-- ── Periodo bar ───────────────────────────────────── -->
+        <header class="periodo-bar">
             <div class="periodo-label">
                 <mat-icon>event</mat-icon>
-                Bimestre
+                <span>Bimestre</span>
             </div>
-            <div class="periodo-pills">
-                @for (p of store.data()!.periodos; track p.id) {
-                <button class="pill" [class.selected]="store.periodoSeleccionadoId() === p.id" [class.activo]="p.activo"
+
+            <nav class="periodo-pills" role="tablist" aria-label="Bimestres">
+                @for (p of periodos(); track p.id) {
+                <button class="pill" role="tab" [class.selected]="store.periodoSeleccionadoId() === p.id"
+                    [class.activo]="p.activo" [attr.aria-selected]="store.periodoSeleccionadoId() === p.id"
                     (click)="selectPeriodo(p.id)">
-                    Bim {{ p.bimestre }}
-                    @if (p.activo) { <span class="dot"></span> }
+                    <span class="pill-label">Bim {{ p.bimestre }}</span>
+                    @if (p.activo) {
+                    <span class="pill-dot" matTooltip="Bimestre activo"></span>
+                    }
                 </button>
                 }
-            </div>
+            </nav>
+
             <span class="bar-spacer"></span>
+
             <button mat-flat-button color="primary" class="bulk-btn" (click)="openBulkUpload()"
                 matTooltip="Sube todas las libretas a la vez con auto-asignación por nombre">
                 <mat-icon>cloud_upload</mat-icon>
-                Carga masiva
+                <span>Carga masiva</span>
             </button>
-        </div>
+        </header>
 
-        <div class="progress-card">
+        <!-- ── Progress card ─────────────────────────────────── -->
+        <section class="progress-card">
             <div class="progress-info">
                 <span class="lbl">Progreso del bimestre</span>
                 <strong class="big">
@@ -31,16 +39,30 @@
                     <span>/ {{ store.progreso().total }} libretas</span>
                 </strong>
             </div>
+
             <div class="progress-bar-wrap">
-                <mat-progress-bar mode="determinate" [value]="progresoPct()"></mat-progress-bar>
+                <mat-progress-bar mode="determinate" [value]="progresoPct()" />
                 <span class="pct">{{ progresoPct() }}%</span>
             </div>
-        </div>
 
-        @if (store.periodoSeleccionadoId() !== null) {
-        <div class="students-list">
-            @for (a of store.data()!.alumnos; track a.id) {
+            <div class="progress-tags">
+                <span class="tag tag--ok">
+                    <mat-icon>check_circle</mat-icon>
+                    {{ store.progreso().cargadas }} cargadas
+                </span>
+                <span class="tag tag--pending">
+                    <mat-icon>schedule</mat-icon>
+                    {{ pendientes() }} pendientes
+                </span>
+            </div>
+        </section>
+
+        <!-- ── Students list ─────────────────────────────────── -->
+        @if (store.periodoSeleccionadoId() !== null && alumnos().length > 0) {
+        <section class="students-list">
+            @for (a of alumnos(); track trackById($index, a)) {
             <article class="student-row" [class.cargada]="libretaDe(a) !== null">
+
                 <div class="student-info">
                     <div class="avatar">{{ initials(a) }}</div>
                     <div class="text">
@@ -53,12 +75,12 @@
 
                 <div class="status">
                     @if (libretaDe(a); as l) {
-                    <span class="badge ok">
+                    <span class="badge badge--ok">
                         <mat-icon>check_circle</mat-icon>
                         Cargada
                     </span>
                     } @else {
-                    <span class="badge pending">
+                    <span class="badge badge--pending">
                         <mat-icon>schedule</mat-icon>
                         Pendiente
                     </span>
@@ -67,24 +89,41 @@
 
                 <div class="actions">
                     @if (libretaDe(a); as l) {
-                    <a mat-stroked-button color="primary" [href]="l.url" target="_blank">
-                        <mat-icon>visibility</mat-icon> Ver
+                    <a mat-stroked-button color="primary" [href]="l.url" target="_blank" rel="noopener">
+                        <mat-icon>visibility</mat-icon>
+                        <span class="btn-label">Ver</span>
                     </a>
-                    <button mat-stroked-button (click)="openUpload(a, l)" matTooltip="Reemplazar libreta">
+                    <button mat-stroked-button (click)="openUpload(a, l)" matTooltip="Reemplazar libreta"
+                        aria-label="Reemplazar libreta">
                         <mat-icon>refresh</mat-icon>
                     </button>
                     } @else {
                     <button mat-flat-button color="primary" (click)="openUpload(a, null)">
-                        <mat-icon>upload</mat-icon> Subir
+                        <mat-icon>upload</mat-icon>
+                        <span class="btn-label">Subir</span>
                     </button>
                     }
                 </div>
             </article>
             }
+        </section>
+        } @else if (alumnos().length === 0) {
+        <div class="empty-state">
+            <mat-icon>folder_off</mat-icon>
+            <h3>Sin alumnos en esta sección</h3>
+            <p>Cuando matriculen alumnos los verás aquí para cargar sus libretas.</p>
+        </div>
+        } @else {
+        <div class="empty-state">
+            <mat-icon>event_busy</mat-icon>
+            <h3>Selecciona un bimestre</h3>
+            <p>Elige uno de los bimestres del periodo para ver y cargar libretas.</p>
         </div>
         }
+
     </mat-sidenav-content>
 
+    <!-- ── Drawer de carga individual ──────────────────────── -->
     <mat-sidenav #drawer mode="over" position="end" [autoFocus]="false">
         @if (uploadTarget(); as target) {
         <app-notebook-upload-drawer [target]="target" (uploaded)="onUploaded()" (cancelled)="closeDrawer()" />

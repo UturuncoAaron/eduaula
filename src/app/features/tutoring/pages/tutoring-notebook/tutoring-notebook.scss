@@ -1,259 +1,409 @@
-.notebook-tab {
-    height: 100%;
-    background: transparent;
+$radius: 14px;
+$radius-sm: 10px;
+$bg-card: #ffffff;
+$border: #e2e8f0;
+$text-strong: #0f172a;
+$text-body: #475569;
+$text-muted: #64748b;
+$primary: #4f46e5;
+$success: #10b981;
+$warn: #f59e0b;
+$shadow-sm: 0 1px 2px rgba(15, 23, 42, .04);
+$shadow-md: 0 6px 18px rgba(15, 23, 42, .08);
 
-    ::ng-deep .mat-drawer-content {
-        overflow: visible !important;
+:host {
+    display: block;
+    height: 100%;
+}
+
+.notebook-tab {
+    background: transparent;
+    height: 100%;
+}
+
+mat-sidenav-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0;
+    background: transparent !important;
+}
+
+/* ── Periodo bar ─────────────────────────────────────────── */
+.periodo-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: $radius;
+    box-shadow: $shadow-sm;
+
+    .periodo-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: $text-muted;
+
+        mat-icon {
+            font-size: 18px;
+            height: 18px;
+            width: 18px;
+        }
     }
 
-    .periodo-bar {
+    .periodo-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .bar-spacer {
+        flex: 1 1 0;
+        min-width: 12px;
+    }
+
+    .bulk-btn {
+        gap: 6px;
+
+        mat-icon {
+            vertical-align: middle;
+        }
+    }
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid $border;
+    background: #fff;
+    color: $text-body;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
+
+    &:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    &.selected {
+        background: linear-gradient(135deg, #4a5cba 0%, #5e72e4 100%);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 2px 8px rgba(94, 114, 228, .3);
+    }
+
+    .pill-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: $success;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, .25);
+    }
+
+    &.selected .pill-dot {
+        background: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, .35);
+    }
+}
+
+/* ── Progress card ───────────────────────────────────────── */
+.progress-card {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: $radius;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: $shadow-sm;
+}
+
+.progress-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .lbl {
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: $text-muted;
+    }
+
+    .big {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: $text-strong;
+        line-height: 1.1;
+
+        span {
+            font-size: .9rem;
+            font-weight: 500;
+            color: $text-muted;
+            margin-left: 4px;
+        }
+    }
+}
+
+.progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    mat-progress-bar {
+        flex: 1;
+        --mdc-linear-progress-track-height: 8px;
+        --mdc-linear-progress-active-indicator-height: 8px;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .pct {
+        font-weight: 700;
+        color: $text-strong;
+        font-size: .9rem;
+        min-width: 42px;
+        text-align: right;
+    }
+}
+
+.progress-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 600;
+
+        mat-icon {
+            font-size: 14px;
+            height: 14px;
+            width: 14px;
+        }
+
+        &--ok {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        &--pending {
+            background: #fffbeb;
+            color: #b45309;
+        }
+    }
+}
+
+/* ── Students list ───────────────────────────────────────── */
+.students-list {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: $radius;
+    overflow: hidden;
+    box-shadow: $shadow-sm;
+}
+
+.student-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background .15s ease;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    &:hover {
+        background: #f8fafc;
+    }
+
+    &.cargada {
+        background: linear-gradient(90deg, #f0fdf4 0%, transparent 60%);
+
+        &:hover {
+            background: linear-gradient(90deg, #dcfce7 0%, transparent 60%);
+        }
+    }
+
+    .student-info {
         display: flex;
         align-items: center;
-        gap: 16px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
+        gap: 12px;
+        min-width: 0;
+    }
 
-        .periodo-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #455a64;
-            font-size: 13px;
+    .avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #4a5cba 0%, #5e72e4 100%);
+        color: #fff;
+        font-weight: 700;
+        font-size: .9rem;
+        flex-shrink: 0;
+    }
+
+    .text {
+        min-width: 0;
+
+        .name {
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
+            color: $text-strong;
+            font-size: .9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .code {
+            font-size: .75rem;
+            color: $text-muted;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            margin-top: 2px;
+        }
+    }
+
+    .actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+
+        a,
+        button {
+            gap: 4px;
 
             mat-icon {
-                font-size: 18px;
-                width: 18px;
-                height: 18px;
+                vertical-align: middle;
             }
         }
+    }
+}
 
-        .periodo-pills {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 600;
+
+    mat-icon {
+        font-size: 14px;
+        height: 14px;
+        width: 14px;
+    }
+
+    &--ok {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    &--pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty-state {
+    background: $bg-card;
+    border: 1px dashed $border;
+    border-radius: $radius;
+    padding: 56px 24px;
+    text-align: center;
+    color: $text-muted;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    >mat-icon {
+        font-size: 64px;
+        height: 64px;
+        width: 64px;
+        color: #cbd5e1;
+    }
+
+    h3 {
+        margin: 8px 0 0;
+        color: $text-strong;
+    }
+
+    p {
+        margin: 0;
+        max-width: 380px;
+        line-height: 1.5;
+    }
+}
+
+/* ── Drawer ──────────────────────────────────────────────── */
+mat-sidenav {
+    width: min(440px, 100vw);
+    max-width: 100%;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .periodo-bar {
+
+        .bulk-btn .btn-label,
+        .bulk-btn span:not(.mat-mdc-button-touch-target) {
+            display: inline;
+        }
+    }
+
+    .student-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+
+        .actions {
+            justify-content: flex-end;
         }
 
-        .pill {
-            position: relative;
-            background: #f5f7fb;
-            border: 1px solid #e0e6f0;
-            color: #455a64;
-            padding: 8px 16px;
-            border-radius: 100px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+        .status {
+            justify-self: flex-start;
+        }
+    }
+}
 
-            &:hover {
-                background: #e8eaf6;
-                color: #3949ab;
-            }
-
-            &.selected {
-                background: linear-gradient(135deg, #5c6bc0, #3f51b5);
-                border-color: transparent;
-                color: white;
-                box-shadow: 0 2px 8px rgba(63, 81, 181, 0.25);
-            }
-
-            .dot {
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: #43a047;
-            }
-
-            &.selected .dot {
-                background: white;
-            }
+@media (max-width: 480px) {
+    .periodo-bar {
+        .bulk-btn .btn-label {
+            display: none;
         }
     }
 
     .progress-card {
-        background: linear-gradient(135deg, #f8faff 0%, #eef1fb 100%);
-        border: 1px solid #e0e6f0;
-        border-radius: 12px;
-        padding: 18px 20px;
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        flex-wrap: wrap;
-
-        .progress-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 160px;
-
-            .lbl {
-                font-size: 11px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                color: #607d8b;
-            }
-
-            .big {
-                font-size: 26px;
-                font-weight: 800;
-                color: #1a237e;
-                line-height: 1.1;
-                margin-top: 4px;
-
-                span {
-                    font-size: 13px;
-                    font-weight: 500;
-                    color: #78909c;
-                    margin-left: 4px;
-                }
-            }
-        }
-
-        .progress-bar-wrap {
-            flex: 1;
-            min-width: 200px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            ::ng-deep mat-progress-bar {
-                flex: 1;
-                height: 10px;
-                border-radius: 5px;
-                overflow: hidden;
-            }
-
-            .pct {
-                font-size: 14px;
-                font-weight: 700;
-                color: #3949ab;
-                min-width: 40px;
-                text-align: right;
-            }
-        }
-    }
-
-    .students-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+        padding: 14px;
     }
 
     .student-row {
-        background: #fff;
-        border: 1px solid #e8eaf6;
-        border-radius: 12px;
-        padding: 14px 18px;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
-        align-items: center;
-        gap: 16px;
-        transition: all 0.15s ease;
-
-        &:hover {
-            border-color: #c5cae9;
-            box-shadow: 0 2px 8px rgba(57, 73, 171, 0.06);
-        }
-
-        &.cargada {
-            background: linear-gradient(90deg, #f1f8e9 0%, #ffffff 30%);
-            border-color: #c5e1a5;
-        }
-
-        .student-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
-
-            .avatar {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #5c6bc0, #26a69a);
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                font-size: 14px;
-                flex-shrink: 0;
-            }
-
-            .text {
-                min-width: 0;
-
-                .name {
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #263238;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                .code {
-                    font-size: 11px;
-                    color: #90a4ae;
-                    font-family: 'SF Mono', Monaco, monospace;
-                    margin-top: 2px;
-                    letter-spacing: 0.4px;
-                }
-            }
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            border-radius: 100px;
-            font-size: 12px;
-            font-weight: 600;
-
-            mat-icon {
-                font-size: 14px;
-                width: 14px;
-                height: 14px;
-            }
-
-            &.ok {
-                background: #c8e6c9;
-                color: #2e7d32;
-            }
-
-            &.pending {
-                background: #fff3e0;
-                color: #ef6c00;
-            }
-        }
-
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-    }
-
-    mat-sidenav {
-        width: min(440px, 90vw);
-    }
-
-    @media (max-width: 720px) {
-        .student-row {
-            grid-template-columns: 1fr;
-            gap: 10px;
-
-            .actions {
-                justify-content: flex-end;
-            }
+        .actions .btn-label {
+            display: none;
         }
     }
 }

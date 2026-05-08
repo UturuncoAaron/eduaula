@@ -1,5 +1,10 @@
 import {
-  Component, ChangeDetectionStrategy, inject, signal, viewChild, computed,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatChipsModule } from '@angular/material/chips';
@@ -24,8 +29,12 @@ import { BulkUpload, BulkUploadData } from '../../ui/bulk-upload/bulk-upload';
   standalone: true,
   imports: [
     CommonModule,
-    MatChipsModule, MatButtonModule, MatIconModule,
-    MatTooltipModule, MatSidenavModule, MatProgressBarModule,
+    MatChipsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatSidenavModule,
+    MatProgressBarModule,
     NotebookUploadDrawer,
   ],
   templateUrl: './tutoring-notebook.html',
@@ -33,9 +42,9 @@ import { BulkUpload, BulkUploadData } from '../../ui/bulk-upload/bulk-upload';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TutoringNotebook {
-  readonly store  = inject(TutoringStore);
-  private toastr  = inject(ToastService);
-  private dialog  = inject(MatDialog);
+  readonly store = inject(TutoringStore);
+  private readonly toastr = inject(ToastService);
+  private readonly dialog = inject(MatDialog);
 
   readonly drawerRef    = viewChild<MatSidenav>('drawer');
   readonly uploadTarget = signal<NotebookUploadTarget | null>(null);
@@ -45,6 +54,16 @@ export class TutoringNotebook {
     if (total === 0) return 0;
     return Math.round((cargadas / total) * 100);
   });
+
+  readonly pendientes = computed(() => {
+    const { cargadas, total } = this.store.progreso();
+    return Math.max(0, total - cargadas);
+  });
+
+  readonly periodos = computed(() => this.store.data()?.periodos ?? []);
+  readonly alumnos  = computed(() => this.store.data()?.alumnos ?? []);
+
+  trackById = (_: number, a: AlumnoTutoria): string => a.id;
 
   initials(a: AlumnoTutoria): string {
     return `${a.nombre[0] ?? ''}${a.apellido_paterno[0] ?? ''}`.toUpperCase();
@@ -67,12 +86,13 @@ export class TutoringNotebook {
     const data = this.store.data();
     if (!data) return;
 
-    const periodo = data.periodos.find(p => p.id === pid)!;
+    const periodo = data.periodos.find((p) => p.id === pid);
+    if (!periodo) return;
 
     this.uploadTarget.set({
-      cuenta_id:   a.id,
+      cuenta_id:    a.id,
       cuenta_label: `${a.apellido_paterno} ${a.apellido_materno ?? ''}, ${a.nombre}`.trim(),
-      periodo_id:   pid,
+      periodo_id:    pid,
       periodo_label: `Bim ${periodo.bimestre} · ${periodo.anio}`,
       tipo: 'alumno',
       libreta_existente: libretaExistente
@@ -102,18 +122,20 @@ export class TutoringNotebook {
       return;
     }
 
-    const periodo = data.periodos.find(p => p.id === pid)!;
+    const periodo = data.periodos.find((p) => p.id === pid);
+    if (!periodo) return;
+
     const existentes = new Set(
       data.alumnos
-        .filter(a => a.libretas.some(l => l.periodo_id === pid))
-        .map(a => a.id),
+        .filter((a) => a.libretas.some((l) => l.periodo_id === pid))
+        .map((a) => a.id),
     );
 
     const dialogData: BulkUploadData = {
       alumnos:       data.alumnos,
       periodo_id:    pid,
       periodo_label: `Bim ${periodo.bimestre} · ${periodo.anio}`,
-      seccion_id:    data.seccion.id,   // ← campo requerido por BulkUploadData
+      seccion_id:    data.seccion.id,
       existentes,
     };
 
@@ -125,8 +147,8 @@ export class TutoringNotebook {
       autoFocus: false,
     });
 
-    ref.afterClosed().subscribe(result => {
-      if (result?.uploaded > 0) this.store.refresh();
+    ref.afterClosed().subscribe((result?: { uploaded?: number }) => {
+      if (result?.uploaded && result.uploaded > 0) this.store.refresh();
     });
   }
 }
