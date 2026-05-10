@@ -1,0 +1,7 @@
+@if (!hasAnyAvailable() && !loading()) {
+<p class="booking-calendar__empty">{{ emptyMessage() }}</p>
+}
+
+<app-calendar-grid mode="booking" [slots]="bookingSlots()" [loading]="loading()" [weekStart]="weekStart()"
+    [startHour]="startHour()" [endHour]="endHour()" [maxBodyHeight]="maxBodyHeight()" (cellClick)="onCellClick($event)"
+    (weekChange)="onWeekChange($event)" />

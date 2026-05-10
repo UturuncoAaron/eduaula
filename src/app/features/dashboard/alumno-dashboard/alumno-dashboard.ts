@@ -3,9 +3,15 @@ import {
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-import { DatePipe, NgStyle } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
+import { CalendarGrid } from '../../../shared/components/calendar-grid/calendar-grid';
+import {
+  CalendarSlot,
+  CalendarDayEvent,
+  CalendarCellClickEvent,
+} from '../../../shared/components/calendar-grid/calendar-grid.types';
 
 export interface HorarioItem {
   dia: string;
@@ -38,16 +44,10 @@ export interface AlumnoDashboardData {
   comunicados: Comunicado[];
 }
 
-const DIAS_ORDEN = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'] as const;
-
-const DIAS_LABEL: Record<string, string> = {
-  lunes: 'Lun', martes: 'Mar', miercoles: 'Mié', jueves: 'Jue', viernes: 'Vie',
-};
-
 @Component({
   selector: 'app-alumno-dashboard',
   standalone: true,
-  imports: [MatIconModule, RouterLink, DatePipe, NgStyle],
+  imports: [MatIconModule, RouterLink, DatePipe, CalendarGrid],
   templateUrl: './alumno-dashboard.html',
   styleUrl: './alumno-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,26 +59,59 @@ export class AlumnoDashboard implements OnInit {
   dashboardData = signal<AlumnoDashboardData | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
+  weekStart = signal(getTodayMonday());
 
-  readonly diasSemana = DIAS_ORDEN;
-  readonly diasLabel = DIAS_LABEL;
-
-  readonly diaHoy = new Date()
-    .toLocaleDateString('es-PE', { weekday: 'long' })
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-
-  readonly horarioPorDia = computed(() => {
+  // Solo clases del horario — sin citas para no ensuciar la vista
+  readonly calendarSlots = computed<CalendarSlot[]>(() => {
     const data = this.dashboardData();
-    if (!data) return {} as Record<string, HorarioItem[]>;
-    return DIAS_ORDEN.reduce((acc, dia) => {
-      acc[dia] = data.horario.filter(h => h.dia === dia);
-      return acc;
-    }, {} as Record<string, HorarioItem[]>);
+    if (!data) return [];
+    return data.horario.map(h => ({
+      id: `horario-${h.dia}-${h.horaInicio}`,
+      title: h.cursoNombre,
+      type: 'course' as const,
+      startTime: h.horaInicio.slice(0, 5),
+      endTime: h.horaFin.slice(0, 5),
+      diaSemana: h.dia,
+      color: h.color,
+      meta: { aula: h.aula, docente: h.docenteNombre },
+    }));
   });
 
-  ngOnInit() {
+  // Comunicados con fecha como eventos del día
+  readonly calendarEvents = computed<CalendarDayEvent[]>(() => {
+    const data = this.dashboardData();
+    if (!data) return [];
+    return data.comunicados
+      .filter(c => !!c.fecha)
+      .map(c => ({
+        date: c.fecha.slice(0, 10),
+        title: c.titulo,
+        type: 'event' as const,
+        color: '#f59e0b',
+        meta: { contenido: c.contenido },
+      }));
+  });
+
+  readonly tareasPendientes = computed(() =>
+    this.dashboardData()?.tareasPendientes ?? [],
+  );
+
+  readonly comunicados = computed(() =>
+    this.dashboardData()?.comunicados ?? [],
+  );
+
+  // Stats rápidas para los KPIs
+  readonly stats = computed(() => {
+    const data = this.dashboardData();
+    if (!data) return { clases: 0, tareas: 0, comunicados: 0 };
+    return {
+      clases: data.horario.length,
+      tareas: data.tareasPendientes.length,
+      comunicados: data.comunicados.length,
+    };
+  });
+
+  ngOnInit(): void {
     this.api.get<AlumnoDashboardData>('dashboard/resumen').subscribe({
       next: res => {
         this.dashboardData.set(res.data);
@@ -91,21 +124,26 @@ export class AlumnoDashboard implements OnInit {
     });
   }
 
+  onWeekChange(monday: string): void {
+    this.weekStart.set(monday);
+  }
+
+  onCellClick(_event: CalendarCellClickEvent): void {
+    // futuro: abrir detalle del curso
+  }
+
   getUrgencia(fechaLimite: string): 'rojo' | 'ambar' | 'verde' {
     const diff = (new Date(fechaLimite).getTime() - Date.now()) / 86_400_000;
     if (diff <= 1) return 'rojo';
     if (diff <= 5) return 'ambar';
     return 'verde';
   }
+}
 
-  getSlotStyle(color: string): Record<string, string> {
-    return {
-      'background-color': `${color}18`,
-      'border-left': `3px solid ${color}`,
-    };
-  }
-
-  getSlotTextStyle(color: string): Record<string, string> {
-    return { color };
-  }
+function getTodayMonday(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
 }

@@ -81,16 +81,16 @@
     </header>
 
     <!-- ── Estado de carga / vacío / lista ─────────────────── -->
-    @if (store.loadingAppointments()) {
+    @if (appointmentsStore.loadingAppointments()) {
     <div class="state-center">
         <mat-spinner diameter="36" />
         <span>Cargando citas…</span>
     </div>
     } @else if (visible().length === 0) {
     <app-empty-state icon="event_busy"
-        [title]="store.appointments().length === 0 ? 'Aún no tienes citas' : 'Sin resultados'" [message]="store.appointments().length === 0
-        ? 'Crea tu primera cita con el botón Nueva cita.'
-        : 'Intenta cambiar o limpiar los filtros.'" />
+        [title]="appointmentsStore.appointments().length === 0 ? 'Aún no tienes citas' : 'Sin resultados'" [message]="appointmentsStore.appointments().length === 0
+                ? 'Crea tu primera cita con el botón Nueva cita.'
+                : 'Intenta cambiar o limpiar los filtros.'" />
     } @else {
     <div class="table-card">
         <div class="table-responsive">

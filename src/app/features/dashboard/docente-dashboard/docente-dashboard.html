@@ -25,68 +25,49 @@
         <p>{{ error() }}</p>
     </div>
 
-    } @else if (dashboardData(); as data) {
+    } @else {
 
-    <!-- BANNER ALERTA: entregas sin calificar -->
     @if (totalSinCalificar() > 0) {
     <div class="alert-banner orange">
         <mat-icon>assignment_late</mat-icon>
         <span>
-            Tienes <strong>{{ totalSinCalificar() }} entrega{{ totalSinCalificar() > 1 ? 's' : '' }}</strong>
+            Tienes <strong>{{ totalSinCalificar() }}
+                entrega{{ totalSinCalificar() > 1 ? 's' : '' }}</strong>
             pendiente{{ totalSinCalificar() > 1 ? 's' : '' }} de calificar.
         </span>
         <a routerLink="/cursos" class="alert-link">Ir a calificar</a>
     </div>
     }
 
+    <!-- HORARIO SEMANAL FIJO -->
+    <section class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <mat-icon>schedule</mat-icon>
+                Mi horario semanal
+            </h2>
+        </div>
+
+        <app-calendar-grid mode="schedule" [slots]="calendarSlots()" [loading]="loading()" [startHour]="7"
+            [endHour]="15" [hideNav]="true" />
+    </section>
+
     <div class="dashboard-grid">
 
-        <!-- COLUMNA IZQUIERDA -->
+        <!-- COLUMNA IZQUIERDA: Comunicados -->
         <div class="main-column">
-
-            <!-- HORARIO DE HOY -->
-            <section class="widget-panel">
-                <div class="widget-header">
-                    <h2>Horario de hoy</h2>
-                </div>
-                <div class="widget-content">
-                    @if (!tieneClasesHoy()) {
-                    <div class="empty-widget">
-                        <mat-icon>event_available</mat-icon>
-                        <p>No tienes clases programadas para hoy.</p>
-                    </div>
-                    } @else {
-                    @for (slot of data.horarioHoy; track slot.horaInicio) {
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <span class="time-start">{{ slot.horaInicio }}</span>
-                            <span class="time-end">{{ slot.horaFin }}</span>
-                        </div>
-                        <div class="schedule-bar" [style.background-color]="slot.color + '22'"
-                            [style.border-left]="'3px solid ' + slot.color">
-                            <span class="schedule-curso" [style.color]="slot.color">
-                                {{ slot.cursoNombre }}
-                            </span>
-                            <span class="schedule-seccion">{{ slot.seccionNombre }}</span>
-                            @if (slot.aula) {
-                            <span class="schedule-aula">
-                                <mat-icon>room</mat-icon>{{ slot.aula }}
-                            </span>
-                            }
-                        </div>
-                    </div>
-                    }
-                    }
-                </div>
-            </section>
-
-            <!-- COMUNICADOS -->
             <section class="widget-panel">
                 <div class="widget-header">
                     <h2>Comunicados</h2>
                 </div>
                 <div class="widget-content">
-                    @for (com of data.comunicados; track com.id) {
+                    @if (dashboardData()?.comunicados?.length === 0) {
+                    <div class="empty-widget">
+                        <mat-icon>notifications_none</mat-icon>
+                        <p>No hay comunicados recientes.</p>
+                    </div>
+                    }
+                    @for (com of dashboardData()?.comunicados ?? []; track com.id) {
                     <div class="comm-item">
                         <div class="comm-header">
                             <strong>{{ com.titulo }}</strong>
@@ -94,21 +75,13 @@
                         </div>
                         <p class="comm-body">{{ com.contenido }}</p>
                     </div>
-                    } @empty {
-                    <div class="empty-widget">
-                        <mat-icon>notifications_none</mat-icon>
-                        <p>No hay comunicados recientes.</p>
-                    </div>
                     }
                 </div>
             </section>
-
         </div>
 
-        <!-- COLUMNA DERECHA -->
+        <!-- COLUMNA DERECHA: Entregas sin calificar -->
         <aside class="side-column">
-
-            <!-- ENTREGAS SIN CALIFICAR -->
             <section class="widget-panel">
                 <div class="widget-header">
                     <h2>Entregas sin calificar</h2>
@@ -117,7 +90,8 @@
                     }
                 </div>
                 <div class="widget-content">
-                    @for (entrega of data.entregasSinCalificar; track entrega.tareaId) {
+                    @for (entrega of dashboardData()?.entregasSinCalificar ?? [];
+                    track entrega.tareaId) {
                     <div class="task-item">
                         <span class="urgency-dot" [class]="getUrgencia(entrega.fechaLimite)"></span>
                         <div class="task-body">
@@ -137,7 +111,6 @@
                     }
                 </div>
             </section>
-
         </aside>
 
     </div>

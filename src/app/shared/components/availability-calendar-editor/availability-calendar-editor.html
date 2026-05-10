@@ -1,0 +1,59 @@
+<div class="editor">
+    <header class="editor__header">
+        <div class="editor__title">
+            <mat-icon>event_available</mat-icon>
+            <div>
+                <h3>Disponibilidad semanal</h3>
+                <small>Haz clic en cada celda de 30 min para marcarla como disponible.</small>
+            </div>
+        </div>
+
+        <div class="editor__actions">
+            <span class="editor__counter" [matTooltip]="cellsCount() + ' celdas seleccionadas'">
+                <mat-icon>schedule</mat-icon>
+                {{ hoursCount() }} h / semana
+            </span>
+
+            <button mat-stroked-button type="button" (click)="discard()" [disabled]="saving() || !hasChanges()">
+                Descartar
+            </button>
+
+            <button mat-flat-button color="primary" type="button" (click)="submit()"
+                [disabled]="saving() || !hasChanges()">
+                <mat-icon>save</mat-icon>
+                Guardar cambios
+            </button>
+        </div>
+    </header>
+
+    <div class="grid">
+        <div class="cell head head--corner"></div>
+        @for (dia of DIAS; track dia) {
+        <button class="cell head head--day" type="button" (click)="selectAllDay(dia)"
+            matTooltip="Activar/desactivar todo el día">
+            {{ DIA_LABEL[dia] }}
+        </button>
+        }
+
+        @for (hour of hours(); track hour) {
+        <div class="cell head head--hour">{{ hour }}</div>
+        @for (dia of DIAS; track dia) {
+        <button class="cell slot" type="button" [class.slot--on]="isOn(dia, hour)" [disabled]="saving()"
+            (click)="toggle(dia, hour)">
+        </button>
+        }
+        }
+    </div>
+
+    <footer class="editor__footer muted">
+        <button mat-button type="button" (click)="clearAll()" [disabled]="saving() || cellsCount() === 0">
+            <mat-icon>clear_all</mat-icon>
+            Vaciar todo
+        </button>
+
+        <span>
+            <span class="legend legend--on"></span> disponible &nbsp;·&nbsp;
+            <span class="legend legend--off"></span> no disponible
+        </span>
+    </footer>
+</div>

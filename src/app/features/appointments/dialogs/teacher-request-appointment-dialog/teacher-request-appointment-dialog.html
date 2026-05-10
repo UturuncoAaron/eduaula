@@ -1,0 +1,115 @@
+<h2 mat-dialog-title>
+    <mat-icon>forum</mat-icon>
+    Convocar a padre/tutor
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-dialog-content class="dialog-body">
+
+        <p class="dialog-hint muted">
+            La cita se enviará al padre/tutor en estado <strong>pendiente</strong>.
+            Él confirmará si puede asistir o pedirá reprogramar.
+        </p>
+
+        <mat-form-field appearance="outline" class="full">
+            <mat-label>Alumno</mat-label>
+            <input matInput formControlName="studentQuery" [matAutocomplete]="auto"
+                placeholder="Escribe nombre o apellido…" />
+            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayStudent"
+                (optionSelected)="onSelectStudent($event.option.value)">
+                @if (searching()) {
+                <mat-option disabled>Buscando…</mat-option>
+                }
+                @for (s of students(); track s.id) {
+                <mat-option [value]="s">
+                    <div class="opt-line">
+                        <span>{{ s.nombre }} {{ s.apellido_paterno }} {{ s.apellido_materno }}</span>
+                        <small class="muted">{{ s.grado }} {{ s.seccion }}</small>
+                    </div>
+                </mat-option>
+                }
+            </mat-autocomplete>
+        </mat-form-field>
+
+        @if (selected(); as s) {
+        <div class="selected-card">
+            <mat-icon>person</mat-icon>
+            <div class="sel-text">
+                <strong>{{ s.nombre }} {{ s.apellido_paterno }} {{ s.apellido_materno }}</strong>
+                <small>{{ s.grado }} {{ s.seccion }}</small>
+            </div>
+            <div class="sel-parent">
+                <mat-icon>family_restroom</mat-icon>
+                @if (parentLabel()) {
+                <span>Padre/Tutor: <strong>{{ parentLabel() }}</strong></span>
+                } @else {
+                <span class="warn">Sin padre/tutor vinculado</span>
+                }
+            </div>
+        </div>
+        }
+
+        <div class="row two">
+            <mat-form-field appearance="outline">
+                <mat-label>Tipo</mat-label>
+                <mat-select formControlName="tipo">
+                    @for (t of tipos; track t.value) {
+                    <mat-option [value]="t.value">{{ t.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Duración (min)</mat-label>
+                <input matInput type="number" min="15" max="180" formControlName="durationMin" />
+            </mat-form-field>
+        </div>
+
+        <div class="row two">
+            <mat-form-field appearance="outline">
+                <mat-label>Fecha</mat-label>
+                <input matInput [matDatepicker]="picker" [min]="minDate" formControlName="date" readonly
+                    (click)="picker.open()" />
+                <mat-datepicker-toggle matIconSuffix [for]="picker" />
+                <mat-datepicker #picker />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Hora</mat-label>
+                <input matInput formControlName="time" placeholder="HH:mm" />
+                <mat-hint>Mínimo 15 min de anticipación.</mat-hint>
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full">
+            <mat-label>Motivo</mat-label>
+            <input matInput formControlName="motivo" placeholder="Ej. Conversar sobre el rendimiento del alumno" />
+            @if (form.get('motivo')?.hasError('minlength') && form.get('motivo')?.touched) {
+            <mat-error>Mínimo 5 caracteres</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+            <mat-label>Notas adicionales (opcional)</mat-label>
+            <textarea matInput rows="3" formControlName="priorNotes"
+                placeholder="Información que ayudará al padre/tutor"></textarea>
+        </mat-form-field>
+
+        @if (errorMsg()) {
+        <div class="error-msg" role="alert">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errorMsg() }}</span>
+        </div>
+        }
+
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+        <button mat-flat-button color="primary" type="submit"
+            [disabled]="loading() || form.invalid || !selected()?.padre">
+            @if (loading()) { <mat-spinner diameter="18" /> }
+            @else { <ng-container><mat-icon>send</mat-icon><span>Enviar convocatoria</span></ng-container> }
+        </button>
+    </mat-dialog-actions>
+</form>

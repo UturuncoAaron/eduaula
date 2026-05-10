@@ -7,6 +7,8 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
+import { CalendarGrid } from '../../../shared/components/calendar-grid/calendar-grid';
+import { CalendarSlot } from '../../../shared/components/calendar-grid/calendar-grid.types';
 
 interface HorarioHoyItem {
   horaInicio: string;
@@ -15,6 +17,7 @@ interface HorarioHoyItem {
   cursoNombre: string;
   color: string;
   seccionNombre: string;
+  dia?: string;
 }
 
 interface EntregaPendienteItem {
@@ -34,6 +37,7 @@ interface ComunicadoItem {
 
 interface DocenteDashboardData {
   horarioHoy: HorarioHoyItem[];
+  horario?: HorarioHoyItem[];
   entregasSinCalificar: EntregaPendienteItem[];
   comunicados: ComunicadoItem[];
 }
@@ -41,7 +45,7 @@ interface DocenteDashboardData {
 @Component({
   selector: 'app-docente-dashboard',
   standalone: true,
-  imports: [MatIconModule, MatButtonModule, RouterLink, DatePipe],
+  imports: [MatIconModule, MatButtonModule, RouterLink, DatePipe, CalendarGrid],
   templateUrl: './docente-dashboard.html',
   styleUrl: './docente-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,18 +58,29 @@ export class DocenteDashboard implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
 
-  // Total de entregas sin calificar para el banner
   readonly totalSinCalificar = computed(() =>
     this.dashboardData()?.entregasSinCalificar
       .reduce((acc, e) => acc + e.totalSinCalificar, 0) ?? 0,
   );
 
-  // ¿Tiene clases hoy?
-  readonly tieneClasesHoy = computed(() =>
-    (this.dashboardData()?.horarioHoy?.length ?? 0) > 0,
-  );
+  // Usa horario completo si existe, si no usa horarioHoy como fallback
+  readonly calendarSlots = computed<CalendarSlot[]>(() => {
+    const data = this.dashboardData();
+    if (!data) return [];
+    const fuente = data.horario ?? data.horarioHoy ?? [];
+    return fuente.map(h => ({
+      id: `horario-${h.dia ?? 'hoy'}-${h.horaInicio}`,
+      title: `${h.cursoNombre} · ${h.seccionNombre}`,
+      type: 'course' as const,
+      startTime: h.horaInicio.slice(0, 5),
+      endTime: h.horaFin.slice(0, 5),
+      diaSemana: h.dia ?? getDiaHoy(),
+      color: h.color,
+      meta: { aula: h.aula, seccion: h.seccionNombre },
+    }));
+  });
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.api.get<DocenteDashboardData>('dashboard/resumen').subscribe({
       next: res => {
         this.dashboardData.set(res.data);
@@ -84,4 +99,12 @@ export class DocenteDashboard implements OnInit {
     if (diff <= 5) return 'ambar';
     return 'verde';
   }
+}
+
+function getDiaHoy(): string {
+  const map: Record<number, string> = {
+    1: 'lunes', 2: 'martes', 3: 'miercoles',
+    4: 'jueves', 5: 'viernes',
+  };
+  return map[new Date().getDay()] ?? 'lunes';
 }

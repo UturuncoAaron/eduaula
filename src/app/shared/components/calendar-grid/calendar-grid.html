@@ -1,0 +1,127 @@
+@if (!hideNav()) {
+<div class="cal__nav">
+    <div class="cal__nav-side">
+        <button mat-icon-button type="button" (click)="prevWeek()" matTooltip="Semana anterior"
+            aria-label="Semana anterior">
+            <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button mat-icon-button type="button" (click)="nextWeek()" matTooltip="Semana siguiente"
+            aria-label="Semana siguiente">
+            <mat-icon>chevron_right</mat-icon>
+        </button>
+        <button mat-stroked-button type="button" class="cal__btn-today" (click)="goToday()">Hoy</button>
+    </div>
+
+    @if (loading()) {
+    <div class="cal__status" role="status" aria-live="polite">
+        <mat-icon class="cal__spin">refresh</mat-icon>
+        <span>Cargando…</span>
+    </div>
+    }
+
+    <div class="cal__nav-side cal__nav-side--end">
+        @switch (mode()) {
+        @case ('schedule') { <span class="cal__badge cal__badge--schedule">Horario</span> }
+        @case ('availability') { <span class="cal__badge cal__badge--availability">Disponibilidad</span> }
+        @case ('booking') { <span class="cal__badge cal__badge--booking">Agendar</span> }
+        @case ('editor') { <span class="cal__badge cal__badge--editor">Editar</span> }
+        }
+    </div>
+</div>
+}
+
+@if (hasAnyEvent()) {
+<div class="cal__events" role="list" aria-label="Eventos institucionales">
+    @for (day of weekDates(); track trackByDay($index, day)) {
+    @let dayEvents = eventsByDate().get(day.date) ?? [];
+    @if (dayEvents.length > 0) {
+    <div class="cal__events-col" role="listitem">
+        <span class="cal__events-day">{{ day.short }} {{ day.dateLabel }}</span>
+        @for (ev of dayEvents; track trackByEvent($index, ev)) {
+        <span class="cal__events-chip" [style.background]="ev.color ?? null">{{ ev.title }}</span>
+        }
+    </div>
+    }
+    }
+</div>
+}
+
+<div class="cal__scroll" [style.--cal-max-h]="maxBodyHeight() != null ? maxBodyHeight() + 'px' : 'none'">
+    <div class="cal__grid" role="grid" [style.--cal-rows]="totalRows()">
+
+        <div class="cal__corner" role="presentation"></div>
+
+        @for (day of weekDates(); track trackByDay($index, day); let i = $index) {
+        <div class="cal__day-header" [class.cal__day-header--today]="day.isToday" [style.grid-column]="i + 2"
+            role="columnheader" [attr.aria-label]="day.long">
+            <span class="cal__day-name">{{ day.short }}</span>
+            @if (!hideNav()) {
+            <span class="cal__day-num">{{ day.dateLabel }}</span>
+            }
+        </div>
+        }
+
+        @for (hour of hours(); track trackByHour($index, hour); let i = $index) {
+        <div class="cal__hour" [style.grid-row]="i + 2" role="rowheader">
+            {{ formatHour(hour) }}
+        </div>
+        }
+
+        @for (c of cells(); track trackByCell($index, c)) {
+        <div class="cal__cell" [ngClass]="c.classes" [style.grid-column]="c.gridColumn" [style.grid-row]="c.gridRow"
+            [style.background]="c.slot?.color ?? null" role="gridcell" [attr.tabindex]="c.interactive ? 0 : -1"
+            (click)="onCellClick(c)" (mouseenter)="onCellHover(c.cellKey)" (mouseleave)="onCellHover(null)"
+            (keydown.enter)="onCellClick(c)" (keydown.space)="$event.preventDefault(); onCellClick(c)">
+            @if (c.slot; as slot) {
+            <div class="cal__cell-content">
+                <span class="cal__cell-title">{{ slot.title }}</span>
+                @if (slot.type === 'course') {
+                <span class="cal__cell-time">{{ slot.startTime }} – {{ slot.endTime }}</span>
+                }
+            </div>
+            } @else if (mode() === 'availability' || mode() === 'editor') {
+            <span class="cal__cell-add" aria-hidden="true">
+                <mat-icon>add</mat-icon>
+            </span>
+            }
+        </div>
+        }
+    </div>
+</div>
+
+@switch (mode()) {
+@case ('schedule') {
+<div class="cal__legend">
+    @if (existingTypes().has('course')) {
+    <span class="cal__legend-item cal__legend-item--course">Clase</span>
+    }
+    @if (existingTypes().has('appointment')) {
+    <span class="cal__legend-item cal__legend-item--appointment">Cita</span>
+    }
+    @if (existingTypes().has('event')) {
+    <span class="cal__legend-item cal__legend-item--event">Evento</span>
+    }
+    @if (!existingTypes().has('course') && !existingTypes().has('appointment') && !existingTypes().has('event')) {
+    <span class="cal__legend-empty">Sin clases programadas</span>
+    }
+</div>
+}
+@case ('availability') {
+<div class="cal__legend">
+    <span class="cal__legend-item cal__legend-item--available">Disponible</span>
+    <span class="cal__legend-item cal__legend-item--taken">No disponible</span>
+</div>
+}
+@case ('booking') {
+<div class="cal__legend">
+    <span class="cal__legend-item cal__legend-item--available">Disponible — click para agendar</span>
+    <span class="cal__legend-item cal__legend-item--taken">Ocupado</span>
+</div>
+}
+@case ('editor') {
+<div class="cal__legend">
+    <span class="cal__legend-item cal__legend-item--course">Clase asignada</span>
+    <span class="cal__legend-item cal__legend-item--editor-hint">Click en celda vacía para agregar</span>
+</div>
+}
+}

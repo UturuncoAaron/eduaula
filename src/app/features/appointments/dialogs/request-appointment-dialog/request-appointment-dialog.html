@@ -1,48 +1,76 @@
 <h2 mat-dialog-title>
     <mat-icon>event_available</mat-icon>
     @if (data.mode === 'alumno') { Solicitar cita con psicología }
-    @else                        { Agendar cita para mi hijo/a }
+    @else { Agendar cita para mi hijo/a }
 </h2>
 
 <form [formGroup]="form" (ngSubmit)="submit()">
     <mat-dialog-content class="dialog-body">
 
         @if (data.mode === 'padre') {
-            <div class="row">
-                <mat-form-field appearance="outline" class="full">
-                    <mat-label>Hijo/a</mat-label>
-                    <mat-select formControlName="childId">
-                        @if (store.loadingChildren()) {
-                            <mat-option disabled>Cargando hijos…</mat-option>
-                        } @else if (store.children().length === 0) {
-                            <mat-option disabled>No tienes hijos vinculados</mat-option>
-                        }
-                        @for (c of store.children(); track c.id) {
-                            <mat-option [value]="c.id">
-                                <div class="opt-line">
-                                    <span>{{ childLabel(c) }}</span>
-                                    @if (c.grado || c.seccion) {
-                                        <small class="muted">{{ c.grado }} · {{ c.seccion }}</small>
-                                    }
-                                </div>
-                            </mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
-            </div>
+        <div class="row">
+            <mat-form-field appearance="outline" class="full">
+                <mat-label>Hijo/a</mat-label>
+                <mat-select formControlName="childId">
+                    @if (store.loadingChildren()) {
+                    <mat-option disabled>Cargando hijos…</mat-option>
+                    } @else if (store.children().length === 0) {
+                    <mat-option disabled>No tienes hijos vinculados</mat-option>
+                    }
+                    @for (c of store.children(); track c.id) {
+                    <mat-option [value]="c.id">
+                        <div class="opt-line">
+                            <span>{{ childLabel(c) }}</span>
+                            @if (c.grado || c.seccion) {
+                            <small class="muted">{{ c.grado }} · {{ c.seccion }}</small>
+                            }
+                        </div>
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div class="kind-toggle">
+            <mat-button-toggle-group [value]="professionalKind()" (change)="onKindChange($event.value)"
+                hideSingleSelectionIndicator>
+                <mat-button-toggle value="psicologa">
+                    <mat-icon>psychology</mat-icon>
+                    Psicóloga
+                </mat-button-toggle>
+                <mat-button-toggle value="docente">
+                    <mat-icon>school</mat-icon>
+                    Docente
+                </mat-button-toggle>
+            </mat-button-toggle-group>
+        </div>
         }
 
         <div class="row">
             <mat-form-field appearance="outline" class="full">
-                <mat-label>Psicóloga</mat-label>
-                <mat-select formControlName="psicologaId" (selectionChange)="onPsicologaChange()">
+                <mat-label>
+                    @if (professionalKind() === 'docente') { Docente }
+                    @else { Psicóloga }
+                </mat-label>
+                <mat-select formControlName="professionalId" (selectionChange)="onProfessionalChange()">
+                    @if (professionalKind() === 'docente') {
+                    @if (store.loadingDocentes()) {
+                    <mat-option disabled>Cargando docentes…</mat-option>
+                    } @else if (store.docentes().length === 0) {
+                    <mat-option disabled>No hay docentes disponibles</mat-option>
+                    }
+                    @for (d of store.docentes(); track d.id) {
+                    <mat-option [value]="d.id">{{ docenteLabel(d) }}</mat-option>
+                    }
+                    } @else {
                     @if (store.loadingPsicologas()) {
-                        <mat-option disabled>Cargando psicólogas…</mat-option>
+                    <mat-option disabled>Cargando psicólogas…</mat-option>
                     } @else if (store.psicologas().length === 0) {
-                        <mat-option disabled>No hay psicólogas disponibles</mat-option>
+                    <mat-option disabled>No hay psicólogas disponibles</mat-option>
                     }
                     @for (p of store.psicologas(); track p.id) {
-                        <mat-option [value]="p.id">{{ psicologaLabel(p) }}</mat-option>
+                    <mat-option [value]="p.id">{{ psicologaLabel(p) }}</mat-option>
+                    }
                     }
                 </mat-select>
             </mat-form-field>
@@ -53,96 +81,64 @@
                 <mat-label>Tipo</mat-label>
                 <mat-select formControlName="tipo">
                     @for (t of tipos; track t.value) {
-                        <mat-option [value]="t.value">{{ t.label }}</mat-option>
+                    <mat-option [value]="t.value">{{ t.label }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
 
-            <div class="modalidad-info" aria-live="polite">
-                <mat-icon class="modalidad-info__icon">meeting_room</mat-icon>
-                <div class="modalidad-info__text">
-                    <span class="modalidad-info__label">Modalidad</span>
-                    <strong>Presencial</strong>
-                </div>
-            </div>
-        </div>
-
-        <div class="row three">
             <mat-form-field appearance="outline">
                 <mat-label>Duración (min)</mat-label>
-                <input matInput type="number" min="15" max="180"
-                       formControlName="durationMin"
-                       (change)="onDurationChange()" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Fecha</mat-label>
-                <input matInput
-                       [matDatepicker]="picker"
-                       [min]="minDate"
-                       formControlName="date"
-                       readonly
-                       (click)="picker.open()" />
-                <mat-datepicker-toggle matIconSuffix [for]="picker" />
-                <mat-datepicker #picker />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Hora</mat-label>
-                <input matInput formControlName="time" placeholder="HH:mm" />
-                <mat-hint>Mínimo 15 min de anticipación.</mat-hint>
+                <input matInput type="number" min="15" max="180" formControlName="durationMin"
+                    (change)="onDurationChange()" />
             </mat-form-field>
         </div>
 
-        @if (selectedPsicologa()) {
-            <section class="slots">
-                <header>
-                    <mat-icon>schedule</mat-icon>
-                    <span>Horarios disponibles</span>
-                    @if (loadingSlots()) { <mat-spinner diameter="14" /> }
-                </header>
-                @if (slotsGroupedByDay().length === 0 && !loadingSlots()) {
-                    <p class="muted">
-                        No hay horarios disponibles en los próximos días.
-                        Ingresa la fecha manualmente o intenta otra duración.
-                    </p>
-                } @else {
-                    @for (group of slotsGroupedByDay(); track group.label) {
-                        <div class="slot-day">
-                            <span class="day-label">{{ group.label }}</span>
-                            <mat-chip-set>
-                                @for (s of group.slots; track s) {
-                                    <mat-chip (click)="pickSlot(s)" matTooltip="Seleccionar">
-                                        {{ formatSlotTime(s) }}
-                                    </mat-chip>
-                                }
-                            </mat-chip-set>
-                        </div>
-                    }
+        @if (form.value.professionalId) {
+        <section class="booking">
+            <header class="booking__header">
+                <mat-icon>schedule</mat-icon>
+                <span>Disponibilidad de <strong>{{ selectedProfessionalLabel() }}</strong></span>
+                @if (loadingAvailability() || loadingSlots()) {
+                <mat-spinner diameter="14" />
                 }
-            </section>
+            </header>
+
+            <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()" [weekStart]="weekStart()"
+                [loading]="loadingAvailability() || loadingSlots()" [emptyMessage]="
+                    professionalKind() === 'docente'
+                      ? 'Este docente aún no tiene disponibilidad configurada.'
+                      : 'Esta psicóloga aún no tiene disponibilidad configurada.'
+                " (pick)="onSlotPick($event)" (weekChange)="onWeekChange($event)" />
+
+            @if (pickedLabel(); as p) {
+            <div class="booking__picked">
+                <mat-icon>check_circle</mat-icon>
+                <span>Seleccionado: <strong>{{ p }}</strong></span>
+                <button mat-button type="button" (click)="clearPicked()">Cambiar</button>
+            </div>
+            }
+        </section>
         }
 
         <mat-form-field appearance="outline" class="full">
             <mat-label>Motivo</mat-label>
-            <input matInput formControlName="motivo"
-                   placeholder="Describe brevemente el motivo de la cita" />
+            <input matInput formControlName="motivo" placeholder="Describe brevemente el motivo de la cita" />
             @if (form.get('motivo')?.hasError('minlength') && form.get('motivo')?.touched) {
-                <mat-error>Mínimo 5 caracteres</mat-error>
+            <mat-error>Mínimo 5 caracteres</mat-error>
             }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full">
             <mat-label>Notas adicionales (opcional)</mat-label>
             <textarea matInput rows="3" formControlName="priorNotes"
-                      placeholder="Información de contexto que ayudará a la psicóloga"></textarea>
+                placeholder="Información de contexto que ayudará al profesional"></textarea>
         </mat-form-field>
 
         @if (errorMsg()) {
-            <div class="error-msg" role="alert">
-                <mat-icon>error_outline</mat-icon>
-                <span>{{ errorMsg() }}</span>
-            </div>
+        <div class="error-msg" role="alert">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errorMsg() }}</span>
+        </div>
         }
 
     </mat-dialog-content>
@@ -151,8 +147,7 @@
         <button mat-button type="button" (click)="cancel()" [disabled]="loading()">
             Cancelar
         </button>
-        <button mat-flat-button color="primary" type="submit"
-                [disabled]="loading() || form.invalid">
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading() || form.invalid">
             @if (loading()) { <mat-spinner diameter="18" /> }
             @else { <ng-container><mat-icon>send</mat-icon><span>Solicitar</span></ng-container> }
         </button>

@@ -1,94 +1,10 @@
-:host {
-    display: block;
-    width: 100%;
-    min-width: 0; // el ancho lo controla el dialog config (width/maxWidth)
-}
-
-[mat-dialog-title] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    padding: 16px 24px;
-    border-bottom: 1px solid #e2e8f0;
-    font-size: 1.05rem;
-    color: #0f172a;
-}
-
-.dialog-body {
-    padding: 18px 24px 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 70vh;
-    overflow-y: auto;
-
-    .row {
-        display: grid;
-        gap: 12px;
-
-        &.two {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        &.three {
-            grid-template-columns: 1fr 1fr 1fr;
-        }
-    }
-
-    .full {
-        width: 100%;
-    }
-
-    mat-form-field {
-        width: 100%;
-    }
-}
-
-.participant-toggles {
-    display: flex;
-    gap: 16px;
-    padding: 4px 0 8px;
-}
-
-/* Indicador estático de modalidad — todas las citas son presenciales. */
-.modalidad-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: #ecfeff;
-    color: #0e7490;
-    border: 1px solid #a5f3fc;
-
-    &__icon {
-        font-size: 22px;
-        width: 22px;
-        height: 22px;
-    }
-
-    &__text {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.15;
-    }
-
-    &__label {
-        font-size: .72rem;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-        opacity: .8;
-    }
-}
-
-.slots {
+.booking {
     border: 1px dashed #cbd5e1;
     border-radius: 10px;
     padding: 12px;
     background: #f8fafc;
 
-    header {
+    &__header {
         display: flex;
         align-items: center;
         gap: 6px;
@@ -97,120 +13,47 @@
         color: #334155;
         font-size: .85rem;
 
-        mat-icon { font-size: 18px; width: 18px; height: 18px; }
-    }
-
-    .muted { color: #64748b; font-size: .8rem; margin: 4px 0 0; }
-
-    .slot-day {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 6px;
-
-        .day-label {
-            font-size: .78rem;
-            font-weight: 600;
-            color: #475569;
-            min-width: 90px;
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
         }
     }
 
-    mat-chip {
-        cursor: pointer;
-        background: #ffffff;
-        border: 1px solid #cbd5e1;
+    &__hint {
+        margin: 4px 0 8px;
         font-size: .8rem;
-
-        &:hover { background: #eff6ff; border-color: #93c5fd; }
-    }
-}
-
-.error-msg {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin: 8px 0 0;
-    padding: 10px 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 8px;
-    color: #b91c1c;
-    font-size: .85rem;
-    line-height: 1.35;
-
-    mat-icon {
-        flex: 0 0 auto;
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-    }
-
-    span {
-        word-break: break-word;
-    }
-}
-
-mat-dialog-actions {
-    padding: 12px 24px 16px;
-    border-top: 1px solid #f1f5f9;
-    gap: 8px;
-
-    button {
-        gap: 6px;
-    }
-}
-
-.selected-student {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 12px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    min-height: 56px;
-
-    .info {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.2;
+        color: #64748b;
 
         strong {
             color: #0f172a;
-            font-weight: 600;
-        }
-
-        .muted {
-            color: #64748b;
-            font-size: .75rem;
         }
     }
-}
 
-.opt-line {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
+    &__picked {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 8px 10px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        color: #065f46;
+        font-size: .85rem;
 
-    .muted {
-        color: #64748b;
-        font-size: .75rem;
-    }
-}
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
 
-@media (max-width: 860px) {
-    .dialog-body .row.three {
-        grid-template-columns: 1fr 1fr;
-    }
-}
+        span {
+            flex: 1;
+        }
 
-@media (max-width: 720px) {
-
-    .dialog-body .row.two,
-    .dialog-body .row.three {
-        grid-template-columns: 1fr;
+        button {
+            color: #047857;
+        }
     }
 }

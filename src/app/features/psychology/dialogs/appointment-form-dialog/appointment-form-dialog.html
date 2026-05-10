@@ -136,30 +136,32 @@
             </mat-form-field>
         </div>
 
-        <section class="slots">
-            <header>
-                <mat-icon>schedule</mat-icon>
-                <span>Horarios disponibles</span>
-                @if (loadingSlots()) { <mat-spinner diameter="14" /> }
+        <section class="booking">
+            <header class="booking__header">
+                <mat-icon>event_available</mat-icon>
+                <span>Selecciona un horario disponible</span>
+                @if (loadingAvailability() || loadingSlots()) {
+                <mat-spinner diameter="14" />
+                }
             </header>
-            @if (slotsGroupedByDay().length === 0 && !loadingSlots()) {
-            <p class="muted">
-                No hay horarios disponibles en los próximos días.
-                Configura tu disponibilidad o elige fecha/hora manualmente.
+
+            @if (availability().length === 0 && !loadingAvailability()) {
+            <p class="booking__hint muted">
+                No tienes disponibilidad configurada. Ve a tu pestaña de
+                <strong>Disponibilidad</strong> para definir tus horarios de citas.
             </p>
-            } @else {
-            @for (group of slotsGroupedByDay(); track group.label) {
-            <div class="slot-day">
-                <span class="day-label">{{ group.label }}</span>
-                <mat-chip-set>
-                    @for (s of group.slots; track s) {
-                    <mat-chip (click)="pickSlot(s)" matTooltip="Seleccionar">
-                        {{ formatSlotTime(s) }}
-                    </mat-chip>
-                    }
-                </mat-chip-set>
-            </div>
             }
+
+            <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()" [weekStart]="weekStart()"
+                [loading]="loadingAvailability() || loadingSlots()" (pick)="onSlotPick($event)"
+                (weekChange)="onWeekChange($event)" />
+
+            @if (pickedLabel(); as p) {
+            <div class="booking__picked">
+                <mat-icon>check_circle</mat-icon>
+                <span>Seleccionado: <strong>{{ p }}</strong></span>
+                <button mat-button type="button" (click)="clearPicked()">Cambiar</button>
+            </div>
             }
         </section>
 

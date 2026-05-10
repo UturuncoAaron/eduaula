@@ -1,5 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  ChangeDetectionStrategy, Component, OnInit,
+  computed, inject, signal,
+} from '@angular/core';
+import {
+  FormBuilder, FormGroup, ReactiveFormsModule, Validators,
+} from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,27 +15,38 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ToastService } from 'ngx-toastr-notifier';
 
+import {
+  BookingCalendar, BookingPickEvent,
+} from '../../../../shared/components/booking-calendar/booking-calendar';
+import {
+  combineDateAndTime, diaLabel, getCurrentMonday, pad2, startOfDay,
+} from '../../../../shared/utils/calendar-week';
+import { parseApiError } from '../../../../shared/utils/api-errors';
+
 import { PsychologyStore } from '../../data-access/psychology.store';
+import { AppointmentsStore } from '../../../appointments/data-access/appointments.store';
 import { AuthService } from '../../../../core/auth/auth';
 import {
-  AppointmentTipo,
-  AssignedStudent, AvailableSlot, ParentOfStudent, SearchableParent,
+  AccountAvailability, AppointmentTipo, DiaSemana, SlotTaken,
+} from '../../../../core/models/appointments';
+import {
+  AssignedStudent, ParentOfStudent, SearchableParent,
 } from '../../../../core/models/psychology';
 
 export interface AppointmentFormDialogData {
   preselectedStudentId?: string;
 }
 
-/**
- * Mínimos minutos de anticipación que exige el backend al crear una cita.
- * Lo replicamos aquí para validar antes de enviar y dar feedback inmediato.
- */
 const MIN_LEAD_MINUTES = 15;
-const DEFAULT_LOOKAHEAD_DAYS = 14;
+
+interface PickedSlot {
+  dia: DiaSemana;
+  hour: string;
+  dateLabel: string;  // 'dd/MM' para mostrar al usuario
+}
 
 @Component({
   selector: 'app-appointment-form-dialog',
@@ -41,43 +57,70 @@ const DEFAULT_LOOKAHEAD_DAYS = 14;
     MatDialogModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatButtonModule, MatIconModule,
     MatProgressSpinnerModule, MatAutocompleteModule, MatTooltipModule,
-    MatDatepickerModule, MatChipsModule, MatCheckboxModule,
+    MatDatepickerModule, MatCheckboxModule,
+    BookingCalendar,
   ],
   templateUrl: './appointment-form-dialog.html',
   styleUrl: './appointment-form-dialog.scss',
 })
 export class AppointmentFormDialog implements OnInit {
+  // ── Inyecciones ──────────────────────────────────────────────
   readonly data: AppointmentFormDialogData = inject(MAT_DIALOG_DATA);
   private ref = inject(MatDialogRef<AppointmentFormDialog>);
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
-  readonly store = inject(PsychologyStore);
   private toastr = inject(ToastService);
+  readonly store = inject(PsychologyStore);
+  readonly appointmentsStore = inject(AppointmentsStore);
 
-  loading        = signal(false);
+  // ── Catálogos / config ───────────────────────────────────────
+  readonly tipos: { value: AppointmentTipo; label: string }[] = [
+    { value: 'academico', label: 'Académico' },
+    { value: 'conductual', label: 'Conductual' },
+    { value: 'psicologico', label: 'Psicológico' },
+    { value: 'familiar', label: 'Familiar' },
+    { value: 'disciplinario', label: 'Disciplinario' },
+    { value: 'otro', label: 'Otro' },
+  ];
+
+  readonly minDate = startOfDay(new Date());
+
+  // ── Estado UI ────────────────────────────────────────────────
+  loading = signal(false);
   loadingParents = signal(false);
-  loadingSlots   = signal(false);
-  searching      = signal(false);
+  loadingSlots = signal(false);
+  loadingAvailability = signal(false);
+  searching = signal(false);
   searchingParent = signal(false);
-  errorMsg       = signal('');
+  errorMsg = signal('');
 
-  parents             = signal<ParentOfStudent[]>([]);
-  searchResults       = signal<AssignedStudent[]>([]);
+  // ── Búsqueda de participantes ────────────────────────────────
+  parents = signal<ParentOfStudent[]>([]);
+  searchResults = signal<AssignedStudent[]>([]);
   parentSearchResults = signal<SearchableParent[]>([]);
-  selectedStudent     = signal<AssignedStudent | null>(null);
-  selectedParent      = signal<SearchableParent | null>(null);
-  studentSearchQuery  = signal('');
-  parentSearchQuery   = signal('');
-
+  selectedStudent = signal<AssignedStudent | null>(null);
+  selectedParent = signal<SearchableParent | null>(null);
+  studentSearchQuery = signal('');
+  parentSearchQuery = signal('');
   includeStudent = signal(true);
-  includeParent  = signal(false);
+  includeParent = signal(false);
 
-  slots = signal<AvailableSlot[]>([]);
+  // ── Calendario booking ───────────────────────────────────────
+  weekStart = signal<string>(getCurrentMonday());
+  availability = signal<AccountAvailability[]>([]);
+  slotsTaken = signal<SlotTaken[]>([]);
+  picked = signal<PickedSlot | null>(null);
+
+  readonly pickedLabel = computed<string | null>(() => {
+    const p = this.picked();
+    if (!p) return null;
+    return `${diaLabel(p.dia)} ${p.dateLabel} a las ${p.hour}`;
+  });
 
   readonly availableStudents = computed<AssignedStudent[]>(() => {
     const search = this.searchResults();
-    const mine   = this.store.myStudents();
-    const term   = this.studentSearchQuery().trim().toLowerCase();
+    const mine = this.store.myStudents();
+    const term = this.studentSearchQuery().trim().toLowerCase();
     const seen = new Set<string>();
     const merged: AssignedStudent[] = [];
     for (const s of [...search, ...mine]) {
@@ -92,44 +135,22 @@ export class AppointmentFormDialog implements OnInit {
     return merged.slice(0, 25);
   });
 
-  readonly tipos: { value: AppointmentTipo; label: string }[] = [
-    { value: 'academico',   label: 'Académico' },
-    { value: 'conductual',  label: 'Conductual' },
-    { value: 'psicologico', label: 'Psicológico' },
-    { value: 'familiar',    label: 'Familiar' },
-    { value: 'otro',        label: 'Otro' },
-  ];
-
-  readonly minDate = startOfDay(new Date());
-
-  readonly slotsGroupedByDay = computed<{ label: string; slots: AvailableSlot[] }[]>(() => {
-    const all = this.slots();
-    if (all.length === 0) return [];
-    const groups = new Map<string, AvailableSlot[]>();
-    for (const iso of all) {
-      const d = new Date(iso);
-      const key = d.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' });
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key)!.push(iso);
-    }
-    return Array.from(groups.entries()).map(([label, slots]) => ({ label, slots }));
-  });
-
+  // ── Form ─────────────────────────────────────────────────────
   form: FormGroup = this.fb.group({
-    studentId:   [this.data.preselectedStudentId ?? ''],
-    parentId:    [''],
-    tipo:        ['psicologico', [Validators.required]],
-    motivo:      ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
-    date:        [null as Date | null, [Validators.required]],
-    time:        ['', [Validators.required]],
+    studentId: [this.data.preselectedStudentId ?? ''],
+    parentId: [''],
+    tipo: ['psicologico', [Validators.required]],
+    motivo: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
+    date: [null as Date | null, [Validators.required]],
+    time: ['', [Validators.required]],
     durationMin: [30, [Validators.required, Validators.min(15), Validators.max(180)]],
-    priorNotes:  [''],
+    priorNotes: [''],
   });
 
+  // ── Lifecycle ────────────────────────────────────────────────
   ngOnInit(): void {
-    if (this.store.myStudents().length === 0) {
-      this.store.loadMyStudents();
-    }
+    if (this.store.myStudents().length === 0) this.store.loadMyStudents();
+
     if (this.data.preselectedStudentId) {
       this.loadParents(this.data.preselectedStudentId);
       this.includeParent.set(true);
@@ -137,9 +158,40 @@ export class AppointmentFormDialog implements OnInit {
       if (found) this.selectedStudent.set(found);
     }
 
-    this.refreshSlots();
+    this.loadOwnAvailability();
+    this.refreshSlotsTaken();
   }
 
+  // ── Calendario booking ───────────────────────────────────────
+  onWeekChange(weekStart: string): void {
+    this.weekStart.set(weekStart);
+    this.clearPicked();
+    this.refreshSlotsTaken();
+  }
+
+  onSlotPick(ev: BookingPickEvent): void {
+    this.picked.set({
+      dia: ev.dia,
+      hour: ev.hour,
+      dateLabel: `${pad2(ev.date.getDate())}/${pad2(ev.date.getMonth() + 1)}`,
+    });
+    this.form.patchValue({
+      date: startOfDay(ev.date),
+      time: ev.hour,
+    });
+  }
+
+  clearPicked(): void {
+    this.picked.set(null);
+    this.form.patchValue({ date: null, time: '' });
+  }
+
+  async onDurationChange(): Promise<void> {
+    this.clearPicked();
+    await this.refreshSlotsTaken();
+  }
+
+  // ── Búsqueda alumno ──────────────────────────────────────────
   fullName(s: AssignedStudent): string {
     return `${s.nombre} ${s.apellido_paterno} ${s.apellido_materno ?? ''}`.trim();
   }
@@ -149,14 +201,16 @@ export class AppointmentFormDialog implements OnInit {
     return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
   }
 
-  /** Búsqueda en directorio (mínimo 2 chars). */
-  async onSearchStudents(value: string) {
+  parentFullName(p: SearchableParent): string {
+    const rel = p.relacion ? ` (${p.relacion})` : '';
+    return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
+  }
+
+  async onSearchStudents(value: string): Promise<void> {
     this.studentSearchQuery.set(value);
     const term = value.trim();
-    if (term.length < 2) {
-      this.searchResults.set([]);
-      return;
-    }
+    if (term.length < 2) { this.searchResults.set([]); return; }
+
     this.searching.set(true);
     try {
       const found = await this.store.searchAllStudents(term);
@@ -168,25 +222,23 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  onStudentSelected(student: AssignedStudent) {
+  onStudentSelected(student: AssignedStudent): void {
     this.selectedStudent.set(student);
     this.form.patchValue({ studentId: student.id });
   }
 
-  clearStudent() {
+  clearStudent(): void {
     this.selectedStudent.set(null);
     this.searchResults.set([]);
     this.studentSearchQuery.set('');
     this.form.patchValue({ studentId: '' });
   }
 
-  async onSearchParents(value: string) {
+  async onSearchParents(value: string): Promise<void> {
     this.parentSearchQuery.set(value);
     const term = value.trim();
-    if (term.length < 2) {
-      this.parentSearchResults.set([]);
-      return;
-    }
+    if (term.length < 2) { this.parentSearchResults.set([]); return; }
+
     this.searchingParent.set(true);
     try {
       const found = await this.store.searchAllParents(term);
@@ -198,24 +250,19 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  onParentSelected(parent: SearchableParent) {
+  onParentSelected(parent: SearchableParent): void {
     this.selectedParent.set(parent);
     this.form.patchValue({ parentId: parent.id });
   }
 
-  clearParent() {
+  clearParent(): void {
     this.selectedParent.set(null);
     this.parentSearchResults.set([]);
     this.parentSearchQuery.set('');
     this.form.patchValue({ parentId: '' });
   }
 
-  parentFullName(p: SearchableParent): string {
-    const rel = p.relacion ? ` (${p.relacion})` : '';
-    return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
-  }
-
-  toggleIncludeStudent(checked: boolean) {
+  toggleIncludeStudent(checked: boolean): void {
     this.includeStudent.set(checked);
     if (!checked) {
       this.clearStudent();
@@ -223,7 +270,7 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  toggleIncludeParent(checked: boolean) {
+  toggleIncludeParent(checked: boolean): void {
     this.includeParent.set(checked);
     if (!checked) {
       this.clearParent();
@@ -231,53 +278,44 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  formatSlotTime(iso: string): string {
-    const d = new Date(iso);
-    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  // ── Carga remota ─────────────────────────────────────────────
+  private async loadOwnAvailability(): Promise<void> {
+    const profId = this.auth.currentUser()?.id;
+    if (!profId) return;
+
+    this.loadingAvailability.set(true);
+    try {
+      const items = await this.appointmentsStore.getAvailability(profId);
+
+      this.availability.set(items);
+    } catch {
+      this.availability.set([]);
+    } finally {
+      this.loadingAvailability.set(false);
+    }
   }
 
-  pickSlot(iso: string) {
-    const d = new Date(iso);
-    const date = startOfDay(d);
-    const time = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-    this.form.patchValue({ date, time });
-  }
+  private async refreshSlotsTaken(): Promise<void> {
+    const profId = this.auth.currentUser()?.id;
+    if (!profId) return;
 
-  async onDurationChange() {
-    this.form.patchValue({ date: null, time: '' });
-    await this.refreshSlots();
-  }
-
-  private async refreshSlots(): Promise<void> {
-    const psicologaId = this.auth.currentUser()?.id;
-    if (!psicologaId) return;
     this.loadingSlots.set(true);
     try {
-      const from = new Date();
-      const to = new Date();
-      to.setDate(to.getDate() + DEFAULT_LOOKAHEAD_DAYS);
-      const items = await this.store.getAvailableSlots(
-        psicologaId,
-        from.toISOString(),
-        to.toISOString(),
-        this.form.value.durationMin || 30,
-      );
-      this.slots.set(items);
+      const items = await this.appointmentsStore.getSlotsTaken(profId, this.weekStart());
+      this.slotsTaken.set(items);
     } catch {
-      this.slots.set([]);
+      this.slotsTaken.set([]);
     } finally {
       this.loadingSlots.set(false);
     }
   }
 
-  private async loadParents(studentId: string) {
+  private async loadParents(studentId: string): Promise<void> {
     this.loadingParents.set(true);
     try {
       const parents = await this.store.getStudentParents(studentId);
       this.parents.set(parents);
-      if (parents.length === 1) {
-        this.form.patchValue({ parentId: parents[0].id });
-      }
+      if (parents.length === 1) this.form.patchValue({ parentId: parents[0].id });
     } catch {
       this.parents.set([]);
     } finally {
@@ -285,33 +323,32 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  cancel() { this.ref.close(false); }
+  // ── Submit ───────────────────────────────────────────────────
+  cancel(): void { this.ref.close(false); }
 
-  async submit() {
+  async submit(): Promise<void> {
     const hasStudent = this.includeStudent() && !!this.form.value.studentId;
-    const hasParent  = this.includeParent()  && !!this.form.value.parentId;
+    const hasParent = this.includeParent() && !!this.form.value.parentId;
 
     if (!hasStudent && !hasParent) {
       this.errorMsg.set('Debe seleccionar al menos un alumno o un padre/tutor.');
       return;
     }
-
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     const psicologaId = this.auth.currentUser()?.id;
-    if (!psicologaId) {
-      this.errorMsg.set('Sesión inválida, vuelve a iniciar sesión.');
-      return;
-    }
-    const v = this.form.value;
+    if (!psicologaId) { this.errorMsg.set('Sesión inválida.'); return; }
 
+    const v = this.form.value;
     const scheduled = combineDateAndTime(v.date as Date, v.time as string);
-    const minStart  = Date.now() + MIN_LEAD_MINUTES * 60_000;
+    const minStart = Date.now() + MIN_LEAD_MINUTES * 60_000;
     if (Number.isNaN(scheduled.getTime()) || scheduled.getTime() < minStart) {
-      this.errorMsg.set(`La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} minutos de anticipación.`);
+      this.errorMsg.set(
+        `La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} minutos de anticipación.`,
+      );
       return;
     }
 
@@ -324,15 +361,15 @@ export class AppointmentFormDialog implements OnInit {
     this.loading.set(true);
     this.errorMsg.set('');
     try {
-      await this.store.createAppointment({
+      await this.appointmentsStore.createAppointment({
         convocadoAId,
-        studentId:    hasStudent ? v.studentId : undefined,
-        parentId:     hasParent  ? v.parentId  : undefined,
-        tipo:         v.tipo,
-        motivo:       v.motivo,
-        scheduledAt:  scheduled.toISOString(),
-        durationMin:  v.durationMin,
-        priorNotes:   v.priorNotes || undefined,
+        studentId: hasStudent ? v.studentId : undefined,
+        parentId: hasParent ? v.parentId : undefined,
+        tipo: v.tipo,
+        motivo: v.motivo,
+        scheduledAt: scheduled.toISOString(),
+        durationMin: v.durationMin,
+        priorNotes: v.priorNotes || undefined,
       });
       this.toastr.success('Cita creada');
       this.ref.close(true);
@@ -342,38 +379,7 @@ export class AppointmentFormDialog implements OnInit {
       this.loading.set(false);
     }
   }
-
 }
 
-// ── Helpers ────────────────────────────────────────────────────────
-
-function pad2(n: number): string {
-  return n.toString().padStart(2, '0');
-}
-
-function startOfDay(d: Date): Date {
-  const c = new Date(d);
-  c.setHours(0, 0, 0, 0);
-  return c;
-}
-
-function combineDateAndTime(date: Date, time: string): Date {
-  const [hh, mm] = time.split(':').map(Number);
-  const d = new Date(date);
-  d.setHours(hh ?? 0, mm ?? 0, 0, 0);
-  return d;
-}
-
-export function parseApiError(err: unknown, fallback: string): string {
-  const e = err as { error?: { message?: unknown } };
-  const raw = e?.error?.message;
-  if (typeof raw === 'string') return raw;
-  if (raw && typeof raw === 'object') {
-    const inner = (raw as { message?: unknown }).message;
-    if (typeof inner === 'string') return inner;
-    if (Array.isArray(inner) && inner.length > 0 && typeof inner[0] === 'string') {
-      return inner.join(', ');
-    }
-  }
-  return fallback;
-}
+// Re-export para no romper imports antiguos del helper.
+export { parseApiError } from '../../../../shared/utils/api-errors';

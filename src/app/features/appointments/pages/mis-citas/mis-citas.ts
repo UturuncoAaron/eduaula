@@ -1,14 +1,9 @@
 import {
-    ChangeDetectionStrategy,
-    Component,
-    computed,
-    inject,
-    signal,
+    ChangeDetectionStrategy, Component, computed, inject, signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -24,20 +19,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AppointmentsStore } from '../../data-access/appointments.store';
 import { AuthService } from '../../../../core/auth/auth';
-import {
-    Appointment,
-    AppointmentEstado,
-} from '../../../../core/models/psychology';
-
+import { Appointment, AppointmentEstado } from '../../../../core/models/appointments';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
-import {
-    ConfirmDialog,
-    ConfirmData,
-} from '../../../../shared/components/confirm-dialog/confirm-dialog';
-import {
-    RequestAppointmentDialog,
-    RequestAppointmentDialogData,
-} from '../../dialogs/request-appointment-dialog/request-appointment-dialog';
+import { ConfirmDialog, ConfirmData } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import type { RequestAppointmentDialogData } from '../../dialogs/request-appointment-dialog/request-appointment-dialog';
+import { RequestAppointmentDialog } from '../../dialogs/request-appointment-dialog/request-appointment-dialog';
 
 type EstadoFilter = AppointmentEstado | 'all';
 
@@ -59,31 +45,30 @@ type EstadoFilter = AppointmentEstado | 'all';
 })
 export class MisCitas {
     protected readonly store = inject(AppointmentsStore);
-    private readonly auth   = inject(AuthService);
+    private readonly auth = inject(AuthService);
     private readonly dialog = inject(MatDialog);
-    private readonly snack  = inject(MatSnackBar);
+    private readonly snack = inject(MatSnackBar);
 
-    /** Modo según el rol logueado: alumno o padre. */
     readonly mode = computed<'alumno' | 'padre'>(() =>
         this.auth.isPadre() ? 'padre' : 'alumno',
     );
 
     readonly filterEstado = signal<EstadoFilter>('all');
-    readonly search       = signal('');
+    readonly search = signal('');
 
     readonly estados: { value: EstadoFilter; label: string }[] = [
-        { value: 'all',        label: 'Todos los estados' },
-        { value: 'pendiente',  label: 'Pendiente' },
+        { value: 'all', label: 'Todos los estados' },
+        { value: 'pendiente', label: 'Pendiente' },
         { value: 'confirmada', label: 'Confirmada' },
-        { value: 'realizada',  label: 'Realizada' },
-        { value: 'cancelada',  label: 'Cancelada' },
+        { value: 'realizada', label: 'Realizada' },
+        { value: 'cancelada', label: 'Cancelada' },
         { value: 'no_asistio', label: 'No asistió' },
     ];
 
     readonly visible = computed<Appointment[]>(() => {
-        const all    = this.store.appointments();
+        const all = this.store.appointments();
         const estado = this.filterEstado();
-        const term   = this.search().trim().toLowerCase();
+        const term = this.search().trim().toLowerCase();
         return all.filter(a => {
             if (estado !== 'all' && a.estado !== estado) return false;
             if (term) {
@@ -116,21 +101,17 @@ export class MisCitas {
         );
     });
 
-    /**
-     * KPIs mostrados en la cabecera (no se ven afectados por los filtros
-     * para que el usuario tenga siempre la foto completa de su agenda).
-     */
     readonly stats = computed(() => {
         const all = this.store.appointments();
         const now = Date.now();
         return {
-            total:    all.length,
+            total: all.length,
             upcoming: all.filter(a =>
                 new Date(a.scheduledAt).getTime() >= now &&
                 (a.estado === 'pendiente' || a.estado === 'confirmada'),
             ).length,
-            pending:  all.filter(a => a.estado === 'pendiente').length,
-            done:     all.filter(a => a.estado === 'realizada').length,
+            pending: all.filter(a => a.estado === 'pendiente').length,
+            done: all.filter(a => a.estado === 'realizada').length,
         };
     });
 
@@ -154,18 +135,9 @@ export class MisCitas {
         return this.estados.find(e => e.value === estado)?.label ?? estado;
     }
 
-    estadoClass(estado: AppointmentEstado): string {
-        return `chip-${estado}`;
-    }
+    estadoClass(estado: AppointmentEstado): string { return `chip-${estado}`; }
 
-    /**
-     * Material icon que representa la modalidad de la cita. Hoy todas las
-     * citas son presenciales; se mantiene la función para que la UI siga
-     * tolerando datos históricos con otra modalidad.
-     */
-    modalidadIcon(_modalidad: string): string {
-        return 'meeting_room';
-    }
+    modalidadIcon(_modalidad: string): string { return 'meeting_room'; }
 
     canCancel(a: Appointment): boolean {
         return a.estado !== 'cancelada' && a.estado !== 'realizada';
@@ -174,42 +146,32 @@ export class MisCitas {
     trackById = (_: number, a: Appointment): string => a.id;
 
     openRequest(): void {
-        const ref = this.dialog.open<
-            RequestAppointmentDialog,
-            RequestAppointmentDialogData,
-            boolean
-        >(RequestAppointmentDialog, {
+        const ref = this.dialog.open(RequestAppointmentDialog, {
             width: '720px',
             maxWidth: '95vw',
             autoFocus: 'first-tabbable',
             panelClass: 'appointment-dialog-panel',
-            data: { mode: this.mode() },
+            data: { mode: this.mode() } as RequestAppointmentDialogData,
         });
-
-        ref.afterClosed().subscribe(ok => {
+        ref.afterClosed().subscribe((ok: boolean) => {
             if (ok) void this.store.loadMyAppointments();
         });
     }
 
     async cancelar(row: Appointment): Promise<void> {
-        const ref = this.dialog.open<ConfirmDialog, ConfirmData, boolean>(
-            ConfirmDialog,
-            {
-                width: '420px',
-                maxWidth: '95vw',
-                data: {
-                    title: 'Cancelar cita',
-                    message: '¿Estás seguro/a de cancelar esta cita?',
-                    confirm: 'Sí, cancelar',
-                    cancel: 'Volver',
-                    danger: true,
-                },
+        const ref = this.dialog.open<ConfirmDialog, ConfirmData, boolean>(ConfirmDialog, {
+            width: '420px',
+            maxWidth: '95vw',
+            data: {
+                title: 'Cancelar cita',
+                message: '¿Estás seguro/a de cancelar esta cita?',
+                confirm: 'Sí, cancelar',
+                cancel: 'Volver',
+                danger: true,
             },
-        );
-
+        });
         const ok = await firstValueFrom(ref.afterClosed());
         if (!ok) return;
-
         try {
             await this.store.cancelAppointment(row.id, {
                 motivo: this.mode() === 'alumno'
@@ -218,19 +180,11 @@ export class MisCitas {
             });
             this.snack.open('Cita cancelada', 'OK', { duration: 2500 });
         } catch (err: unknown) {
-            this.snack.open(
-                parseApiError(err, 'No se pudo cancelar la cita'),
-                'OK',
-                { duration: 4500 },
-            );
+            this.snack.open(parseApiError(err, 'No se pudo cancelar la cita'), 'OK', { duration: 4500 });
         }
     }
 }
 
-/**
- * Convierte un error HTTP del backend (NestJS / class-validator) en un
- * mensaje legible. Soporta tanto strings como arrays de validaciones.
- */
 function parseApiError(err: unknown, fallback: string): string {
     const e = err as { error?: { message?: unknown } };
     const raw = e?.error?.message;
@@ -238,9 +192,7 @@ function parseApiError(err: unknown, fallback: string): string {
     if (raw && typeof raw === 'object') {
         const inner = (raw as { message?: unknown }).message;
         if (typeof inner === 'string') return inner;
-        if (Array.isArray(inner) && inner.length > 0 && typeof inner[0] === 'string') {
-            return inner.join(', ');
-        }
+        if (Array.isArray(inner) && inner.length > 0 && typeof inner[0] === 'string') return inner.join(', ');
     }
     return fallback;
 }
