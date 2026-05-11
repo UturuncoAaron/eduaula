@@ -442,3 +442,51 @@ mat-form-field {
         transform: rotate(360deg);
     }
 }
+// ── Inclusivo toggle (rol = alumno) ────────────────────────────
+// Se distingue al alumno con NEE en todo el sistema usando el
+// token `--c-inclusivo`. Aquí controlamos la versión "tarjeta" del
+// checkbox dentro del modal; la versión "fila" de tabla está en
+// `tab-alumnos.scss`.
+.inclusivo-toggle {
+    --c-inclusivo:        #c026d3;
+    --c-inclusivo-soft:   #fdf4ff;
+    --c-inclusivo-line:   #f5d0fe;
+    --c-inclusivo-text:   #86198f;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+
+    &:hover {
+        border-color: #cbd5e1;
+    }
+
+    &__label {
+        font-size: .92rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    &__hint {
+        font-size: .78rem;
+        color: #64748b;
+        line-height: 1.4;
+        padding-left: 30px;
+    }
+
+    &--on {
+        background: var(--c-inclusivo-soft);
+        border-color: var(--c-inclusivo-line);
+        box-shadow: 0 0 0 1px var(--c-inclusivo-line);
+
+        .inclusivo-toggle__label {
+            color: var(--c-inclusivo-text);
+        }
+    }
+}

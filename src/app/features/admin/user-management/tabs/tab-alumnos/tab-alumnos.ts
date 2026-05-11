@@ -35,6 +35,7 @@ export interface AlumnoRow {
   email?: string;
   foto_url?: string | null;
   activo?: boolean;
+  inclusivo?: boolean;
   grado?: string;
   grado_id?: number;
   seccion?: string;

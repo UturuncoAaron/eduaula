@@ -136,6 +136,13 @@
                                     {{ row.apellido_paterno }}
                                     {{ row.apellido_materno ? row.apellido_materno + ',' : ',' }}
                                     {{ row.nombre }}
+                                    @if (row.inclusivo) {
+                                    <span class="chip chip--inclusivo"
+                                        matTooltip="Estudiante con necesidades educativas especiales">
+                                        <mat-icon>accessibility_new</mat-icon>
+                                        Inclusivo
+                                    </span>
+                                    }
                                 </span>
                             </div>
                         </td>
@@ -192,7 +199,8 @@
 
                     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
                     <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
-                        [class.inactive-row]="row.activo === false"></tr>
+                        [class.inactive-row]="row.activo === false"
+                        [class.row--inclusivo]="row.inclusivo"></tr>
 
                 </table>
             </div>

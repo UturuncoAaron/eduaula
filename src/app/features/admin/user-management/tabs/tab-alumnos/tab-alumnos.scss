@@ -111,3 +111,52 @@
         }
     }
 }
+// ── Inclusivo (fila + chip) ────────────────────────────────────
+// Se usa el mismo token (`--c-inclusivo`) que el modal de
+// creación/edición de alumno. La fila se acentúa con una banda
+// lateral magenta y un fondo muy tenue para no chocar con los
+// estados activo/inactivo.
+:host {
+    --c-inclusivo:        #c026d3;
+    --c-inclusivo-soft:   #fdf4ff;
+    --c-inclusivo-line:   #f5d0fe;
+    --c-inclusivo-text:   #86198f;
+}
+
+.row--inclusivo {
+    background: var(--c-inclusivo-soft);
+
+    > td:first-child {
+        box-shadow: inset 4px 0 0 var(--c-inclusivo);
+    }
+
+    &:hover {
+        background: #fbe8ff !important;
+    }
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 18px;
+    padding: 0 8px;
+    margin-left: 6px;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    border-radius: 999px;
+    vertical-align: middle;
+
+    mat-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+    }
+
+    &--inclusivo {
+        color: var(--c-inclusivo-text);
+        background: var(--c-inclusivo-soft);
+        border: 1px solid var(--c-inclusivo-line);
+    }
+}
