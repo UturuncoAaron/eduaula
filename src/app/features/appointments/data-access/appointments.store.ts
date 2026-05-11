@@ -10,6 +10,7 @@ import type {
     ListAppointmentsQuery,
     SlotTaken,
     AppointmentEstado,
+    AppointmentRoleRule,
 } from '../../../core/models/appointments';
 import type { Psicologa } from '../../../core/models/psychology';
 import type { Child }     from '../../../core/models/parent-portal';
@@ -221,6 +222,25 @@ export class AppointmentsStore {
             return unwrapList<AccountAvailability>(res.data);
         } catch {
             return [];
+        }
+    }
+
+    /**
+     * Reglas del rol que aplican al `targetId`. El BE es la única fuente
+     * de verdad — el FE solo consume estos valores para configurar el
+     * dialog (duración fija, días permitidos, etc.).
+     */
+    async getRulesForTarget(targetId: string): Promise<AppointmentRoleRule | null> {
+        try {
+            const res = await firstValueFrom(
+                this.api.get<AppointmentRoleRule | { data: AppointmentRoleRule } | null>(
+                    `appointments/rules/${targetId}`,
+                ),
+            );
+            const data = (res?.data ?? null) as AppointmentRoleRule | null;
+            return data;
+        } catch {
+            return null;
         }
     }
 

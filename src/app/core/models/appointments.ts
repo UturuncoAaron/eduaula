@@ -32,6 +32,24 @@ export type DiaSemana =
     | 'lunes' | 'martes' | 'miercoles'
     | 'jueves' | 'viernes' | 'sabado';
 
+// ── Reglas por rol (mirror del BE) ─────────────────────────────
+// El BE las sirve por GET /appointments/rules/:targetId.
+// Las usamos para configurar el dialog (duración fija, días permitidos,
+// horario por defecto si el profesional aún no configuró su agenda).
+export type AppointmentRole =
+    | 'psicologa' | 'docente' | 'director'
+    | 'admin' | 'auxiliar' | 'padre';
+
+export interface AppointmentRoleRule {
+    role: AppointmentRole;
+    fixedDurationMin: number | null;
+    maxDurationMin: number;
+    allowedDays: string[];        // ['lunes','martes',...]
+    defaultHours: { start: string; end: string };  // 'HH:MM'
+    directBooking: boolean;
+    label: string;
+}
+
 // ── Cita ────────────────────────────────────────────────────────
 export interface Appointment {
     id: string;
