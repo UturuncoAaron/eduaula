@@ -1,6 +1,4 @@
-@use '../../../admin/user-management/shared/admin-table' as admin-table;
-
-:host {
+@use '../../../features/admin/user-management/shared/admin-table' as admin-table;:host {
   display: block;
 }
 

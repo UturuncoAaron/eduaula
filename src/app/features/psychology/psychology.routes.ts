@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 
 export const PSYCHOLOGY_ROUTES: Routes = [
-  // Ruta raíz — solo el dashboard de resumen, sin children ni router-outlet
   {
     path: '',
     pathMatch: 'full',
@@ -10,7 +9,6 @@ export const PSYCHOLOGY_ROUTES: Routes = [
         .then(m => m.PsychologyDashboard),
     title: 'Psicología | EduAula',
   },
-  // Tabs como rutas hermanas, no hijas
   {
     path: 'alumnos',
     loadComponent: () =>
@@ -28,14 +26,14 @@ export const PSYCHOLOGY_ROUTES: Routes = [
   {
     path: 'citas',
     loadComponent: () =>
-      import('./tabs/tab-citas/tab-citas')
+      import('../../shared/components/tab-citas/tab-citas')
         .then(m => m.TabCitas),
-    title: 'Citas | EduAula',
+    title: 'Agenda y citas | EduAula',
   },
   {
     path: 'disponibilidad',
     loadComponent: () =>
-      import('./tabs/tab-disponibilidad/tab-disponibilidad')
+      import('../../shared/components/tab-disponibilidad/tab-disponibilidad')
         .then(m => m.TabDisponibilidad),
     title: 'Disponibilidad | EduAula',
   },

@@ -34,6 +34,58 @@ export const routes: Routes = [
             .then(r => r.PSYCHOLOGY_ROUTES),
       },
 
+      // ═══ DOCENTE ══════════════════════════════════════════════════
+      {
+        path: 'docente',
+        canActivate: [roleGuard(['docente'])],
+        children: [
+          {
+            path: 'citas',
+            canActivate: [permissionGuard([MODULO.CITAS_DOCENTE])],
+            loadComponent: () =>
+              import('./shared/components/tab-citas/tab-citas')
+                .then(m => m.TabCitas),
+            title: 'Mis citas | EduAula',
+          },
+          {
+            path: 'disponibilidad',
+            canActivate: [permissionGuard([MODULO.DISPONIBILIDAD_DOCENTE])],
+            loadComponent: () =>
+              import('./shared/components/tab-disponibilidad/tab-disponibilidad')
+                .then(m => m.TabDisponibilidad),
+            title: 'Disponibilidad | EduAula',
+          },
+          { path: '', redirectTo: 'citas', pathMatch: 'full' },
+        ],
+      },
+
+      // ═══ PADRE ════════════════════════════════════════════════════
+      {
+        path: 'padre',
+        canActivate: [roleGuard(['padre'])],
+        children: [
+          {
+            path: 'citas',
+            canActivate: [permissionGuard([MODULO.CITAS_PADRE, MODULO.CITAS_AGENDADAS])],
+            loadComponent: () =>
+              import('./shared/components/tab-citas/tab-citas')
+                .then(m => m.TabCitas),
+            title: 'Mis citas | EduAula',
+          },
+          { path: '', redirectTo: 'citas', pathMatch: 'full' },
+        ],
+      },
+
+      // ═══ ALUMNO — Mis citas ════════════════════════════════════════
+      {
+        path: 'mis-citas',
+        canActivate: [permissionGuard([MODULO.MIS_CITAS])],
+        loadComponent: () =>
+          import('./shared/components/tab-citas/tab-citas')
+            .then(m => m.TabCitas),
+        title: 'Mis citas | EduAula',
+      },
+
       // ═══ COMUNES ══════════════════════════════════════════════════════
       {
         path: 'perfil',
@@ -99,7 +151,7 @@ export const routes: Routes = [
       },
       {
         path: 'mis-citas',
-        canActivate: [permissionGuard([MODULO.MIS_CITAS, MODULO.CITAS_AGENDADAS])],
+        canActivate: [permissionGuard([MODULO.MIS_CITAS])],
         loadChildren: () =>
           import('./features/appointments/appointments.routes')
             .then(r => r.APPOINTMENTS_ROUTES),

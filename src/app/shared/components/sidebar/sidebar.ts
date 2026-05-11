@@ -36,7 +36,6 @@ export class Sidebar implements OnInit, OnDestroy {
   collapsed = input<boolean>(false);
 
   user = computed(() => this.auth.currentUser());
-
   expandedGroups = signal<Record<string, boolean>>({});
   currentUrl = signal(this.normalizeUrl(this.router.url));
 

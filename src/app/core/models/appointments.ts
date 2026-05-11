@@ -6,11 +6,14 @@ export type AppointmentTipo =
     | 'academico' | 'conductual' | 'psicologico'
     | 'familiar' | 'disciplinario' | 'otro';
 
-export type AppointmentModalidad = 'presencial';
+export type AppointmentModalidad = 'presencial' | 'virtual' | 'telefonico';
 
 export type AppointmentEstado =
     | 'pendiente' | 'confirmada' | 'realizada'
     | 'cancelada' | 'no_asistio';
+
+// Alias para compatibilidad con componentes que usan AppointmentStatus
+export type AppointmentStatus = AppointmentEstado;
 
 export type DiaSemana =
     | 'lunes' | 'martes' | 'miercoles'
@@ -20,21 +23,25 @@ export type DiaSemana =
 export interface Appointment {
     id: string;
     createdById: string;
-    convocadoAId: string;
+    convocadoAId: string | null;
     parentId: string | null;
-    studentId: string | null;
+    studentId: string;
     tipo: AppointmentTipo;
     modalidad: AppointmentModalidad;
     motivo: string;
     scheduledAt: string;
     durationMin: number;
     estado: AppointmentEstado;
-    priorNotes?: string | null;
-    followUpNotes?: string | null;
-    rescheduledFromId?: string | null;
+    priorNotes: string | null;
+    followUpNotes: string | null;
+    rescheduledFromId: string | null;
     reminderSent: boolean;
+    cancelledAt: string | null;
+    cancelledById: string | null;
+    cancelReason: string | null;
     createdAt: string;
     updatedAt: string;
+    // Joins opcionales enriquecidos por el backend
     student?: {
         id: string;
         nombre: string;
@@ -51,7 +58,14 @@ export interface Appointment {
         id: string;
         nombre: string;
         apellido_paterno: string;
-        apellido_materno?: string | null;
+        apellido_materno: string | null;
+        rol: string;
+    } | null;
+    convocadoPor?: {
+        id: string;
+        nombre: string;
+        apellido_paterno: string;
+        apellido_materno: string | null;
         rol: string;
     } | null;
 }
@@ -65,6 +79,7 @@ export interface CreateAppointmentPayload {
     scheduledAt: string;
     durationMin?: number;
     priorNotes?: string;
+    modalidad?: AppointmentModalidad;
 }
 
 export interface UpdateAppointmentPayload {
@@ -94,8 +109,8 @@ export interface AccountAvailability {
     id: string;
     cuentaId: string;
     diaSemana: DiaSemana;
-    horaInicio: string; // 'HH:mm'
-    horaFin: string;    // 'HH:mm'
+    horaInicio: string;
+    horaFin: string;
     activo: boolean;
     createdAt: string;
     updatedAt: string;

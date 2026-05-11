@@ -1,18 +1,45 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiService } from '../../../core/services/api';
-import {
+import type {
     Appointment,
     AccountAvailability,
-    SlotTaken,
+    SetAvailabilityPayload,
     CreateAppointmentPayload,
     UpdateAppointmentPayload,
     CancelAppointmentPayload,
-    SetAvailabilityPayload,
+    ListAppointmentsQuery,
+    SlotTaken,
+    AppointmentEstado,
 } from '../../../core/models/appointments';
-import { Psicologa, Docente } from '../../../core/models/psychology';
-import { Child } from '../../../core/models/parent-portal';
+import type { Psicologa } from '../../../core/models/psychology';
+import type { Child }     from '../../../core/models/parent-portal';
+import { ApiService } from '@core/services/api';
 
+// ── Tipo Docente para el select de profesionales ─────────────────
+export interface DocenteSelectItem {
+    id:               string;
+    nombre:           string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+    especialidad:     string | null;
+    foto_url:         string | null;
+}
+
+// ── Re-exports — para componentes que importan tipos desde el store
+export type {
+    Appointment,
+    AccountAvailability,
+    SetAvailabilityPayload,
+    CreateAppointmentPayload,
+    UpdateAppointmentPayload,
+    CancelAppointmentPayload,
+    ListAppointmentsQuery,
+    SlotTaken,
+    AppointmentEstado,
+} from '../../../core/models/appointments';
+
+export type { Psicologa } from '../../../core/models/psychology';
+export type { Child }     from '../../../core/models/parent-portal';
 function unwrapList<T>(payload: T[] | { data?: T[] } | null | undefined): T[] {
     if (Array.isArray(payload)) return payload;
     if (payload && Array.isArray((payload as { data?: T[] }).data)) {
@@ -21,29 +48,33 @@ function unwrapList<T>(payload: T[] | { data?: T[] } | null | undefined): T[] {
     return [];
 }
 
+// ── Store ─────────────────────────────────────────────────────────────────────
+
 @Injectable({ providedIn: 'root' })
 export class AppointmentsStore {
     private api = inject(ApiService);
 
-    // ── Estado ──────────────────────────────────────────────────
-    readonly appointments = signal<Appointment[]>([]);
-    readonly availability = signal<AccountAvailability[]>([]);
-    readonly psicologas = signal<Psicologa[]>([]);
-    readonly docentes = signal<Docente[]>([]);
-    readonly children = signal<Child[]>([]);
+    // ── Signals ──────────────────────────────────────────────────
+    readonly appointments        = signal<Appointment[]>([]);
+    readonly availability        = signal<AccountAvailability[]>([]);
+    readonly docentes            = signal<DocenteSelectItem[]>([]);
+    readonly psicologas          = signal<Psicologa[]>([]);
+    readonly children            = signal<Child[]>([]);
 
+    readonly loading             = signal(false);
     readonly loadingAppointments = signal(false);
     readonly loadingAvailability = signal(false);
-    readonly loadingPsicologas = signal(false);
-    readonly loadingDocentes = signal(false);
-    readonly loadingChildren = signal(false);
-    readonly error = signal<string | null>(null);
+    readonly loadingDocentes     = signal(false);
+    readonly loadingPsicologas   = signal(false);
+    readonly loadingChildren     = signal(false);
+
+    readonly error               = signal<string | null>(null);
 
     reset(): void {
         this.appointments.set([]);
         this.availability.set([]);
-        this.psicologas.set([]);
         this.docentes.set([]);
+        this.psicologas.set([]);
         this.children.set([]);
         this.error.set(null);
     }
@@ -52,26 +83,42 @@ export class AppointmentsStore {
     // CITAS
     // ════════════════════════════════════════════════════════════
 
-    async loadMyAppointments(): Promise<void> {
+    async loadMine(q: ListAppointmentsQuery): Promise<void> {
+        this.loading.set(true);
         this.loadingAppointments.set(true);
         this.error.set(null);
         try {
+            const params = Object.fromEntries(
+                Object.entries(q)
+                    .filter(([, v]) => v !== undefined && v !== null)
+                    .map(([k, v]) => [k, String(v)]),
+            ) as Record<string, string>;
+
             const res = await firstValueFrom(
-                this.api.get<Appointment[] | { data: Appointment[] }>('appointments/mine'),
+                this.api.get<Appointment[] | { data: Appointment[] }>(
+                    'appointments/mine',
+                    params,
+                ),
             );
             this.appointments.set(unwrapList<Appointment>(res.data));
         } catch {
             this.error.set('Error al cargar las citas');
         } finally {
+            this.loading.set(false);
             this.loadingAppointments.set(false);
         }
+    }
+
+    // Alias — compatibilidad con componentes que llaman loadMyAppointments()
+    async loadMyAppointments(): Promise<void> {
+        return this.loadMine({});
     }
 
     async createAppointment(payload: CreateAppointmentPayload): Promise<Appointment> {
         const res = await firstValueFrom(
             this.api.post<Appointment>('appointments', payload),
         );
-        await this.loadMyAppointments();
+        await this.loadMine({});
         return res.data;
     }
 
@@ -82,7 +129,9 @@ export class AppointmentsStore {
         const res = await firstValueFrom(
             this.api.patch<Appointment>(`appointments/${id}`, payload),
         );
-        await this.loadMyAppointments();
+        this.appointments.update(list =>
+            list.map(c => c.id === id ? { ...c, ...payload } : c),
+        );
         return res.data;
     }
 
@@ -90,17 +139,24 @@ export class AppointmentsStore {
         id: string,
         payload: CancelAppointmentPayload,
     ): Promise<void> {
-        await firstValueFrom(this.api.delete(`appointments/${id}`, payload));
-        await this.loadMyAppointments();
+        await firstValueFrom(
+            this.api.delete(`appointments/${id}`, payload as Record<string, string>),
+        );
+        this.appointments.update(list =>
+            list.map(c =>
+                c.id === id
+                    ? { ...c, estado: 'cancelada' as AppointmentEstado }
+                    : c,
+            ),
+        );
     }
 
-    /** Slots ocupados de un profesional en la semana del `weekStart`. */
     async getSlotsTaken(cuentaId: string, date: string): Promise<SlotTaken[]> {
         try {
             const res = await firstValueFrom(
                 this.api.get<SlotTaken[] | { data: SlotTaken[] }>(
                     `appointments/slots-taken/${cuentaId}`,
-                    { date },
+                    { date } as Record<string, string>,
                 ),
             );
             return unwrapList<SlotTaken>(res.data);
@@ -110,13 +166,11 @@ export class AppointmentsStore {
     }
 
     // ════════════════════════════════════════════════════════════
-    // DISPONIBILIDAD
+    // DISPONIBILIDAD  →  tabla: disponibilidad_cuenta
     // ════════════════════════════════════════════════════════════
 
-    /** Carga la disponibilidad en signal (usado por tab-disponibilidad). */
     async loadAvailability(cuentaId: string): Promise<void> {
         this.loadingAvailability.set(true);
-        this.error.set(null);
         try {
             const res = await firstValueFrom(
                 this.api.get<AccountAvailability[] | { data: AccountAvailability[] }>(
@@ -125,13 +179,12 @@ export class AppointmentsStore {
             );
             this.availability.set(unwrapList<AccountAvailability>(res.data));
         } catch {
-            this.error.set('Error al cargar la disponibilidad');
+            this.availability.set([]);
         } finally {
             this.loadingAvailability.set(false);
         }
     }
 
-    /** Fetcher puro, no toca el signal — para BookingCalendar. */
     async getAvailability(cuentaId: string): Promise<AccountAvailability[]> {
         try {
             const res = await firstValueFrom(
@@ -145,37 +198,46 @@ export class AppointmentsStore {
         }
     }
 
-    async setAvailability(payload: SetAvailabilityPayload): Promise<AccountAvailability> {
+    async replaceMyAvailability(
+        items: SetAvailabilityPayload[],
+    ): Promise<AccountAvailability[]> {
         const res = await firstValueFrom(
-            this.api.post<AccountAvailability>('appointments/availability', payload),
-        );
-        return res.data;
-    }
-
-    async toggleAvailability(id: string): Promise<AccountAvailability> {
-        const res = await firstValueFrom(
-            this.api.patch<AccountAvailability>(
-                `appointments/availability/${id}/toggle`, {},
+            this.api.put<AccountAvailability[] | { data: AccountAvailability[] }>(
+                'appointments/availability/bulk',
+                { items },
             ),
         );
-        return res.data;
-    }
-
-    async removeAvailability(id: string): Promise<void> {
-        await firstValueFrom(this.api.delete(`appointments/availability/${id}`));
+        return unwrapList<AccountAvailability>(res.data);
     }
 
     // ════════════════════════════════════════════════════════════
-    // DIRECTORIO DE PROFESIONALES
+    // DIRECTORIOS
     // ════════════════════════════════════════════════════════════
 
-    async loadPsicologas(query?: string): Promise<void> {
+    async loadDocentes(): Promise<void> {
+        if (this.loadingDocentes()) return;
+        this.loadingDocentes.set(true);
+        try {
+            const res = await firstValueFrom(
+                this.api.get<DocenteSelectItem[] | { data: DocenteSelectItem[] }>(
+                    'admin/users/docentes/select',
+                ),
+            );
+            this.docentes.set(unwrapList<DocenteSelectItem>(res.data));
+        } catch {
+            this.docentes.set([]);
+        } finally {
+            this.loadingDocentes.set(false);
+        }
+    }
+
+    async loadPsicologas(): Promise<void> {
+        if (this.loadingPsicologas()) return;
         this.loadingPsicologas.set(true);
         try {
-            const params = query ? { q: query } : undefined;
             const res = await firstValueFrom(
                 this.api.get<Psicologa[] | { data: Psicologa[] }>(
-                    'psychology/psicologas', params,
+                    'psychology/psicologas',
                 ),
             );
             this.psicologas.set(unwrapList<Psicologa>(res.data));
@@ -186,28 +248,8 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Lista docentes para selects. Usa `admin/users/docentes/select`.
-     * Asegúrate de relajar el `@Roles('admin')` en el backend para esta
-     * ruta específica (snippet en el chat).
-     */
-    async loadDocentes(): Promise<void> {
-        this.loadingDocentes.set(true);
-        try {
-            const res = await firstValueFrom(
-                this.api.get<Docente[] | { data: Docente[] }>(
-                    'admin/users/docentes/select',
-                ),
-            );
-            this.docentes.set(unwrapList<Docente>(res.data));
-        } catch {
-            this.docentes.set([]);
-        } finally {
-            this.loadingDocentes.set(false);
-        }
-    }
-
     async loadChildren(): Promise<void> {
+        if (this.loadingChildren()) return;
         this.loadingChildren.set(true);
         try {
             const res = await firstValueFrom(
@@ -220,36 +262,35 @@ export class AppointmentsStore {
             this.loadingChildren.set(false);
         }
     }
-    // ── Alumnos del docente (autocomplete simple) ──────────────────────────
+
+    // ════════════════════════════════════════════════════════════
+    // SEARCH — TeacherRequestAppointmentDialog
+    // ════════════════════════════════════════════════════════════
+
     async searchMyStudents(query: string): Promise<{
-        id: string;
-        nombre: string;
+        id:               string;
+        nombre:           string;
         apellido_paterno: string;
         apellido_materno: string | null;
-        grado: string;
-        seccion: string;
-        padre?: { id: string; nombre: string; apellido_paterno: string } | null;
+        grado:            string;
+        seccion:          string;
+        padre?: {
+            id:               string;
+            nombre:           string;
+            apellido_paterno: string;
+        } | null;
     }[]> {
         if (!query || query.trim().length < 2) return [];
         try {
             const res = await firstValueFrom(
-                this.api.get<any[] | { data: any[] }>('teacher/students/search', { q: query }),
+                this.api.get<any[] | { data: any[] }>(
+                    'teacher/students/search',
+                    { q: query } as Record<string, string>,
+                ),
             );
             return unwrapList<any>(res.data);
         } catch {
             return [];
         }
-    }
-    /** Reemplaza atómicamente toda mi disponibilidad. */
-    async replaceMyAvailability(
-        items: { diaSemana: string; horaInicio: string; horaFin: string }[],
-    ): Promise<AccountAvailability[]> {
-        const res = await firstValueFrom(
-            this.api.put<AccountAvailability[] | { data: AccountAvailability[] }>(
-                'appointments/availability/bulk',
-                { items },
-            ),
-        );
-        return unwrapList<AccountAvailability>(res.data);
     }
 }
