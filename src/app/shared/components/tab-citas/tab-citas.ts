@@ -193,6 +193,18 @@ export class TabCitas {
     return `${s.nombre} ${s.apellido_paterno} ${s.apellido_materno ?? ''}`.trim();
   }
 
+  /**
+   * Mostramos el alumno como sub-línea solo cuando aporta info extra:
+   * la cita tiene un alumno asociado distinto del participante mostrado
+   * (típico: docente cita al padre por un hijo). Para padres y alumnos
+   * el dato no es relevante visualmente.
+   */
+  showStudentSubline(a: Appointment): boolean {
+    if (!a.student) return false;
+    if (this.esPadre() || this.esAlumno()) return false;
+    return this.studentLabel(a) !== this.participantLabel(a);
+  }
+
   estadoLabel(estado: AppointmentEstado): string {
     return this.estados.find(e => e.value === estado)?.label ?? estado;
   }
@@ -288,8 +300,14 @@ export class TabCitas {
       const { RequestAppointmentDialog } = await import(
         '../../../features/appointments/dialogs/request-appointment-dialog/request-appointment-dialog'
       );
+      // El dialog declara MAT_DIALOG_DATA como obligatorio: si no le pasamos
+      // un objeto, `this.data.preselectedChildId` explota con NPE al construir
+      // el FormGroup.
       const ref = this.dialog.open(RequestAppointmentDialog, {
-        width: '720px', maxWidth: '95vw',
+        width: '900px', maxWidth: '95vw',
+        panelClass: 'appointment-dialog-panel',
+        autoFocus: 'first-tabbable',
+        data: { mode: this.esPadre() ? 'padre' : 'alumno' as const },
       });
       ref.afterClosed().subscribe(ok => {
         if (ok) void this.apptStore.loadMyAppointments();

@@ -106,10 +106,17 @@
                     </td>
                 </ng-container>
 
-                <ng-container matColumnDef="alumno">
-                    <th mat-header-cell *matHeaderCellDef>Alumno</th>
+                <ng-container matColumnDef="participante">
+                    <th mat-header-cell *matHeaderCellDef>Con</th>
                     <td mat-cell *matCellDef="let row">
-                        <span class="full-name">{{ studentLabel(row) }}</span>
+                        <div class="cell-participante">
+                            <span class="full-name">{{ participantLabel(row) }}</span>
+                            @if (showStudentSubline(row)) {
+                                <small class="cell-participante__sub muted">
+                                    Alumno: {{ studentLabel(row) }}
+                                </small>
+                            }
+                        </div>
                     </td>
                 </ng-container>
 
