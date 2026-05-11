@@ -1,0 +1,590 @@
+// ════════════════════════════════════════════════════════════════
+// Convocatoria de padre/tutor — dialog del docente
+// ════════════════════════════════════════════════════════════════
+
+:host {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+// ── Shell con dos columnas ─────────────────────────────────────
+.convoc-dialog {
+    display: flex;
+    width: 100%;
+    min-height: 0;
+    max-height: 86vh;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #fff;
+}
+
+// ── Sidebar ────────────────────────────────────────────────────
+.convoc-aside {
+    width: 240px;
+    min-width: 240px;
+    padding: 28px 22px;
+    color: #f1f5f9;
+    background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -70px;
+        right: -70px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(99, 102, 241, .35) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(14, 165, 233, .25) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    &__brand {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        background: rgba(99, 102, 241, .22);
+        border: 1px solid rgba(129, 140, 248, .4);
+        border-radius: 12px;
+        z-index: 1;
+
+        mat-icon {
+            color: #c7d2fe;
+            font-size: 22px;
+            width: 22px;
+            height: 22px;
+        }
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 1.3rem;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: -.01em;
+        color: #f1f5f9;
+        z-index: 1;
+    }
+
+    &__desc {
+        margin: 0;
+        font-size: .78rem;
+        line-height: 1.5;
+        color: #94a3b8;
+        z-index: 1;
+
+        strong {
+            color: #e2e8f0;
+        }
+    }
+}
+
+.convoc-steps {
+    margin: auto 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1;
+}
+
+.convoc-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: .8rem;
+    color: #475569;
+    transition: color .2s;
+
+    &__num {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        border: 1.5px solid #334155;
+        display: grid;
+        place-items: center;
+        font-size: .7rem;
+        font-weight: 700;
+        color: #475569;
+        transition: all .2s;
+    }
+
+    &.is-done {
+        color: #94a3b8;
+
+        .convoc-step__num {
+            background: rgba(99, 102, 241, .18);
+            border-color: #4f46e5;
+            color: #c7d2fe;
+        }
+    }
+
+    &.is-active {
+        color: #e2e8f0;
+
+        .convoc-step__num {
+            background: #6366f1;
+            border-color: #6366f1;
+            color: #fff;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, .25);
+        }
+    }
+}
+
+// ── Main ───────────────────────────────────────────────────────
+.convoc-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    position: relative;
+
+    &__head {
+        padding: 22px 26px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 4;
+    }
+
+    &__title {
+        margin: 0 0 2px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -.01em;
+    }
+
+    &__sub {
+        margin: 0;
+        font-size: .82rem;
+        color: #64748b;
+    }
+
+    &__close {
+        color: #64748b;
+        flex-shrink: 0;
+
+        &:hover:not(:disabled) {
+            color: #0f172a;
+            background: #f1f5f9;
+        }
+    }
+}
+
+.convoc-body {
+    padding: 18px 26px 8px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+// ── Section ────────────────────────────────────────────────────
+.convoc-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    &__head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        h4 {
+            margin: 0;
+            font-size: .92rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -.005em;
+        }
+
+        small {
+            font-size: .76rem;
+            color: #64748b;
+        }
+    }
+
+    &__num {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: .8rem;
+        font-weight: 700;
+        color: #4f46e5;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        flex-shrink: 0;
+    }
+
+    &__spinner {
+        margin-left: auto;
+    }
+}
+
+.full {
+    width: 100%;
+}
+
+mat-form-field {
+    width: 100%;
+}
+
+.convoc-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.convoc-suffix {
+    font-size: .8rem;
+    color: #64748b;
+    padding-right: 4px;
+}
+
+// ── Autocomplete options ──────────────────────────────────────
+.convoc-opt {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px !important;
+    height: auto !important;
+
+    &__avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #0ea5e9);
+        color: #fff;
+        font-size: .72rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        text-transform: uppercase;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+        min-width: 0;
+    }
+
+    &__name {
+        font-size: .85rem;
+        color: #0f172a;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__meta {
+        font-size: .72rem;
+        color: #94a3b8;
+    }
+
+    &--empty {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8 !important;
+        font-size: .85rem;
+    }
+}
+
+// ── Pill (alumno seleccionado) ────────────────────────────────
+.convoc-pill {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    animation: convoc-slide-in .18s ease;
+
+    &__avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #0ea5e9);
+        color: #fff;
+        font-size: .82rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        text-transform: uppercase;
+    }
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+        min-width: 0;
+    }
+
+    &__name {
+        font-size: .9rem;
+        font-weight: 600;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__meta {
+        font-size: .76rem;
+        color: #64748b;
+    }
+
+    &__divider {
+        width: 1px;
+        height: 32px;
+        background: #e2e8f0;
+        flex-shrink: 0;
+    }
+
+    &__parent {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        flex: 1;
+
+        div {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+            min-width: 0;
+        }
+    }
+
+    &__icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+
+        &--ok {
+            color: #10b981;
+        }
+
+        &--warn {
+            color: #f59e0b;
+        }
+    }
+
+    &__label {
+        font-size: .68rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    &__value {
+        font-size: .82rem;
+        font-weight: 600;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &--warn {
+            color: #b45309;
+            font-weight: 500;
+        }
+    }
+
+    &__close {
+        color: #94a3b8;
+        flex-shrink: 0;
+
+        &:hover:not(:disabled) {
+            color: #ef4444;
+            background: #fef2f2;
+        }
+    }
+}
+
+@keyframes convoc-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// ── Warning / Picked / Error ──────────────────────────────────
+.convoc-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    color: #78350f;
+    font-size: .82rem;
+    line-height: 1.4;
+
+    div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    strong {
+        color: #92400e;
+    }
+
+    mat-icon {
+        color: #d97706;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+}
+
+.convoc-picked {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 10px 14px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 10px;
+    color: #065f46;
+    font-size: .85rem;
+
+    mat-icon {
+        color: #10b981;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+
+    span {
+        flex: 1;
+    }
+
+    button {
+        color: #047857;
+    }
+}
+
+.convoc-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    color: #b91c1c;
+    font-size: .85rem;
+    line-height: 1.35;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+}
+
+// ── Footer ─────────────────────────────────────────────────────
+.convoc-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 26px 18px;
+    border-top: 1px solid #f1f5f9;
+    background: #fff;
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+
+    &__send {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        min-height: 40px;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+}
+
+// ── Responsive ─────────────────────────────────────────────────
+@media (max-width: 720px) {
+    .convoc-aside {
+        display: none;
+    }
+
+    .convoc-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .convoc-pill {
+        flex-wrap: wrap;
+
+        &__divider {
+            display: none;
+        }
+    }
+
+    .convoc-body {
+        padding: 14px 18px 6px;
+        gap: 18px;
+    }
+
+    .convoc-main__head {
+        padding: 18px 18px 12px;
+    }
+
+    .convoc-actions {
+        padding: 12px 18px 16px;
+    }
+}
