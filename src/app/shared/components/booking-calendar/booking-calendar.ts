@@ -39,6 +39,10 @@ export class BookingCalendar {
   readonly emptyMessage = input<string>(
     'No hay disponibilidad configurada en este horario.',
   );
+  /** Slot que el usuario ya eligió (antes de confirmar). Si se setea, esa
+   * celda se pinta en color seleccionado. */
+  readonly selectedDia = input<DiaSemana | null>(null);
+  readonly selectedHour = input<string | null>(null);
 
   // ── Outputs ─────────────────────────────────────────────────
   readonly pick = output<BookingPickEvent>();
@@ -52,6 +56,13 @@ export class BookingCalendar {
   readonly hasAnyAvailable = computed(() =>
     this.availability().some(a => a.activo),
   );
+
+  readonly selectedKey = computed<string | null>(() => {
+    const dia = this.selectedDia();
+    const hour = this.selectedHour();
+    if (!dia || !hour) return null;
+    return `${dia}__${hour}`;
+  });
 
   // ── Handlers ────────────────────────────────────────────────
   onCellClick(ev: CalendarCellClickEvent): void {

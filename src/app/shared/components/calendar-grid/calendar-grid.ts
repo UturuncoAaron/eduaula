@@ -71,6 +71,9 @@ export class CalendarGrid {
   readonly hideNav = input<boolean>(false);
   /** null → el calendario crece a su contenido (sin scroll interno). */
   readonly maxBodyHeight = input<number | null>(480);
+  /** Celda actualmente seleccionada — formato 'dia__HH:mm'. Solo se pinta
+   * cuando el modo lo soporta (ej. booking). */
+  readonly selectedKey = input<string | null>(null);
 
   // ── Outputs ───────────────────────────────────────────────
   readonly cellClick = output<CalendarCellClickEvent>();
@@ -133,6 +136,7 @@ export class CalendarGrid {
     const days = this.weekDates();
     const hours = this.hours();
     const hovered = this.hoveredCell();
+    const selected = this.selectedKey();
 
     const out: CellVM[] = new Array(days.length * hours.length);
     let idx = 0;
@@ -160,6 +164,7 @@ export class CalendarGrid {
             'cal__cell--event': slot?.type === 'event',
             'cal__cell--interactive': interactive,
             'cal__cell--hovered': hovered === cellKey,
+            'cal__cell--selected': selected === cellKey,
             'cal__cell--editor-empty': m === 'editor' && !slot,
           },
         };

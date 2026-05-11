@@ -312,6 +312,26 @@
         }
     }
 
+    &--selected {
+        background: #4f46e5;
+        border-inline-start: 3px solid #312e81;
+        color: #fff;
+        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35) inset;
+        transition: background 120ms ease, box-shadow 120ms ease;
+
+        &:hover,
+        &.cal__cell--hovered {
+            background: #4338ca;
+        }
+
+        .cal__cell-content,
+        .cal__cell-title,
+        .cal__cell-time {
+            color: #fff;
+            font-weight: 600;
+        }
+    }
+
     &--taken {
         background: var(--cal-taken-bg);
         border-inline-start: 3px solid var(--cal-taken);
