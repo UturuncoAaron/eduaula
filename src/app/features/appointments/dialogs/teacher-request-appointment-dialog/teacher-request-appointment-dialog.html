@@ -2,14 +2,15 @@
 
     <!-- ── Header ─────────────────────────────────────────────── -->
     <header class="convoc__head">
-        <div class="convoc__head-icon">
+        <div class="convoc__head-icon" aria-hidden="true">
             <mat-icon>forum</mat-icon>
         </div>
         <div class="convoc__head-text">
+            <span class="convoc__eyebrow">Cita pendiente</span>
             <h2 class="convoc__title">Convocar a padre/tutor</h2>
             <p class="convoc__subtitle">
-                Solo verás horarios dentro de tu propia disponibilidad.
-                La cita se envía en estado <strong>pendiente</strong>.
+                Selecciona un alumno y un horario libre dentro de tu propia disponibilidad.
+                La cita se enviará en estado <strong>pendiente</strong> al padre o tutor.
             </p>
         </div>
         <button mat-icon-button type="button" class="convoc__close" (click)="cancel()" [disabled]="loading()"
@@ -27,16 +28,16 @@
             <section class="section">
                 <header class="section__head">
                     <span class="section__num">1</span>
-                    <div>
+                    <div class="section__heading">
                         <h3 class="section__title">Alumno</h3>
-                        <p class="section__sub">Busca por nombre o apellido.</p>
+                        <p class="section__sub">Busca por nombre, apellido o código de estudiante.</p>
                     </div>
                 </header>
 
                 <mat-form-field appearance="outline" class="full">
-                    <mat-label>Nombre o apellido del alumno</mat-label>
+                    <mat-label>Nombre, apellido o código</mat-label>
                     <input matInput formControlName="studentQuery" [matAutocomplete]="auto"
-                        placeholder="Ej: Camila García" autocomplete="off" />
+                        placeholder="Ej. Camila García" autocomplete="off" />
                     @if (searching()) {
                     <mat-spinner matSuffix diameter="16" />
                     } @else {
@@ -46,12 +47,26 @@
                         (optionSelected)="onSelectStudent($event.option.value)" panelWidth="auto">
                         @for (s of students(); track s.id) {
                         <mat-option [value]="s" class="opt">
-                            <div class="opt__avatar">{{ s.nombre[0] }}{{ s.apellido_paterno[0] }}</div>
+                            <div class="opt__avatar" [class.opt__avatar--inclusivo]="s.inclusivo">
+                                {{ studentInitialsOf(s) }}
+                            </div>
                             <div class="opt__body">
                                 <span class="opt__name">
                                     {{ s.nombre }} {{ s.apellido_paterno }} {{ s.apellido_materno }}
+                                    @if (s.inclusivo) {
+                                    <span class="chip chip--inclusivo" matTooltip="Estudiante inclusivo">
+                                        <mat-icon>accessibility_new</mat-icon>
+                                        Inclusivo
+                                    </span>
+                                    }
                                 </span>
-                                <span class="opt__meta">{{ s.grado }} · {{ s.seccion }}</span>
+                                <span class="opt__meta">
+                                    @if (s.grado || s.seccion) {
+                                    {{ s.grado }} @if (s.grado && s.seccion) { · } {{ s.seccion }}
+                                    } @else {
+                                    Sin matrícula activa
+                                    }
+                                </span>
                             </div>
                         </mat-option>
                         }
@@ -65,14 +80,28 @@
                 </mat-form-field>
 
                 @if (selected(); as s) {
-                <div class="pill">
-                    <div class="pill__avatar">{{ s.nombre[0] }}{{ s.apellido_paterno[0] }}</div>
+                <div class="pill" [class.pill--inclusivo]="s.inclusivo">
+                    <div class="pill__avatar" [class.pill__avatar--inclusivo]="s.inclusivo">
+                        {{ studentInitials() }}
+                    </div>
 
                     <div class="pill__info">
                         <span class="pill__name">
                             {{ s.nombre }} {{ s.apellido_paterno }} {{ s.apellido_materno }}
+                            @if (s.inclusivo) {
+                            <span class="chip chip--inclusivo" matTooltip="Estudiante inclusivo">
+                                <mat-icon>accessibility_new</mat-icon>
+                                Inclusivo
+                            </span>
+                            }
                         </span>
-                        <span class="pill__meta">{{ s.grado }} · {{ s.seccion }}</span>
+                        <span class="pill__meta">
+                            @if (gradoSeccionLabel()) {
+                            {{ gradoSeccionLabel() }}
+                            } @else {
+                            Sin matrícula activa
+                            }
+                        </span>
                     </div>
 
                     <div class="pill__divider" aria-hidden="true"></div>
@@ -107,7 +136,7 @@
             <section class="section">
                 <header class="section__head">
                     <span class="section__num">2</span>
-                    <div>
+                    <div class="section__heading">
                         <h3 class="section__title">Detalles de la cita</h3>
                         <p class="section__sub">Tipo de reunión y duración aproximada.</p>
                     </div>
@@ -136,7 +165,7 @@
             <section class="section">
                 <header class="section__head">
                     <span class="section__num">3</span>
-                    <div>
+                    <div class="section__heading">
                         <h3 class="section__title">Selecciona un horario libre</h3>
                         <p class="section__sub">Toca un slot verde para reservar ese horario.</p>
                     </div>
@@ -155,11 +184,13 @@
                 </div>
                 }
 
-                <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()"
-                    [weekStart]="weekStart()" [loading]="loadingAvailability() || loadingSlots()" [maxBodyHeight]="320"
-                    emptyMessage="Aún no tienes disponibilidad configurada."
-                    [selectedDia]="picked()?.dia ?? null" [selectedHour]="picked()?.hour ?? null"
-                    (pick)="onSlotPick($event)" (weekChange)="onWeekChange($event)" />
+                <div class="calendar-wrap">
+                    <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()"
+                        [weekStart]="weekStart()" [loading]="loadingAvailability() || loadingSlots()"
+                        [maxBodyHeight]="320" emptyMessage="Aún no tienes disponibilidad configurada."
+                        [selectedDia]="picked()?.dia ?? null" [selectedHour]="picked()?.hour ?? null"
+                        (pick)="onSlotPick($event)" (weekChange)="onWeekChange($event)" />
+                </div>
 
                 @if (pickedLabel(); as p) {
                 <div class="picked">
@@ -174,7 +205,7 @@
             <section class="section">
                 <header class="section__head">
                     <span class="section__num">4</span>
-                    <div>
+                    <div class="section__heading">
                         <h3 class="section__title">Mensaje para el padre</h3>
                         <p class="section__sub">Explica brevemente el motivo de la convocatoria.</p>
                     </div>
@@ -204,21 +235,19 @@
             }
         </div>
 
-        <!-- ── Footer ────────────────────────────────────────────── -->
+        <!-- ── Footer ───────────────────────────────────────────── -->
         <footer class="convoc__actions">
-            <button mat-stroked-button type="button" (click)="cancel()" [disabled]="loading()">
+            <button mat-stroked-button type="button" class="convoc__cancel" (click)="cancel()" [disabled]="loading()">
                 Cancelar
             </button>
             <button mat-flat-button color="primary" type="submit" class="convoc__send"
-                [disabled]="loading() || form.invalid || !selected() || !selected()?.padre">
+                [disabled]="loading() || !selected() || !picked()">
                 @if (loading()) {
-                <mat-spinner diameter="18" />
+                <mat-spinner diameter="16" />
                 <span>Enviando…</span>
                 } @else {
-                <ng-container>
-                    <mat-icon>send</mat-icon>
-                    <span>Enviar convocatoria</span>
-                </ng-container>
+                <mat-icon>send</mat-icon>
+                <span>Enviar convocatoria</span>
                 }
             </button>
         </footer>

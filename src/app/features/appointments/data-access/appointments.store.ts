@@ -291,32 +291,46 @@ export class AppointmentsStore {
 
     // ════════════════════════════════════════════════════════════
     // SEARCH — TeacherRequestAppointmentDialog
+    // Reusa el endpoint del directorio (`psychology/directory/students/search`)
+    // que ya está expuesto a `psicologa | docente | auxiliar | admin`. No
+    // creamos uno por rol — la búsqueda de alumnos es la misma.
     // ════════════════════════════════════════════════════════════
 
-    async searchMyStudents(query: string): Promise<{
-        id:               string;
-        nombre:           string;
-        apellido_paterno: string;
-        apellido_materno: string | null;
-        grado:            string;
-        seccion:          string;
-        padre?: {
-            id:               string;
-            nombre:           string;
-            apellido_paterno: string;
-        } | null;
-    }[]> {
-        if (!query || query.trim().length < 2) return [];
+    async searchMyStudents(query: string): Promise<StudentSearchResult[]> {
+        const term = (query ?? '').trim();
+        if (term.length < 2) return [];
         try {
             const res = await firstValueFrom(
-                this.api.get<any[] | { data: any[] }>(
-                    'teacher/students/search',
-                    { q: query } as Record<string, string>,
+                this.api.get<StudentSearchResult[] | { data: StudentSearchResult[] }>(
+                    'psychology/directory/students/search',
+                    { q: term },
                 ),
             );
-            return unwrapList<any>(res.data);
+            return unwrapList<StudentSearchResult>(res.data);
         } catch {
             return [];
         }
     }
+}
+
+// ── Tipos públicos del search ────────────────────────────────────
+export interface StudentSearchResult {
+    id:                 string;
+    nombre:             string;
+    apellido_paterno:   string;
+    apellido_materno:   string | null;
+    codigo_estudiante:  string;
+    foto_storage_key:   string | null;
+    inclusivo:          boolean;
+    grado:              string | null;
+    grado_id:           string | null;
+    seccion:            string | null;
+    seccion_id:         string | null;
+    padre: {
+        id:               string;
+        nombre:           string;
+        apellido_paterno: string;
+        apellido_materno: string | null;
+        relacion:         string | null;
+    } | null;
 }

@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ToastService } from 'ngx-toastr-notifier';
 import { Subscription } from 'rxjs';
 
@@ -49,6 +50,7 @@ const ROLE_META: Record<Rol, RoleMeta> = {
     MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButtonModule, MatIconModule,
     MatDatepickerModule, MatNativeDateModule,
+    MatCheckboxModule,
     MatDialogModule,
   ],
   templateUrl: './user-dialog.html',
@@ -117,6 +119,10 @@ export class UserDialog implements OnInit, OnDestroy {
     cargo: ['', Validators.maxLength(100)],
     colegiatura: ['', Validators.maxLength(50)],
 
+    // Específico de alumno: marca al estudiante como caso de inclusión
+    // educativa (NEE, adaptación curricular, etc.). Por defecto false.
+    inclusivo: [false],
+
     // Contraseñas (solo edición)
     current_password: [''],
     new_password: ['', Validators.minLength(8)],
@@ -142,6 +148,7 @@ export class UserDialog implements OnInit, OnDestroy {
         colegiatura: u.colegiatura ?? '',
         cargo: u.cargo ?? '',
         relacion: u.relacion_familiar ?? '',
+        inclusivo: (u as { inclusivo?: boolean }).inclusivo ?? false,
       });
     }
   }
@@ -215,7 +222,9 @@ export class UserDialog implements OnInit, OnDestroy {
     };
 
     const extras: Record<Rol, Record<string, unknown>> = {
-      alumno: {},
+      alumno: {
+        inclusivo: !!v.inclusivo,
+      },
       docente: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.titulo_profesional?.trim() && { titulo_profesional: v.titulo_profesional }),
@@ -295,6 +304,7 @@ export class UserDialog implements OnInit, OnDestroy {
       if (v.colegiatura) payload['colegiatura'] = v.colegiatura;
       if (v.cargo) payload['cargo'] = v.cargo;
       if (v.relacion) payload['relacion'] = v.relacion;
+      if (this.data.rol === 'alumno') payload['inclusivo'] = !!v.inclusivo;
 
       if (!this.isSelf) {
         payload['tipo_documento'] = v.tipo_documento;

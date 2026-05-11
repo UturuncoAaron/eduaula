@@ -26,7 +26,7 @@ import {
   ConfirmDialog, ConfirmData,
 } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
-import { AppointmentsStore } from '../../data-access/appointments.store';
+import { AppointmentsStore, StudentSearchResult } from '../../data-access/appointments.store';
 import { AuthService } from '../../../../core/auth/auth';
 import {
   AccountAvailability, AppointmentTipo, DiaSemana, SlotTaken,
@@ -39,15 +39,7 @@ import { parseApiError } from '../../../../shared/utils/api-errors';
 
 const MIN_LEAD_MINUTES = 15;
 
-interface StudentOption {
-  id: string;
-  nombre: string;
-  apellido_paterno: string;
-  apellido_materno: string | null;
-  grado: string;
-  seccion: string;
-  padre?: { id: string; nombre: string; apellido_paterno: string } | null;
-}
+type StudentOption = StudentSearchResult;
 
 interface PickedSlot {
   dia: DiaSemana;
@@ -110,6 +102,21 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     return `${s.padre.nombre} ${s.padre.apellido_paterno}`.trim();
   });
 
+  /** "5° A" o '' si todavía no hay matrícula activa. */
+  readonly gradoSeccionLabel = computed<string>(() => {
+    const s = this.selected();
+    if (!s) return '';
+    const parts = [s.grado, s.seccion].filter(Boolean) as string[];
+    return parts.join(' ');
+  });
+
+  /** Iniciales para el avatar del alumno seleccionado. */
+  readonly studentInitials = computed<string>(() => {
+    const s = this.selected();
+    if (!s) return '';
+    return `${(s.nombre[0] ?? '').toUpperCase()}${(s.apellido_paterno[0] ?? '').toUpperCase()}`;
+  });
+
   readonly pickedLabel = computed<string | null>(() => {
     const p = this.picked();
     if (!p) return null;
@@ -154,9 +161,15 @@ export class TeacherRequestAppointmentDialog implements OnInit {
   displayStudent = (s: StudentOption | string): string => {
     if (!s) return '';
     if (typeof s === 'string') return s;
-    return `${s.nombre} ${s.apellido_paterno} ${s.apellido_materno ?? ''}`.trim()
-      + ` · ${s.grado} ${s.seccion}`;
+    const fullName =
+      `${s.nombre} ${s.apellido_paterno} ${s.apellido_materno ?? ''}`.trim();
+    const gradoSec = [s.grado, s.seccion].filter(Boolean).join(' ');
+    return gradoSec ? `${fullName} · ${gradoSec}` : fullName;
   };
+
+  studentInitialsOf(s: StudentOption): string {
+    return `${(s.nombre[0] ?? '').toUpperCase()}${(s.apellido_paterno[0] ?? '').toUpperCase()}`;
+  }
 
   onSelectStudent(s: StudentOption): void {
     this.selected.set(s);

@@ -191,6 +191,25 @@
             </div>
             }
 
+            @if (data.rol === 'alumno') {
+            <div class="form-section">
+                <h3 class="section-title">
+                    <mat-icon [style.color]="roleMeta().color">accessibility_new</mat-icon>
+                    Inclusión educativa
+                </h3>
+                <div class="inclusivo-toggle" [class.inclusivo-toggle--on]="form.controls.inclusivo.value">
+                    <mat-checkbox formControlName="inclusivo" color="primary">
+                        <span class="inclusivo-toggle__label">Estudiante inclusivo</span>
+                    </mat-checkbox>
+                    <span class="inclusivo-toggle__hint">
+                        Marca esta opción si el alumno tiene necesidades educativas especiales (NEE),
+                        adaptaciones curriculares o requiere apoyo personalizado. Se distinguirá
+                        visualmente en las tablas y listados.
+                    </span>
+                </div>
+            </div>
+            }
+
             @if (data.rol === 'padre') {
             <div class="form-section">
                 <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">diversity_1</mat-icon> Vínculo
