@@ -1,0 +1,41 @@
+<div class="reject">
+
+    <header class="reject__head">
+        <div class="reject__icon">
+            <mat-icon>cancel</mat-icon>
+        </div>
+        <div class="reject__title-block">
+            <h2 class="reject__title">Rechazar cita</h2>
+            <p class="reject__subtitle">{{ data.contextLabel }}</p>
+        </div>
+    </header>
+
+    <p class="reject__hint">
+        Indica un motivo breve. Será visible para quien convoca la cita.
+    </p>
+
+    <mat-form-field appearance="outline" class="reject__field">
+        <mat-label>Motivo del rechazo</mat-label>
+        <textarea
+            matInput
+            rows="3"
+            [(ngModel)]="motivo"
+            [maxlength]="maxLength"
+            placeholder="Ej. tengo una reunión a esa hora, podríamos reagendar"></textarea>
+        <mat-hint align="end">{{ trimmedLength }} / {{ maxLength }}</mat-hint>
+    </mat-form-field>
+
+    <footer class="reject__actions">
+        <button mat-stroked-button type="button" (click)="cancel()">Volver</button>
+        <button
+            mat-flat-button
+            color="warn"
+            type="button"
+            [disabled]="!canSubmit"
+            (click)="submit()">
+            <mat-icon>send</mat-icon>
+            Rechazar cita
+        </button>
+    </footer>
+
+</div>
