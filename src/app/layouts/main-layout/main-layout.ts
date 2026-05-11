@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Sidebar } from '../../shared/components/sidebar/sidebar';
 import { Navbar } from '../../shared/components/navbar/navbar';
 import { AuthService } from '../../core/auth/auth';
+import { NotificationsStore } from '../../core/services/notifications-store';
 
 @Component({
   selector: 'app-main-layout',
@@ -19,6 +20,7 @@ import { AuthService } from '../../core/auth/auth';
 export class MainLayout implements OnInit {
   private dialog = inject(MatDialog);
   private auth = inject(AuthService);
+  private notifications = inject(NotificationsStore);
 
   // El nombre coincide con el HTML.
   // Inicia colapsado (true) si la pantalla es de celular (< 768px).
@@ -28,6 +30,9 @@ export class MainLayout implements OnInit {
     if (!this.auth.passwordChanged()) {
       this.openChangePasswordDialog();
     }
+    // Una sola conexión SSE para toda la app — push de notificaciones
+    // en tiempo real, sin polling.
+    this.notifications.connect();
   }
 
   private async openChangePasswordDialog(): Promise<void> {
