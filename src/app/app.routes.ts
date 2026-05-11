@@ -86,6 +86,31 @@ export const routes: Routes = [
         title: 'Mis citas | EduAula',
       },
 
+      // ═══ ADMIN / AUXILIAR — Agenda propia ═════════════════════════
+      // Director, secretaria y auxiliar también pueden marcar
+      // disponibilidad y convocar a otros usuarios.
+      {
+        path: 'agenda',
+        canActivate: [permissionGuard([MODULO.AGENDA_PROPIA])],
+        children: [
+          {
+            path: 'citas',
+            loadComponent: () =>
+              import('./shared/components/tab-citas/tab-citas')
+                .then(m => m.TabCitas),
+            title: 'Mis citas | EduAula',
+          },
+          {
+            path: 'disponibilidad',
+            loadComponent: () =>
+              import('./shared/components/tab-disponibilidad/tab-disponibilidad')
+                .then(m => m.TabDisponibilidad),
+            title: 'Disponibilidad | EduAula',
+          },
+          { path: '', redirectTo: 'citas', pathMatch: 'full' },
+        ],
+      },
+
       // ═══ COMUNES ══════════════════════════════════════════════════════
       {
         path: 'perfil',

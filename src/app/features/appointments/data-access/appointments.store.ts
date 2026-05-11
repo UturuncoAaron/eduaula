@@ -151,6 +151,32 @@ export class AppointmentsStore {
         );
     }
 
+    /** Acepta una cita pendiente (la convierte en confirmada). Solo el convocado. */
+    async acceptAppointment(id: string): Promise<Appointment> {
+        const res = await firstValueFrom(
+            this.api.post<Appointment>(`appointments/${id}/accept`, {}),
+        );
+        this.appointments.update(list =>
+            list.map(c => c.id === id ? { ...c, estado: 'confirmada' } : c),
+        );
+        return res.data;
+    }
+
+    /** Rechaza una cita pendiente, dejando el motivo. Solo el convocado. */
+    async rejectAppointment(id: string, motivo: string): Promise<Appointment> {
+        const res = await firstValueFrom(
+            this.api.post<Appointment>(`appointments/${id}/reject`, { motivo }),
+        );
+        this.appointments.update(list =>
+            list.map(c =>
+                c.id === id
+                    ? { ...c, estado: 'rechazada', cancelReason: motivo }
+                    : c,
+            ),
+        );
+        return res.data;
+    }
+
     async getSlotsTaken(cuentaId: string, date: string): Promise<SlotTaken[]> {
         try {
             const res = await firstValueFrom(

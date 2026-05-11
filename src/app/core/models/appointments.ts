@@ -10,7 +10,20 @@ export type AppointmentModalidad = 'presencial' | 'virtual' | 'telefonico';
 
 export type AppointmentEstado =
     | 'pendiente' | 'confirmada' | 'realizada'
-    | 'cancelada' | 'no_asistio';
+    | 'cancelada' | 'rechazada' | 'no_asistio';
+
+// Roles que tienen disponibilidad propia y pueden citar a otros
+// (debe mantenerse sincronizado con ROLES_WITH_AVAILABILITY del backend).
+export type RoleWithAvailability =
+    | 'psicologa' | 'docente' | 'admin' | 'auxiliar';
+
+export const ROLES_WITH_AVAILABILITY: readonly RoleWithAvailability[] = [
+    'psicologa', 'docente', 'admin', 'auxiliar',
+] as const;
+
+export function hasAvailability(rol: string | undefined): boolean {
+    return !!rol && (ROLES_WITH_AVAILABILITY as readonly string[]).includes(rol);
+}
 
 // Alias para compatibilidad con componentes que usan AppointmentStatus
 export type AppointmentStatus = AppointmentEstado;

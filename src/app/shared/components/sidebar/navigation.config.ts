@@ -92,6 +92,19 @@ export const NAV_ITEMS: NavItem[] = [
     dividerBefore: true,
   },
 
+  // ─── Agenda propia (admin, auxiliar) ──────────────────────────────────────
+  // (docente y psicóloga tienen sus propias rutas, ya listadas arriba)
+  {
+    label: 'Mi Agenda',
+    icon: 'event_note',
+    modulos: [MODULO.AGENDA_PROPIA],
+    dividerBefore: true,
+    children: [
+      { label: 'Mis Citas', icon: 'event_available', route: '/agenda/citas', modulos: [MODULO.AGENDA_PROPIA] },
+      { label: 'Disponibilidad', icon: 'schedule', route: '/agenda/disponibilidad', modulos: [MODULO.AGENDA_PROPIA] },
+    ],
+  },
+
   // ═══ PSICOLOGÍA ═══════════════════════════════════════════════════════════
   {
     label: 'Mis Alumnos',

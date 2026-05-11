@@ -43,6 +43,9 @@ export const MODULO = {
   FICHAS: 'fichas',
   DISPONIBILIDAD: 'disponibilidad',
 
+  // ── Agenda propia (docente, psicologa, admin, auxiliar)
+  AGENDA_PROPIA: 'agenda_propia',
+
   // ── Admin
   USUARIOS: 'usuarios',
   PERIODOS: 'periodos',
