@@ -1,54 +1,35 @@
-<div class="convoc-dialog">
+<div class="convoc">
 
-    <!-- ─── Sidebar ─────────────────────────────────────────── -->
-    <aside class="convoc-aside" aria-hidden="true">
-        <div class="convoc-aside__brand">
+    <!-- ── Header ─────────────────────────────────────────────── -->
+    <header class="convoc__head">
+        <div class="convoc__head-icon">
             <mat-icon>forum</mat-icon>
         </div>
-        <h2 class="convoc-aside__title">Convocar a<br>padre/tutor</h2>
-        <p class="convoc-aside__desc">
-            La cita se enviará en estado <strong>pendiente</strong> hasta que el padre/tutor confirme su asistencia.
-        </p>
+        <div class="convoc__head-text">
+            <h2 class="convoc__title">Convocar a padre/tutor</h2>
+            <p class="convoc__subtitle">
+                Solo verás horarios dentro de tu propia disponibilidad.
+                La cita se envía en estado <strong>pendiente</strong>.
+            </p>
+        </div>
+        <button mat-icon-button type="button" class="convoc__close" (click)="cancel()" [disabled]="loading()"
+            aria-label="Cerrar">
+            <mat-icon>close</mat-icon>
+        </button>
+    </header>
 
-        <ol class="convoc-steps">
-            <li class="convoc-step" [class.is-active]="stepActive() === 1" [class.is-done]="stepActive() > 1">
-                <span class="convoc-step__num">1</span>
-                <span class="convoc-step__label">Elige al alumno</span>
-            </li>
-            <li class="convoc-step" [class.is-active]="stepActive() === 2" [class.is-done]="stepActive() > 2">
-                <span class="convoc-step__num">2</span>
-                <span class="convoc-step__label">Selecciona un horario libre</span>
-            </li>
-            <li class="convoc-step" [class.is-active]="stepActive() === 3">
-                <span class="convoc-step__num">3</span>
-                <span class="convoc-step__label">Describe el motivo</span>
-            </li>
-        </ol>
-    </aside>
+    <!-- ── Body ───────────────────────────────────────────────── -->
+    <form [formGroup]="form" (ngSubmit)="submit()" class="convoc__form">
 
-    <!-- ─── Main ───────────────────────────────────────────── -->
-    <form [formGroup]="form" (ngSubmit)="submit()" class="convoc-main">
+        <div class="convoc__body">
 
-        <header class="convoc-main__head">
-            <div>
-                <h3 class="convoc-main__title">Nueva convocatoria</h3>
-                <p class="convoc-main__sub">Solo verás horarios dentro de tu propia disponibilidad.</p>
-            </div>
-            <button mat-icon-button type="button" class="convoc-main__close" (click)="cancel()" [disabled]="loading()"
-                aria-label="Cerrar">
-                <mat-icon>close</mat-icon>
-            </button>
-        </header>
-
-        <div class="convoc-body">
-
-            <!-- ── 1. Alumno ─────────────────────────────────── -->
-            <section class="convoc-section">
-                <header class="convoc-section__head">
-                    <span class="convoc-section__num">1</span>
+            <!-- 1. Alumno ───────────────────────────────────────── -->
+            <section class="section">
+                <header class="section__head">
+                    <span class="section__num">1</span>
                     <div>
-                        <h4>Alumno</h4>
-                        <small>Busca por nombre o apellido.</small>
+                        <h3 class="section__title">Alumno</h3>
+                        <p class="section__sub">Busca por nombre o apellido.</p>
                     </div>
                 </header>
 
@@ -64,18 +45,18 @@
                     <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayStudent"
                         (optionSelected)="onSelectStudent($event.option.value)" panelWidth="auto">
                         @for (s of students(); track s.id) {
-                        <mat-option [value]="s" class="convoc-opt">
-                            <div class="convoc-opt__avatar">{{ s.nombre[0] }}{{ s.apellido_paterno[0] }}</div>
-                            <div class="convoc-opt__body">
-                                <span class="convoc-opt__name">
+                        <mat-option [value]="s" class="opt">
+                            <div class="opt__avatar">{{ s.nombre[0] }}{{ s.apellido_paterno[0] }}</div>
+                            <div class="opt__body">
+                                <span class="opt__name">
                                     {{ s.nombre }} {{ s.apellido_paterno }} {{ s.apellido_materno }}
                                 </span>
-                                <span class="convoc-opt__meta">{{ s.grado }} · {{ s.seccion }}</span>
+                                <span class="opt__meta">{{ s.grado }} · {{ s.seccion }}</span>
                             </div>
                         </mat-option>
                         }
                         @if (!searching() && students().length === 0 && (form.value.studentQuery?.length ?? 0) >= 2) {
-                        <mat-option disabled class="convoc-opt--empty">
+                        <mat-option disabled class="opt opt--empty">
                             <mat-icon>search_off</mat-icon>
                             <span>Sin resultados</span>
                         </mat-option>
@@ -84,36 +65,37 @@
                 </mat-form-field>
 
                 @if (selected(); as s) {
-                <div class="convoc-pill">
-                    <div class="convoc-pill__avatar">{{ s.nombre[0] }}{{ s.apellido_paterno[0] }}</div>
-                    <div class="convoc-pill__info">
-                        <span class="convoc-pill__name">
+                <div class="pill">
+                    <div class="pill__avatar">{{ s.nombre[0] }}{{ s.apellido_paterno[0] }}</div>
+
+                    <div class="pill__info">
+                        <span class="pill__name">
                             {{ s.nombre }} {{ s.apellido_paterno }} {{ s.apellido_materno }}
                         </span>
-                        <span class="convoc-pill__meta">{{ s.grado }} · {{ s.seccion }}</span>
+                        <span class="pill__meta">{{ s.grado }} · {{ s.seccion }}</span>
                     </div>
 
-                    <div class="convoc-pill__divider" aria-hidden="true"></div>
+                    <div class="pill__divider" aria-hidden="true"></div>
 
-                    <div class="convoc-pill__parent">
+                    <div class="pill__parent">
                         @if (parentLabel()) {
-                        <mat-icon class="convoc-pill__icon convoc-pill__icon--ok">family_restroom</mat-icon>
+                        <mat-icon class="pill__icon pill__icon--ok">family_restroom</mat-icon>
                         <div>
-                            <span class="convoc-pill__label">Padre/Tutor</span>
-                            <span class="convoc-pill__value">{{ parentLabel() }}</span>
+                            <span class="pill__label">Padre/Tutor</span>
+                            <span class="pill__value">{{ parentLabel() }}</span>
                         </div>
                         } @else {
-                        <mat-icon class="convoc-pill__icon convoc-pill__icon--warn">warning</mat-icon>
+                        <mat-icon class="pill__icon pill__icon--warn">warning</mat-icon>
                         <div>
-                            <span class="convoc-pill__label">Sin vínculo</span>
-                            <span class="convoc-pill__value convoc-pill__value--warn">
+                            <span class="pill__label">Sin vínculo</span>
+                            <span class="pill__value pill__value--warn">
                                 Este alumno no tiene padre/tutor en el sistema
                             </span>
                         </div>
                         }
                     </div>
 
-                    <button mat-icon-button type="button" class="convoc-pill__close" (click)="clearStudent()"
+                    <button mat-icon-button type="button" class="pill__close" (click)="clearStudent()"
                         matTooltip="Cambiar alumno" [disabled]="loading()">
                         <mat-icon>close</mat-icon>
                     </button>
@@ -121,17 +103,17 @@
                 }
             </section>
 
-            <!-- ── 2. Tipo + Duración ────────────────────────── -->
-            <section class="convoc-section">
-                <header class="convoc-section__head">
-                    <span class="convoc-section__num">2</span>
+            <!-- 2. Detalles ─────────────────────────────────────── -->
+            <section class="section">
+                <header class="section__head">
+                    <span class="section__num">2</span>
                     <div>
-                        <h4>Detalles de la cita</h4>
-                        <small>Define el tipo de reunión y su duración aproximada.</small>
+                        <h3 class="section__title">Detalles de la cita</h3>
+                        <p class="section__sub">Tipo de reunión y duración aproximada.</p>
                     </div>
                 </header>
 
-                <div class="convoc-grid-2">
+                <div class="grid-2">
                     <mat-form-field appearance="outline">
                         <mat-label>Tipo de reunión</mat-label>
                         <mat-select formControlName="tipo">
@@ -145,26 +127,26 @@
                         <mat-label>Duración</mat-label>
                         <input matInput type="number" min="15" max="180" formControlName="durationMin"
                             (change)="onDurationChange()" />
-                        <span matSuffix class="convoc-suffix">min</span>
+                        <span matSuffix class="suffix">min</span>
                     </mat-form-field>
                 </div>
             </section>
 
-            <!-- ── 3. Calendario disponibilidad ──────────────── -->
-            <section class="convoc-section">
-                <header class="convoc-section__head">
-                    <span class="convoc-section__num">3</span>
+            <!-- 3. Calendario ───────────────────────────────────── -->
+            <section class="section">
+                <header class="section__head">
+                    <span class="section__num">3</span>
                     <div>
-                        <h4>Tu disponibilidad</h4>
-                        <small>Toca un slot verde para reservar ese horario.</small>
+                        <h3 class="section__title">Selecciona un horario libre</h3>
+                        <p class="section__sub">Toca un slot verde para reservar ese horario.</p>
                     </div>
                     @if (loadingAvailability() || loadingSlots()) {
-                    <mat-spinner diameter="16" class="convoc-section__spinner" />
+                    <mat-spinner diameter="16" class="section__spinner" />
                     }
                 </header>
 
                 @if (!hasAvailabilityConfigured() && !loadingAvailability()) {
-                <div class="convoc-warning">
+                <div class="warning">
                     <mat-icon>info</mat-icon>
                     <div>
                         <strong>Aún no configuraste tu disponibilidad.</strong>
@@ -179,7 +161,7 @@
                     (pick)="onSlotPick($event)" (weekChange)="onWeekChange($event)" />
 
                 @if (pickedLabel(); as p) {
-                <div class="convoc-picked">
+                <div class="picked">
                     <mat-icon>check_circle</mat-icon>
                     <span>Horario seleccionado: <strong>{{ p }}</strong></span>
                     <button mat-button type="button" (click)="clearPicked()">Cambiar</button>
@@ -187,13 +169,13 @@
                 }
             </section>
 
-            <!-- ── 4. Motivo + notas ─────────────────────────── -->
-            <section class="convoc-section">
-                <header class="convoc-section__head">
-                    <span class="convoc-section__num">4</span>
+            <!-- 4. Motivo ───────────────────────────────────────── -->
+            <section class="section">
+                <header class="section__head">
+                    <span class="section__num">4</span>
                     <div>
-                        <h4>Mensaje para el padre</h4>
-                        <small>Explica brevemente el motivo de la convocatoria.</small>
+                        <h3 class="section__title">Mensaje para el padre</h3>
+                        <p class="section__sub">Explica brevemente el motivo de la convocatoria.</p>
                     </div>
                 </header>
 
@@ -214,19 +196,19 @@
             </section>
 
             @if (errorMsg()) {
-            <div class="convoc-error" role="alert">
+            <div class="error" role="alert">
                 <mat-icon>error_outline</mat-icon>
                 <span>{{ errorMsg() }}</span>
             </div>
             }
         </div>
 
-        <!-- ─── Footer ────────────────────────────────────── -->
-        <footer class="convoc-actions">
+        <!-- ── Footer ────────────────────────────────────────────── -->
+        <footer class="convoc__actions">
             <button mat-stroked-button type="button" (click)="cancel()" [disabled]="loading()">
                 Cancelar
             </button>
-            <button mat-flat-button color="primary" type="submit" class="convoc-actions__send"
+            <button mat-flat-button color="primary" type="submit" class="convoc__send"
                 [disabled]="loading() || form.invalid || !selected() || !selected()?.padre">
                 @if (loading()) {
                 <mat-spinner diameter="18" />

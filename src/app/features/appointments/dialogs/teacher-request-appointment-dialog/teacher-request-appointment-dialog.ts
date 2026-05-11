@@ -120,13 +120,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
         this.availability().some(a => a.activo),
     );
 
-    // Steps del sidebar — visual feedback.
-    readonly stepActive = computed<1 | 2 | 3>(() => {
-        if (!this.selected()) return 1;
-        if (!this.picked()) return 2;
-        return 3;
-    });
-
     // ── Form ────────────────────────────────────────────────────
     form: FormGroup = this.fb.group({
         studentQuery: ['', [Validators.required]],
