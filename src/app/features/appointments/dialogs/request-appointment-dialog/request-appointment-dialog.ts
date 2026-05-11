@@ -66,7 +66,12 @@ interface PickedSlot {
 })
 export class RequestAppointmentDialog implements OnInit {
     // ── Inyecciones ────────────────────────────────────────────
-    readonly data: RequestAppointmentDialogData = inject(MAT_DIALOG_DATA);
+    // Defensivo: si quien abre el dialog se olvida de pasar `data`,
+    // caemos a modo `alumno` (caso original cuando solo el alumno podía
+    // pedir cita) en vez de lanzar NPE al construir el FormGroup.
+    readonly data: RequestAppointmentDialogData =
+        inject<RequestAppointmentDialogData | null>(MAT_DIALOG_DATA, { optional: true })
+        ?? { mode: 'alumno' };
     private ref = inject(MatDialogRef<RequestAppointmentDialog>);
     private fb = inject(FormBuilder);
     private dialog = inject(MatDialog);

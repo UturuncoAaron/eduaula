@@ -158,6 +158,17 @@
   }
 }
 
+.cell-participante {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+
+  &__sub {
+    font-size: .72rem;
+    color: #64748b;
+  }
+}
+
 /* ── Loader ─────────────────────────────────────────────── */
 .state-center {
   display: flex;
