@@ -31,6 +31,7 @@ import { ConfirmDialog, ConfirmData } from '../confirm-dialog/confirm-dialog';
 import {
   RejectDialog, RejectDialogData, RejectDialogResult,
 } from '../reject-dialog/reject-dialog';
+import { AppointmentFormDialogData } from '../../../features/psychology/dialogs/appointment-form-dialog/appointment-form-dialog';
 
 type EstadoFilter = AppointmentEstado | 'all';
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'past';
@@ -75,9 +76,7 @@ export class TabCitas {
   readonly esPadre = computed(() => this.rol() === 'padre');
   readonly esAlumno = computed(() => this.rol() === 'alumno');
 
-  // Roles con calendario propio: pueden crear citas y marcar disponibilidad
   readonly puedeCrear = computed(() => hasAvailability(this.rol()));
-  // Roles sin calendario propio: aceptan o rechazan citas pendientes
   readonly esConvocadoSinCalendario = computed(
     () => this.esPadre() || this.esAlumno(),
   );
@@ -94,7 +93,7 @@ export class TabCitas {
     { value: 'realizada', label: 'Realizada' },
     { value: 'cancelada', label: 'Cancelada' },
     { value: 'rechazada', label: 'Rechazada' },
-    { value: 'no_asistio', label: 'No asistió' },
+    { value: 'no_asistio', label: 'No asistio' },
   ];
 
   readonly fechas: DateOption[] = [
@@ -140,7 +139,8 @@ export class TabCitas {
         }
       }
 
-      if (term && !this.participantLabel(a).toLowerCase().includes(term) &&
+      if (term &&
+        !this.participantLabel(a).toLowerCase().includes(term) &&
         !this.studentLabel(a).toLowerCase().includes(term)) return false;
       return true;
     });
@@ -171,17 +171,13 @@ export class TabCitas {
   }
 
   // ── Helpers de etiqueta ──────────────────────────────────────
-
-  // La "otra parte" de la cita — depende del rol
   participantLabel(a: Appointment): string {
     const me = this.auth.currentUser()?.id;
-    // Si el usuario actual es el convocador → mostrar a quién convocó
     if (a.createdById === me) {
       const p = a.convocadoA;
       if (!p) return '—';
       return `${p.nombre ?? ''} ${p.apellido_paterno ?? ''}`.trim();
     }
-    // Si fue convocado → mostrar quién convocó
     const c = a.convocadoPor;
     if (!c) return '—';
     return `${c.nombre ?? ''} ${c.apellido_paterno ?? ''}`.trim();
@@ -193,12 +189,6 @@ export class TabCitas {
     return `${s.nombre} ${s.apellido_paterno} ${s.apellido_materno ?? ''}`.trim();
   }
 
-  /**
-   * Mostramos el alumno como sub-línea solo cuando aporta info extra:
-   * la cita tiene un alumno asociado distinto del participante mostrado
-   * (típico: docente cita al padre por un hijo). Para padres y alumnos
-   * el dato no es relevante visualmente.
-   */
   showStudentSubline(a: Appointment): boolean {
     if (!a.student) return false;
     if (this.esPadre() || this.esAlumno()) return false;
@@ -211,23 +201,18 @@ export class TabCitas {
 
   estadoColor(estado: AppointmentEstado): string {
     const map: Record<string, string> = {
-      pendiente: 'accent',
-      confirmada: 'primary',
-      cancelada: 'warn',
-      rechazada: 'warn',
-      realizada: '',
-      no_asistio: 'warn',
+      pendiente: 'accent', confirmada: 'primary',
+      cancelada: 'warn', rechazada: 'warn',
+      realizada: '', no_asistio: 'warn',
     };
     return map[estado] ?? '';
   }
 
-  // ── Permisos de acción ───────────────────────────────────────
-  // Padre/alumno confirman cuando son el convocado
+  // ── Permisos de accion ───────────────────────────────────────
   esSoyConvocado(a: Appointment): boolean {
     return a.convocadoAId === this.auth.currentUser()?.id;
   }
 
-  /** Puede aceptar/rechazar: padre o alumno convocado en cita pendiente. */
   canRespond(a: Appointment): boolean {
     return a.estado === 'pendiente' &&
       this.esConvocadoSinCalendario() &&
@@ -236,9 +221,7 @@ export class TabCitas {
 
   canConfirm(a: Appointment): boolean {
     if (a.estado !== 'pendiente') return false;
-    // Roles con calendario propio pueden marcar como confirmada manualmente
     if (hasAvailability(this.rol())) return true;
-    // Padre/alumno usan canRespond → botones aceptar/rechazar
     return false;
   }
 
@@ -276,14 +259,17 @@ export class TabCitas {
         '../../../features/psychology/dialogs/appointment-form-dialog/appointment-form-dialog'
       );
       const ref = this.dialog.open(AppointmentFormDialog, {
-        width: '720px', maxWidth: '95vw', data: {},
+  
+
+        panelClass: 'afd-panel',
+        autoFocus: 'first-tabbable',
+        data: {} satisfies AppointmentFormDialogData,
       });
       ref.afterClosed().subscribe(ok => {
         if (ok) void this.apptStore.loadMyAppointments();
       });
+
     } else if (this.esDocente() || this.esAdmin() || this.esAuxiliar()) {
-      // Docente / admin / auxiliar usan el mismo dialog: arman la cita
-      // tocando un slot de SU propia disponibilidad.
       const { TeacherRequestAppointmentDialog } = await import(
         '../../../features/appointments/dialogs/teacher-request-appointment-dialog/teacher-request-appointment-dialog'
       );
@@ -295,14 +281,11 @@ export class TabCitas {
       ref.afterClosed().subscribe(ok => {
         if (ok) void this.apptStore.loadMyAppointments();
       });
+
     } else {
-      // padre / alumno → RequestAppointmentDialog con calendario
       const { RequestAppointmentDialog } = await import(
         '../../../features/appointments/dialogs/request-appointment-dialog/request-appointment-dialog'
       );
-      // El dialog declara MAT_DIALOG_DATA como obligatorio: si no le pasamos
-      // un objeto, `this.data.preselectedChildId` explota con NPE al construir
-      // el FormGroup.
       const ref = this.dialog.open(RequestAppointmentDialog, {
         width: '900px', maxWidth: '95vw',
         panelClass: 'appointment-dialog-panel',
@@ -328,7 +311,6 @@ export class TabCitas {
     }
   }
 
-  /** Padre/alumno aceptan una cita pendiente. */
   async aceptar(row: Appointment): Promise<void> {
     try {
       await this.apptStore.acceptAppointment(row.id);
@@ -338,11 +320,8 @@ export class TabCitas {
     }
   }
 
-  /** Padre/alumno rechazan con motivo (abre dialog dedicado). */
   async rechazar(row: Appointment): Promise<void> {
-    const data: RejectDialogData = {
-      contextLabel: this.rejectContext(row),
-    };
+    const data: RejectDialogData = { contextLabel: this.rejectContext(row) };
     const res = await firstValueFrom(
       this.dialog.open<RejectDialog, RejectDialogData, RejectDialogResult>(
         RejectDialog,
@@ -361,12 +340,8 @@ export class TabCitas {
 
   private rejectContext(a: Appointment): string {
     const d = new Date(a.scheduledAt);
-    const fecha = d.toLocaleDateString('es-PE', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-    });
-    const hora = d.toLocaleTimeString('es-PE', {
-      hour: '2-digit', minute: '2-digit',
-    });
+    const fecha = d.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const hora = d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     const con = this.participantLabel(a);
     return `${fecha} a las ${hora} con ${con}`;
   }
@@ -377,8 +352,8 @@ export class TabCitas {
         width: '420px',
         data: {
           title: 'Cancelar cita',
-          message: '¿Cancelar esta cita? Esta acción no se puede deshacer.',
-          confirm: 'Sí, cancelar',
+          message: 'Cancelar esta cita? Esta accion no se puede deshacer.',
+          confirm: 'Si, cancelar',
           cancel: 'Volver',
           danger: true,
         },

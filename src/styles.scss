@@ -631,3 +631,17 @@ td.mat-mdc-cell {
     }
   }
 }
+// styles.scss
+.afd-panel {
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+    border-radius: 16px !important;
+    overflow: hidden;
+  }
+
+  .mdc-dialog__surface {
+    border-radius: 16px !important;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+}

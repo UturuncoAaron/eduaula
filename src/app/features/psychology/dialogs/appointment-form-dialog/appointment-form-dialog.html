@@ -1,49 +1,74 @@
-<h2 mat-dialog-title>
-    <mat-icon>event</mat-icon>
-    Nueva cita
-</h2>
+<div class="afd-header">
+    <div class="afd-header__icon">
+        <mat-icon>calendar_month</mat-icon>
+    </div>
+    <div class="afd-header__text">
+        <h2>Nueva cita</h2>
+        <span>Modalidad presencial</span>
+    </div>
+    <button mat-icon-button type="button" (click)="cancel()" class="afd-header__close" matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
 
 <form [formGroup]="form" (ngSubmit)="submit()">
-    <mat-dialog-content class="dialog-body">
+    <mat-dialog-content class="afd-body">
 
-        <div class="participant-toggles">
-            <mat-checkbox [checked]="includeStudent()" (change)="toggleIncludeStudent($event.checked)">
-                Incluir alumno
-            </mat-checkbox>
-            <mat-checkbox [checked]="includeParent()" (change)="toggleIncludeParent($event.checked)">
-                Incluir padre/tutor
-            </mat-checkbox>
-        </div>
+        <!-- Seccion 1: Participantes -->
+        <section class="afd-section">
+            <p class="afd-section__label">Participantes</p>
+            <div class="afd-participant-toggles">
+                <button type="button" class="afd-participant-toggle"
+                    [class.afd-participant-toggle--active]="includeStudent()"
+                    (click)="toggleIncludeStudent(!includeStudent())">
+                    <mat-icon>school</mat-icon>
+                    <span>Alumno</span>
+                    <mat-icon class="afd-participant-toggle__check">
+                        {{ includeStudent() ? "check_circle" : "radio_button_unchecked" }}
+                    </mat-icon>
+                </button>
+                <button type="button" class="afd-participant-toggle"
+                    [class.afd-participant-toggle--active]="includeParent()"
+                    (click)="toggleIncludeParent(!includeParent())">
+                    <mat-icon>family_restroom</mat-icon>
+                    <span>Padre / Tutor</span>
+                    <mat-icon class="afd-participant-toggle__check">
+                        {{ includeParent() ? "check_circle" : "radio_button_unchecked" }}
+                    </mat-icon>
+                </button>
+            </div>
+        </section>
 
+        <!-- Busqueda alumno -->
         @if (includeStudent()) {
-        <div class="row">
+        <div class="afd-search-row">
             @if (selectedStudent(); as st) {
-            <div class="selected-student">
-                <div class="info">
+            <div class="afd-chip">
+                <div class="afd-chip__avatar">{{ initials(st.nombre, st.apellido_paterno) }}</div>
+                <div class="afd-chip__info">
                     <strong>{{ fullName(st) }}</strong>
-                    <span class="muted">{{ st.codigo_estudiante }}</span>
+                    <span>{{ st.codigo_estudiante }}</span>
                 </div>
-                <button mat-icon-button type="button" (click)="clearStudent()" matTooltip="Cambiar alumno">
+                <button mat-icon-button type="button" (click)="clearStudent()" class="afd-chip__remove">
                     <mat-icon>close</mat-icon>
                 </button>
             </div>
             } @else {
-            <mat-form-field appearance="outline" class="full">
+            <mat-form-field appearance="outline" class="afd-field-full">
                 <mat-label>Buscar alumno</mat-label>
+                <mat-icon matPrefix>school</mat-icon>
                 <input matInput [matAutocomplete]="studentAuto" [value]="studentSearchQuery()"
-                    (input)="onSearchStudents($any($event.target).value)" placeholder="Nombre, apellido o código" />
-                @if (searching()) {
-                <mat-spinner matSuffix diameter="18" />
-                } @else {
-                <mat-icon matSuffix>search</mat-icon>
-                }
+                    (input)="onSearchStudents($any($event.target).value)" placeholder="Nombre, apellido o codigo" />
+                @if (searching()) { <mat-spinner matSuffix diameter="16" /> }
+                @else { <mat-icon matSuffix>search</mat-icon> }
                 <mat-autocomplete #studentAuto="matAutocomplete"
                     (optionSelected)="onStudentSelected($event.option.value)">
                     @for (s of availableStudents(); track s.id) {
                     <mat-option [value]="s">
-                        <div class="opt-line">
-                            <span>{{ fullName(s) }}</span>
-                            <small class="muted">{{ s.codigo_estudiante }}</small>
+                        <div class="afd-option">
+                            <div class="afd-option__avatar">{{ initials(s.nombre, s.apellido_paterno) }}</div>
+                            <div class="afd-option__info"><span>{{ fullName(s) }}</span><small>{{ s.codigo_estudiante
+                                    }}</small></div>
                         </div>
                     </mat-option>
                     }
@@ -56,33 +81,35 @@
         </div>
         }
 
+        <!-- Busqueda padre -->
         @if (includeParent()) {
-        <div class="row">
+        <div class="afd-search-row">
             @if (selectedParent(); as sp) {
-            <div class="selected-student">
-                <div class="info">
+            <div class="afd-chip">
+                <div class="afd-chip__avatar">{{ initials(sp.nombre, sp.apellido_paterno) }}</div>
+                <div class="afd-chip__info">
                     <strong>{{ parentFullName(sp) }}</strong>
+                    <span>Padre / Tutor</span>
                 </div>
-                <button mat-icon-button type="button" (click)="clearParent()" matTooltip="Cambiar padre/tutor">
+                <button mat-icon-button type="button" (click)="clearParent()" class="afd-chip__remove">
                     <mat-icon>close</mat-icon>
                 </button>
             </div>
             } @else {
-            <mat-form-field appearance="outline" class="full">
+            <mat-form-field appearance="outline" class="afd-field-full">
                 <mat-label>Buscar padre / madre / tutor</mat-label>
+                <mat-icon matPrefix>family_restroom</mat-icon>
                 <input matInput [matAutocomplete]="parentAuto" [value]="parentSearchQuery()"
-                    (input)="onSearchParents($any($event.target).value)" placeholder="Nombre o código" />
-                @if (searchingParent()) {
-                <mat-spinner matSuffix diameter="18" />
-                } @else {
-                <mat-icon matSuffix>search</mat-icon>
-                }
+                    (input)="onSearchParents($any($event.target).value)" placeholder="Nombre o codigo" />
+                @if (searchingParent()) { <mat-spinner matSuffix diameter="16" /> }
+                @else { <mat-icon matSuffix>search</mat-icon> }
                 <mat-autocomplete #parentAuto="matAutocomplete"
                     (optionSelected)="onParentSelected($event.option.value)">
                     @for (p of parentSearchResults(); track p.id) {
                     <mat-option [value]="p">
-                        <div class="opt-line">
-                            <span>{{ parentFullName(p) }}</span>
+                        <div class="afd-option">
+                            <div class="afd-option__avatar">{{ initials(p.nombre, p.apellido_paterno) }}</div>
+                            <div class="afd-option__info"><span>{{ parentFullName(p) }}</span></div>
                         </div>
                     </mat-option>
                     }
@@ -95,93 +122,72 @@
         </div>
         }
 
-        <div class="row two">
-            <mat-form-field appearance="outline">
-                <mat-label>Tipo</mat-label>
-                <mat-select formControlName="tipo">
-                    @for (t of tipos; track t.value) {
-                    <mat-option [value]="t.value">{{ t.label }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
-
-            <div class="modalidad-info" aria-live="polite">
-                <mat-icon class="modalidad-info__icon">meeting_room</mat-icon>
-                <div class="modalidad-info__text">
-                    <span class="modalidad-info__label">Modalidad</span>
-                    <strong>Presencial</strong>
-                </div>
-            </div>
-        </div>
-
-        <div class="row three">
-            <mat-form-field appearance="outline">
-                <mat-label>Duración (min)</mat-label>
-                <input matInput type="number" min="15" max="180" formControlName="durationMin"
-                    (change)="onDurationChange()" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Fecha</mat-label>
-                <input matInput [matDatepicker]="picker" [min]="minDate" formControlName="date" readonly
-                    (click)="picker.open()" />
-                <mat-datepicker-toggle matIconSuffix [for]="picker" />
-                <mat-datepicker #picker />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Hora</mat-label>
-                <input matInput formControlName="time" placeholder="HH:mm" />
-                <mat-hint>Mínimo 15 min de anticipación.</mat-hint>
-            </mat-form-field>
-        </div>
-
-        <section class="booking">
-            <header class="booking__header">
-                <mat-icon>event_available</mat-icon>
-                <span>Selecciona un horario disponible</span>
-                @if (loadingAvailability() || loadingSlots()) {
-                <mat-spinner diameter="14" />
+        <!-- Seccion 2: Tipo de cita -->
+        <section class="afd-section">
+            <p class="afd-section__label">Tipo de cita</p>
+            <div class="afd-tipo-pills">
+                @for (t of tipos; track t.value) {
+                <button type="button" class="afd-tipo-pill"
+                    [class.afd-tipo-pill--active]="form.get('tipo')?.value === t.value"
+                    (click)="form.get('tipo')?.setValue(t.value)">
+                    <mat-icon>{{ t.icon }}</mat-icon>
+                    <span>{{ t.label }}</span>
+                </button>
                 }
-            </header>
+            </div>
+        </section>
+
+        <!-- Seccion 3: Calendario -->
+        <!-- endHour=14 porque es horario escolar -->
+        <section class="afd-section">
+            <div class="afd-section__header">
+                <p class="afd-section__label">Selecciona un horario</p>
+                @if (loadingAvailability() || loadingSlots()) { <mat-spinner diameter="14" /> }
+            </div>
 
             @if (availability().length === 0 && !loadingAvailability()) {
-            <p class="booking__hint muted">
-                No tienes disponibilidad configurada. Ve a tu pestaña de
-                <strong>Disponibilidad</strong> para definir tus horarios de citas.
-            </p>
+            <div class="afd-empty-availability">
+                <mat-icon>event_busy</mat-icon>
+                <p>No tienes disponibilidad configurada.<br>
+                    <strong>Ve a tu pestana de Disponibilidad</strong> para definir tus horarios.
+                </p>
+            </div>
             }
 
             <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()" [weekStart]="weekStart()"
-                [loading]="loadingAvailability() || loadingSlots()"
-                [selectedDia]="picked()?.dia ?? null" [selectedHour]="picked()?.hour ?? null"
-                (pick)="onSlotPick($event)" (weekChange)="onWeekChange($event)" />
+                [loading]="loadingAvailability() || loadingSlots()" [startHour]="7" [endHour]="14"
+                (pick)="onSlotPick($event)" (clear)="onCalendarClear()" (weekChange)="onWeekChange($event)" />
 
             @if (pickedLabel(); as p) {
-            <div class="booking__picked">
+            <div class="afd-picked">
                 <mat-icon>check_circle</mat-icon>
-                <span>Seleccionado: <strong>{{ p }}</strong></span>
+                <span>{{ p }}</span>
                 <button mat-button type="button" (click)="clearPicked()">Cambiar</button>
             </div>
             }
         </section>
 
-        <mat-form-field appearance="outline" class="full">
-            <mat-label>Motivo</mat-label>
-            <input matInput formControlName="motivo" placeholder="Resumen breve del motivo de la cita" />
-            @if (form.get('motivo')?.hasError('minlength') && form.get('motivo')?.touched) {
-            <mat-error>Mínimo 5 caracteres</mat-error>
-            }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full">
-            <mat-label>Notas previas (opcional)</mat-label>
-            <textarea matInput rows="3" formControlName="priorNotes"
-                placeholder="Información de contexto antes de la sesión"></textarea>
-        </mat-form-field>
+        <!-- Seccion 4: Detalles -->
+        <section class="afd-section">
+            <p class="afd-section__label">Detalles</p>
+            <mat-form-field appearance="outline" class="afd-field-full">
+                <mat-label>Motivo de la cita</mat-label>
+                <mat-icon matPrefix>notes</mat-icon>
+                <input matInput formControlName="motivo" placeholder="Resumen breve del motivo" />
+                @if (form.get("motivo")?.hasError("minlength") && form.get("motivo")?.touched) {
+                <mat-error>Minimo 5 caracteres</mat-error>
+                }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="afd-field-full">
+                <mat-label>Notas previas <span class="afd-optional">(opcional)</span></mat-label>
+                <mat-icon matPrefix>edit_note</mat-icon>
+                <textarea matInput rows="3" formControlName="priorNotes"
+                    placeholder="Informacion de contexto antes de la sesion"></textarea>
+            </mat-form-field>
+        </section>
 
         @if (errorMsg()) {
-        <div class="error-msg" role="alert">
+        <div class="afd-error" role="alert">
             <mat-icon>error_outline</mat-icon>
             <span>{{ errorMsg() }}</span>
         </div>
@@ -189,13 +195,11 @@
 
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end">
-        <button mat-button type="button" (click)="cancel()" [disabled]="loading()">
-            Cancelar
-        </button>
+    <div class="afd-footer">
+        <button mat-button type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
         <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
             @if (loading()) { <mat-spinner diameter="18" /> }
-            @else { <ng-container><mat-icon>event_available</mat-icon><span>Programar</span></ng-container> }
+            @else{ <ng-container><mat-icon>event_available</mat-icon><span>Programar cita</span></ng-container> }
         </button>
-    </mat-dialog-actions>
+    </div>
 </form>

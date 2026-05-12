@@ -8,14 +8,11 @@ import {
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import {
@@ -45,7 +42,9 @@ const MIN_LEAD_MINUTES = 15;
 interface PickedSlot {
   dia: DiaSemana;
   hour: string;
-  dateLabel: string;  // 'dd/MM' para mostrar al usuario
+  endHour: string;
+  durationMin: number;
+  dateLabel: string;
 }
 
 @Component({
@@ -55,16 +54,16 @@ interface PickedSlot {
   imports: [
     ReactiveFormsModule,
     MatDialogModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIconModule,
+    MatButtonModule, MatIconModule,
     MatProgressSpinnerModule, MatAutocompleteModule, MatTooltipModule,
-    MatDatepickerModule, MatCheckboxModule,
     BookingCalendar,
   ],
   templateUrl: './appointment-form-dialog.html',
   styleUrl: './appointment-form-dialog.scss',
 })
 export class AppointmentFormDialog implements OnInit {
-  // ── Inyecciones ──────────────────────────────────────────────
+
+  // Inyecciones
   readonly data: AppointmentFormDialogData = inject(MAT_DIALOG_DATA);
   private ref = inject(MatDialogRef<AppointmentFormDialog>);
   private fb = inject(FormBuilder);
@@ -73,19 +72,17 @@ export class AppointmentFormDialog implements OnInit {
   readonly store = inject(PsychologyStore);
   readonly appointmentsStore = inject(AppointmentsStore);
 
-  // ── Catálogos / config ───────────────────────────────────────
-  readonly tipos: { value: AppointmentTipo; label: string }[] = [
-    { value: 'academico', label: 'Académico' },
-    { value: 'conductual', label: 'Conductual' },
-    { value: 'psicologico', label: 'Psicológico' },
-    { value: 'familiar', label: 'Familiar' },
-    { value: 'disciplinario', label: 'Disciplinario' },
-    { value: 'otro', label: 'Otro' },
+  // Catalogos
+  readonly tipos: { value: AppointmentTipo; label: string; icon: string }[] = [
+    { value: 'academico', label: 'Academico', icon: 'menu_book' },
+    { value: 'conductual', label: 'Conductual', icon: 'psychology_alt' },
+    { value: 'psicologico', label: 'Psicologico', icon: 'psychology' },
+    { value: 'familiar', label: 'Familiar', icon: 'family_restroom' },
+    { value: 'disciplinario', label: 'Disciplinario', icon: 'gavel' },
+    { value: 'otro', label: 'Otro', icon: 'more_horiz' },
   ];
 
-  readonly minDate = startOfDay(new Date());
-
-  // ── Estado UI ────────────────────────────────────────────────
+  // Estado UI
   loading = signal(false);
   loadingParents = signal(false);
   loadingSlots = signal(false);
@@ -94,7 +91,7 @@ export class AppointmentFormDialog implements OnInit {
   searchingParent = signal(false);
   errorMsg = signal('');
 
-  // ── Búsqueda de participantes ────────────────────────────────
+  // Participantes
   parents = signal<ParentOfStudent[]>([]);
   searchResults = signal<AssignedStudent[]>([]);
   parentSearchResults = signal<SearchableParent[]>([]);
@@ -105,7 +102,7 @@ export class AppointmentFormDialog implements OnInit {
   includeStudent = signal(true);
   includeParent = signal(false);
 
-  // ── Calendario booking ───────────────────────────────────────
+  // Calendario
   weekStart = signal<string>(getCurrentMonday());
   availability = signal<AccountAvailability[]>([]);
   slotsTaken = signal<SlotTaken[]>([]);
@@ -114,7 +111,7 @@ export class AppointmentFormDialog implements OnInit {
   readonly pickedLabel = computed<string | null>(() => {
     const p = this.picked();
     if (!p) return null;
-    return `${diaLabel(p.dia)} ${p.dateLabel} a las ${p.hour}`;
+    return `${diaLabel(p.dia)} ${p.dateLabel} - ${p.hour} hasta ${p.endHour} (${p.durationMin} min)`;
   });
 
   readonly availableStudents = computed<AssignedStudent[]>(() => {
@@ -135,9 +132,9 @@ export class AppointmentFormDialog implements OnInit {
     return merged.slice(0, 25);
   });
 
-  // ── Form ─────────────────────────────────────────────────────
+  // Form — date/time/durationMin se llenan desde el calendario, no hay inputs manuales
   form: FormGroup = this.fb.group({
-    studentId: [this.data.preselectedStudentId ?? ''],
+    studentId: [this.data?.preselectedStudentId ?? ''],
     parentId: [''],
     tipo: ['psicologico', [Validators.required]],
     motivo: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
@@ -147,11 +144,10 @@ export class AppointmentFormDialog implements OnInit {
     priorNotes: [''],
   });
 
-  // ── Lifecycle ────────────────────────────────────────────────
   ngOnInit(): void {
     if (this.store.myStudents().length === 0) this.store.loadMyStudents();
 
-    if (this.data.preselectedStudentId) {
+    if (this.data?.preselectedStudentId) {
       this.loadParents(this.data.preselectedStudentId);
       this.includeParent.set(true);
       const found = this.store.myStudents().find(s => s.id === this.data.preselectedStudentId);
@@ -162,7 +158,7 @@ export class AppointmentFormDialog implements OnInit {
     this.refreshSlotsTaken();
   }
 
-  // ── Calendario booking ───────────────────────────────────────
+  // Calendario
   onWeekChange(weekStart: string): void {
     this.weekStart.set(weekStart);
     this.clearPicked();
@@ -173,25 +169,31 @@ export class AppointmentFormDialog implements OnInit {
     this.picked.set({
       dia: ev.dia,
       hour: ev.hour,
+      endHour: ev.endHour,
+      durationMin: ev.durationMin,
       dateLabel: `${pad2(ev.date.getDate())}/${pad2(ev.date.getMonth() + 1)}`,
     });
     this.form.patchValue({
       date: startOfDay(ev.date),
       time: ev.hour,
+      durationMin: ev.durationMin,
     });
+  }
+
+  onCalendarClear(): void {
+    this.clearPicked();
   }
 
   clearPicked(): void {
     this.picked.set(null);
-    this.form.patchValue({ date: null, time: '' });
+    this.form.patchValue({ date: null, time: '', durationMin: 30 });
   }
 
-  async onDurationChange(): Promise<void> {
-    this.clearPicked();
-    await this.refreshSlotsTaken();
+  // Helpers
+  initials(nombre: string, apellido: string): string {
+    return `${nombre?.charAt(0) ?? ''}${apellido?.charAt(0) ?? ''}`.toUpperCase();
   }
 
-  // ── Búsqueda alumno ──────────────────────────────────────────
   fullName(s: AssignedStudent): string {
     return `${s.nombre} ${s.apellido_paterno} ${s.apellido_materno ?? ''}`.trim();
   }
@@ -206,20 +208,15 @@ export class AppointmentFormDialog implements OnInit {
     return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
   }
 
+  // Busqueda alumnos
   async onSearchStudents(value: string): Promise<void> {
     this.studentSearchQuery.set(value);
     const term = value.trim();
     if (term.length < 2) { this.searchResults.set([]); return; }
-
     this.searching.set(true);
-    try {
-      const found = await this.store.searchAllStudents(term);
-      this.searchResults.set(found);
-    } catch {
-      this.searchResults.set([]);
-    } finally {
-      this.searching.set(false);
-    }
+    try { this.searchResults.set(await this.store.searchAllStudents(term)); }
+    catch { this.searchResults.set([]); }
+    finally { this.searching.set(false); }
   }
 
   onStudentSelected(student: AssignedStudent): void {
@@ -234,20 +231,15 @@ export class AppointmentFormDialog implements OnInit {
     this.form.patchValue({ studentId: '' });
   }
 
+  // Busqueda padres
   async onSearchParents(value: string): Promise<void> {
     this.parentSearchQuery.set(value);
     const term = value.trim();
     if (term.length < 2) { this.parentSearchResults.set([]); return; }
-
     this.searchingParent.set(true);
-    try {
-      const found = await this.store.searchAllParents(term);
-      this.parentSearchResults.set(found);
-    } catch {
-      this.parentSearchResults.set([]);
-    } finally {
-      this.searchingParent.set(false);
-    }
+    try { this.parentSearchResults.set(await this.store.searchAllParents(term)); }
+    catch { this.parentSearchResults.set([]); }
+    finally { this.searchingParent.set(false); }
   }
 
   onParentSelected(parent: SearchableParent): void {
@@ -264,50 +256,31 @@ export class AppointmentFormDialog implements OnInit {
 
   toggleIncludeStudent(checked: boolean): void {
     this.includeStudent.set(checked);
-    if (!checked) {
-      this.clearStudent();
-      if (!this.includeParent()) this.includeParent.set(true);
-    }
+    if (!checked) { this.clearStudent(); if (!this.includeParent()) this.includeParent.set(true); }
   }
 
   toggleIncludeParent(checked: boolean): void {
     this.includeParent.set(checked);
-    if (!checked) {
-      this.clearParent();
-      if (!this.includeStudent()) this.includeStudent.set(true);
-    }
+    if (!checked) { this.clearParent(); if (!this.includeStudent()) this.includeStudent.set(true); }
   }
 
-  // ── Carga remota ─────────────────────────────────────────────
+  // Carga remota
   private async loadOwnAvailability(): Promise<void> {
     const profId = this.auth.currentUser()?.id;
     if (!profId) return;
-
     this.loadingAvailability.set(true);
-    try {
-      const items = await this.appointmentsStore.getAvailability(profId);
-
-      this.availability.set(items);
-    } catch {
-      this.availability.set([]);
-    } finally {
-      this.loadingAvailability.set(false);
-    }
+    try { this.availability.set(await this.appointmentsStore.getAvailability(profId)); }
+    catch { this.availability.set([]); }
+    finally { this.loadingAvailability.set(false); }
   }
 
   private async refreshSlotsTaken(): Promise<void> {
     const profId = this.auth.currentUser()?.id;
     if (!profId) return;
-
     this.loadingSlots.set(true);
-    try {
-      const items = await this.appointmentsStore.getSlotsTaken(profId, this.weekStart());
-      this.slotsTaken.set(items);
-    } catch {
-      this.slotsTaken.set([]);
-    } finally {
-      this.loadingSlots.set(false);
-    }
+    try { this.slotsTaken.set(await this.appointmentsStore.getSlotsTaken(profId, this.weekStart())); }
+    catch { this.slotsTaken.set([]); }
+    finally { this.loadingSlots.set(false); }
   }
 
   private async loadParents(studentId: string): Promise<void> {
@@ -316,14 +289,11 @@ export class AppointmentFormDialog implements OnInit {
       const parents = await this.store.getStudentParents(studentId);
       this.parents.set(parents);
       if (parents.length === 1) this.form.patchValue({ parentId: parents[0].id });
-    } catch {
-      this.parents.set([]);
-    } finally {
-      this.loadingParents.set(false);
-    }
+    } catch { this.parents.set([]); }
+    finally { this.loadingParents.set(false); }
   }
 
-  // ── Submit ───────────────────────────────────────────────────
+  // Submit
   cancel(): void { this.ref.close(false); }
 
   async submit(): Promise<void> {
@@ -334,21 +304,17 @@ export class AppointmentFormDialog implements OnInit {
       this.errorMsg.set('Debe seleccionar al menos un alumno o un padre/tutor.');
       return;
     }
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
     const psicologaId = this.auth.currentUser()?.id;
-    if (!psicologaId) { this.errorMsg.set('Sesión inválida.'); return; }
+    if (!psicologaId) { this.errorMsg.set('Sesion invalida.'); return; }
 
     const v = this.form.value;
     const scheduled = combineDateAndTime(v.date as Date, v.time as string);
     const minStart = Date.now() + MIN_LEAD_MINUTES * 60_000;
+
     if (Number.isNaN(scheduled.getTime()) || scheduled.getTime() < minStart) {
-      this.errorMsg.set(
-        `La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} minutos de anticipación.`,
-      );
+      this.errorMsg.set(`La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} min de anticipacion.`);
       return;
     }
 
@@ -371,7 +337,7 @@ export class AppointmentFormDialog implements OnInit {
         durationMin: v.durationMin,
         priorNotes: v.priorNotes || undefined,
       });
-      this.toastr.success('Cita creada');
+      this.toastr.success('Cita programada correctamente');
       this.ref.close(true);
     } catch (err: unknown) {
       this.errorMsg.set(parseApiError(err, 'No se pudo crear la cita'));
@@ -381,5 +347,4 @@ export class AppointmentFormDialog implements OnInit {
   }
 }
 
-// Re-export para no romper imports antiguos del helper.
 export { parseApiError } from '../../../../shared/utils/api-errors';

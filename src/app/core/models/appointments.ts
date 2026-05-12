@@ -44,10 +44,68 @@ export interface AppointmentRoleRule {
     role: AppointmentRole;
     fixedDurationMin: number | null;
     maxDurationMin: number;
-    allowedDays: string[];        // ['lunes','martes',...]
-    defaultHours: { start: string; end: string };  // 'HH:MM'
+    allowedDays: string[];                       // ['lunes','martes',...]
+    defaultHours: { start: string; end: string }; // 'HH:MM'
     directBooking: boolean;
     label: string;
+}
+
+/**
+ * Mirror frontend de las reglas del BE. Los dialogs de STAFF
+ * (teacher/admin) lo usan para conocer su propia duración sin tener
+ * que pegarle al endpoint. El dialog del PADRE igual usa el endpoint
+ * GET /appointments/rules/:id (porque depende del profesional elegido).
+ */
+export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
+    psicologa: {
+        role: 'psicologa', fixedDurationMin: 30, maxDurationMin: 30,
+        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+        defaultHours: { start: '08:00', end: '16:00' },
+        directBooking: true, label: 'Psicología',
+    },
+    docente: {
+        role: 'docente', fixedDurationMin: 45, maxDurationMin: 45,
+        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+        defaultHours: { start: '08:00', end: '15:30' },
+        directBooking: false, label: 'Docente',
+    },
+    director: {
+        role: 'director', fixedDurationMin: 15, maxDurationMin: 15,
+        allowedDays: ['martes', 'jueves'],
+        defaultHours: { start: '08:00', end: '15:30' },
+        directBooking: false, label: 'Dirección',
+    },
+    admin: {
+        role: 'admin', fixedDurationMin: 15, maxDurationMin: 30,
+        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+        defaultHours: { start: '08:00', end: '15:30' },
+        directBooking: false, label: 'Administración',
+    },
+    auxiliar: {
+        role: 'auxiliar', fixedDurationMin: null, maxDurationMin: 60,
+        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+        defaultHours: { start: '08:00', end: '15:30' },
+        directBooking: false, label: 'Auxiliar',
+    },
+    padre: {
+        role: 'padre', fixedDurationMin: null, maxDurationMin: 60,
+        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'],
+        defaultHours: { start: '07:00', end: '20:00' },
+        directBooking: false, label: 'Padre/Tutor',
+    },
+};
+
+export function ruleForRol(
+    rol: string | undefined | null,
+    cargo?: string | null,
+): AppointmentRoleRule {
+    if (rol === 'admin' && cargo && /director/i.test(cargo)) {
+        return APPOINTMENT_RULES.director;
+    }
+    if (rol && rol in APPOINTMENT_RULES) {
+        return APPOINTMENT_RULES[rol as AppointmentRole];
+    }
+    return APPOINTMENT_RULES.padre;
 }
 
 // ── Cita ────────────────────────────────────────────────────────
@@ -72,7 +130,6 @@ export interface Appointment {
     cancelReason: string | null;
     createdAt: string;
     updatedAt: string;
-    // Joins opcionales enriquecidos por el backend
     student?: {
         id: string;
         nombre: string;

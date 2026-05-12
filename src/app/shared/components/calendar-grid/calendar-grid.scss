@@ -333,10 +333,25 @@
     }
 
     &--taken {
-        background: var(--cal-taken-bg);
-        border-inline-start: 3px solid var(--cal-taken);
+        background: repeating-linear-gradient(45deg,
+                #fef2f2,
+                #fef2f2 4px,
+                #fee2e2 4px,
+                #fee2e2 8px);
+        border-inline-start: 3px solid #ef4444;
         cursor: not-allowed;
-        opacity: 0.7;
+        opacity: 0.85;
+
+        .cal__cell-title {
+            color: #b91c1c;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .cal__cell-time {
+            color: #dc2626;
+            opacity: 0.8;
+        }
     }
 
     &--event {
