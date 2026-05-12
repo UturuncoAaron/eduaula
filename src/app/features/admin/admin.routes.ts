@@ -59,6 +59,18 @@ export const ADMIN_ROUTES: Routes = [
       import('./matriculas/matriculas').then(c => c.Matriculas),
   },
 
+  // ─── Histórico de Alumnos ─────────────────────────────────────────────────
+  {
+    path: 'historico',
+    loadComponent: () =>
+      import('./historico-alumnos/historico-alumnos').then(c => c.HistoricoAlumnos),
+  },
+  {
+    path: 'historico/reporte/:id',
+    loadComponent: () =>
+      import('./reporte-alumno/reporte-alumno').then(c => c.ReporteAlumno),
+  },
+
   // ─── Vínculo Padre-Hijo ───────────────────────────────────────────────────
   {
     path: 'padre-hijo',

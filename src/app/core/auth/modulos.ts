@@ -57,6 +57,7 @@ export const MODULO = {
   COMUNICADOS_ADMIN: 'comunicados_admin',
   IMPORTAR: 'importar',
   AJUSTES: 'ajustes',
+  HISTORICO_ALUMNOS: 'historico_alumnos',
 } as const;
 
 export type Modulo = (typeof MODULO)[keyof typeof MODULO];

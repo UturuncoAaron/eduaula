@@ -1,0 +1,132 @@
+.page-container {
+    padding: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 24px;
+
+    .header-info {
+        h1 {
+            color: #0f172a;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .text-muted {
+            color: #64748b;
+            margin-top: 4px;
+            max-width: 720px;
+        }
+    }
+}
+
+// ─── Filtros ─────────────────────────────────────────────────────
+.filters-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.filters-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.filter-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+
+    .filter-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .filter-field {
+        width: 100%;
+    }
+}
+
+.filters-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.filters-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    color: #475569;
+    font-size: 0.82rem;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: #2563eb;
+    }
+    strong { color: #0f172a; }
+}
+
+// ─── Resultados ──────────────────────────────────────────────────
+.table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.results-bar {
+    padding: 4px 8px 12px;
+    color: #475569;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 12px;
+
+    strong { color: #0f172a; }
+}
+
+.placeholder-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 56px 16px;
+    color: #64748b;
+    text-align: center;
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: #94a3b8;
+    }
+    p { margin: 0; font-size: 0.95rem; }
+    .placeholder-hint {
+        max-width: 520px;
+        font-size: 0.82rem;
+        color: #94a3b8;
+    }
+}
+
+@media (max-width: 960px) {
+    .filters-row { grid-template-columns: 1fr; }
+}

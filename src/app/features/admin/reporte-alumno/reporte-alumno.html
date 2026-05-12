@@ -1,0 +1,483 @@
+<div class="report-shell">
+    <div class="report-toolbar">
+        <button mat-stroked-button type="button" (click)="volver()">
+            <mat-icon>arrow_back</mat-icon>
+            Volver
+        </button>
+        <button mat-flat-button color="primary" type="button"
+                [disabled]="loading() || error() || descargando()"
+                (click)="descargarExcel()">
+            @if (descargando()) {
+                <mat-spinner diameter="18" />
+            } @else {
+                <mat-icon>table_chart</mat-icon>
+            }
+            Exportar Excel
+        </button>
+    </div>
+
+    @if (loading()) {
+        <div class="state-card">
+            <mat-spinner diameter="36" />
+            <p>Generando reporte general del alumno...</p>
+        </div>
+    } @else if (error()) {
+        <div class="state-card state-card--error">
+            <mat-icon>error_outline</mat-icon>
+            <p>{{ error() }}</p>
+        </div>
+    } @else if (data(); as report) {
+        <!-- ── Header ── -->
+        <header class="report-header">
+            <div>
+                <p class="eyebrow">EduAula</p>
+                <h1>Reporte general del alumno</h1>
+                <p class="subtitle">
+                    {{ report.anio_filtro ? 'Histórico académico ' + report.anio_filtro : 'Histórico completo' }}
+                </p>
+            </div>
+            <div class="generated">
+                <span>Generado</span>
+                <strong>{{ report.generado_en | date:'dd/MM/yyyy HH:mm' }}</strong>
+            </div>
+        </header>
+
+        <!-- ── Student card ── -->
+        <section class="student-card">
+            <app-user-avatar
+                [nombre]="report.personal.nombre"
+                [apellidoPaterno]="report.personal.apellido_paterno"
+                rol="alumno"
+                [fotoUrl]="report.personal.foto_url"
+                [size]="72" />
+
+            <div class="student-main">
+                <h2>{{ nombreCompleto() }}</h2>
+                <div class="student-tags">
+                    <span class="tag">Código {{ report.personal.codigo_estudiante || '—' }}</span>
+                    <span class="tag">{{ report.personal.tipo_documento || 'Doc.' }} {{ report.personal.numero_documento || '—' }}</span>
+                    <span class="tag" [class.tag--ok]="report.personal.activo" [class.tag--muted]="!report.personal.activo">
+                        {{ report.personal.activo ? 'Activo' : 'Inactivo' }}
+                    </span>
+                    @if (report.personal.inclusivo) {
+                        <span class="tag tag--warn">Inclusivo</span>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Métricas ── -->
+        <section class="metrics-grid">
+            <div class="metric">
+                <span>Promedio general</span>
+                <strong>{{ promedioGeneral() === null ? '—' : (promedioGeneral() | number:'1.2-2') }}</strong>
+            </div>
+            <div class="metric">
+                <span>Asistencia</span>
+                <strong>
+                    {{ report.asistencia.porcentaje_asistencia === null ? '—' : (report.asistencia.porcentaje_asistencia | number:'1.0-1') + '%' }}
+                </strong>
+            </div>
+            <div class="metric">
+                <span>Matrículas</span>
+                <strong>{{ report.matriculas.length }}</strong>
+            </div>
+            <div class="metric">
+                <span>Libretas</span>
+                <strong>{{ report.libretas.length }}</strong>
+            </div>
+        </section>
+
+        <!-- ── Datos personales ── -->
+        <section class="report-section">
+            <h3>Datos personales</h3>
+            <div class="detail-grid">
+                <div><span>Fecha de nacimiento</span><strong>{{ report.personal.fecha_nacimiento ? (report.personal.fecha_nacimiento | date:'dd/MM/yyyy') : '—' }}</strong></div>
+                <div><span>Edad</span><strong>{{ edad() === null ? '—' : edad() + ' años' }}</strong></div>
+                <div><span>Teléfono</span><strong>{{ report.personal.telefono || '—' }}</strong></div>
+                <div><span>Email</span><strong>{{ report.personal.email || '—' }}</strong></div>
+                <div><span>Año de ingreso</span><strong>{{ report.personal.anio_ingreso || '—' }}</strong></div>
+                <div>
+                    <span>Matrícula actual</span>
+                    @if (matriculaActual(); as matricula) {
+                        <strong>{{ matricula.grado }}{{ matricula.seccion ? ' — Sección ' + matricula.seccion : '' }}</strong>
+                    } @else {
+                        <strong>—</strong>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Apoderados (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section">
+                <h3>Apoderados vinculados</h3>
+                @if (report.padres.length) {
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Relación</th>
+                                    <th>Documento</th>
+                                    <th>Contacto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (padre of report.padres; track padre.numero_documento || padre.email || padre.nombre) {
+                                    <tr>
+                                        <td>{{ padre.apellido_paterno }} {{ padre.apellido_materno || '' }}, {{ padre.nombre }}</td>
+                                        <td>{{ padre.relacion || '—' }}</td>
+                                        <td>{{ padre.tipo_documento || 'Doc.' }} {{ padre.numero_documento || '—' }}</td>
+                                        <td>{{ padre.telefono || '—' }}<br><small>{{ padre.email || '—' }}</small></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else {
+                    <p class="empty-note">No hay apoderados activos vinculados.</p>
+                }
+            </section>
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+
+        <!-- ── Historial matrículas (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section">
+                <h3>Historial de matrículas</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Año</th>
+                                <th>Periodo</th>
+                                <th>Grado / sección</th>
+                                <th>Tutor</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (matricula of report.matriculas; track matricula.id) {
+                                <tr>
+                                    <td>{{ matricula.periodo_anio }}</td>
+                                    <td>{{ matricula.periodo_nombre }}<br><small>Bim. {{ matricula.periodo_bimestre }}</small></td>
+                                    <td>{{ matricula.grado }} — Sección {{ matricula.seccion }}</td>
+                                    <td>
+                                        {{ matricula.tutor_nombre
+                                            ? matricula.tutor_apellido_paterno + ' ' + (matricula.tutor_apellido_materno || '') + ', ' + matricula.tutor_nombre
+                                            : '—' }}
+                                    </td>
+                                    <td>{{ matricula.fecha_matricula | date:'dd/MM/yyyy' }}</td>
+                                    <td>{{ matricula.activo ? 'Activa' : 'Histórica' }}</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+
+        <!-- ── Resumen académico (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section">
+                <h3>Resumen académico</h3>
+                @if (report.notas.por_bimestre.length) {
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Año</th>
+                                    <th>Bimestre</th>
+                                    <th>Cursos evaluados</th>
+                                    <th>Promedio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (nota of report.notas.por_bimestre; track nota.anio + '-' + nota.bimestre) {
+                                    <tr>
+                                        <td>{{ nota.anio }}</td>
+                                        <td>{{ nota.periodo_nombre }} (Bim. {{ nota.bimestre }})</td>
+                                        <td>{{ nota.cursos }}</td>
+                                        <td><strong>{{ nota.promedio_general | number:'1.2-2' }}</strong></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else {
+                    <p class="empty-note">No hay notas registradas para el filtro seleccionado.</p>
+                }
+            </section>
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+
+        <!-- ── Promedios por curso (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section">
+                <h3>Promedios por curso</h3>
+                @if (report.notas.por_curso_bimestre.length) {
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Periodo</th>
+                                    <th>Curso</th>
+                                    <th>Evaluaciones</th>
+                                    <th>Promedio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (curso of report.notas.por_curso_bimestre; track curso.anio + '-' + curso.bimestre + '-' + curso.curso) {
+                                    <tr>
+                                        <td>{{ curso.periodo_nombre }}<br><small>{{ curso.anio }} · Bim. {{ curso.bimestre }}</small></td>
+                                        <td>{{ curso.curso }}</td>
+                                        <td>{{ curso.cantidad }}</td>
+                                        <td><strong>{{ curso.promedio | number:'1.2-2' }}</strong></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else {
+                    <p class="empty-note">No hay promedios por curso disponibles.</p>
+                }
+            </section>
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+
+        <!-- ── Detalle evaluaciones (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section">
+                <h3>Detalle de evaluaciones</h3>
+                @if (report.notas.detalle.length) {
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Periodo</th>
+                                    <th>Curso</th>
+                                    <th>Evaluación</th>
+                                    <th>Nota</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (nota of report.notas.detalle; track nota.id) {
+                                    <tr>
+                                        <td>{{ nota.fecha ? (nota.fecha | date:'dd/MM/yyyy') : '—' }}</td>
+                                        <td>{{ nota.periodo_nombre }}<br><small>{{ nota.anio }} · Bim. {{ nota.bimestre }}</small></td>
+                                        <td>{{ nota.curso }}</td>
+                                        <td>{{ nota.titulo }}<br><small>{{ nota.tipo }}</small></td>
+                                        <td><strong>{{ nota.nota === null ? '—' : (nota.nota | number:'1.2-2') }}</strong></td>
+                                        <td>{{ nota.observaciones || '—' }}</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else {
+                    <p class="empty-note">No hay evaluaciones detalladas disponibles.</p>
+                }
+            </section>
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+
+        <!-- ── Asistencia (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section">
+                <h3>Asistencia</h3>
+                <div class="attendance-summary">
+                    <span>Total: <strong>{{ report.asistencia.total.total }}</strong></span>
+                    <span>Asistió: <strong>{{ report.asistencia.total.asistio }}</strong></span>
+                    <span>Tardanza: <strong>{{ report.asistencia.total.tardanza }}</strong></span>
+                    <span>Justificado: <strong>{{ report.asistencia.total.justificado }}</strong></span>
+                    <span>Falta: <strong>{{ report.asistencia.total.falta }}</strong></span>
+                </div>
+
+                @if (report.asistencia.por_bimestre.length) {
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Periodo</th>
+                                    <th>Total</th>
+                                    <th>Asistió</th>
+                                    <th>Tardanza</th>
+                                    <th>Justificado</th>
+                                    <th>Falta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (asistencia of report.asistencia.por_bimestre; track asistencia.anio + '-' + asistencia.bimestre) {
+                                    <tr>
+                                        <td>{{ asistencia.periodo_nombre }}<br><small>{{ asistencia.anio }} · Bim. {{ asistencia.bimestre }}</small></td>
+                                        <td>{{ asistencia.total }}</td>
+                                        <td>{{ asistencia.asistio }}</td>
+                                        <td>{{ asistencia.tardanza }}</td>
+                                        <td>{{ asistencia.justificado }}</td>
+                                        <td>{{ asistencia.falta }}</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else {
+                    <p class="empty-note">No hay asistencia registrada para el filtro seleccionado.</p>
+                }
+            </section>
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+
+        <!-- ── Detalle asistencia (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section">
+                <h3>Detalle de asistencia</h3>
+                @if (report.asistencia.detalle.length) {
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Periodo</th>
+                                    <th>Grado / sección</th>
+                                    <th>Estado</th>
+                                    <th>Observación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (asistencia of report.asistencia.detalle; track asistencia.id) {
+                                    <tr>
+                                        <td>{{ asistencia.fecha | date:'dd/MM/yyyy' }}</td>
+                                        <td>{{ asistencia.periodo_nombre }}<br><small>{{ asistencia.periodo_anio }} · Bim. {{ asistencia.periodo_bimestre }}</small></td>
+                                        <td>{{ asistencia.grado || '—' }} {{ asistencia.seccion ? '— Sección ' + asistencia.seccion : '' }}</td>
+                                        <td class="capitalize">{{ asistencia.estado }}</td>
+                                        <td>{{ asistencia.observacion || '—' }}</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else {
+                    <p class="empty-note">No hay detalle diario de asistencia.</p>
+                }
+            </section>
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+
+        <!-- ── Libretas (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section">
+                <h3>Libretas</h3>
+                @if (report.libretas.length) {
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Periodo</th>
+                                    <th>Tipo</th>
+                                    <th>Archivo</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (libreta of report.libretas; track libreta.id) {
+                                    <tr>
+                                        <td>{{ libreta.periodo_nombre }}<br><small>{{ libreta.periodo_anio }} · Bim. {{ libreta.periodo_bimestre }}</small></td>
+                                        <td class="capitalize">{{ libreta.tipo }}</td>
+                                        <td>
+                                            @if (libreta.url) {
+                                                <a [href]="libreta.url" target="_blank" rel="noopener">{{ libreta.nombre_archivo }}</a>
+                                            } @else {
+                                                {{ libreta.nombre_archivo }}
+                                            }
+                                        </td>
+                                        <td>{{ libreta.observaciones || '—' }}</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else {
+                    <p class="empty-note">No hay libretas registradas.</p>
+                }
+            </section>
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+
+        <!-- ── Psicología y Citas (lazy) ── -->
+        @defer (on viewport) {
+            <section class="report-section report-section--split">
+                <div>
+                    <h3>Psicología</h3>
+                    <div class="detail-grid detail-grid--compact">
+                        <div><span>Asignaciones</span><strong>{{ report.psicologia.asignaciones }}</strong></div>
+                        <div><span>Fichas</span><strong>{{ report.psicologia.fichas }}</strong></div>
+                        <div><span>Última ficha</span><strong>{{ report.psicologia.ultima_ficha ? (report.psicologia.ultima_ficha | date:'dd/MM/yyyy') : '—' }}</strong></div>
+                    </div>
+                    @if (report.psicologia.categorias.length) {
+                        <div class="chips-line">
+                            @for (categoria of report.psicologia.categorias; track categoria.categoria) {
+                                <span class="tag">{{ categoria.categoria }}: {{ categoria.cantidad }}</span>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div>
+                    <h3>Citas</h3>
+                    <div class="detail-grid detail-grid--compact">
+                        <div><span>Total</span><strong>{{ report.citas.total }}</strong></div>
+                        <div><span>Pendientes</span><strong>{{ report.citas.pendientes }}</strong></div>
+                        <div><span>Confirmadas</span><strong>{{ report.citas.confirmadas }}</strong></div>
+                        <div><span>Realizadas</span><strong>{{ report.citas.realizadas }}</strong></div>
+                        <div><span>Canceladas</span><strong>{{ report.citas.canceladas }}</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            @if (report.citas.ultimas.length) {
+                <section class="report-section">
+                    <h3>Últimas citas</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Estado</th>
+                                    <th>Motivo</th>
+                                    <th>Notas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (cita of report.citas.ultimas; track cita.id) {
+                                    <tr>
+                                        <td>{{ cita.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
+                                        <td class="capitalize">{{ cita.tipo }}<br><small>{{ cita.modalidad }}</small></td>
+                                        <td class="capitalize">{{ cita.estado }}</td>
+                                        <td>{{ cita.motivo }}</td>
+                                        <td>{{ cita.notas_posteriores || cita.notas_previas || '—' }}</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            }
+        } @placeholder {
+            <div class="section-placeholder"><mat-spinner diameter="24" /></div>
+        }
+    }
+</div>

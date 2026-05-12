@@ -1,0 +1,111 @@
+<div class="page-container fade-in">
+
+    <!-- ══ HEADER ══════════════════════════════════════════════════ -->
+    <div class="page-header">
+        <div class="header-info">
+            <h1 class="mat-headline-5 m-0">Histórico de Alumnos</h1>
+            <p class="text-muted m-0">
+                Consulta los alumnos matriculados en años anteriores.
+                Selecciona año, grado y sección y pulsa <strong>Consultar</strong>.
+            </p>
+        </div>
+    </div>
+
+    <!-- ══ FORMULARIO ══════════════════════════════════════════════ -->
+    <div class="filters-card">
+        <div class="filters-row">
+
+            <div class="filter-block">
+                <label class="filter-label">Año académico</label>
+                <app-selector-anio (anioChange)="onAnioChange($event)" />
+            </div>
+
+            <div class="filter-block">
+                <label class="filter-label">Grado</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
+                    <mat-label>
+                        @if (anio() === null) { Selecciona un año primero }
+                        @else if (loadingFiltros()) { Cargando... }
+                        @else if (grados().length === 0) { Sin grados disponibles }
+                        @else { Todos los grados }
+                    </mat-label>
+                    <mat-select [formControl]="gradoCtrl">
+                        <mat-option [value]="null">Todos los grados</mat-option>
+                        @for (g of grados(); track g.id) {
+                            <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                    @if (loadingFiltros()) {
+                        <mat-spinner matSuffix [diameter]="18" />
+                    }
+                </mat-form-field>
+            </div>
+
+            <div class="filter-block">
+                <label class="filter-label">Sección</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
+                    <mat-label>
+                        @if (anio() === null) { Selecciona un año primero }
+                        @else if (seccionesFiltradas().length === 0 && gradoCtrl.value) { Este grado no tiene secciones }
+                        @else { Selecciona una sección }
+                    </mat-label>
+                    <mat-select [formControl]="seccionCtrl">
+                        @for (s of seccionesFiltradas(); track s.id) {
+                            <mat-option [value]="s.id">
+                                {{ s.grado_nombre }} — {{ s.nombre }}
+                            </mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+        </div>
+
+        <div class="filters-actions">
+            <button mat-stroked-button (click)="limpiar()" type="button">
+                <mat-icon>refresh</mat-icon>
+                Reiniciar
+            </button>
+            <button mat-flat-button color="primary"
+                    [disabled]="!puedeConsultar()"
+                    (click)="consultar()" type="button">
+                <mat-icon>search</mat-icon>
+                Consultar
+            </button>
+        </div>
+
+        <div class="filters-hint">
+            <mat-icon>info</mat-icon>
+            <span>
+                Para mantener la respuesta rápida, el listado de alumnos se carga
+                únicamente al pulsar <strong>Consultar</strong> y siempre acotado a
+                la sección elegida.
+            </span>
+        </div>
+    </div>
+
+    <!-- ══ RESULTADOS ═══════════════════════════════════════════════ -->
+    <div class="table-card">
+        @if (consultaAnio() !== null) {
+            <div class="results-bar">
+                <span class="results-count">
+                    Resultados para <strong>{{ consultaAnio() }}</strong>
+                    @if (etiquetaConsulta(); as et) { · {{ et }} }
+                </span>
+            </div>
+            <app-tabla-alumnos-historico
+                [anio]="consultaAnio()"
+                [filtros]="consultaFiltros()" />
+        } @else {
+            <div class="placeholder-state">
+                <mat-icon>fact_check</mat-icon>
+                <p>Elige los filtros y pulsa <strong>Consultar</strong> para ver el listado.</p>
+                <span class="placeholder-hint">
+                    Sin esto, no realizamos consultas a la base — así garantizamos que la
+                    pantalla nunca cargue cientos de registros de golpe.
+                </span>
+            </div>
+        }
+    </div>
+
+</div>
