@@ -1,1 +1,136 @@
-<p>alumno-notas-dialog works!</p>
+<div class="notas-shell">
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- HEADER                                                    -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="notas-header">
+        <div class="header-left">
+            <div class="alumno-avatar-lg">{{ getInitials(data.nombre) }}</div>
+            <div class="header-text">
+                <span class="header-eyebrow">Reporte de notas</span>
+                <h2 class="header-name">{{ data.nombre }}</h2>
+                @if (data.gradoNombre || data.seccionNombre) {
+                <span class="header-meta">
+                    {{ data.gradoNombre }}@if (data.gradoNombre && data.seccionNombre) { · }Sección {{
+                    data.seccionNombre }}
+                </span>
+                }
+            </div>
+        </div>
+        <div class="header-right">
+            @if (promediogeneral() !== null) {
+            <div class="promedio-badge" [class]="getPromedioClass(promediogeneral()!)">
+                <span class="pb-label">Promedio</span>
+                <span class="pb-valor">{{ promediogeneral() }}</span>
+            </div>
+            }
+            <button mat-icon-button class="btn-close" (click)="close()" matTooltip="Cerrar">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- BODY                                                      -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="notas-body">
+
+        @if (loading()) {
+        <div class="state-center">
+            <div class="spinner-ring"><mat-spinner diameter="34"></mat-spinner></div>
+            <p>Cargando notas del alumno...</p>
+        </div>
+
+        } @else if (error()) {
+        <div class="state-center state-error">
+            <mat-icon>error_outline</mat-icon>
+            <p>No se pudieron cargar las notas.</p>
+            <button mat-stroked-button (click)="loadNotas()">
+                <mat-icon>refresh</mat-icon> Reintentar
+            </button>
+        </div>
+
+        } @else if (notas().length === 0) {
+        <div class="state-center">
+            <div class="empty-ring"><mat-icon>grade</mat-icon></div>
+            <p class="empty-title">Sin notas registradas</p>
+            <span class="empty-hint">Este alumno aún no tiene evaluaciones registradas.</span>
+        </div>
+
+        } @else {
+
+        <!-- Grid de cursos -->
+        <div class="cursos-grid">
+            @for (curso of notas(); track curso.curso_id) {
+            <div class="curso-card">
+
+                <!-- Curso header -->
+                <div class="curso-header">
+                    <span class="c-color-dot" [style.background]="curso.color"></span>
+                    <div class="curso-info">
+                        <span class="curso-nombre">{{ curso.curso_nombre }}</span>
+                        @if (curso.docente) {
+                        <span class="curso-docente">
+                            <mat-icon class="docente-icon">person</mat-icon>{{ curso.docente }}
+                        </span>
+                        }
+                    </div>
+                    <div class="curso-promedio" [class]="'prom-' + getPromedioClass(curso.promedio)">
+                        <span class="cp-label">Prom.</span>
+                        <span class="cp-valor">{{ curso.promedio ?? '—' }}</span>
+                    </div>
+                </div>
+
+                <!-- Lista de evaluaciones -->
+                <div class="evaluaciones-list">
+                    @if (curso.notas.length === 0) {
+                    <p class="eval-empty">Sin evaluaciones registradas</p>
+                    } @else {
+                    @for (nota of curso.notas; track nota.periodo + $index) {
+                    <div class="eval-row">
+                        <span class="eval-periodo">{{ nota.periodo }}</span>
+                        <div class="eval-nota-wrap">
+                            <span class="eval-nota" [class]="getNotaClass(nota.valor)">
+                                {{ nota.valor !== null ? nota.valor : '—' }}
+                            </span>
+                            @if (nota.valor !== null) {
+                            <div class="nota-bar">
+                                <div class="nota-bar-fill" [class]="getNotaClass(nota.valor)"
+                                    [style.width.%]="(nota.valor / 20) * 100">
+                                </div>
+                            </div>
+                            }
+                        </div>
+                    </div>
+                    }
+                    }
+                </div>
+
+            </div>
+            }
+        </div>
+
+        <!-- Leyenda escala peruana -->
+        <div class="leyenda">
+            <span class="leyenda-title">Escala vigesimal:</span>
+            <span class="leyenda-chip nota-ad">AD · 18–20</span>
+            <span class="leyenda-chip nota-a">A · 14–17</span>
+            <span class="leyenda-chip nota-b">B · 11–13</span>
+            <span class="leyenda-chip nota-c">C · 0–10</span>
+        </div>
+
+        }
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- FOOTER                                                    -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="notas-footer">
+        <span class="footer-info">
+            <mat-icon>info_outline</mat-icon>
+            Escala vigesimal peruana (0–20)
+        </span>
+        <button mat-flat-button color="primary" (click)="close()">Cerrar</button>
+    </div>
+
+</div>

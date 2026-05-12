@@ -630,6 +630,7 @@ td.mat-mdc-cell {
       border-radius: var(--r-sm) !important;
     }
   }
+<<<<<<< Updated upstream
 }
 // styles.scss
 .afd-panel {
@@ -643,5 +644,25 @@ td.mat-mdc-cell {
     border-radius: 16px !important;
     padding: 0 !important;
     overflow: hidden;
+=======
+
+  // ════════════════════════════════════════════════════════════════
+  // AGREGA ESTO EN TU styles.scss GLOBAL
+  // Quita el padding por defecto de MatDialog para los dos modales
+  // ════════════════════════════════════════════════════════════════
+
+  .seccion-detail-panel,
+  .alumno-notas-panel {
+    .mat-mdc-dialog-container {
+      padding: 0 !important;
+      overflow: hidden;
+      border-radius: 20px !important;
+
+      .mdc-dialog__surface {
+        border-radius: 20px !important;
+        overflow: hidden;
+      }
+    }
+>>>>>>> Stashed changes
   }
 }

@@ -209,7 +209,30 @@ export class GradosTab implements OnInit {
     getInitials(n: string, a: string): string { return `${n[0] ?? ''}${a[0] ?? ''}`.toUpperCase(); }
     onAlumnoPageChange(e: PageEvent): void { this.alumnoPage.set(e.pageIndex); this.alumnoPageSize.set(e.pageSize); }
 
-    // ── Diálogos ──────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════
+    // NUEVO: Abrir modal de detalle de sección
+    // ══════════════════════════════════════════════════════════════
+    async openSeccionModal(s: Section): Promise<void> {
+        const { SeccionDetailDialog } = await import(
+            '../../../../shared/components/seccion-detail-dialog/seccion-detail-dialog'
+        );
+        const ref = this.dialog.open(SeccionDetailDialog, {
+            width: '720px',
+            maxWidth: '96vw',
+            maxHeight: '90vh',
+            panelClass: 'seccion-detail-panel',
+            data: {
+                seccion: s,
+                gradoNombre: this.selectedGrado()!.nombre,
+                periodoId: this.periodoActivo(),
+            },
+        });
+        ref.afterClosed().subscribe(result => {
+            if (result === 'reload') this.reloadSecciones();
+        });
+    }
+
+    // ── Diálogos originales (sin cambios) ─────────────────────────
     async openCreateSeccion(): Promise<void> {
         if (!this.selectedGrado()) return;
         const { CreateSeccionDialog } = await import('../../../../shared/components/create-seccion-dialog/create-seccion-dialog');
@@ -342,6 +365,6 @@ export class GradosTab implements OnInit {
 
     async verNotasAlumno(alumno: any): Promise<void> {
         const { AlumnoNotasDialog } = await import('../../../../shared/components/alumno-notas-dialog/alumno-notas-dialog');
-        this.dialog.open(AlumnoNotasDialog, { width: '700px', maxHeight: '90vh', data: { alumnoId: alumno.alumno_id, nombre: `${alumno.apellido_paterno} ${alumno.apellido_materno ?? ''}, ${alumno.nombre}`, seccionNombre: this.selectedSeccion()?.nombre, gradoNombre: this.selectedGrado()?.nombre } });
+        this.dialog.open(AlumnoNotasDialog, { width: '760px', maxWidth: '96vw', maxHeight: '90vh', panelClass: 'alumno-notas-panel', data: { alumnoId: alumno.alumno_id, nombre: `${alumno.apellido_paterno} ${alumno.apellido_materno ?? ''}, ${alumno.nombre}`, seccionNombre: this.selectedSeccion()?.nombre, gradoNombre: this.selectedGrado()?.nombre } });
     }
 }

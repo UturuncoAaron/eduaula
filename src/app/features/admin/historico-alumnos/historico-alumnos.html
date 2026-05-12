@@ -1,110 +1,187 @@
-<div class="page-container fade-in">
+<div class="historico-page">
 
-    <!-- ══ HEADER ══════════════════════════════════════════════════ -->
-    <div class="page-header">
-        <div class="header-info">
-            <h1 class="mat-headline-5 m-0">Histórico de Alumnos</h1>
-            <p class="text-muted m-0">
-                Consulta los alumnos matriculados en años anteriores.
-                Selecciona año, grado y sección y pulsa <strong>Consultar</strong>.
+    <!-- ══ HERO ═══════════════════════════════════════════════════ -->
+    <div class="hero">
+        <div class="hero-bg">
+            <div class="hero-blob b1"></div>
+            <div class="hero-blob b2"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-eyebrow">
+                <mat-icon>history_edu</mat-icon>
+                <span>Gestión académica</span>
+            </div>
+            <h1 class="hero-title">
+                Histórico<br><span class="hero-accent">de Alumnos</span>
+            </h1>
+            <p class="hero-desc">
+                Consulta el registro completo de matrículas por año, grado y sección.
+                Los datos se cargan únicamente al presionar <strong>Consultar</strong>.
             </p>
         </div>
+        @if (consultaAnio() !== null) {
+        <div class="hero-stat-row">
+            <div class="hero-stat">
+                <span class="hs-num">{{ consultaAnio() }}</span>
+                <span class="hs-label">Año consultado</span>
+            </div>
+            @if (etiquetaConsulta(); as et) {
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <span class="hs-num small">{{ et }}</span>
+                <span class="hs-label">Sección</span>
+            </div>
+            }
+        </div>
+        }
     </div>
 
-    <!-- ══ FORMULARIO ══════════════════════════════════════════════ -->
-    <div class="filters-card">
-        <div class="filters-row">
+    <!-- ══ FILTROS ════════════════════════════════════════════════ -->
+    <div class="filtros-wrap">
 
-            <div class="filter-block">
-                <label class="filter-label">Año académico</label>
-                <app-selector-anio (anioChange)="onAnioChange($event)" />
+        <div class="filtros-title-row">
+            <span class="filtros-title">Configura tu búsqueda</span>
+            <button mat-icon-button class="btn-limpiar" (click)="limpiar()" matTooltip="Reiniciar filtros">
+                <mat-icon>restart_alt</mat-icon>
+            </button>
+        </div>
+
+        <div class="pasos-grid">
+
+            <!-- Paso 1 -->
+            <div class="paso-card" [class.paso-done]="anio() !== null">
+                <div class="paso-num">01</div>
+                <div class="paso-body">
+                    <span class="paso-label">Año académico</span>
+                    <app-selector-anio (anioChange)="onAnioChange($event)" />
+                </div>
+                @if (anio() !== null) {
+                <div class="paso-check"><mat-icon>check</mat-icon></div>
+                }
             </div>
 
-            <div class="filter-block">
-                <label class="filter-label">Grado</label>
-                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
-                    <mat-label>
-                        @if (anio() === null) { Selecciona un año primero }
-                        @else if (loadingFiltros()) { Cargando... }
-                        @else if (grados().length === 0) { Sin grados disponibles }
-                        @else { Todos los grados }
-                    </mat-label>
-                    <mat-select [formControl]="gradoCtrl">
-                        <mat-option [value]="null">Todos los grados</mat-option>
-                        @for (g of grados(); track g.id) {
+            <div class="paso-connector" [class.active]="anio() !== null">
+                <div class="connector-line"></div>
+                <mat-icon class="connector-icon">arrow_forward</mat-icon>
+            </div>
+
+            <!-- Paso 2 -->
+            <div class="paso-card" [class.paso-locked]="anio() === null" [class.paso-done]="gradoSel() !== null">
+                <div class="paso-num">02</div>
+                <div class="paso-body">
+                    <span class="paso-label">Grado</span>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="paso-field">
+                        <mat-label>
+                            @if (anio() === null) { Primero elige el año }
+                            @else if (loadingFiltros()) { Cargando... }
+                            @else { Todos los grados }
+                        </mat-label>
+                        <mat-select [formControl]="gradoCtrl">
+                            <mat-option [value]="null">Todos los grados</mat-option>
+                            @for (g of grados(); track g.id) {
                             <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                        @if (loadingFiltros()) {
+                        <mat-spinner matSuffix [diameter]="16"></mat-spinner>
                         }
-                    </mat-select>
-                    @if (loadingFiltros()) {
-                        <mat-spinner matSuffix [diameter]="18" />
-                    }
-                </mat-form-field>
+                    </mat-form-field>
+                </div>
             </div>
 
-            <div class="filter-block">
-                <label class="filter-label">Sección</label>
-                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
-                    <mat-label>
-                        @if (anio() === null) { Selecciona un año primero }
-                        @else if (seccionesFiltradas().length === 0 && gradoCtrl.value) { Este grado no tiene secciones }
-                        @else { Selecciona una sección }
-                    </mat-label>
-                    <mat-select [formControl]="seccionCtrl">
-                        @for (s of seccionesFiltradas(); track s.id) {
+            <div class="paso-connector" [class.active]="anio() !== null">
+                <div class="connector-line"></div>
+                <mat-icon class="connector-icon">arrow_forward</mat-icon>
+            </div>
+
+            <!-- Paso 3 -->
+            <div class="paso-card" [class.paso-locked]="anio() === null" [class.paso-done]="seccionSel() !== null">
+                <div class="paso-num">03</div>
+                <div class="paso-body">
+                    <span class="paso-label">Sección</span>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="paso-field">
+                        <mat-label>
+                            @if (anio() === null) { Primero elige el año }
+                            @else { Selecciona sección }
+                        </mat-label>
+                        <mat-select [formControl]="seccionCtrl">
+                            @for (s of seccionesFiltradas(); track s.id) {
                             <mat-option [value]="s.id">
                                 {{ s.grado_nombre }} — {{ s.nombre }}
                             </mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                </div>
             </div>
 
         </div>
 
-        <div class="filters-actions">
-            <button mat-stroked-button (click)="limpiar()" type="button">
-                <mat-icon>refresh</mat-icon>
-                Reiniciar
-            </button>
-            <button mat-flat-button color="primary"
-                    [disabled]="!puedeConsultar()"
-                    (click)="consultar()" type="button">
-                <mat-icon>search</mat-icon>
-                Consultar
+        <!-- CTA -->
+        <div class="filtros-cta">
+            <button mat-flat-button class="btn-consultar" [disabled]="!puedeConsultar()" (click)="consultar()">
+                <mat-icon>travel_explore</mat-icon>
+                Consultar registros
+                @if (puedeConsultar()) {
+                <span class="btn-pulse"></span>
+                }
             </button>
         </div>
 
-        <div class="filters-hint">
-            <mat-icon>info</mat-icon>
-            <span>
-                Para mantener la respuesta rápida, el listado de alumnos se carga
-                únicamente al pulsar <strong>Consultar</strong> y siempre acotado a
-                la sección elegida.
-            </span>
-        </div>
     </div>
 
-    <!-- ══ RESULTADOS ═══════════════════════════════════════════════ -->
-    <div class="table-card">
+    <!-- ══ RESULTADOS ════════════════════════════════════════════ -->
+    <div class="resultados-wrap">
         @if (consultaAnio() !== null) {
-            <div class="results-bar">
-                <span class="results-count">
-                    Resultados para <strong>{{ consultaAnio() }}</strong>
-                    @if (etiquetaConsulta(); as et) { · {{ et }} }
-                </span>
-            </div>
-            <app-tabla-alumnos-historico
-                [anio]="consultaAnio()"
-                [filtros]="consultaFiltros()" />
+        <app-tabla-alumnos-historico [anio]="consultaAnio()" [filtros]="consultaFiltros()" />
         } @else {
-            <div class="placeholder-state">
-                <mat-icon>fact_check</mat-icon>
-                <p>Elige los filtros y pulsa <strong>Consultar</strong> para ver el listado.</p>
-                <span class="placeholder-hint">
-                    Sin esto, no realizamos consultas a la base — así garantizamos que la
-                    pantalla nunca cargue cientos de registros de golpe.
+        <div class="espera-state">
+            <div class="espera-visual">
+                <svg class="espera-svg" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Background circles -->
+                    <circle cx="100" cy="80" r="70" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 4"
+                        opacity="0.12" />
+                    <circle cx="100" cy="80" r="48" stroke="currentColor" stroke-width="1.5" opacity="0.08" />
+                    <!-- Document icon -->
+                    <rect x="72" y="40" width="56" height="72" rx="6" fill="currentColor" opacity="0.08" />
+                    <rect x="72" y="40" width="56" height="72" rx="6" stroke="currentColor" stroke-width="1.5"
+                        opacity="0.3" />
+                    <!-- Lines -->
+                    <rect x="82" y="58" width="36" height="3" rx="1.5" fill="currentColor" opacity="0.25" />
+                    <rect x="82" y="67" width="28" height="3" rx="1.5" fill="currentColor" opacity="0.2" />
+                    <rect x="82" y="76" width="32" height="3" rx="1.5" fill="currentColor" opacity="0.2" />
+                    <rect x="82" y="85" width="20" height="3" rx="1.5" fill="currentColor" opacity="0.15" />
+                    <!-- Search glass -->
+                    <circle cx="130" cy="110" r="18" fill="white" opacity="0.9" />
+                    <circle cx="130" cy="110" r="18" stroke="currentColor" stroke-width="2" opacity="0.4" />
+                    <circle cx="127" cy="107" r="8" stroke="currentColor" stroke-width="2" opacity="0.7" />
+                    <line x1="133" y1="113" x2="140" y2="120" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" opacity="0.7" />
+                </svg>
+            </div>
+            <div class="espera-text">
+                <h3 class="espera-title">Lista para consultar</h3>
+                <p class="espera-desc">Configura los 3 pasos arriba y presiona <strong>Consultar registros</strong></p>
+            </div>
+            <div class="espera-chips">
+                <span class="espera-chip">
+                    <span class="ec-num">01</span>Año
+                </span>
+                <mat-icon class="ec-arrow">east</mat-icon>
+                <span class="espera-chip">
+                    <span class="ec-num">02</span>Grado
+                </span>
+                <mat-icon class="ec-arrow">east</mat-icon>
+                <span class="espera-chip">
+                    <span class="ec-num">03</span>Sección
+                </span>
+                <mat-icon class="ec-arrow">east</mat-icon>
+                <span class="espera-chip cta-chip">
+                    <mat-icon>travel_explore</mat-icon>Consultar
                 </span>
             </div>
+        </div>
         }
     </div>
 

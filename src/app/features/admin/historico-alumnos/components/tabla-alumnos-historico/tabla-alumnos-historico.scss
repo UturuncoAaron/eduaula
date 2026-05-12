@@ -1,72 +1,534 @@
-@use '../../../user-management/shared/admin-table.scss' as admin-table;
+// ═══════════════════════════════════════════════════════════════
+// tabla-alumnos-historico.scss — Bold Premium
+// ═══════════════════════════════════════════════════════════════
 
-@include admin-table.styles;
-
-.historico-table-wrapper {
+.tabla-shell {
     display: flex;
     flex-direction: column;
+    background: var(--c-surface);
     min-height: 320px;
 }
 
-.loading-state,
-.empty-state {
+// ════════════════════════════════════════════════════════════════
+// ESTADOS
+// ════════════════════════════════════════════════════════════════
+.tabla-estado {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 48px 16px;
-    color: #64748b;
+    gap: 14px;
+    padding: 64px 24px;
     text-align: center;
+}
+
+// Skeleton loader
+.sk-loader {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 560px;
+}
+
+.sk-bar {
+    height: 14px;
+    border-radius: 7px;
+    background: linear-gradient(90deg,
+            var(--c-border) 25%,
+            var(--c-bg) 50%,
+            var(--c-border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% center;
+    }
+
+    100% {
+        background-position: -200% center;
+    }
+}
+
+.estado-icon {
+    font-size: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    color: var(--c-primary);
+
+    &.muted {
+        color: var(--c-text-3);
+    }
+}
+
+.estado-label {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--c-text-2);
+}
+
+.estado-hint {
+    font-size: 13px;
+    color: var(--c-text-3);
+}
+
+// ════════════════════════════════════════════════════════════════
+// TOP BAR
+// ════════════════════════════════════════════════════════════════
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 2px solid var(--c-border);
+    background: var(--c-bg);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.total-badge {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.total-num {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--c-text-1);
+    letter-spacing: -1px;
+    line-height: 1;
+}
+
+.total-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--c-text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.top-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--c-border);
+}
+
+.top-hint {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--c-text-3);
+    font-weight: 500;
 
     mat-icon {
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
-        color: #94a3b8;
-    }
-
-    .empty-hint {
-        font-size: 0.875rem;
-        color: #94a3b8;
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
     }
 }
 
-.spinner-ring {
-    width: 36px;
-    height: 36px;
-    border: 3px solid #e2e8f0;
-    border-top-color: #2563eb;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.table-responsive {
+// ════════════════════════════════════════════════════════════════
+// TABLA
+// ════════════════════════════════════════════════════════════════
+.table-scroll {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--c-border);
+        border-radius: 2px;
+    }
 }
 
-.periodo-name {
+.h-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+
+    // ── Header ──────────────────────────────────────────────
+    th.mat-header-cell {
+        background: var(--c-surface);
+        color: var(--c-text-3);
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 12px 18px;
+        border-bottom: 2px solid var(--c-border);
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    // ── Cells ───────────────────────────────────────────────
+    td.mat-cell {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--c-border);
+        vertical-align: middle;
+        animation: rowIn 0.3s ease-out backwards;
+    }
+
+    // Stagger per row via data-i attribute
+    @for $i from 0 through 20 {
+        td[data-i="#{$i}"] {
+            animation-delay: #{$i * 0.03}s;
+        }
+    }
+
+    @keyframes rowIn {
+        from {
+            opacity: 0;
+            transform: translateX(-8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    // ── Row states ──────────────────────────────────────────
+    .h-row {
+        transition: background 0.15s ease;
+
+        &:hover td {
+            background: rgba(26, 58, 107, 0.03);
+        }
+
+        &:last-child td {
+            border-bottom: none;
+        }
+    }
+
+    .row-incl td {
+        background: linear-gradient(90deg,
+                rgba(245, 158, 11, 0.05) 0%,
+                transparent 60%);
+
+        &:hover {
+            background: rgba(245, 158, 11, 0.08) !important;
+        }
+    }
+}
+
+// ── Código ────────────────────────────────────────────────────
+.code-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 7px;
+    background: var(--c-bg);
+    border: 1.5px solid var(--c-border);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--c-text-2);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+// ── Documento ─────────────────────────────────────────────────
+.doc-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.doc-type-tag {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: rgba(26, 58, 107, 0.08);
+    color: var(--c-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+.doc-num {
+    font-size: 13px;
+    color: var(--c-text-1);
     font-weight: 500;
-    color: #0f172a;
+}
+
+// ── Alumno ────────────────────────────────────────────────────
+.alumno-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 180px;
+}
+
+.alumno-data {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.alumno-nombre {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--c-text-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 240px;
+}
+
+.incl-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #fef3c7;
+    color: #92400e;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+
+    mat-icon {
+        font-size: 10px;
+        width: 10px;
+        height: 10px;
+    }
+}
+
+// ── Grado ─────────────────────────────────────────────────────
+.grado-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.grado-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 7px;
+    background: linear-gradient(135deg, #eef2ff, #dbeafe);
+    color: var(--c-primary);
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+    letter-spacing: 0.1px;
+}
+
+.seccion-tag {
+    font-size: 11px;
+    color: var(--c-text-3);
+    font-weight: 600;
+    padding-left: 2px;
+}
+
+// ── Período ───────────────────────────────────────────────────
+.periodo-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.periodo-nombre {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--c-text-1);
 }
 
 .periodo-bim {
-    display: block;
-    font-size: 0.75rem;
-    color: #64748b;
+    font-size: 11px;
+    color: var(--c-text-3);
+    font-weight: 500;
 }
 
+// ── Año ingreso ───────────────────────────────────────────────
+.year-num {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--c-text-2);
+    font-variant-numeric: tabular-nums;
+}
+
+// ── Col centrada ──────────────────────────────────────────────
+.col-c {
+    text-align: center !important;
+    width: 72px;
+}
+
+// ── Dash ──────────────────────────────────────────────────────
+.dash {
+    color: var(--c-text-3);
+    font-size: 13px;
+}
+
+// ── Report btn ────────────────────────────────────────────────
 .report-btn {
-    color: #2563eb;
+    color: var(--c-primary) !important;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: rgba(26, 58, 107, 0.08) !important;
+        transform: scale(1.12);
+    }
 }
 
-.col-actions {
-    width: 88px;
-    text-align: center;
+// ════════════════════════════════════════════════════════════════
+// PAGINATOR
+// ════════════════════════════════════════════════════════════════
+.paginator-wrap {
+    border-top: 1px solid var(--c-border);
+    background: var(--c-bg);
+}
+
+// ════════════════════════════════════════════════════════════════
+// RESPONSIVE — columnas que se ocultan progresivamente
+// ════════════════════════════════════════════════════════════════
+
+// Tablet (< 860px): ocultar ingreso
+@media (max-width: 860px) {
+
+    th.mat-column-ingreso,
+    td.mat-column-ingreso {
+        display: none;
+    }
+
+    .h-table {
+
+        th.mat-header-cell,
+        td.mat-cell {
+            padding: 12px 14px;
+        }
+    }
+
+    .top-bar {
+        padding: 12px 16px;
+    }
+
+    .total-num {
+        font-size: 22px;
+    }
+}
+
+// Mobile (< 680px): ocultar documento
+@media (max-width: 680px) {
+
+    th.mat-column-documento,
+    td.mat-column-documento {
+        display: none;
+    }
+
+    .alumno-nombre {
+        max-width: 160px;
+    }
+
+    .code-tag {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+}
+
+// Small mobile (< 520px): ocultar periodo
+@media (max-width: 520px) {
+
+    th.mat-column-periodo,
+    td.mat-column-periodo {
+        display: none;
+    }
+
+    .h-table {
+
+        th.mat-header-cell,
+        td.mat-cell {
+            padding: 10px 12px;
+        }
+    }
+
+    .alumno-row {
+        gap: 9px;
+        min-width: unset;
+    }
+
+    .alumno-nombre {
+        font-size: 13px;
+        max-width: 130px;
+    }
+}
+
+// Extra small (< 400px): ocultar código, simplificar
+@media (max-width: 400px) {
+
+    th.mat-column-codigo,
+    td.mat-column-codigo {
+        display: none;
+    }
+
+    .h-table {
+
+        th.mat-header-cell,
+        td.mat-cell {
+            padding: 9px 10px;
+        }
+    }
+
+    .alumno-nombre {
+        font-size: 12px;
+        max-width: 110px;
+    }
+
+    .grado-tag {
+        font-size: 10px;
+        padding: 2px 8px;
+    }
+
+    .total-num {
+        font-size: 18px;
+    }
+
+    .top-bar {
+        padding: 10px 12px;
+    }
+
+    .top-divider,
+    .top-hint {
+        display: none;
+    }
+}
+
+// Galaxy Fold / ultra narrow (< 340px)
+@media (max-width: 340px) {
+
+    th.mat-column-grado,
+    td.mat-column-grado {
+        display: none;
+    }
+
+    .alumno-row app-user-avatar {
+        display: none;
+    }
+
+    .alumno-nombre {
+        max-width: 120px;
+    }
 }

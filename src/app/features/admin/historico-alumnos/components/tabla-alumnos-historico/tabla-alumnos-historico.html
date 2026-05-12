@@ -1,128 +1,160 @@
-<div class="historico-table-wrapper">
+<div class="tabla-shell">
+
     @if (loading()) {
-        <div class="loading-state">
-            <div class="spinner-ring"></div>
-            <p>Cargando histórico...</p>
+    <div class="tabla-estado">
+        <div class="sk-loader">
+            <div class="sk-bar" style="width: 100%; animation-delay: 0s"></div>
+            <div class="sk-bar" style="width: 92%; animation-delay: 0.08s"></div>
+            <div class="sk-bar" style="width: 96%; animation-delay: 0.16s"></div>
+            <div class="sk-bar" style="width: 88%; animation-delay: 0.24s"></div>
+            <div class="sk-bar" style="width: 94%; animation-delay: 0.32s"></div>
+            <div class="sk-bar" style="width: 90%; animation-delay: 0.40s"></div>
         </div>
+        <p class="estado-label">Cargando registros históricos...</p>
+    </div>
+
     } @else if (anio === null) {
-        <div class="empty-state">
-            <mat-icon>event_busy</mat-icon>
-            <p>Selecciona un año para ver el histórico de alumnos</p>
-        </div>
+    <div class="tabla-estado">
+        <mat-icon class="estado-icon muted">event_busy</mat-icon>
+        <p class="estado-label">Selecciona un año para continuar</p>
+    </div>
+
     } @else if (dataSource.data.length === 0) {
-        <div class="empty-state">
-            <mat-icon>person_search</mat-icon>
-            <p>No hay alumnos matriculados en {{ anio }}</p>
-            <span class="empty-hint">Prueba ajustando los filtros de grado o sección.</span>
-        </div>
+    <div class="tabla-estado">
+        <mat-icon class="estado-icon">person_search</mat-icon>
+        <p class="estado-label">Sin resultados para estos filtros</p>
+        <span class="estado-hint">Prueba ajustando el grado o sección</span>
+    </div>
+
     } @else {
-        <div class="table-responsive">
-            <table mat-table [dataSource]="dataSource" class="users-table">
 
-                <ng-container matColumnDef="codigo">
-                    <th mat-header-cell *matHeaderCellDef>Código</th>
-                    <td mat-cell *matCellDef="let row">
-                        <span class="code-badge">{{ row.codigo_estudiante || '—' }}</span>
-                    </td>
-                </ng-container>
-
-                <ng-container matColumnDef="documento">
-                    <th mat-header-cell *matHeaderCellDef>Documento</th>
-                    <td mat-cell *matCellDef="let row">
-                        @if (row.numero_documento) {
-                            <span class="doc-type-chip">{{ row.tipo_documento }}</span>
-                            <span class="doc-number">{{ row.numero_documento }}</span>
-                        } @else {
-                            <span class="text-muted">—</span>
-                        }
-                    </td>
-                </ng-container>
-
-                <ng-container matColumnDef="nombre">
-                    <th mat-header-cell *matHeaderCellDef>Nombre completo</th>
-                    <td mat-cell *matCellDef="let row" class="name-cell">
-                        <div class="avatar-name">
-                            <app-user-avatar
-                                [nombre]="row.nombre"
-                                [apellidoPaterno]="row.apellido_paterno"
-                                rol="alumno"
-                                [fotoUrl]="row.foto_url ?? null"
-                                [size]="36" />
-                            <span class="full-name">
-                                {{ row.apellido_paterno }}
-                                {{ row.apellido_materno ? row.apellido_materno + ',' : ',' }}
-                                {{ row.nombre }}
-                                @if (row.inclusivo) {
-                                    <span class="chip chip--inclusivo"
-                                          matTooltip="Estudiante con necesidades educativas especiales">
-                                        <mat-icon>accessibility_new</mat-icon>
-                                        Inclusivo
-                                    </span>
-                                }
-                            </span>
-                        </div>
-                    </td>
-                </ng-container>
-
-                <ng-container matColumnDef="grado">
-                    <th mat-header-cell *matHeaderCellDef>Grado / Sección</th>
-                    <td mat-cell *matCellDef="let row">
-                        @if (row.grado) {
-                            <span class="grado-chip">{{ row.grado }}</span>
-                            <span class="seccion-sub">Sección {{ row.seccion }}</span>
-                        } @else {
-                            <span class="text-muted">Sin matrícula</span>
-                        }
-                    </td>
-                </ng-container>
-
-                <ng-container matColumnDef="periodo">
-                    <th mat-header-cell *matHeaderCellDef>Período</th>
-                    <td mat-cell *matCellDef="let row">
-                        @if (row.periodo_nombre) {
-                            <span class="periodo-name">{{ row.periodo_nombre }}</span>
-                            @if (row.periodo_bimestre) {
-                                <span class="periodo-bim">Bim. {{ row.periodo_bimestre }}</span>
-                            }
-                        } @else {
-                            <span class="text-muted">—</span>
-                        }
-                    </td>
-                </ng-container>
-
-                <ng-container matColumnDef="ingreso">
-                    <th mat-header-cell *matHeaderCellDef>Ingreso</th>
-                    <td mat-cell *matCellDef="let row">
-                        {{ row.anio_ingreso || '—' }}
-                    </td>
-                </ng-container>
-
-                <ng-container matColumnDef="acciones">
-                    <th mat-header-cell *matHeaderCellDef class="col-actions">Reporte</th>
-                    <td mat-cell *matCellDef="let row" class="col-actions">
-                        <button
-                            mat-icon-button
-                            class="report-btn"
-                            matTooltip="Generar reporte general"
-                            aria-label="Generar reporte general del alumno"
-                            (click)="verReporte(row)">
-                            <mat-icon>print</mat-icon>
-                        </button>
-                    </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-                    class="table-row" [class.row--inclusivo]="row.inclusivo"></tr>
-            </table>
+    <!-- ══ TOP BAR ══════════════════════════════════════════════ -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="total-badge">
+                <span class="total-num">{{ total() }}</span>
+                <span class="total-label">alumno{{ total() !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="top-divider"></div>
+            <span class="top-hint">
+                <mat-icon>info_outline</mat-icon>
+                Datos del año {{ anio }}
+            </span>
         </div>
+    </div>
 
-        <mat-paginator
-            [length]="total()"
-            [pageSize]="pageSize()"
-            [pageIndex]="page() - 1"
-            [pageSizeOptions]="[10, 20, 50, 100]"
-            (page)="onPageChange($event)"
-            showFirstLastButtons />
+    <!-- ══ TABLA ════════════════════════════════════════════════ -->
+    <div class="table-scroll">
+        <table mat-table [dataSource]="dataSource" class="h-table">
+
+            <!-- Código -->
+            <ng-container matColumnDef="codigo">
+                <th mat-header-cell *matHeaderCellDef>Código</th>
+                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                    <span class="code-tag">{{ row.codigo_estudiante || '—' }}</span>
+                </td>
+            </ng-container>
+
+            <!-- Documento -->
+            <ng-container matColumnDef="documento">
+                <th mat-header-cell *matHeaderCellDef>Documento</th>
+                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                    @if (row.numero_documento) {
+                    <div class="doc-row">
+                        <span class="doc-type-tag">{{ row.tipo_documento }}</span>
+                        <span class="doc-num">{{ row.numero_documento }}</span>
+                    </div>
+                    } @else {
+                    <span class="dash">—</span>
+                    }
+                </td>
+            </ng-container>
+
+            <!-- Nombre -->
+            <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Alumno</th>
+                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                    <div class="alumno-row">
+                        <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno" rol="alumno"
+                            [fotoUrl]="row.foto_url ?? null" [size]="38" />
+                        <div class="alumno-data">
+                            <span class="alumno-nombre">
+                                {{ row.apellido_paterno }}{{ row.apellido_materno ? ' ' + row.apellido_materno : '' }},
+                                {{ row.nombre }}
+                            </span>
+                            @if (row.inclusivo) {
+                            <span class="incl-tag" matTooltip="Necesidades educativas especiales">
+                                <mat-icon>accessibility_new</mat-icon>NEE
+                            </span>
+                            }
+                        </div>
+                    </div>
+                </td>
+            </ng-container>
+
+            <!-- Grado -->
+            <ng-container matColumnDef="grado">
+                <th mat-header-cell *matHeaderCellDef>Grado / Sección</th>
+                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                    @if (row.grado) {
+                    <div class="grado-stack">
+                        <span class="grado-tag">{{ row.grado }}</span>
+                        <span class="seccion-tag">Sec. {{ row.seccion }}</span>
+                    </div>
+                    } @else {
+                    <span class="dash">Sin matrícula</span>
+                    }
+                </td>
+            </ng-container>
+
+            <!-- Periodo -->
+            <ng-container matColumnDef="periodo">
+                <th mat-header-cell *matHeaderCellDef>Período</th>
+                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                    @if (row.periodo_nombre) {
+                    <div class="periodo-stack">
+                        <span class="periodo-nombre">{{ row.periodo_nombre }}</span>
+                        @if (row.periodo_bimestre) {
+                        <span class="periodo-bim">Bim. {{ row.periodo_bimestre }}</span>
+                        }
+                    </div>
+                    } @else {
+                    <span class="dash">—</span>
+                    }
+                </td>
+            </ng-container>
+
+            <!-- Ingreso -->
+            <ng-container matColumnDef="ingreso">
+                <th mat-header-cell *matHeaderCellDef>Ingreso</th>
+                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                    <span class="year-num">{{ row.anio_ingreso || '—' }}</span>
+                </td>
+            </ng-container>
+
+            <!-- Acciones -->
+            <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef class="col-c">Reporte</th>
+                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i" class="col-c">
+                    <button mat-icon-button class="report-btn" matTooltip="Generar reporte general"
+                        (click)="verReporte(row)">
+                        <mat-icon>print</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="h-row" [class.row-incl]="row.inclusivo">
+            </tr>
+        </table>
+    </div>
+
+    <!-- Paginator -->
+    <div class="paginator-wrap">
+        <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageIndex]="page() - 1"
+            [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons>
+        </mat-paginator>
+    </div>
+
     }
 </div>

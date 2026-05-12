@@ -1,0 +1,584 @@
+// ═══════════════════════════════════════════════════════════════
+// alumno-notas-dialog.scss
+// ═══════════════════════════════════════════════════════════════
+
+.notas-shell {
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    min-width: 540px;
+    background: var(--c-surface);
+    overflow: hidden;
+}
+
+// ════════════════════════════════════════════════════════════════
+// HEADER
+// ════════════════════════════════════════════════════════════════
+.notas-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 20px 22px 16px;
+    background: linear-gradient(135deg, var(--c-primary-dark) 0%, var(--c-primary) 60%, var(--c-primary-light) 100%);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+
+.alumno-avatar-lg {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+    letter-spacing: -0.3px;
+}
+
+.header-text {
+    min-width: 0;
+}
+
+.header-eyebrow {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 2px;
+}
+
+.header-name {
+    margin: 0 0 2px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.2px;
+}
+
+.header-meta {
+    display: block;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 500;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.promedio-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 7px 14px;
+    border-radius: var(--r-md);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 68px;
+
+    .pb-label {
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: rgba(255, 255, 255, 0.65);
+    }
+
+    .pb-valor {
+        font-size: 22px;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -1px;
+        line-height: 1.15;
+    }
+}
+
+.btn-close {
+    color: rgba(255, 255, 255, 0.8) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: #fff !important;
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// BODY
+// ════════════════════════════════════════════════════════════════
+.notas-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px;
+    background: var(--c-bg);
+
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--c-border);
+        border-radius: 3px;
+    }
+}
+
+// ── Estados ───────────────────────────────────────────────────
+.state-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 200px;
+    text-align: center;
+    padding: 24px;
+
+    p {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--c-text-3);
+    }
+}
+
+.spinner-ring {
+    padding: 12px;
+    background: var(--c-surface);
+    border-radius: 50%;
+    box-shadow: var(--shadow-md);
+}
+
+.state-error {
+    mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        color: var(--c-danger);
+    }
+
+    p {
+        color: var(--c-danger);
+    }
+}
+
+.empty-ring {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--c-surface), var(--c-border));
+    border: 2px dashed var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+        font-size: 30px;
+        width: 30px;
+        height: 30px;
+        color: var(--c-text-3);
+    }
+}
+
+.empty-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--c-text-1);
+}
+
+.empty-hint {
+    font-size: 13px;
+    color: var(--c-text-2);
+    max-width: 280px;
+    line-height: 1.5;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CURSOS GRID
+// ════════════════════════════════════════════════════════════════
+.cursos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.curso-card {
+    background: var(--c-surface);
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    animation: cardIn 0.3s ease-out backwards;
+
+    &:hover {
+        border-color: var(--c-primary-light);
+        box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
+        transform: translateY(-2px);
+    }
+
+    @for $i from 1 through 12 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.04}s;
+        }
+    }
+}
+
+@keyframes cardIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+// ── Curso header ──────────────────────────────────────────────
+.curso-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 14px 11px;
+    border-bottom: 1px solid var(--c-border);
+    background: linear-gradient(135deg, var(--c-bg), var(--c-surface));
+}
+
+.c-color-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.curso-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.curso-nombre {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--c-text-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.curso-docente {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--c-text-3);
+    font-weight: 500;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.docente-icon {
+    font-size: 11px !important;
+    width: 11px !important;
+    height: 11px !important;
+    flex-shrink: 0;
+}
+
+// ── Promedio del curso ────────────────────────────────────────
+.curso-promedio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: var(--r-sm);
+    min-width: 44px;
+    flex-shrink: 0;
+    background: var(--c-border);
+
+    .cp-label {
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--c-text-3);
+    }
+
+    .cp-valor {
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        color: var(--c-text-2);
+    }
+
+    // Colores según nota
+    &.prom-nota-ad {
+        background: #dcfce7;
+
+        .cp-label,
+        .cp-valor {
+            color: #14532d;
+        }
+    }
+
+    &.prom-nota-a {
+        background: #dbeafe;
+
+        .cp-label,
+        .cp-valor {
+            color: #1e3a8a;
+        }
+    }
+
+    &.prom-nota-b {
+        background: #fef3c7;
+
+        .cp-label,
+        .cp-valor {
+            color: #78350f;
+        }
+    }
+
+    &.prom-nota-c {
+        background: #fee2e2;
+
+        .cp-label,
+        .cp-valor {
+            color: #7f1d1d;
+        }
+    }
+}
+
+// ── Evaluaciones ──────────────────────────────────────────────
+.evaluaciones-list {
+    padding: 8px 0 4px;
+}
+
+.eval-empty {
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--c-text-3);
+    font-style: italic;
+    margin: 0;
+}
+
+.eval-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    transition: background 0.12s ease;
+
+    &:hover {
+        background: var(--c-bg);
+    }
+}
+
+.eval-periodo {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--c-text-2);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.eval-nota-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.eval-nota {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 26px;
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.nota-bar {
+    width: 48px;
+    height: 4px;
+    background: var(--c-border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.nota-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ════════════════════════════════════════════════════════════════
+// COLORES ESCALA VIGESIMAL PERUANA AD / A / B / C
+// ════════════════════════════════════════════════════════════════
+.nota-ad {
+    background: #dcfce7;
+    color: #14532d;
+
+    &.nota-bar-fill {
+        background: linear-gradient(90deg, #16a34a, #4ade80);
+    }
+}
+
+.nota-a {
+    background: #dbeafe;
+    color: #1e3a8a;
+
+    &.nota-bar-fill {
+        background: linear-gradient(90deg, #2563eb, #60a5fa);
+    }
+}
+
+.nota-b {
+    background: #fef3c7;
+    color: #78350f;
+
+    &.nota-bar-fill {
+        background: linear-gradient(90deg, #f59e0b, #fcd34d);
+    }
+}
+
+.nota-c {
+    background: #fee2e2;
+    color: #7f1d1d;
+
+    &.nota-bar-fill {
+        background: linear-gradient(90deg, #dc2626, #f87171);
+    }
+}
+
+.nota-empty {
+    background: var(--c-bg);
+    color: var(--c-text-3);
+}
+
+// ════════════════════════════════════════════════════════════════
+// LEYENDA
+// ════════════════════════════════════════════════════════════════
+.leyenda {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+}
+
+.leyenda-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--c-text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+}
+
+.leyenda-chip {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FOOTER
+// ════════════════════════════════════════════════════════════════
+.notas-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--c-border);
+    background: var(--c-surface);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.footer-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--c-text-3);
+    font-weight: 500;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ════════════════════════════════════════════════════════════════
+@media (max-width: 640px) {
+    .notas-shell {
+        min-width: unset;
+        max-height: 92vh;
+    }
+
+    .cursos-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .notas-header {
+        padding: 14px 16px 12px;
+    }
+
+    .header-name {
+        font-size: 15px;
+    }
+
+    .notas-body {
+        padding: 14px;
+    }
+
+    .promedio-badge {
+        display: none;
+    }
+}

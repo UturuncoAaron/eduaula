@@ -72,10 +72,6 @@
             <nav class="breadcrumb">
                 <mat-icon class="bc-icon">school</mat-icon>
                 <span class="bc-text">{{ selectedGrado()!.nombre }}</span>
-                @if (selectedSeccion()) {
-                <mat-icon class="bc-sep">chevron_right</mat-icon>
-                <span class="bc-active">Sección "{{ selectedSeccion()!.nombre }}"</span>
-                }
             </nav>
             <button mat-flat-button color="primary" class="btn-nueva-seccion" (click)="openCreateSeccion()">
                 <mat-icon>add</mat-icon>
@@ -93,14 +89,14 @@
         <!-- ── Secciones lista ─────────────────────────────────── -->
         <div class="sections-list">
             @for (s of seccionesDelGrado(); track s.id) {
-            <div class="section-card" (click)="selectSeccion(s)" [class.selected]="selectedSeccion()?.id === s.id">
+            <div class="section-card" (click)="openSeccionModal(s)">
                 <div class="section-avatar" [class.has-tutor]="!!s.tutor">
                     {{ s.nombre }}
                 </div>
                 <div class="section-body">
                     <span class="section-name">Sección {{ s.nombre }}</span>
                     <span class="section-meta">
-                        <mat-icon class="meta-icon">group</mat-icon>
+                        <mat-icon class="meta-icon">meeting_room</mat-icon>
                         Cap. {{ s.capacidad }}
                     </span>
                 </div>
@@ -122,9 +118,7 @@
                     <mat-icon>edit</mat-icon>
                 </button>
 
-                <mat-icon class="section-chevron">
-                    {{ selectedSeccion()?.id === s.id ? 'expand_more' : 'chevron_right' }}
-                </mat-icon>
+                <mat-icon class="section-chevron">chevron_right</mat-icon>
             </div>
             } @empty {
             <div class="empty-hero">
@@ -136,224 +130,6 @@
             </div>
             }
         </div>
-
-        <!-- ══════════════════════════════════════════════════════ -->
-        <!-- DETALLE DE SECCIÓN (TABS)                             -->
-        <!-- ══════════════════════════════════════════════════════ -->
-        @if (selectedSeccion()) {
-        <div class="detail-panel">
-
-            <!-- ── Section info card ───────────────────────────── -->
-            <div class="section-info-card">
-                <div class="sic-left">
-                    <div class="sic-avatar" [class.ok]="!!selectedSeccion()!.tutor">
-                        {{ selectedSeccion()!.nombre }}
-                    </div>
-                    <div class="sic-text">
-                        <span class="sic-title">Sección {{ selectedSeccion()!.nombre }}</span>
-                        <span class="sic-sub">{{ selectedGrado()!.nombre }} · Cap. {{ selectedSeccion()!.capacidad }}
-                            alumnos</span>
-                    </div>
-                </div>
-                <button mat-stroked-button class="btn-edit-detail" (click)="openEditSeccion(selectedSeccion()!)">
-                    <mat-icon>edit</mat-icon>
-                    <span>Editar</span>
-                </button>
-            </div>
-
-            <!-- ── Tutor strip ─────────────────────────────────── -->
-            <div class="tutor-strip" [class.no-tutor]="!selectedSeccion()!.tutor">
-                <div class="tutor-left">
-                    <div class="tutor-icon" [class.ok]="!!selectedSeccion()!.tutor">
-                        <mat-icon>{{ selectedSeccion()!.tutor ? 'verified_user' : 'person_off' }}</mat-icon>
-                    </div>
-                    <div class="tutor-body">
-                        <span class="tutor-label">Tutor de la sección</span>
-                        @if (selectedSeccion()!.tutor; as t) {
-                        <div class="tutor-name-row">
-                            <span class="tutor-initials">{{ t.nombre[0] }}{{ t.apellido_paterno[0] }}</span>
-                            <span class="tutor-fullname">
-                                {{ t.apellido_paterno }} {{ t.apellido_materno ?? '' }}, {{ t.nombre }}
-                            </span>
-                        </div>
-                        } @else {
-                        <span class="tutor-missing-msg">
-                            Sin asignar — los alumnos no tendrán libreta hasta asignar tutor.
-                        </span>
-                        }
-                    </div>
-                </div>
-                <button mat-stroked-button class="btn-tutor-action" (click)="openAssignTutor()">
-                    <mat-icon>{{ selectedSeccion()!.tutor ? 'swap_horiz' : 'person_add' }}</mat-icon>
-                    {{ selectedSeccion()!.tutor ? 'Cambiar tutor' : 'Asignar tutor' }}
-                </button>
-            </div>
-
-            <!-- ── Tabs ────────────────────────────────────────── -->
-            <div class="tabs-card">
-                <div class="tabs-nav">
-                    <button class="tab-btn" [class.active]="activeTab() === 'cursos'" (click)="setTab('cursos')">
-                        <mat-icon>menu_book</mat-icon>
-                        <span class="tab-label">Cursos</span>
-                        <span class="tab-pill">{{ cursosDeSeccion().length }}</span>
-                    </button>
-                    <button class="tab-btn" [class.active]="activeTab() === 'alumnos'" (click)="setTab('alumnos')">
-                        <mat-icon>group</mat-icon>
-                        <span class="tab-label">Alumnos</span>
-                        <span class="tab-pill" [class.warn]="porcentaje() >= 80">
-                            {{ ocupacion() }}/{{ capacidad() }}
-                        </span>
-                    </button>
-                    <button class="tab-btn" [class.active]="activeTab() === 'horario'" (click)="setTab('horario')">
-                        <mat-icon>schedule</mat-icon>
-                        <span class="tab-label">Horario</span>
-                    </button>
-                </div>
-
-                <!-- ── TAB: CURSOS ─────────────────────────────── -->
-                @if (activeTab() === 'cursos') {
-                <div class="tab-content">
-                    <div class="tab-toolbar">
-                        <span class="toolbar-title">Cursos de la sección</span>
-                        <button mat-flat-button color="primary" class="btn-action" (click)="openAddCourse()">
-                            <mat-icon>add</mat-icon> Agregar curso
-                        </button>
-                    </div>
-                    @if (loadingCursos()) {
-                    <div class="inline-loader">
-                        <mat-spinner diameter="18"></mat-spinner>
-                        <span>Cargando...</span>
-                    </div>
-                    } @else if (cursosDeSeccion().length === 0) {
-                    <div class="empty-mini">
-                        <mat-icon>menu_book</mat-icon>
-                        <p>{{ periodoActivo() ? 'Sin cursos aún. Agrega el primero.' : 'Sin periodo activo.' }}</p>
-                    </div>
-                    } @else {
-                    <div class="courses-list">
-                        @for (c of cursosDeSeccion(); track c.id) {
-                        <div class="course-row" [class.inactive]="!c.activo">
-                            <span class="c-dot" [style.background]="c.color ?? '#9e9e9e'"></span>
-                            <span class="c-name" [class.muted]="!c.activo">{{ c.nombre }}</span>
-                            <div class="c-docente">
-                                @if (c.docente) {
-                                <span class="d-avatar">{{ c.docente.nombre[0] }}{{ c.docente.apellido_paterno[0]
-                                    }}</span>
-                                <span class="d-name">{{ c.docente.apellido_paterno }}</span>
-                                } @else {
-                                <span class="d-empty">
-                                    <mat-icon>warning</mat-icon>Sin asignar
-                                </span>
-                                }
-                            </div>
-                            <button mat-icon-button [matMenuTriggerFor]="courseMenu"
-                                [matMenuTriggerData]="{ course: c }" (click)="$event.stopPropagation()">
-                                <mat-icon>more_vert</mat-icon>
-                            </button>
-                        </div>
-                        }
-                    </div>
-                    }
-                </div>
-                }
-
-                <!-- ── TAB: ALUMNOS ────────────────────────────── -->
-                @if (activeTab() === 'alumnos') {
-                <div class="tab-content">
-                    <div class="tab-toolbar">
-                        <div class="toolbar-left">
-                            <span class="toolbar-title">Alumnos matriculados</span>
-                            <div class="cap-meter">
-                                <div class="cap-track">
-                                    <div class="cap-fill" [style.width.%]="porcentaje()"
-                                        [class.warn]="porcentaje() >= 80" [class.full]="porcentaje() >= 100">
-                                    </div>
-                                </div>
-                                <span class="cap-text">
-                                    {{ capacidad() - ocupacion() }} lugares disponibles
-                                </span>
-                            </div>
-                        </div>
-                        <button mat-flat-button color="primary" class="btn-action" (click)="openMatricular()"
-                            [disabled]="ocupacion() >= capacidad()">
-                            <mat-icon>person_add</mat-icon> Matricular
-                        </button>
-                    </div>
-
-                    <div class="search-bar">
-                        <mat-icon class="search-icon">search</mat-icon>
-                        <input [formControl]="alumnoSearch" placeholder="Buscar por nombre o código..." />
-                        @if (alumnoSearch.value) {
-                        <button class="search-clear" (click)="alumnoSearch.setValue('')">
-                            <mat-icon>close</mat-icon>
-                        </button>
-                        }
-                    </div>
-
-                    @if (loadingAlumnos()) {
-                    <div class="inline-loader">
-                        <mat-spinner diameter="18"></mat-spinner>
-                        <span>Cargando alumnos...</span>
-                    </div>
-                    } @else if (alumnosFiltrados().length === 0) {
-                    <div class="empty-mini">
-                        <mat-icon>{{ alumnos().length === 0 ? 'group' : 'search_off' }}</mat-icon>
-                        <p>{{ alumnos().length === 0 ? 'Sin alumnos matriculados' : 'Sin resultados' }}</p>
-                    </div>
-                    } @else {
-                    <div class="alumnos-list">
-                        @for (a of alumnosPaginados(); track a.id) {
-                        <div class="alumno-row" [class.inactive]="!a.activo">
-                            <div class="a-avatar">{{ getInitials(a.nombre, a.apellido_paterno) }}</div>
-                            <div class="a-info">
-                                <span class="a-name">{{ a.apellido_paterno }}, {{ a.nombre }}</span>
-                                <span class="a-code">{{ a.codigo_estudiante }}</span>
-                            </div>
-                            <div class="a-actions">
-                                <button mat-icon-button (click)="verNotasAlumno(a)" matTooltip="Ver notas">
-                                    <mat-icon>grade</mat-icon>
-                                </button>
-                                <button mat-icon-button class="btn-remove" (click)="retirarAlumno(a)"
-                                    matTooltip="Retirar de sección">
-                                    <mat-icon>person_remove</mat-icon>
-                                </button>
-                            </div>
-                        </div>
-                        }
-                    </div>
-                    @if (alumnosFiltrados().length > alumnoPageSize()) {
-                    <mat-paginator [length]="alumnosFiltrados().length" [pageSize]="alumnoPageSize()"
-                        [pageSizeOptions]="[5, 10, 20]" [pageIndex]="alumnoPage()" (page)="onAlumnoPageChange($event)">
-                    </mat-paginator>
-                    }
-                    }
-                </div>
-                }
-
-                <!-- ── TAB: HORARIO ────────────────────────────── -->
-                @if (activeTab() === 'horario') {
-                <div class="tab-content">
-                    <div class="tab-toolbar">
-                        <span class="toolbar-title">Horario semanal</span>
-                        <button mat-stroked-button (click)="openSchedule()">
-                            <mat-icon>edit_calendar</mat-icon> Gestionar
-                        </button>
-                    </div>
-                    <div class="horario-cta">
-                        <div class="horario-icon-ring">
-                            <mat-icon>calendar_month</mat-icon>
-                        </div>
-                        <p>Configura los bloques de clase para esta sección.</p>
-                        <button mat-flat-button color="primary" (click)="openSchedule()">
-                            <mat-icon>edit_calendar</mat-icon> Abrir gestor de horario
-                        </button>
-                    </div>
-                </div>
-                }
-
-            </div>
-        </div>
-        }
         }
     </div>
     }

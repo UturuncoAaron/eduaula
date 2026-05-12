@@ -93,7 +93,6 @@ export class MyGrades implements OnInit {
       .sort((a, b) => a - b),
   );
 
-  // Solo para alumno/padre — agrupa por curso filtrando por bimestre seleccionado
   cursosAgrupados = computed<CursoAgrupado[]>(() => {
     const filtered = this.grades().filter(g => g.bimestre === this.bimestre);
     const grupos = new Map<string, CursoAgrupado>();
@@ -129,7 +128,6 @@ export class MyGrades implements OnInit {
   hasGroupedGrades = computed(() => this.cursosAgrupados().length > 0);
 
   ngOnInit() {
-    // Singleton: si ya cargó antes, es no-op
     this.periodoService.loadAll();
 
     if (this.auth.isDocente() || this.auth.isAdmin?.()) {
@@ -155,10 +153,17 @@ export class MyGrades implements OnInit {
 
   loadMyGrades() {
     this.loading.set(true);
-    this.api.get<MyGrade[]>('grades/my').subscribe({
+    this.api.get<any>('grades/my').subscribe({
       next: r => {
-        const data = (r as any).data ?? [];
+        // Soporta tanto array directo como { data: [...] }
+        const data: MyGrade[] = Array.isArray(r)
+          ? r
+          : Array.isArray((r as any)?.data)
+            ? (r as any).data
+            : [];
+
         this.grades.set(data);
+
         // Default al bimestre activo si está en la data, sino al primero con datos
         const activo = this.periodoService.activo();
         const bims = [...new Set(data.map((g: MyGrade) => g.bimestre))].sort();
