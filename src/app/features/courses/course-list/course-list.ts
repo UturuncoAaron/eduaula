@@ -1,9 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth';
 import { CourseService } from '../data-access/course.store';
@@ -11,9 +10,10 @@ import { CourseService } from '../data-access/course.store';
 @Component({
   selector: 'app-course-list',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MatCardModule, MatIconModule, MatButtonModule,
-    MatChipsModule, MatProgressSpinnerModule, RouterLink,
+    MatIconModule, MatButtonModule,
+    MatProgressSpinnerModule, MatTooltipModule, RouterLink,
   ],
   templateUrl: './course-list.html',
   styleUrl: './course-list.scss'
@@ -26,33 +26,38 @@ export class CourseList implements OnInit {
   loading = this.csSvc.loading;
 
   readonly gradients = [
-    'linear-gradient(135deg, #1565C0, #42A5F5)',
-    'linear-gradient(135deg, #2E7D32, #66BB6A)',
-    'linear-gradient(135deg, #6A1B9A, #AB47BC)',
-    'linear-gradient(135deg, #E65100, #FFA726)',
-    'linear-gradient(135deg, #00838F, #26C6DA)',
-    'linear-gradient(135deg, #AD1457, #EC407A)',
+    'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+    'linear-gradient(135deg, #065f46, #34d399)',
+    'linear-gradient(135deg, #581c87, #a855f7)',
+    'linear-gradient(135deg, #9a3412, #fb923c)',
+    'linear-gradient(135deg, #155e75, #22d3ee)',
+    'linear-gradient(135deg, #881337, #f43f5e)',
+    'linear-gradient(135deg, #3730a3, #818cf8)',
+    'linear-gradient(135deg, #854d0e, #facc15)',
   ];
 
+  readonly iconMap: Record<string, string> = {
+    matemáticas: 'calculate', comunicación: 'menu_book',
+    historia: 'public', inglés: 'translate',
+    ciencia: 'science', arte: 'palette',
+    educación: 'sports_soccer', computación: 'computer',
+    religión: 'church', tutoría: 'groups',
+    música: 'music_note',
+  };
+
+  getIcon(nombre: string): string {
+    const lower = nombre.toLowerCase();
+    for (const [key, icon] of Object.entries(this.iconMap)) {
+      if (lower.includes(key)) return icon;
+    }
+    return 'school';
+  }
+
   getInitials(nombre: string): string {
-    return nombre.split(' ')
-      .slice(0, 2)
-      .map(w => w[0])
-      .join('')
-      .toUpperCase();
+    return nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
   }
 
   ngOnInit() {
-    this.csSvc.loadMyCourses().subscribe({
-      error: () => {
-        this.csSvc.courses.set([
-          { id: '1', nombre: 'Matemáticas', descripcion: '3ro Secundaria · Sección A', docente_id: '', seccion_id: 1, periodo_id: 1, activo: true },
-          { id: '2', nombre: 'Comunicación', descripcion: '3ro Secundaria · Sección A', docente_id: '', seccion_id: 1, periodo_id: 1, activo: true },
-          { id: '3', nombre: 'Historia del Perú', descripcion: '3ro Secundaria · Sección A', docente_id: '', seccion_id: 1, periodo_id: 1, activo: true },
-          { id: '4', nombre: 'Inglés', descripcion: '3ro Secundaria · Sección A', docente_id: '', seccion_id: 1, periodo_id: 1, activo: true },
-          { id: '5', nombre: 'Ciencias', descripcion: '3ro Secundaria · Sección A', docente_id: '', seccion_id: 1, periodo_id: 1, activo: true },
-        ]);
-      }
-    });
+    this.csSvc.loadMyCourses().subscribe({ error: () => {} });
   }
 }

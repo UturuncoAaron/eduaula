@@ -1,47 +1,124 @@
 <app-page-header
     title="Asistencia del alumno"
-    subtitle="Historial de asistencia a clases en vivo"
+    subtitle="Seguimiento de asistencia general y clases en vivo"
     backRoute="/portal-padres" />
 
-@if (loading()) {
-    <div class="state-center">
-        <mat-spinner diameter="36" />
-        <p>Cargando asistencia...</p>
-    </div>
-} @else if (records().length === 0) {
-    <app-empty-state
-        icon="event"
-        title="Sin registros"
-        message="No hay registros de asistencia para este alumno." />
-} @else {
+<!-- Tab toggle -->
+<div class="tab-bar">
+    <mat-button-toggle-group [value]="tab()" (change)="setTab($event.value)" hideSingleSelectionIndicator>
+        <mat-button-toggle value="general">
+            <mat-icon>how_to_reg</mat-icon>
+            <span>Asistencia General</span>
+        </mat-button-toggle>
+        <mat-button-toggle value="vivo">
+            <mat-icon>fact_check</mat-icon>
+            <span>Por Curso</span>
+        </mat-button-toggle>
+    </mat-button-toggle-group>
+</div>
 
-    <div class="summary-row">
-        <div class="summary-card">
-            <span class="big">{{ presentes() }}</span>
-            <span class="label">Presentes</span>
+<!-- ═══ TAB: Asistencia General ════════════════════════════════════════════ -->
+@if (tab() === 'general') {
+    @if (loadingGeneral()) {
+        <div class="state-center">
+            <mat-spinner diameter="36" />
+            <p>Cargando asistencia general...</p>
         </div>
-        <div class="summary-card">
-            <span class="big">{{ total() }}</span>
-            <span class="label">Clases</span>
+    } @else if (!resumen()) {
+        <app-empty-state
+            icon="event"
+            title="Sin registros"
+            message="No hay registros de asistencia general para este alumno." />
+    } @else {
+        <!-- Resumen cards -->
+        <div class="summary-grid">
+            <div class="summary-card summary-card--main">
+                <span class="summary-label">Asistencia</span>
+                <span class="summary-value" [style.color]="resumen()!.porcentaje !== null && resumen()!.porcentaje! >= 90 ? '#16a34a' : resumen()!.porcentaje !== null && resumen()!.porcentaje! >= 75 ? '#ca8a04' : '#dc2626'">
+                    {{ resumen()!.porcentaje !== null ? (resumen()!.porcentaje! | number:'1.0-0') + '%' : '—' }}
+                </span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Total</span>
+                <span class="summary-value">{{ resumen()!.total }}</span>
+            </div>
+            <div class="summary-card" style="border-left: 3px solid #16a34a;">
+                <span class="summary-label">Asistió</span>
+                <span class="summary-value" style="color:#16a34a">{{ resumen()!.asistio }}</span>
+            </div>
+            <div class="summary-card" style="border-left: 3px solid #ca8a04;">
+                <span class="summary-label">Tardanza</span>
+                <span class="summary-value" style="color:#ca8a04">{{ resumen()!.tardanza }}</span>
+            </div>
+            <div class="summary-card" style="border-left: 3px solid #2563eb;">
+                <span class="summary-label">Justificado</span>
+                <span class="summary-value" style="color:#2563eb">{{ resumen()!.justificado }}</span>
+            </div>
+            <div class="summary-card" style="border-left: 3px solid #dc2626;">
+                <span class="summary-label">Falta</span>
+                <span class="summary-value" style="color:#dc2626">{{ resumen()!.falta }}</span>
+            </div>
         </div>
-        <div class="summary-card highlight">
-            <span class="big">{{ porcentaje() | number:'1.0-0' }}%</span>
-            <span class="label">Asistencia</span>
-        </div>
-    </div>
 
-    <mat-card class="table-card">
+        <!-- Detalle diario -->
+        @if (detalle().length) {
+            <h3 class="sub-title">Detalle diario</h3>
+            <div class="detail-list">
+                @for (d of detalle(); track d.id) {
+                    <div class="detail-row">
+                        <span class="detail-date">{{ d.fecha | date:'dd/MM/yyyy' }}</span>
+                        <span class="detail-periodo">{{ d.periodo_nombre }}</span>
+                        <span class="estado-badge"
+                              [style.color]="estadoColor(d.estado)"
+                              [style.background]="estadoBg(d.estado)">
+                            <mat-icon>{{ estadoIcon(d.estado) }}</mat-icon>
+                            {{ estadoLabel(d.estado) }}
+                        </span>
+                        <span class="detail-obs">{{ d.observacion || '' }}</span>
+                    </div>
+                }
+            </div>
+        }
+    }
+}
+
+<!-- ═══ TAB: Clases en Vivo ════════════════════════════════════════════════ -->
+@if (tab() === 'vivo') {
+    @if (loadingVivo()) {
+        <div class="state-center">
+            <mat-spinner diameter="36" />
+            <p>Cargando asistencia por curso...</p>
+        </div>
+    } @else if (records().length === 0) {
+        <app-empty-state
+            icon="fact_check"
+            title="Sin registros"
+            message="No hay registros de asistencia por curso." />
+    } @else {
+
+        <div class="summary-grid">
+            <div class="summary-card summary-card--main">
+                <span class="summary-label">Asistencia</span>
+                <span class="summary-value" [style.color]="porcentajeVivo() >= 90 ? '#16a34a' : porcentajeVivo() >= 75 ? '#ca8a04' : '#dc2626'">
+                    {{ porcentajeVivo() | number:'1.0-0' }}%
+                </span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Presentes</span>
+                <span class="summary-value" style="color:#16a34a">{{ presentes() }}</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-label">Total clases</span>
+                <span class="summary-value">{{ totalVivo() }}</span>
+            </div>
+        </div>
+
         <div class="table-wrap">
             <table mat-table [dataSource]="records()">
 
                 <ng-container matColumnDef="fecha">
                     <th mat-header-cell *matHeaderCellDef>Fecha</th>
-                    <td mat-cell *matCellDef="let r">{{ r.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="clase">
-                    <th mat-header-cell *matHeaderCellDef>Clase</th>
-                    <td mat-cell *matCellDef="let r">{{ r.clase }}</td>
+                    <td mat-cell *matCellDef="let r">{{ r.fecha_hora | date:'dd/MM/yyyy' }}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="curso">
@@ -53,14 +130,14 @@
                     <th mat-header-cell *matHeaderCellDef>Estado</th>
                     <td mat-cell *matCellDef="let r">
                         @if (r.presente) {
-                            <span class="tag present">
+                            <span class="estado-badge" style="color:#16a34a;background:#dcfce7">
                                 <mat-icon>check_circle</mat-icon>
-                                <span>Presente</span>
+                                Presente
                             </span>
                         } @else {
-                            <span class="tag absent">
+                            <span class="estado-badge" style="color:#dc2626;background:#fee2e2">
                                 <mat-icon>cancel</mat-icon>
-                                <span>Ausente</span>
+                                Ausente
                             </span>
                             @if (r.justificacion) {
                                 <small class="just"> · {{ r.justificacion }}</small>
@@ -69,10 +146,10 @@
                     </td>
                 </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="cols"></tr>
-                <tr mat-row *matRowDef="let row; columns: cols;"></tr>
+                <tr mat-header-row *matHeaderRowDef="colsVivo"></tr>
+                <tr mat-row *matRowDef="let row; columns: colsVivo;"></tr>
             </table>
         </div>
-    </mat-card>
 
+    }
 }

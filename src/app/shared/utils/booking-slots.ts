@@ -7,19 +7,23 @@ import {
 } from './calendar-week';
 
 const DEFAULT_SLOT_MINUTES = 30;
-
 export function buildBookingSlots(
     availability: AccountAvailability[],
     taken: SlotTaken[],
     weekStart: string,
     slotMinutes: number = DEFAULT_SLOT_MINUTES,
+    allowedDays?: readonly string[] | null,
 ): CalendarSlot[] {
     const slots: CalendarSlot[] = [];
     const indexByKey = new Map<string, number>();
     const step = slotMinutes > 0 ? slotMinutes : DEFAULT_SLOT_MINUTES;
+    const dayFilter = allowedDays && allowedDays.length > 0
+        ? new Set(allowedDays)
+        : null;
 
     for (const av of availability) {
         if (!av.activo) continue;
+        if (dayFilter && !dayFilter.has(av.diaSemana)) continue;
         const startMin = parseHM(av.horaInicio);
         const endMin = parseHM(av.horaFin);
         for (let m = startMin; m + step <= endMin; m += step) {
@@ -41,6 +45,7 @@ export function buildBookingSlots(
         if (d < wsDate || d >= weDate) continue;
         const dia = dayIdxToKey(d.getDay());
         if (!dia) continue;
+        if (dayFilter && !dayFilter.has(dia)) continue;
         const minutes = d.getHours() * 60 + d.getMinutes();
         const dur = t.durationMin ?? step;
         for (let m = minutes; m < minutes + dur; m += step) {

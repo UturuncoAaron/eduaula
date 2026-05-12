@@ -15,11 +15,11 @@ export interface ChildGrade {
     anio: number;
     periodo: string;
     curso: string;
-    nota_tareas: number | null;
-    nota_participacion: number | null;
-    nota_final: number | null;
-    escala: 'AD' | 'A' | 'B' | 'C' | string | null;
+    titulo: string;
+    tipo: string;
+    nota: number | null;
     observaciones: string | null;
+    fecha: string | null;
 }
 
 export interface ChildAttendanceRecord {

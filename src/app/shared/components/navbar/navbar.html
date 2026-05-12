@@ -12,12 +12,8 @@
 
     <div class="navbar-right">
 
-        <!-- Notificaciones -->
-        <button class="icon-action-btn notif-btn" matTooltip="Notificaciones" (click)="goToNotificaciones()">
-            <mat-icon [matBadge]="unreadCount() > 0 ? unreadCount() : null" matBadgeColor="warn" matBadgeSize="small">
-                notifications_none
-            </mat-icon>
-        </button>
+        <!-- Campanita: ahora despliega un dropdown en lugar de redirigir -->
+        <app-notifications-bell />
 
         <div class="divider-vertical"></div>
 
@@ -39,7 +35,6 @@
 
         <mat-menu #userMenu="matMenu" xPosition="before" class="modern-dropdown">
 
-            <!-- Tarjeta de perfil -->
             <div class="dropdown-header" (click)="$event.stopPropagation()">
                 <div class="dropdown-avatar" [style.background]="roleColor()">
                     @if (user()?.foto_url) {

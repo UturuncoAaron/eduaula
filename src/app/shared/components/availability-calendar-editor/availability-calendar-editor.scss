@@ -1,42 +1,101 @@
+/* ──────────────────────────────────────────────────────────────
+ *  Availability Calendar Editor
+ *
+ *  --days-count se inyecta desde el componente (template) en función
+ *  del rol del usuario (director=2, resto=5). Permite que la grilla
+ *  se adapte sin hardcodear el número de columnas.
+ * ────────────────────────────────────────────────────────────── */
+
 :host {
     display: block;
+    --days-count: 5;
+    --hours-col: 76px;
+    --row-h: 32px;
+    --header-h: 44px;
+    --accent: #4f46e5;
+    --accent-soft: #eef2ff;
+    --on-bg: #d1fae5;
+    --on-bg-hover: #a7f3d0;
+    --on-border: #10b981;
+
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-feature-settings: 'tnum' 1;
 }
 
 .editor {
     background: #fff;
-    border-radius: 12px;
+    border-radius: 14px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
+        0 8px 24px -12px rgba(15, 23, 42, 0.08);
 }
 
+/* ── Header ────────────────────────────────────────────── */
 .editor__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 16px;
+    padding: 14px 18px;
     border-bottom: 1px solid #e2e8f0;
-    background: #f8fafc;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    flex-wrap: wrap;
 
     h3 {
         margin: 0;
         font-size: 1rem;
+        font-weight: 600;
         color: #0f172a;
+        letter-spacing: 0.01em;
     }
 
     small {
+        display: block;
         color: #64748b;
-        font-size: .8rem;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        margin-top: 2px;
     }
 }
 
 .editor__title {
     display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    >mat-icon {
+        color: var(--accent);
+        background: var(--accent-soft);
+        border-radius: 10px;
+        padding: 6px;
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.editor__rule {
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 3px 10px;
+    background: var(--accent-soft);
+    color: #312e81;
+    border-radius: 999px;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em;
 
     mat-icon {
-        color: #6366f1;
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
     }
 }
 
@@ -56,44 +115,75 @@
 .editor__counter {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    background: #eef2ff;
+    gap: 5px;
+    padding: 5px 12px;
+    background: var(--accent-soft);
     color: #312e81;
     border-radius: 999px;
-    font-size: .8rem;
+    font-size: 0.78rem;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.1);
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
     }
 }
 
+/* ── Grid ──────────────────────────────────────────────── */
 .grid {
     display: grid;
-    grid-template-columns: 70px repeat(5, 1fr);
+    grid-template-columns: var(--hours-col) repeat(var(--days-count), minmax(78px, 1fr));
     background: #fff;
+    max-block-size: 480px;
+    overflow: auto;
+
+    &::-webkit-scrollbar {
+        inline-size: 10px;
+        block-size: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 999px;
+        border: 2px solid #fff;
+
+        &:hover {
+            background: #94a3b8;
+        }
+    }
 
     .cell {
-        height: 28px;
+        height: var(--row-h);
         border-right: 1px solid #f1f5f9;
         border-bottom: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: .75rem;
+        font-size: 0.75rem;
         color: #475569;
         background: #fff;
+        transition: background 0.12s ease;
     }
 
     .head {
-        height: 36px;
+        height: var(--header-h);
         background: #f8fafc;
         font-weight: 600;
         color: #0f172a;
-        border-bottom: 2px solid #e2e8f0;
+        border-bottom: 1px solid #cbd5e1;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
     }
 
     .head--corner {
@@ -104,17 +194,29 @@
         cursor: pointer;
         border: 0;
         border-right: 1px solid #e2e8f0;
-        font-size: .8rem;
 
         &:hover {
-            background: #eef2ff;
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: -2px;
         }
     }
 
     .head--hour {
-        font-size: .7rem;
+        font-size: 0.7rem;
         color: #94a3b8;
         background: #f8fafc;
+        font-weight: 500;
+        text-transform: none;
+        letter-spacing: 0;
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        font-variant-numeric: tabular-nums;
     }
 
     .slot {
@@ -123,36 +225,45 @@
         border-right: 1px solid #f1f5f9;
         border-bottom: 1px solid #f1f5f9;
         background: #fff;
-        transition: background .12s ease;
+        transition: background 0.14s ease, box-shadow 0.14s ease;
 
         &:hover:not(:disabled) {
-            background: #eef2ff;
+            background: var(--accent-soft);
+            box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.25);
         }
 
         &--on {
-            background: #d1fae5;
-            box-shadow: inset 0 0 0 1px #10b981;
+            background: var(--on-bg);
+            box-shadow: inset 0 0 0 1px var(--on-border);
 
             &:hover:not(:disabled) {
-                background: #a7f3d0;
+                background: var(--on-bg-hover);
+                box-shadow: inset 0 0 0 2px var(--on-border);
             }
         }
 
+        &:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: -2px;
+            z-index: 1;
+        }
+
         &:disabled {
-            opacity: .6;
+            opacity: 0.55;
             cursor: not-allowed;
         }
     }
 }
 
+/* ── Footer ────────────────────────────────────────────── */
 .editor__footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 16px;
+    padding: 10px 18px;
     border-top: 1px solid #e2e8f0;
     background: #f8fafc;
-    font-size: .8rem;
+    font-size: 0.8rem;
     color: #64748b;
 
     button mat-icon {
@@ -163,17 +274,27 @@
     }
 }
 
+.legend-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
 .legend {
     display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
     vertical-align: middle;
     margin-right: 4px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 
     &--on {
-        background: #d1fae5;
-        box-shadow: inset 0 0 0 1px #10b981;
+        background: var(--on-bg);
+        box-shadow: inset 0 0 0 1px var(--on-border),
+            0 1px 2px rgba(15, 23, 42, 0.08);
     }
 
     &--off {
@@ -184,4 +305,26 @@
 
 .muted {
     color: #64748b;
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 640px) {
+    :host {
+        --hours-col: 56px;
+        --row-h: 28px;
+        --header-h: 38px;
+    }
+
+    .editor__header {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .editor__actions {
+        gap: 6px;
+    }
+
+    .grid {
+        grid-template-columns: var(--hours-col) repeat(var(--days-count), minmax(64px, 1fr));
+    }
 }

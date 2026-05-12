@@ -4,9 +4,11 @@ import {
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { DatePipe } from '@angular/common';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
+import { UserAvatar } from '../../../shared/components/user-avatar/user-avatar';
 
 interface HijoItem {
   alumnoId: string;
@@ -15,6 +17,13 @@ interface HijoItem {
   apellidoMaterno: string | null;
   grado: string;
   seccion: string;
+  seccionId: string;
+  codigoEstudiante: string;
+  fotoStorageKey: string | null;
+  promedioGeneral: number | null;
+  porcentajeAsistencia: number | null;
+  citasPendientes: number;
+  asistioHoy: boolean | null;
 }
 
 interface CitaItem {
@@ -32,6 +41,7 @@ interface LibretaItem {
   periodoNombre: string;
   storageKey: string;
   creadaEn: string;
+  alumnoNombre: string;
 }
 
 interface ComunicadoItem {
@@ -51,7 +61,10 @@ interface PadreDashboardData {
 @Component({
   selector: 'app-padre-dashboard',
   standalone: true,
-  imports: [RouterLink, MatIconModule, MatButtonModule, DatePipe],
+  imports: [
+    RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule,
+    DatePipe, DecimalPipe, UserAvatar,
+  ],
   templateUrl: './padre-dashboard.html',
   styleUrl: './padre-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,17 +77,9 @@ export class PadreDashboard implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
 
-  // Tipo explícito con undefined para que ?? en el template sea válido
-  readonly tipoCitaLabel: Record<string, string | undefined> = {
-    academico: 'Académico',
-    conductual: 'Conductual',
-    psicologico: 'Psicológico',
-    familiar: 'Familiar',
-    otro: 'Otro',
-  };
-
-  readonly modalidadIcon: Record<string, string | undefined> = {
-    presencial: 'location_on',
+  readonly tipoCitaLabel: Record<string, string> = {
+    academico: 'Académico', conductual: 'Conductual',
+    psicologico: 'Psicológico', familiar: 'Familiar', otro: 'Otro',
   };
 
   readonly tieneCitas = computed(() =>
@@ -83,6 +88,10 @@ export class PadreDashboard implements OnInit {
 
   readonly tieneLibretas = computed(() =>
     (this.dashboardData()?.libretas?.length ?? 0) > 0,
+  );
+
+  readonly totalCitasPendientes = computed(() =>
+    this.dashboardData()?.hijos?.reduce((sum, h) => sum + (h.citasPendientes ?? 0), 0) ?? 0,
   );
 
   ngOnInit() {
@@ -98,12 +107,23 @@ export class PadreDashboard implements OnInit {
     });
   }
 
-  getInitials(hijo: HijoItem): string {
-    return `${hijo.nombre[0]}${hijo.apellidoPaterno[0]}`.toUpperCase();
-  }
-
   getFullName(hijo: HijoItem): string {
     const mat = hijo.apellidoMaterno ? ` ${hijo.apellidoMaterno}` : '';
     return `${hijo.nombre} ${hijo.apellidoPaterno}${mat}`;
+  }
+
+  attendanceColor(pct: number | null): string {
+    if (pct === null) return '#64748b';
+    if (pct >= 90) return '#16a34a';
+    if (pct >= 75) return '#ca8a04';
+    return '#dc2626';
+  }
+
+  gradeColor(avg: number | null): string {
+    if (avg === null) return '#64748b';
+    if (avg >= 17) return '#16a34a';
+    if (avg >= 14) return '#2563eb';
+    if (avg >= 11) return '#ca8a04';
+    return '#dc2626';
   }
 }
