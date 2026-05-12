@@ -1,63 +1,95 @@
 <div class="page">
-    <div class="page-header">
-        <div class="header-text">
-            <h2>Mis cursos</h2>
-            <p>{{ courses().length }} cursos activos este período</p>
+    <div class="page-head">
+        <div>
+            <h1>Mis cursos</h1>
+            <p class="subtitle">{{ courses().length }} cursos activos este período</p>
         </div>
     </div>
 
     @if (loading()) {
-    <div class="loading-center">
-        <mat-spinner diameter="40" />
-    </div>
+    <div class="state-center"><mat-spinner diameter="40" /></div>
     } @else {
-    <div class="courses-grid">
+    <div class="grid">
         @for (course of courses(); track course.id; let i = $index) {
-        <mat-card class="course-card">
-            <div class="course-banner" [style.background]="gradients[i % gradients.length]">
-                <div class="course-initials">{{ getInitials(course.nombre) }}</div>
-                <div class="course-banner-info">
-                    <span class="course-name">{{ course.nombre }}</span>
-                    <span class="course-desc">{{ course.descripcion }}</span>
+        <div class="card" [style.animation-delay]="i * 60 + 'ms'">
+
+            <!-- Banner -->
+            <div class="card-banner" [style.background]="gradients[i % gradients.length]">
+                <div class="banner-orb"></div>
+                <div class="banner-orb banner-orb--2"></div>
+                <div class="banner-content">
+                    <div class="course-icon">
+                        <mat-icon>{{ getIcon(course.nombre) }}</mat-icon>
+                    </div>
+                    <div class="banner-text">
+                        <span class="course-name">{{ course.nombre }}</span>
+                        <span class="course-section">{{ course.descripcion }}</span>
+                    </div>
+                    @if (auth.isDocente()) {
+                        <mat-icon class="docente-badge" matTooltip="Eres el docente">stars</mat-icon>
+                    }
                 </div>
-                @if (auth.isDocente()) {
-                <mat-icon class="docente-badge" matTooltip="Eres el docente">stars</mat-icon>
-                }
             </div>
 
-            <mat-card-content class="card-body">
-                <div class="meta-row">
-                    <span class="meta-item">
-                        <mat-icon>folder</mat-icon> Materiales
-                    </span>
-                    <span class="meta-item">
-                        <mat-icon>assignment</mat-icon> Tareas
-                    </span>
-                    <span class="meta-item">
-                        <mat-icon>quiz</mat-icon> Exámenes
-                    </span>
-                </div>
-            </mat-card-content>
+            <!-- Body -->
+            <div class="card-body">
 
-            <mat-card-actions class="card-actions">
-                @if (auth.isDocente()) {
-                <a mat-flat-button color="primary" [routerLink]="['/cursos', course.id]">
-                    <mat-icon>settings</mat-icon> Gestionar
-                </a>
-                <a mat-stroked-button [routerLink]="['/cursos', course.id, 'subir-material']">
-                    <mat-icon>upload</mat-icon> Material
-                </a>
-                } @else {
-                <a mat-flat-button color="primary" [routerLink]="['/cursos', course.id]">
-                    <mat-icon>menu_book</mat-icon> Ver curso
-                </a>
+                <!-- Docente -->
+                @if (course.docente) {
+                <div class="info-row">
+                    <mat-icon>person</mat-icon>
+                    <div>
+                        <span class="info-label">Docente</span>
+                        <span class="info-value">{{ course.docente.nombre }} {{ course.docente.apellido_paterno }}</span>
+                    </div>
+                </div>
                 }
-            </mat-card-actions>
-        </mat-card>
+
+                <!-- Sección -->
+                @if (course.seccion) {
+                <div class="info-row">
+                    <mat-icon>class</mat-icon>
+                    <div>
+                        <span class="info-label">Sección</span>
+                        <span class="info-value">{{ course.seccion.nombre }}</span>
+                    </div>
+                </div>
+                }
+
+                <!-- Quick access tiles -->
+                <div class="tiles">
+                    <a class="tile" [routerLink]="['/cursos', course.id]" [queryParams]="{ tab: 'materiales' }">
+                        <div class="tile-ic tile-ic--blue"><mat-icon>folder_open</mat-icon></div>
+                        <span>Materiales</span>
+                    </a>
+                    <a class="tile" [routerLink]="['/cursos', course.id]" [queryParams]="{ tab: 'tareas' }">
+                        <div class="tile-ic tile-ic--green"><mat-icon>assignment</mat-icon></div>
+                        <span>Tareas</span>
+                    </a>
+                    <a class="tile" [routerLink]="['/cursos', course.id]" [queryParams]="{ tab: 'examenes' }">
+                        <div class="tile-ic tile-ic--amber"><mat-icon>quiz</mat-icon></div>
+                        <span>Exámenes</span>
+                    </a>
+                    <a class="tile" [routerLink]="['/cursos', course.id]" [queryParams]="{ tab: 'vivo' }">
+                        <div class="tile-ic tile-ic--purple"><mat-icon>videocam</mat-icon></div>
+                        <span>En vivo</span>
+                    </a>
+                </div>
+
+                <!-- Actions -->
+                <div class="card-actions">
+                    <a class="act act--primary" [routerLink]="['/cursos', course.id]">
+                        <mat-icon>arrow_forward</mat-icon>
+                        {{ auth.isDocente() ? 'Gestionar' : 'Entrar al curso' }}
+                    </a>
+                </div>
+            </div>
+        </div>
         } @empty {
-        <div class="empty">
+        <div class="empty-state">
             <mat-icon>school</mat-icon>
-            <p>No tienes cursos asignados en este período.</p>
+            <h3>Sin cursos asignados</h3>
+            <p>No tienes cursos activos en este período académico.</p>
         </div>
         }
     </div>

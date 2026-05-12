@@ -1,166 +1,207 @@
-<div class="padre-container">
+<div class="dash">
 
-    <header class="welcome-banner">
-        <div class="banner-content">
-            <div class="banner-text">
+    <!-- ═══ Hero ══════════════════════════════════════════════════════════ -->
+    <header class="hero">
+        <div class="hero-orb hero-orb--1"></div>
+        <div class="hero-orb hero-orb--2"></div>
+        <div class="hero-orb hero-orb--3"></div>
+        <div class="hero-body">
+            <div class="hero-text">
+                <p class="hero-badge">EduAula · Portal de Padres</p>
                 <h1>¡Hola, {{ auth.currentUser()?.nombre ?? 'Familia' }}!</h1>
-                <p>Sigue el progreso académico de tus hijos.</p>
+                <p class="hero-sub">Aquí tienes un resumen del progreso académico de tus hijos.</p>
             </div>
-            <div class="banner-icon" aria-hidden="true">
-                <mat-icon>family_restroom</mat-icon>
-            </div>
+            <div class="hero-deco"><mat-icon>family_restroom</mat-icon></div>
+        </div>
+
+        <div class="hero-shortcuts">
+            <a class="hsc" routerLink="/portal-padres">
+                <div class="hsc-icon hsc-icon--blue"><mat-icon>school</mat-icon></div>
+                <span class="hsc-label">Portal Padres</span>
+            </a>
+            <a class="hsc" routerLink="/padre/citas">
+                <div class="hsc-icon hsc-icon--amber"><mat-icon>event</mat-icon></div>
+                <span class="hsc-label">Mis Citas</span>
+                @if (totalCitasPendientes() > 0) {
+                    <span class="hsc-dot">{{ totalCitasPendientes() }}</span>
+                }
+            </a>
+            <a class="hsc" routerLink="/comunicados">
+                <div class="hsc-icon hsc-icon--violet"><mat-icon>campaign</mat-icon></div>
+                <span class="hsc-label">Comunicados</span>
+            </a>
+            <a class="hsc" routerLink="/portal-padres">
+                <div class="hsc-icon hsc-icon--teal"><mat-icon>auto_stories</mat-icon></div>
+                <span class="hsc-label">Libretas</span>
+            </a>
         </div>
     </header>
 
     @if (loading()) {
-    <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Cargando información familiar...</p>
-    </div>
-
+        <div class="empty-block"><mat-spinner diameter="36" /><p>Cargando...</p></div>
     } @else if (error()) {
-    <div class="empty-state">
-        <mat-icon>error_outline</mat-icon>
-        <h3>Ha ocurrido un error</h3>
-        <p>{{ error() }}</p>
-    </div>
-
+        <div class="empty-block"><mat-icon>error_outline</mat-icon><h3>Error</h3><p>{{ error() }}</p></div>
     } @else if (dashboardData(); as data) {
 
-    <!-- HIJOS -->
-    <section class="section">
-        <h2 class="section-title">Estudiantes vinculados</h2>
+    <div class="content">
 
-        <div class="children-grid">
-            @for (hijo of data.hijos; track hijo.alumnoId) {
-            <div class="child-card">
-                <div class="card-top">
-                    <div class="child-avatar">{{ getInitials(hijo) }}</div>
-                    <div class="child-info">
-                        <h3 class="child-name">{{ getFullName(hijo) }}</h3>
-                        <span class="child-grade">
-                            <mat-icon>school</mat-icon>
-                            {{ hijo.grado }} — Sec. {{ hijo.seccion }}
-                        </span>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <a mat-flat-button color="primary" [routerLink]="['/portal-padres', hijo.alumnoId, 'notas']">
-                        <mat-icon>grade</mat-icon>Ver notas
-                    </a>
-                    <a mat-stroked-button [routerLink]="['/portal-padres', hijo.alumnoId, 'asistencia']">
-                        <mat-icon>event_available</mat-icon>Asistencia
-                    </a>
-                    <a mat-stroked-button [routerLink]="['/portal-padres', hijo.alumnoId, 'libreta']">
-                        <mat-icon>auto_stories</mat-icon>Libretas
-                    </a>
-                </div>
-            </div>
-            } @empty {
-            <div class="empty-state">
-                <mat-icon>escalator_warning</mat-icon>
-                <h3>Sin estudiantes vinculados</h3>
-                <p>Contacta al administrador del colegio.</p>
-            </div>
-            }
-        </div>
-    </section>
+        <!-- ═══ Main Grid: Student(s) + Sidebar ═════════════════════════ -->
+        <div class="main-grid">
 
-    <div class="bottom-grid">
+            <!-- Left: Students -->
+            <div class="main-left">
+                <h2 class="sec-title"><mat-icon>people</mat-icon> Mis hijos</h2>
 
-        <!-- CITAS PRÓXIMAS -->
-        <section class="widget-panel">
-            <div class="widget-header">
-                <h2>Próximas citas</h2>
-                @if (tieneCitas()) {
-                <span class="badge-count">{{ data.citasProximas.length }}</span>
-                }
-            </div>
-            <div class="widget-content">
-                @for (cita of data.citasProximas; track cita.id) {
-                <div class="cita-item">
-                    <div class="cita-icon">
-                        <mat-icon>{{ modalidadIcon[cita.modalidad] ?? 'event' }}</mat-icon>
-                    </div>
-                    <div class="cita-body">
-                        <p class="cita-titulo">
-                            {{ tipoCitaLabel[cita.tipo] ?? cita.tipo }}
-                            <span class="cita-alumno">· {{ cita.alumnoNombre }}</span>
-                        </p>
-                        <p class="cita-meta">
-                            {{ cita.fechaHora | date:'EEEE d MMM, HH:mm':'':'es' }}
-                            · {{ cita.convocadoPor }}
-                        </p>
-                    </div>
-                    <span class="cita-estado" [class]="cita.estado">
-                        {{ cita.estado === 'confirmada' ? 'Confirmada' : 'Pendiente' }}
-                    </span>
-                </div>
-                } @empty {
-                <div class="empty-widget">
-                    <mat-icon>event_available</mat-icon>
-                    <p>No tienes citas programadas.</p>
-                </div>
-                }
-            </div>
-        </section>
-
-        <div class="right-column">
-
-            <!-- LIBRETAS -->
-            <section class="widget-panel">
-                <div class="widget-header">
-                    <h2>Libretas disponibles</h2>
-                </div>
-                <div class="widget-content">
-                    @for (libreta of data.libretas; track libreta.id) {
-                    <div class="libreta-item">
-                        <mat-icon class="libreta-icon">picture_as_pdf</mat-icon>
-                        <div class="libreta-body">
-                            <p class="libreta-periodo">{{ libreta.periodoNombre }}</p>
-                            <p class="libreta-fecha">
-                                Disponible desde {{ libreta.creadaEn | date:'d MMM yyyy' }}
-                            </p>
+                @for (hijo of data.hijos; track hijo.alumnoId; let i = $index) {
+                <div class="stu-card" [style.animation-delay]="i * 80 + 'ms'">
+                    <div class="stu-header">
+                        <app-user-avatar
+                            [nombre]="hijo.nombre"
+                            [apellidoPaterno]="hijo.apellidoPaterno"
+                            rol="alumno"
+                            [size]="60" />
+                        <div class="stu-identity">
+                            <h3>{{ getFullName(hijo) }}</h3>
+                            <div class="stu-tags">
+                                @if (hijo.grado) {
+                                    <span class="stag stag--blue"><mat-icon>school</mat-icon> {{ hijo.grado }} — Sec. {{ hijo.seccion }}</span>
+                                } @else {
+                                    <span class="stag stag--muted">Sin matrícula</span>
+                                }
+                                @if (hijo.asistioHoy === true) {
+                                    <span class="stag stag--green"><mat-icon>check_circle</mat-icon> Asistió hoy</span>
+                                } @else if (hijo.asistioHoy === false) {
+                                    <span class="stag stag--red"><mat-icon>cancel</mat-icon> Faltó hoy</span>
+                                }
+                            </div>
                         </div>
-                        <a mat-icon-button [routerLink]="['/portal-padres', 'libretas', libreta.id]"
-                            aria-label="Ver libreta">
-                            <mat-icon>open_in_new</mat-icon>
+                    </div>
+
+                    <!-- Gauges row -->
+                    <div class="stu-gauges">
+                        <div class="gauge-block">
+                            <svg viewBox="0 0 44 44" class="gauge-svg">
+                                <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" stroke-width="3.5"/>
+                                <circle cx="22" cy="22" r="18" fill="none"
+                                        [attr.stroke]="gradeColor(hijo.promedioGeneral)"
+                                        stroke-width="3.5" stroke-linecap="round"
+                                        [attr.stroke-dasharray]="hijo.promedioGeneral !== null ? (hijo.promedioGeneral / 20 * 113.1) + ' 113.1' : '0 113.1'"
+                                        transform="rotate(-90 22 22)" class="gauge-arc"/>
+                            </svg>
+                            <span class="gauge-num" [style.color]="gradeColor(hijo.promedioGeneral)">
+                                {{ hijo.promedioGeneral !== null ? (hijo.promedioGeneral | number:'1.1-1') : '—' }}
+                            </span>
+                            <span class="gauge-label">Promedio</span>
+                        </div>
+                        <div class="gauge-block">
+                            <svg viewBox="0 0 44 44" class="gauge-svg">
+                                <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" stroke-width="3.5"/>
+                                <circle cx="22" cy="22" r="18" fill="none"
+                                        [attr.stroke]="attendanceColor(hijo.porcentajeAsistencia)"
+                                        stroke-width="3.5" stroke-linecap="round"
+                                        [attr.stroke-dasharray]="hijo.porcentajeAsistencia !== null ? (hijo.porcentajeAsistencia / 100 * 113.1) + ' 113.1' : '0 113.1'"
+                                        transform="rotate(-90 22 22)" class="gauge-arc"/>
+                            </svg>
+                            <span class="gauge-num" [style.color]="attendanceColor(hijo.porcentajeAsistencia)">
+                                {{ hijo.porcentajeAsistencia !== null ? (hijo.porcentajeAsistencia | number:'1.0-0') + '%' : '—' }}
+                            </span>
+                            <span class="gauge-label">Asistencia</span>
+                        </div>
+                        @if (hijo.citasPendientes > 0) {
+                        <div class="gauge-block">
+                            <div class="cita-bubble">{{ hijo.citasPendientes }}</div>
+                            <span class="gauge-label">{{ hijo.citasPendientes === 1 ? 'Cita' : 'Citas' }}</span>
+                        </div>
+                        }
+                    </div>
+
+                    <!-- Action grid -->
+                    <div class="stu-actions">
+                        <a [routerLink]="['/portal-padres', hijo.alumnoId, 'notas']" class="sact sact--primary">
+                            <mat-icon>grade</mat-icon><span>Notas</span><small>Calificaciones</small>
+                        </a>
+                        <a [routerLink]="['/portal-padres', hijo.alumnoId, 'asistencia']" class="sact">
+                            <mat-icon>how_to_reg</mat-icon><span>Asistencia</span><small>General y diaria</small>
+                        </a>
+                        <a [routerLink]="['/portal-padres', hijo.alumnoId, 'horario']" class="sact">
+                            <mat-icon>calendar_month</mat-icon><span>Horario</span><small>Semanal</small>
+                        </a>
+                        <a [routerLink]="['/portal-padres', hijo.alumnoId, 'libreta']" class="sact">
+                            <mat-icon>auto_stories</mat-icon><span>Libretas</span><small>Boletines PDF</small>
                         </a>
                     </div>
-                    } @empty {
-                    <div class="empty-widget">
-                        <mat-icon>auto_stories</mat-icon>
-                        <p>No hay libretas disponibles aún.</p>
-                    </div>
-                    }
                 </div>
-            </section>
+                } @empty {
+                <div class="empty-block"><mat-icon>escalator_warning</mat-icon><p>Sin hijos vinculados.</p></div>
+                }
+            </div>
 
-            <!-- COMUNICADOS -->
-            <section class="widget-panel">
-                <div class="widget-header">
-                    <h2>Comunicados</h2>
-                </div>
-                <div class="widget-content">
-                    @for (com of data.comunicados; track com.id) {
-                    <div class="comm-item">
-                        <div class="comm-header">
-                            <strong>{{ com.titulo }}</strong>
-                            <small>{{ com.fecha | date:'d MMM' }}</small>
+            <!-- Right: Sidebar widgets -->
+            <aside class="main-right">
+
+                @defer (on viewport) {
+                <section class="wdg">
+                    <div class="wdg-head"><h2><mat-icon>event</mat-icon> Próximas citas</h2>
+                        @if (tieneCitas()) { <span class="wdg-badge">{{ data.citasProximas.length }}</span> }
+                    </div>
+                    <div class="wdg-body">
+                        @for (cita of data.citasProximas; track cita.id) {
+                        <div class="ct-row">
+                            <div class="ct-dot" [class]="cita.estado"></div>
+                            <div class="ct-info"><strong>{{ tipoCitaLabel[cita.tipo] ?? cita.tipo }}</strong>
+                            <small>{{ cita.fechaHora | date:'EEE d MMM, HH:mm':'':'es' }}</small></div>
+                            <span class="ct-pill" [class]="cita.estado">{{ cita.estado === 'confirmada' ? '✓' : '⏳' }}</span>
                         </div>
-                        <p class="comm-body">{{ com.contenido }}</p>
+                        } @empty {
+                        <div class="wdg-empty"><mat-icon>event_available</mat-icon><p>Sin citas</p></div>
+                        }
                     </div>
-                    } @empty {
-                    <div class="empty-widget">
-                        <mat-icon>notifications_none</mat-icon>
-                        <p>No hay comunicados recientes.</p>
-                    </div>
-                    }
-                </div>
-            </section>
+                </section>
+                } @placeholder { <div class="wdg wdg--ph"></div> }
 
+                @defer (on viewport) {
+                <section class="wdg">
+                    <div class="wdg-head"><h2><mat-icon>auto_stories</mat-icon> Libretas</h2></div>
+                    <div class="wdg-body">
+                        @for (lib of data.libretas; track lib.id) {
+                        <div class="lb-row">
+                            <mat-icon class="lb-pdf">picture_as_pdf</mat-icon>
+                            <div class="lb-info"><strong>{{ lib.periodoNombre }}</strong><small>{{ lib.alumnoNombre }}</small></div>
+                        </div>
+                        } @empty {
+                        <div class="wdg-empty"><mat-icon>auto_stories</mat-icon><p>Sin libretas</p></div>
+                        }
+                    </div>
+                </section>
+                } @placeholder { <div class="wdg wdg--ph"></div> }
+
+                @defer (on viewport) {
+                <section class="wdg">
+                    <div class="wdg-head"><h2><mat-icon>campaign</mat-icon> Comunicados</h2></div>
+                    <div class="wdg-body">
+                        @for (com of data.comunicados; track com.id) {
+                        <div class="cm-row">
+                            <strong>{{ com.titulo }}</strong>
+                            <p>{{ com.contenido }}</p>
+                        </div>
+                        } @empty {
+                        <div class="wdg-empty"><mat-icon>notifications_none</mat-icon><p>Sin comunicados</p></div>
+                        }
+                    </div>
+                    <a class="wdg-link" routerLink="/comunicados">Ver todos <mat-icon>arrow_forward</mat-icon></a>
+                </section>
+                } @placeholder { <div class="wdg wdg--ph"></div> }
+
+                <!-- Info card -->
+                <div class="info-card">
+                    <mat-icon>lightbulb</mat-icon>
+                    <div>
+                        <strong>¿Sabías que…?</strong>
+                        <p>Puedes revisar las notas por bimestre, consultar el horario semanal y gestionar tus citas desde el Portal de Padres.</p>
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>
     }
-
 </div>

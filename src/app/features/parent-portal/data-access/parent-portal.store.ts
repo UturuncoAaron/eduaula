@@ -8,6 +8,37 @@ import {
     ChildLibreta,
 } from '../../../core/models/parent-portal';
 
+export interface AttendanceGeneralResumen {
+    total: number;
+    asistio: number;
+    tardanza: number;
+    justificado: number;
+    falta: number;
+    porcentaje: number | null;
+}
+export interface AttendanceGeneralDetalle {
+    id: string;
+    fecha: string;
+    estado: string;
+    observacion: string | null;
+    periodo_nombre: string;
+    periodo_anio: number;
+    periodo_bimestre: number;
+}
+export interface AttendanceGeneralPayload {
+    resumen: AttendanceGeneralResumen;
+    detalle: AttendanceGeneralDetalle[];
+}
+
+export interface ScheduleSlot {
+    diaSemana: string;
+    horaInicio: string;
+    horaFin: string;
+    curso: string;
+    aula: string | null;
+    docente: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ParentPortalService {
     private api = inject(ApiService);
@@ -22,10 +53,24 @@ export class ParentPortalService {
         return this.api.get<ChildGrade[]>(`parent/children/${childId}/grades`);
     }
 
-    /** Asistencia del hijo (acceso protegido por backend). */
+    /** Asistencia del hijo a clases en vivo (legacy). */
     getChildAttendance(childId: string) {
         return this.api.get<ChildAttendanceRecord[]>(
             `parent/children/${childId}/attendance`,
+        );
+    }
+
+    /** Asistencia general diaria (entrada/tutor). */
+    getChildAttendanceGeneral(childId: string) {
+        return this.api.get<AttendanceGeneralPayload>(
+            `parent/children/${childId}/attendance-general`,
+        );
+    }
+
+    /** Horario semanal del hijo. */
+    getChildSchedule(childId: string) {
+        return this.api.get<ScheduleSlot[]>(
+            `parent/children/${childId}/schedule`,
         );
     }
 

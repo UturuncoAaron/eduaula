@@ -1,0 +1,89 @@
+:host { display: block; padding: 24px; }
+
+.state-center {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 12px; padding: 64px; color: #64748b;
+}
+
+.schedule-grid {
+    display: grid;
+    grid-template-columns: 110px repeat(5, 1fr);
+    gap: 1px;
+    background: #e2e8f0;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.grid-corner {
+    background: #f8fafc;
+    padding: 12px;
+}
+
+.grid-day-header {
+    background: #1e3a8a;
+    color: #fff;
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 800;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.grid-time {
+    background: #f8fafc;
+    padding: 12px 10px;
+    font-size: .78rem;
+    font-weight: 700;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.grid-cell {
+    background: #fff;
+    padding: 6px;
+    min-height: 64px;
+    display: flex;
+    align-items: stretch;
+}
+
+.slot-block {
+    flex: 1;
+    border-left: 4px solid #2563eb;
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.slot-curso {
+    font-size: .82rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.slot-docente {
+    font-size: .72rem;
+    color: #64748b;
+}
+
+.slot-aula {
+    font-size: .68rem;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+@media (max-width: 720px) {
+    :host { padding: 12px; }
+    .schedule-grid {
+        grid-template-columns: 80px repeat(5, 1fr);
+        font-size: .75rem;
+    }
+    .grid-day-header { font-size: .7rem; padding: 8px 4px; }
+    .grid-time { font-size: .7rem; padding: 8px 4px; }
+}

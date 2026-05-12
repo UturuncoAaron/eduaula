@@ -1,7 +1,3 @@
-<app-page-header
-    title="Portal de padres"
-    [subtitle]="'Bienvenido, ' + auth.fullName()" />
-
 @if (loading()) {
     <div class="state-center">
         <mat-spinner diameter="36" />
@@ -14,53 +10,112 @@
         message="Contacta al administrador del colegio para vincular a tu hijo." />
 } @else {
 
-    <div class="children-grid">
-        @for (c of children(); track c.id) {
-            <mat-card class="child-card">
-                <mat-card-header>
-                    <div mat-card-avatar class="avatar">{{ initials(c) }}</div>
-                    <mat-card-title>{{ fullName(c) }}</mat-card-title>
-                    <mat-card-subtitle>
-                        @if (c.grado) {
-                            {{ c.grado }}
-                        }
-                        @if (c.seccion) {
-                            — Sección {{ c.seccion }}
-                        }
-                        @if (!c.grado && !c.seccion) {
-                            Sin matrícula activa
-                        }
-                    </mat-card-subtitle>
-                </mat-card-header>
+    <!-- ═══ Hero Section ═════════════════════════════════════════════════ -->
+    <div class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1>Selecciona un estudiante</h1>
+            <p>Elige a tu hijo para explorar sus notas, asistencia, horarios y más.</p>
+        </div>
+    </div>
 
-                <mat-card-content>
-                    <p class="codigo">Código: <strong>{{ c.codigo_estudiante }}</strong></p>
-                    <div class="quick-links">
-                        <a mat-stroked-button color="primary"
-                           [routerLink]="['/portal-padres', c.id, 'notas']">
-                            <mat-icon>grade</mat-icon>
-                            <span>Notas</span>
-                        </a>
-                        <a mat-stroked-button
-                           [routerLink]="['/portal-padres', c.id, 'asistencia']">
-                            <mat-icon>event_available</mat-icon>
-                            <span>Asistencia</span>
-                        </a>
-                        <a mat-stroked-button
-                           [routerLink]="['/portal-padres', c.id, 'libreta']">
-                            <mat-icon>menu_book</mat-icon>
-                            <span>Libreta</span>
-                        </a>
+    <!-- ═══ Student Profile Cards ════════════════════════════════════════ -->
+    <div class="profiles-area">
+        @for (c of children(); track c.id) {
+            <div class="profile-card">
+                <!-- Left: Identity -->
+                <div class="profile-identity">
+                    <app-user-avatar
+                        [nombre]="c.nombre"
+                        [apellidoPaterno]="c.apellido_paterno"
+                        rol="alumno"
+                        [size]="72" />
+                    <h2>{{ fullName(c) }}</h2>
+                    <div class="identity-tags">
+                        @if (c.grado) {
+                            <span class="itag itag--blue">
+                                <mat-icon>school</mat-icon> {{ c.grado }}
+                            </span>
+                            @if (c.seccion) {
+                                <span class="itag itag--indigo">Sec. {{ c.seccion }}</span>
+                            }
+                        } @else {
+                            <span class="itag itag--muted">Sin matrícula</span>
+                        }
                     </div>
-                </mat-card-content>
-            </mat-card>
+                    <span class="student-id">
+                        <mat-icon>badge</mat-icon> {{ c.codigo_estudiante }}
+                    </span>
+                </div>
+
+                <!-- Center: Quick Stats (if available) -->
+                @if (getMetrics(c.id); as m) {
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <div class="stat-ring" [style.--ring-color]="gradeColor(m.promedioGeneral)">
+                                <span class="stat-number">{{ m.promedioGeneral !== null ? (m.promedioGeneral | number:'1.1-1') : '—' }}</span>
+                            </div>
+                            <span class="stat-label">Promedio</span>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-ring" [style.--ring-color]="attendanceColor(m.porcentajeAsistencia)">
+                                <span class="stat-number">{{ m.porcentajeAsistencia !== null ? (m.porcentajeAsistencia | number:'1.0-0') + '%' : '—' }}</span>
+                            </div>
+                            <span class="stat-label">Asistencia</span>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-ring" [style.--ring-color]="m.asistioHoy === true ? '#16a34a' : m.asistioHoy === false ? '#dc2626' : '#cbd5e1'">
+                                <mat-icon class="stat-icon">{{ m.asistioHoy === true ? 'check' : m.asistioHoy === false ? 'close' : 'remove' }}</mat-icon>
+                            </div>
+                            <span class="stat-label">Hoy</span>
+                        </div>
+                    </div>
+                }
+
+                <!-- Right: Navigation Grid -->
+                <div class="profile-nav">
+                    <a class="nav-tile nav-tile--accent" [routerLink]="['/portal-padres', c.id, 'notas']">
+                        <mat-icon>grade</mat-icon>
+                        <span>Notas</span>
+                        <small>Calificaciones</small>
+                    </a>
+                    <a class="nav-tile" [routerLink]="['/portal-padres', c.id, 'asistencia']">
+                        <mat-icon>how_to_reg</mat-icon>
+                        <span>Asistencia</span>
+                        <small>Diaria y general</small>
+                    </a>
+                    <a class="nav-tile" [routerLink]="['/portal-padres', c.id, 'libreta']">
+                        <mat-icon>auto_stories</mat-icon>
+                        <span>Libretas</span>
+                        <small>Boletines PDF</small>
+                    </a>
+                    <a class="nav-tile" [routerLink]="['/portal-padres', c.id, 'horario']">
+                        <mat-icon>calendar_month</mat-icon>
+                        <span>Horario</span>
+                        <small>Clases semanales</small>
+                    </a>
+                </div>
+            </div>
         }
     </div>
 
-    <div class="comunicados-link">
-        <a mat-flat-button color="primary" routerLink="/portal-padres/comunicados">
-            <mat-icon>campaign</mat-icon>
-            <span>Ver comunicados del colegio</span>
+    <!-- ═══ Quick Access Bar ═════════════════════════════════════════════ -->
+    <div class="quick-bar">
+        <a class="qbar-item" routerLink="/padre/citas">
+            <div class="qbar-icon"><mat-icon>event</mat-icon></div>
+            <div>
+                <strong>Mis Citas</strong>
+                <small>Ver y gestionar citas</small>
+            </div>
+            <mat-icon class="qbar-arrow">chevron_right</mat-icon>
+        </a>
+        <a class="qbar-item" routerLink="/comunicados">
+            <div class="qbar-icon qbar-icon--orange"><mat-icon>campaign</mat-icon></div>
+            <div>
+                <strong>Comunicados</strong>
+                <small>Noticias del colegio</small>
+            </div>
+            <mat-icon class="qbar-arrow">chevron_right</mat-icon>
         </a>
     </div>
 }

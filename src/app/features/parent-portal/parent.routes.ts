@@ -22,6 +22,11 @@ export const PARENT_ROUTES: Routes = [
       import('./child-libreta/child-libreta').then(c => c.ChildLibreta),
   },
   {
+    path: ':childId/horario',
+    loadComponent: () =>
+      import('./child-schedule/child-schedule').then(c => c.ChildSchedule),
+  },
+  {
     path: 'comunicados',
     loadComponent: () =>
       import('./announcements/announcements').then(c => c.Announcements),

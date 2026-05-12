@@ -1,0 +1,48 @@
+<app-page-header
+    title="Horario semanal"
+    subtitle="Horario de clases de tu hijo"
+    backRoute="/portal-padres" />
+
+@if (loading()) {
+    <div class="state-center">
+        <mat-spinner diameter="36" />
+        <p>Cargando horario...</p>
+    </div>
+} @else if (slots().length === 0) {
+    <app-empty-state
+        icon="calendar_month"
+        title="Sin horario"
+        message="No se ha configurado un horario para este alumno todavía." />
+} @else {
+
+    <div class="schedule-grid">
+        <!-- Header row -->
+        <div class="grid-corner"></div>
+        @for (dia of dias; track dia) {
+            <div class="grid-day-header">{{ diaLabel[dia] }}</div>
+        }
+
+        <!-- Rows per time slot -->
+        @for (hora of horas(); track hora) {
+            <div class="grid-time">{{ formatHora(hora) }}</div>
+            @for (dia of dias; track dia) {
+                <div class="grid-cell">
+                    @if (grid()[dia][hora]; as slot) {
+                        <div class="slot-block"
+                             [style.border-left-color]="slotColor(slot)"
+                             [style.background]="slotBg(slot)">
+                            <span class="slot-curso">{{ slot.curso }}</span>
+                            @if (slot.docente) {
+                                <span class="slot-docente">{{ slot.docente }}</span>
+                            }
+                            @if (slot.aula) {
+                                <span class="slot-aula">Aula {{ slot.aula }}</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+}
