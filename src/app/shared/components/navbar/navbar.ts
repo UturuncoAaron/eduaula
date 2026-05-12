@@ -2,7 +2,7 @@
 // (Reemplaza el actual)
 
 import {
-  Component, inject, signal, input, output,
+  Component, inject, input, output,
   OnInit, ChangeDetectionStrategy
 } from '@angular/core';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../../../core/auth/auth';
-import { ApiService } from '../../../core/services/api';
+import { NotificationsStore } from '../../../core/services/notifications-store';
 import { Rol } from '../../../core/models/user';
 
 @Component({
@@ -32,12 +32,13 @@ import { Rol } from '../../../core/models/user';
 export class Navbar implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
-  private api = inject(ApiService);
+  private notifications = inject(NotificationsStore);
 
   sidebarCollapsed = input<boolean>(false);
   toggleSidebar = output<void>();
 
-  unreadCount = signal(0);
+  // Badge en vivo: viene del store, que se actualiza por SSE (sin polling).
+  unreadCount = this.notifications.unreadCount;
   user = this.auth.currentUser;
 
   initials = () => {
@@ -78,10 +79,9 @@ export class Navbar implements OnInit {
   };
 
   ngOnInit() {
-    this.api.get<{ count: number }>('notifications/unread-count').subscribe({
-      next: (r: any) => this.unreadCount.set(r?.count ?? r?.data?.count ?? 0),
-      error: () => this.unreadCount.set(0),
-    });
+    // El store ya se conectó en MainLayout; nos aseguramos por si el
+    // navbar se monta en otro contexto.
+    this.notifications.connect();
   }
 
   onToggleSidebar() { this.toggleSidebar.emit(); }
@@ -89,7 +89,7 @@ export class Navbar implements OnInit {
   goToProfile() { this.router.navigate(['/perfil']); }
   goToNotificaciones() {
     this.router.navigate(['/notificaciones']);
-    this.unreadCount.set(0);
+    // No reseteamos el badge a 0 — lo hace el componente al marcar leídas.
   }
   goToConfiguracion() { this.router.navigate(['/configuracion']); }
 

@@ -31,6 +31,7 @@ import { AppointmentsStore } from '../../data-access/appointments.store';
 import { AuthService } from '../../../../core/auth/auth';
 import {
     AccountAvailability, AppointmentTipo, DiaSemana, SlotTaken,
+    AppointmentRoleRule,
 } from '../../../../core/models/appointments';
 import { Psicologa, Docente } from '../../../../core/models/psychology';
 import { Child } from '../../../../core/models/parent-portal';
@@ -105,6 +106,10 @@ export class RequestAppointmentDialog implements OnInit {
     availability = signal<AccountAvailability[]>([]);
     slotsTaken = signal<SlotTaken[]>([]);
     picked = signal<PickedSlot | null>(null);
+    // Reglas del rol que aplican al profesional seleccionado (vienen del BE).
+    // Se usan para fijar duración, restringir días y sintetizar horario por
+    // defecto si el profesional aún no configuró su disponibilidad.
+    activeRule = signal<AppointmentRoleRule | null>(null);
 
     readonly pickedLabel = computed<string | null>(() => {
         const p = this.picked();
@@ -257,9 +262,18 @@ export class RequestAppointmentDialog implements OnInit {
         if (!id) {
             this.availability.set([]);
             this.slotsTaken.set([]);
+            this.activeRule.set(null);
             return;
         }
-        await Promise.all([this.refreshAvailability(id), this.refreshSlotsTaken()]);
+        // El orden importa: 1) traemos las reglas y la disponibilidad real
+        // en paralelo, 2) aplicamos las reglas (fijar duración y sintetizar
+        // bloques por defecto si no hay disponibilidad propia).
+        await Promise.all([
+            this.refreshAvailability(id),
+            this.refreshRules(id),
+            this.refreshSlotsTaken(),
+        ]);
+        this.applyRulesToCalendar(id);
     }
 
     private async refreshAvailability(profId: string): Promise<void> {
@@ -270,6 +284,44 @@ export class RequestAppointmentDialog implements OnInit {
             this.availability.set([]);
         } finally {
             this.loadingAvailability.set(false);
+        }
+    }
+
+    private async refreshRules(profId: string): Promise<void> {
+        try {
+            const rule = await this.store.getRulesForTarget(profId);
+            this.activeRule.set(rule);
+        } catch {
+            this.activeRule.set(null);
+        }
+    }
+
+    /**
+     * Aplica las reglas devueltas por el BE:
+     *   - duración fija → patch al form y bloqueo del input.
+     *   - sin disponibilidad propia + regla con horario por defecto →
+     *     sintetizamos bloques virtuales para los días permitidos para que
+     *     el calendario tenga slots utilizables.
+     */
+    private applyRulesToCalendar(profId: string): void {
+        const rule = this.activeRule();
+        if (!rule) return;
+        if (rule.fixedDurationMin != null) {
+            this.form.patchValue({ durationMin: rule.fixedDurationMin });
+        }
+        if (this.availability().length === 0) {
+            const now = new Date().toISOString();
+            const synth: AccountAvailability[] = rule.allowedDays.map((d, i) => ({
+                id: `virtual-${profId}-${d}-${i}`,
+                cuentaId: profId,
+                diaSemana: d as AccountAvailability['diaSemana'],
+                horaInicio: rule.defaultHours.start,
+                horaFin: rule.defaultHours.end,
+                activo: true,
+                createdAt: now,
+                updatedAt: now,
+            }));
+            this.availability.set(synth);
         }
     }
 
