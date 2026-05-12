@@ -30,6 +30,8 @@ import { AppointmentsStore, StudentSearchResult } from '../../data-access/appoin
 import { AuthService } from '../../../../core/auth/auth';
 import {
   AccountAvailability, AppointmentTipo, DiaSemana, SlotTaken,
+  APPOINTMENT_RULES, ruleForRol,
+  ruleToStartHour, ruleToEndHour, ruleToSlotMinutes,
 } from '../../../../core/models/appointments';
 import {
   combineDateAndTime, diaLabel, getCurrentMonday,
@@ -127,6 +129,31 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     this.availability().some(a => a.activo),
   );
 
+  /**
+   * Regla del rol del propio docente/admin (define duración + días).
+   * Fallback a la regla de docente si no se puede resolver la sesión,
+   * ya que este dialog sólo se abre desde la vista del docente.
+   */
+  readonly myRule = computed(() => {
+    const me = this.auth.currentUser();
+    if (!me) return APPOINTMENT_RULES.docente;
+    return ruleForRol(me.rol, me.cargo) ?? APPOINTMENT_RULES.docente;
+  });
+  readonly mySlotMinutes = computed<number>(() => {
+    const dur = this.form?.value?.durationMin;
+    const fallback = typeof dur === 'number' && dur > 0 ? dur : 45;
+    return ruleToSlotMinutes(this.myRule(), fallback);
+  });
+  readonly myAllowedDays = computed<readonly string[]>(
+    () => this.myRule().allowedDays,
+  );
+  readonly myStartHour = computed<number>(
+    () => ruleToStartHour(this.myRule()),
+  );
+  readonly myEndHour = computed<number>(
+    () => ruleToEndHour(this.myRule()),
+  );
+
   // ── Form ────────────────────────────────────────────────────
   form: FormGroup = this.fb.group({
     studentQuery: ['', [Validators.required]],
@@ -196,10 +223,8 @@ export class TeacherRequestAppointmentDialog implements OnInit {
   }
 
   async onSlotPick(ev: BookingPickEvent): Promise<void> {
-    const dur = this.form.value.durationMin ?? 30;
-    const [h, m] = ev.hour.split(':').map(Number);
-    const totalEnd = (h ?? 0) * 60 + (m ?? 0) + dur;
-    const endTime = `${pad2(Math.floor(totalEnd / 60) % 24)}:${pad2(totalEnd % 60)}`;
+    const dur = ev.durationMin ?? this.form.value.durationMin ?? 45;
+    const endTime = ev.endHour;
 
     const longDate =
       `${diaLabel(ev.dia)} ${pad2(ev.date.getDate())}/${pad2(ev.date.getMonth() + 1)}/${ev.date.getFullYear()}`;
@@ -224,7 +249,11 @@ export class TeacherRequestAppointmentDialog implements OnInit {
       hour: ev.hour,
       dateLabel: `${pad2(ev.date.getDate())}/${pad2(ev.date.getMonth() + 1)}`,
     });
-    this.form.patchValue({ date: startOfDay(ev.date), time: ev.hour });
+    this.form.patchValue({
+      date: startOfDay(ev.date),
+      time: ev.hour,
+      durationMin: dur,
+    });
   }
 
   clearPicked(): void {

@@ -1,6 +1,7 @@
 <h2 mat-dialog-title>
-    <mat-icon>event_available</mat-icon>
-    @if (data.mode === 'alumno') { Solicitar cita con psicología }
+    <mat-icon>{{ isReschedule() ? 'event_repeat' : 'event_available' }}</mat-icon>
+    @if (isReschedule()) { Reagendar cita }
+    @else if (data.mode === 'alumno') { Solicitar cita con psicología }
     @else { Agendar cita para mi hijo/a }
 </h2>
 
@@ -104,7 +105,9 @@
             </header>
 
             <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()" [weekStart]="weekStart()"
-                [loading]="loadingAvailability() || loadingSlots()" [emptyMessage]="
+                [loading]="loadingAvailability() || loadingSlots()" [slotMinutes]="ruleSlotMinutes()"
+                [allowedDays]="ruleAllowedDays()" [startHour]="ruleStartHour()" [endHour]="ruleEndHour()"
+                [emptyMessage]="
                     professionalKind() === 'docente'
                       ? 'Este docente aún no tiene disponibilidad configurada.'
                       : 'Esta psicóloga aún no tiene disponibilidad configurada.'
@@ -150,6 +153,9 @@
         </button>
         <button mat-flat-button color="primary" type="submit" [disabled]="loading() || form.invalid">
             @if (loading()) { <mat-spinner diameter="18" /> }
+            @else if (isReschedule()) {
+            <ng-container><mat-icon>event_repeat</mat-icon><span>Reagendar</span></ng-container>
+            }
             @else { <ng-container><mat-icon>send</mat-icon><span>Solicitar</span></ng-container> }
         </button>
     </mat-dialog-actions>

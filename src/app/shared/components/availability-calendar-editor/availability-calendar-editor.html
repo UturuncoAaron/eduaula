@@ -1,10 +1,17 @@
-<div class="editor">
+<div class="editor" [style.--days-count]="visibleDias().length">
     <header class="editor__header">
         <div class="editor__title">
             <mat-icon>event_available</mat-icon>
             <div>
                 <h3>Disponibilidad semanal</h3>
-                <small>Haz clic en cada celda de 30 min para marcarla como disponible.</small>
+                <small>
+                    Haz clic en cada celda de {{ step() }} min para marcarla como disponible.
+                </small>
+                @if (ruleHint(); as hint) {
+                <small class="editor__rule">
+                    <mat-icon>verified</mat-icon>{{ hint }}
+                </small>
+                }
             </div>
         </div>
 
@@ -28,16 +35,16 @@
 
     <div class="grid">
         <div class="cell head head--corner"></div>
-        @for (dia of DIAS; track dia) {
+        @for (dia of visibleDias(); track trackByDia($index, dia)) {
         <button class="cell head head--day" type="button" (click)="selectAllDay(dia)"
             matTooltip="Activar/desactivar todo el día">
             {{ DIA_LABEL[dia] }}
         </button>
         }
 
-        @for (hour of hours(); track hour) {
+        @for (hour of hours(); track trackByHour($index, hour)) {
         <div class="cell head head--hour">{{ hour }}</div>
-        @for (dia of DIAS; track dia) {
+        @for (dia of visibleDias(); track trackByDia($index, dia)) {
         <button class="cell slot" type="button" [class.slot--on]="isOn(dia, hour)" [disabled]="saving()"
             (click)="toggle(dia, hour)">
         </button>
@@ -51,7 +58,7 @@
             Vaciar todo
         </button>
 
-        <span>
+        <span class="legend-wrap">
             <span class="legend legend--on"></span> disponible &nbsp;·&nbsp;
             <span class="legend legend--off"></span> no disponible
         </span>

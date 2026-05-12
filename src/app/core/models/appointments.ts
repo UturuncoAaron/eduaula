@@ -44,68 +44,142 @@ export interface AppointmentRoleRule {
     role: AppointmentRole;
     fixedDurationMin: number | null;
     maxDurationMin: number;
-    allowedDays: string[];                       // ['lunes','martes',...]
-    defaultHours: { start: string; end: string }; // 'HH:MM'
+    allowedDays: readonly string[];        // ['lunes','martes',...]
+    defaultHours: { start: string; end: string };  // 'HH:MM'
     directBooking: boolean;
     label: string;
 }
 
-/**
- * Mirror frontend de las reglas del BE. Los dialogs de STAFF
- * (teacher/admin) lo usan para conocer su propia duración sin tener
- * que pegarle al endpoint. El dialog del PADRE igual usa el endpoint
- * GET /appointments/rules/:id (porque depende del profesional elegido).
- */
+// ── Reglas locales (mirror del BE) ─────────────────────────────
+// Permiten configurar el dialog sin pedir GET /appointments/rules cuando
+// el caller ya conoce el rol (p.ej. el dialog del docente sabe que es él
+// mismo). Mantener sincronizado con backend `appointments.rules.ts`.
+const WEEK_FULL: readonly string[] = [
+    'lunes', 'martes', 'miercoles', 'jueves', 'viernes',
+] as const;
+
 export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     psicologa: {
-        role: 'psicologa', fixedDurationMin: 30, maxDurationMin: 30,
-        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+        role: 'psicologa',
+        fixedDurationMin: 30,
+        maxDurationMin: 30,
+        allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '16:00' },
-        directBooking: true, label: 'Psicología',
+        directBooking: true,
+        label: 'Psicología',
     },
     docente: {
-        role: 'docente', fixedDurationMin: 45, maxDurationMin: 45,
-        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+        role: 'docente',
+        fixedDurationMin: 45,
+        maxDurationMin: 45,
+        allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
-        directBooking: false, label: 'Docente',
+        directBooking: false,
+        label: 'Docente',
     },
     director: {
-        role: 'director', fixedDurationMin: 15, maxDurationMin: 15,
+        role: 'director',
+        fixedDurationMin: 15,
+        maxDurationMin: 15,
         allowedDays: ['martes', 'jueves'],
         defaultHours: { start: '08:00', end: '15:30' },
-        directBooking: false, label: 'Dirección',
+        directBooking: false,
+        label: 'Dirección',
     },
     admin: {
-        role: 'admin', fixedDurationMin: 15, maxDurationMin: 30,
-        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+        role: 'admin',
+        fixedDurationMin: null,
+        maxDurationMin: 60,
+        allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
-        directBooking: false, label: 'Administración',
+        directBooking: false,
+        label: 'Administración',
     },
     auxiliar: {
-        role: 'auxiliar', fixedDurationMin: null, maxDurationMin: 60,
-        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+        role: 'auxiliar',
+        fixedDurationMin: null,
+        maxDurationMin: 60,
+        allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
-        directBooking: false, label: 'Auxiliar',
+        directBooking: false,
+        label: 'Auxiliar',
     },
     padre: {
-        role: 'padre', fixedDurationMin: null, maxDurationMin: 60,
-        allowedDays: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'],
-        defaultHours: { start: '07:00', end: '20:00' },
-        directBooking: false, label: 'Padre/Tutor',
+        role: 'padre',
+        fixedDurationMin: null,
+        maxDurationMin: 60,
+        allowedDays: WEEK_FULL,
+        defaultHours: { start: '08:00', end: '16:00' },
+        directBooking: false,
+        label: 'Padre / Tutor',
     },
 };
 
+/** True si el `cargo` corresponde a Dirección (Director/Directora/etc). */
+export function isDirectorCargo(cargo: string | null | undefined): boolean {
+    if (!cargo) return false;
+    return /director/i.test(cargo);
+}
+
+/**
+ * Devuelve la regla aplicable según rol+cargo del usuario actual.
+ * Admin con cargo=director → regla de director (15min, mar/jue).
+ * Roles fuera del flujo (alumno y otros) devuelven `null`.
+ */
 export function ruleForRol(
-    rol: string | undefined | null,
+    rol: string,
     cargo?: string | null,
-): AppointmentRoleRule {
-    if (rol === 'admin' && cargo && /director/i.test(cargo)) {
-        return APPOINTMENT_RULES.director;
+): AppointmentRoleRule | null {
+    if (rol === 'admin') {
+        return isDirectorCargo(cargo)
+            ? APPOINTMENT_RULES.director
+            : APPOINTMENT_RULES.admin;
     }
-    if (rol && rol in APPOINTMENT_RULES) {
-        return APPOINTMENT_RULES[rol as AppointmentRole];
-    }
-    return APPOINTMENT_RULES.padre;
+    if (rol === 'psicologa') return APPOINTMENT_RULES.psicologa;
+    if (rol === 'docente') return APPOINTMENT_RULES.docente;
+    if (rol === 'auxiliar') return APPOINTMENT_RULES.auxiliar;
+    if (rol === 'padre') return APPOINTMENT_RULES.padre;
+    return null;
+}
+
+/**
+ * Hora 'HH:MM' → minutos desde 00:00.
+ */
+export function hmToMinutes(hm: string): number {
+    const [h, m] = hm.split(':').map(Number);
+    return (h ?? 0) * 60 + (m ?? 0);
+}
+
+/**
+ * Hora inicial en horas enteras (floor) para usar en el calendario.
+ * Ej.: '08:30' → 8.
+ */
+export function ruleToStartHour(rule: AppointmentRoleRule): number {
+    return Math.floor(hmToMinutes(rule.defaultHours.start) / 60);
+}
+
+/**
+ * Hora final en horas enteras (ceil al siguiente entero si termina en :30/:45)
+ * para que la última fila visible cubra todo el rango.
+ * Ej.: '15:30' → 16, '16:00' → 16, '14:45' → 15.
+ */
+export function ruleToEndHour(rule: AppointmentRoleRule): number {
+    const totalMin = hmToMinutes(rule.defaultHours.end);
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return m > 0 ? h + 1 : h;
+}
+
+/**
+ * Tamaño de slot en minutos cuando la regla lo fija (psicóloga=30,
+ * docente=45, director=15); si la regla no es fija (admin/auxiliar)
+ * devuelve `fallback`.
+ */
+export function ruleToSlotMinutes(
+    rule: AppointmentRoleRule,
+    fallback = 30,
+): number {
+    return rule.fixedDurationMin ?? fallback;
 }
 
 // ── Cita ────────────────────────────────────────────────────────
@@ -130,6 +204,7 @@ export interface Appointment {
     cancelReason: string | null;
     createdAt: string;
     updatedAt: string;
+    // Joins opcionales enriquecidos por el backend
     student?: {
         id: string;
         nombre: string;

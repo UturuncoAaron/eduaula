@@ -3,5 +3,6 @@
 }
 
 <app-calendar-grid mode="booking" [slots]="bookingSlots()" [loading]="loading()" [weekStart]="weekStart()"
-    [startHour]="startHour()" [endHour]="endHour()" [maxBodyHeight]="maxBodyHeight()" [selectedKey]="selectedKey()"
+    [startHour]="startHour()" [endHour]="endHour()" [slotMinutes]="slotMinutes()"
+    [maxBodyHeight]="maxBodyHeight()" [selectedKey]="selectedKey()"
     (cellClick)="onCellClick($event)" (weekChange)="onWeekChange($event)" />

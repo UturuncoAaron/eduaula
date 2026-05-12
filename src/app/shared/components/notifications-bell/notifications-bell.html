@@ -1,0 +1,53 @@
+<button class="notif-bell-button" [matMenuTriggerFor]="notifMenu" (menuOpened)="onMenuOpened()"
+    matTooltip="Notificaciones" [attr.aria-label]="'Notificaciones (' + unreadCount() + ' sin leer)'">
+    <mat-icon [matBadge]="unreadCount() > 99 ? '99+' : unreadCount()" [matBadgeHidden]="unreadCount() === 0"
+        matBadgeColor="warn" matBadgeSize="small">
+        notifications_none
+    </mat-icon>
+</button>
+
+<mat-menu #notifMenu="matMenu" xPosition="before" class="notif-dropdown-panel">
+    <div class="notif-dropdown" (click)="$event.stopPropagation()">
+        <header class="notif-header">
+            <h3>Notificaciones</h3>
+            @if (unreadCount() > 0) {
+            <button mat-button class="mark-all-btn" (click)="onMarkAll($event)">
+                <mat-icon>done_all</mat-icon>
+                Marcar todas
+            </button>
+            }
+        </header>
+
+        @if (items().length === 0) {
+        <div class="notif-empty">
+            <mat-icon>notifications_none</mat-icon>
+            <p>Sin notificaciones</p>
+        </div>
+        } @else {
+        <div class="notif-scroll">
+            @for (n of items().slice(0, 8); track n.id) {
+            <div class="notif-item" [class.unread]="!n.read" (click)="onItemClick(n)">
+                <div class="notif-icon" [style.background]="colorFor(n.tipo) + '18'" [style.color]="colorFor(n.tipo)">
+                    <mat-icon>{{ iconFor(n.tipo) }}</mat-icon>
+                </div>
+                <div class="notif-body">
+                    <div class="notif-title">{{ n.titulo }}</div>
+                    <div class="notif-cuerpo">{{ n.cuerpo }}</div>
+                    <div class="notif-time">{{ n.createdAt | timeAgo }}</div>
+                </div>
+                @if (!n.read) {
+                <div class="unread-dot"></div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <footer class="notif-footer">
+            <a routerLink="/notificaciones" mat-button class="see-all-btn" (click)="closeMenu()">
+                Ver todas
+                <mat-icon>arrow_forward</mat-icon>
+            </a>
+        </footer>
+    </div>
+</mat-menu>

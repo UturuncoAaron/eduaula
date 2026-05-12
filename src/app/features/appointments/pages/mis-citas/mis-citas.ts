@@ -143,6 +143,13 @@ export class MisCitas {
         return a.estado !== 'cancelada' && a.estado !== 'realizada';
     }
 
+    /** El usuario puede reagendar si la cita sigue en curso (pendiente/confirmada)
+     * y aún no pasó su hora. */
+    canReschedule(a: Appointment): boolean {
+        if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
+        return new Date(a.scheduledAt).getTime() > Date.now();
+    }
+
     trackById = (_: number, a: Appointment): string => a.id;
 
     openRequest(): void {
@@ -152,6 +159,23 @@ export class MisCitas {
             autoFocus: 'first-tabbable',
             panelClass: 'appointment-dialog-panel',
             data: { mode: this.mode() } as RequestAppointmentDialogData,
+        });
+        ref.afterClosed().subscribe((ok: boolean) => {
+            if (ok) void this.store.loadMyAppointments();
+        });
+    }
+
+    /** Abre el dialog en modo "reagendar" con la cita actual ya cargada. */
+    reagendar(row: Appointment): void {
+        const ref = this.dialog.open(RequestAppointmentDialog, {
+            width: '720px',
+            maxWidth: '95vw',
+            autoFocus: 'first-tabbable',
+            panelClass: 'appointment-dialog-panel',
+            data: {
+                mode: this.mode(),
+                rescheduleFor: row,
+            } as RequestAppointmentDialogData,
         });
         ref.afterClosed().subscribe((ok: boolean) => {
             if (ok) void this.store.loadMyAppointments();

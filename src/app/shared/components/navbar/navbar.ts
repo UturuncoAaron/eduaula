@@ -1,10 +1,4 @@
-// 📁 PATH: src/app/shared/components/navbar/navbar.ts
-// (Reemplaza el actual)
-
-import {
-  Component, inject, input, output,
-  OnInit, ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, inject, input, output, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -13,6 +7,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../../../core/auth/auth';
 import { NotificationsStore } from '../../../core/services/notifications-store';
+import { NotificationsBell } from '../notifications-bell/notifications-bell';
 import { Rol } from '../../../core/models/user';
 
 @Component({
@@ -24,6 +19,7 @@ import { Rol } from '../../../core/models/user';
     MatTooltipModule,
     MatDividerModule,
     MatBadgeModule,
+    NotificationsBell,
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
@@ -37,7 +33,6 @@ export class Navbar implements OnInit {
   sidebarCollapsed = input<boolean>(false);
   toggleSidebar = output<void>();
 
-  // Badge en vivo: viene del store, que se actualiza por SSE (sin polling).
   unreadCount = this.notifications.unreadCount;
   user = this.auth.currentUser;
 
@@ -56,7 +51,7 @@ export class Navbar implements OnInit {
     admin: 'Administrador',
     padre: 'Padre / Tutor',
     psicologa: 'Psicóloga',
-    auxiliar: 'Auxiliar', // 🆕
+    auxiliar: 'Auxiliar',
   };
 
   private roleColors: Record<Rol, string> = {
@@ -65,7 +60,7 @@ export class Navbar implements OnInit {
     admin: '#ef4444',
     padre: '#8b5cf6',
     psicologa: '#0ea5e9',
-    auxiliar: '#14b8a6', // 🆕 teal
+    auxiliar: '#14b8a6',
   };
 
   roleLabel = () => {
@@ -79,18 +74,13 @@ export class Navbar implements OnInit {
   };
 
   ngOnInit() {
-    // El store ya se conectó en MainLayout; nos aseguramos por si el
-    // navbar se monta en otro contexto.
     this.notifications.connect();
   }
 
   onToggleSidebar() { this.toggleSidebar.emit(); }
 
   goToProfile() { this.router.navigate(['/perfil']); }
-  goToNotificaciones() {
-    this.router.navigate(['/notificaciones']);
-    // No reseteamos el badge a 0 — lo hace el componente al marcar leídas.
-  }
+  goToNotificaciones() { this.router.navigate(['/notificaciones']); }
   goToConfiguracion() { this.router.navigate(['/configuracion']); }
 
   onLogout() {
