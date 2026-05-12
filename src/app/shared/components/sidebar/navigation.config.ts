@@ -93,7 +93,6 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   // ─── Agenda propia (admin, auxiliar) ──────────────────────────────────────
-  // (docente y psicóloga tienen sus propias rutas, ya listadas arriba)
   {
     label: 'Mi Agenda',
     icon: 'event_note',
@@ -141,9 +140,19 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Auxiliares', icon: 'support_agent', route: '/admin/usuarios/auxiliares', modulos: [MODULO.USUARIOS], exactMatch: true },
       { label: 'Psicología', icon: 'psychology', route: '/admin/usuarios/psicologos', modulos: [MODULO.USUARIOS], exactMatch: true },
       { label: 'Administración', icon: 'admin_panel_settings', route: '/admin/usuarios/admins', modulos: [MODULO.USUARIOS], exactMatch: true },
-      { label: 'Histórico de Alumnos', icon: 'history', route: '/admin/historico', modulos: [MODULO.HISTORICO_ALUMNOS], exactMatch: true },
+      // ── Histórico movido al nivel superior ──────────────────────────────
     ],
   },
+
+  // ─── Histórico de Alumnos (nivel superior, junto a Comunicados/Reportes) ──
+  {
+    label: 'Histórico de Alumnos',
+    icon: 'history_edu',
+    route: '/admin/historico',
+    modulos: [MODULO.HISTORICO_ALUMNOS],
+    exactMatch: true,
+  },
+
   {
     label: 'Comunicados',
     icon: 'campaign',

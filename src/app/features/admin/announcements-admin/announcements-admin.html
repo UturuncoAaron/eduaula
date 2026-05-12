@@ -1,94 +1,268 @@
-<h2 class="sr-only">Gestión de comunicados</h2>
-<app-page-header title="Comunicados" />
+<div class="ann-page">
 
-<div class="ann-layout">
-
-    <!-- Panel izquierdo: formulario -->
-    <aside class="compose-panel">
-        <div class="compose-header">
-            <div class="compose-icon">
+    <!-- ══ HERO ════════════════════════════════════════════════════ -->
+    <div class="ann-hero">
+        <div class="hero-bg">
+            <div class="hero-blob b1"></div>
+            <div class="hero-blob b2"></div>
+            <div class="hero-blob b3"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-eyebrow">
                 <mat-icon>campaign</mat-icon>
+                <span>Gestión de comunicados</span>
             </div>
-            <div>
-                <p class="compose-title">Nuevo comunicado</p>
-                <p class="compose-sub">Visible para los destinatarios elegidos</p>
+            <h1 class="hero-title">
+                Publica y gestiona<br>
+                <span class="hero-accent">comunicados</span>
+            </h1>
+            <p class="hero-desc">
+                Envía avisos a alumnos, docentes, padres y psicólogos.
+                Aparecen al instante en todos los paneles.
+            </p>
+            <!-- Mini stats en el hero -->
+            <div class="hero-stats">
+                <div class="hero-stat-item">
+                    <mat-icon>groups</mat-icon>
+                    <span>5 tipos de destinatarios</span>
+                </div>
+                <div class="hero-stat-item">
+                    <mat-icon>bolt</mat-icon>
+                    <span>Entrega instantánea</span>
+                </div>
             </div>
         </div>
-
-        <form [formGroup]="form" (ngSubmit)="publicar()" class="compose-form">
-            <mat-form-field appearance="outline" class="w100">
-                <mat-label>Título</mat-label>
-                <input matInput formControlName="titulo" maxlength="200" />
-                <mat-hint align="end">{{ form.get('titulo')?.value?.length ?? 0 }}/200</mat-hint>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w100">
-                <mat-label>Contenido</mat-label>
-                <textarea matInput formControlName="contenido" rows="6"></textarea>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w100">
-                <mat-label>Destinatarios</mat-label>
-                <mat-select formControlName="destinatarios" multiple>
-                    <mat-option value="todos">Todos</mat-option>
-                    <mat-option value="alumnos">Alumnos</mat-option>
-                    <mat-option value="docentes">Docentes</mat-option>
-                    <mat-option value="padres">Padres</mat-option>
-                    <mat-option value="psicologas">Psicólogas</mat-option>
-                </mat-select>
-            </mat-form-field>
-
-            <button mat-flat-button color="primary" type="submit" class="publish-btn" [disabled]="saving()">
-                <mat-icon>send</mat-icon>
-                {{ saving() ? 'Publicando...' : 'Publicar comunicado' }}
-            </button>
-        </form>
-    </aside>
-
-    <!-- Panel derecho: lista -->
-    <section class="feed-panel">
-        <div class="feed-header">
-            <span class="feed-title">Publicados</span>
-            <span class="feed-count">{{ list().length }} comunicado{{ list().length !== 1 ? 's' : '' }}</span>
+        <div class="hero-counter">
+            <div class="hc-inner">
+                <span class="hc-num">{{ list().length }}</span>
+                <span class="hc-label">comunicado{{ list().length !== 1 ? 's' : '' }}</span>
+                <span class="hc-sub">publicados</span>
+            </div>
         </div>
+    </div>
 
-        @if (loading()) {
-        <div class="feed-loading">
-            <mat-spinner diameter="32" />
-        </div>
-        } @else if (list().length === 0) {
-        <app-empty-state icon="campaign" title="Sin comunicados" message="Aún no se ha publicado ningún comunicado." />
-        } @else {
-        <div class="feed-list">
-            @for (a of list(); track a.id) {
-            <article class="ann-item">
-                <div class="ann-item-top">
-                    <div class="ann-meta">
-                        <div class="ann-chips">
-                            @for (dest of a.destinatarios; track dest) {
-                            <span class="dest-chip dest-chip--{{ dest }}">{{ labelDest(dest) }}</span>
-                            }
-                        </div>
-                        <span class="ann-date">{{ a.created_at | date:'d MMM yyyy · HH:mm' }}</span>
+    <!-- ══ BODY ═════════════════════════════════════════════════════ -->
+    <div class="ann-body">
+
+        <!-- ── COMPOSE ──────────────────────────────────────────── -->
+        <aside class="compose-card">
+
+            <div class="cc-label-row">
+                <div class="cc-icon"><mat-icon>edit_note</mat-icon></div>
+                <div>
+                    <p class="cc-title">Nuevo comunicado</p>
+                    <p class="cc-sub">Llega al instante a los destinatarios</p>
+                </div>
+            </div>
+
+            <form [formGroup]="form" (ngSubmit)="publicar()" class="cc-form">
+
+                <!-- Título -->
+                <div class="fld">
+                    <label class="fld-label">
+                        <mat-icon>title</mat-icon>Título
+                    </label>
+                    <div class="fld-box" [class.active]="titleFocused">
+                        <input class="fld-input" formControlName="titulo" maxlength="200"
+                            placeholder="Ej: Reunión de padres de familia..." (focus)="titleFocused=true"
+                            (blur)="titleFocused=false" />
+                        <span class="fld-count">{{ form.get('titulo')?.value?.length ?? 0 }}/200</span>
                     </div>
-                    <button mat-icon-button class="delete-btn" (click)="eliminar(a)" matTooltip="Eliminar">
-                        <mat-icon>delete_outline</mat-icon>
-                    </button>
                 </div>
 
-                <h3 class="ann-titulo">{{ a.titulo }}</h3>
-                <p class="ann-body">{{ a.contenido }}</p>
+                <!-- Contenido -->
+                <div class="fld">
+                    <label class="fld-label">
+                        <mat-icon>notes</mat-icon>Contenido
+                    </label>
+                    <div class="fld-box fld-box--ta" [class.active]="contentFocused">
+                        <textarea class="fld-input fld-ta" formControlName="contenido" rows="6"
+                            placeholder="Escribe el cuerpo completo del comunicado..." (focus)="contentFocused=true"
+                            (blur)="contentFocused=false">
+                        </textarea>
+                    </div>
+                </div>
 
-                @if (a.admin) {
-                <div class="ann-author">
-                    <mat-icon class="author-icon">person_outline</mat-icon>
-                    <span>{{ a.admin.nombre }} {{ a.admin.apellido_paterno }}</span>
+                <!-- Destinatarios -->
+                <div class="fld">
+                    <label class="fld-label">
+                        <mat-icon>send</mat-icon>Destinatarios
+                    </label>
+                    <div class="dest-grid">
+                        @for (opt of destOptions; track opt.value) {
+                        <button type="button" class="dest-btn" [class.active]="isDestSelected(opt.value)"
+                            [attr.data-dest]="opt.value" (click)="toggleDest(opt.value)">
+                            <mat-icon class="db-icon">{{ opt.icon }}</mat-icon>
+                            <span class="db-label">{{ opt.label }}</span>
+                            @if (isDestSelected(opt.value)) {
+                            <mat-icon class="db-check">check</mat-icon>
+                            }
+                        </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                @if (selectedDests().length > 0) {
+                <div class="send-preview">
+                    <mat-icon>near_me</mat-icon>
+                    <span>
+                        Para:&nbsp;
+                        @for (d of selectedDests(); track d; let last = $last) {
+                        <b>{{ labelDest(d) }}</b>@if (!last) {,&nbsp;}
+                        }
+                    </span>
                 </div>
                 }
-            </article>
-            }
-        </div>
-        }
-    </section>
 
+                <!-- Botón publicar -->
+                <button class="btn-pub" type="submit" [disabled]="saving() || form.invalid">
+                    @if (saving()) {
+                    <span class="pub-spinner"></span>
+                    <span>Publicando...</span>
+                    } @else {
+                    <span class="pub-glow"></span>
+                    <mat-icon>send</mat-icon>
+                    <span>Publicar comunicado</span>
+                    }
+                </button>
+
+            </form>
+        </aside>
+
+        <!-- ── FEED ──────────────────────────────────────────────── -->
+        <section class="feed-panel">
+
+            <div class="feed-topbar">
+                <span class="ft-title">Publicados</span>
+                @if (!loading()) {
+                <span class="ft-badge">{{ list().length }}</span>
+                }
+            </div>
+
+            @if (loading()) {
+            <div class="feed-body">
+                @for (i of [1,2,3]; track i) {
+                <div class="sk-card">
+                    <div class="sk-row">
+                        <div class="sk-pill"></div>
+                        <div class="sk-dash"></div>
+                    </div>
+                    <div class="sk-h" style="width:60%"></div>
+                    <div class="sk-h sk-h--sm" style="width:90%"></div>
+                    <div class="sk-h sk-h--sm" style="width:75%"></div>
+                </div>
+                }
+            </div>
+
+            } @else if (list().length === 0) {
+            <div class="feed-empty">
+                <!-- Ilustración SVG -->
+                <div class="fe-ilu">
+                    <svg viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="fe-svg">
+                        <!-- Fondo círculos decorativos -->
+                        <circle cx="140" cy="100" r="90" fill="#EFF6FF" opacity="0.6" />
+                        <circle cx="140" cy="100" r="62" fill="#DBEAFE" opacity="0.7" />
+                        <!-- Documento principal -->
+                        <rect x="80" y="44" width="100" height="128" rx="10" fill="white" stroke="#BFDBFE"
+                            stroke-width="2" />
+                        <!-- Líneas del documento -->
+                        <rect x="96" y="68" width="68" height="6" rx="3" fill="#BFDBFE" />
+                        <rect x="96" y="82" width="52" height="6" rx="3" fill="#DBEAFE" />
+                        <rect x="96" y="96" width="60" height="6" rx="3" fill="#DBEAFE" />
+                        <rect x="96" y="110" width="44" height="6" rx="3" fill="#EFF6FF" />
+                        <!-- Header doc -->
+                        <rect x="80" y="44" width="100" height="18" rx="10" fill="#2563EB" opacity="0.15" />
+                        <circle cx="91" cy="53" r="4" fill="#2563EB" opacity="0.4" />
+                        <!-- Megáfono flotante -->
+                        <circle cx="195" cy="65" r="28" fill="#2563EB" opacity="0.1" />
+                        <circle cx="195" cy="65" r="20" fill="#2563EB" opacity="0.15" />
+                        <circle cx="195" cy="65" r="14" fill="#2563EB" />
+                        <!-- Icono megáfono -->
+                        <path d="M188 62 L200 57 L200 73 L188 68 Z" fill="white" />
+                        <path d="M184 62 L188 62 L188 68 L184 68 Z" fill="white" />
+                        <path d="M200 60 Q207 65 200 70" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                            fill="none" />
+                        <!-- Ondas -->
+                        <path d="M202 56 Q212 65 202 74" stroke="#93C5FD" stroke-width="1.5" stroke-linecap="round"
+                            fill="none" opacity="0.7" />
+                        <!-- Flechas destinatarios -->
+                        <circle cx="58" cy="90" r="14" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="1.5" />
+                        <path d="M52 90 L58 84 L64 90 M58 84 L58 96" stroke="#16A34A" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="58" cy="140" r="14" fill="#FDF4FF" stroke="#E9D5FF" stroke-width="1.5" />
+                        <path d="M52 140 L58 134 L64 140 M58 134 L58 146" stroke="#9333EA" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="222" cy="120" r="14" fill="#FFF7ED" stroke="#FED7AA" stroke-width="1.5" />
+                        <path d="M216 120 L222 114 L228 120 M222 114 L222 126" stroke="#EA580C" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <!-- Líneas conectoras -->
+                        <line x1="72" y1="90" x2="86" y2="90" stroke="#BBF7D0" stroke-width="1"
+                            stroke-dasharray="3 2" />
+                        <line x1="72" y1="140" x2="86" y2="140" stroke="#E9D5FF" stroke-width="1"
+                            stroke-dasharray="3 2" />
+                        <line x1="180" y1="120" x2="168" y2="120" stroke="#FED7AA" stroke-width="1"
+                            stroke-dasharray="3 2" />
+                    </svg>
+                </div>
+                <h3 class="fe-title">Sin comunicados aún</h3>
+                <p class="fe-desc">
+                    Usa el formulario para crear tu primer comunicado.<br>
+                    Llegará al instante a todos los destinatarios.
+                </p>
+                <div class="fe-steps">
+                    <div class="fe-step">
+                        <span class="fe-step-num">1</span>
+                        <span>Escribe el título y contenido</span>
+                    </div>
+                    <mat-icon class="fe-arrow">arrow_forward</mat-icon>
+                    <div class="fe-step">
+                        <span class="fe-step-num">2</span>
+                        <span>Elige destinatarios</span>
+                    </div>
+                    <mat-icon class="fe-arrow">arrow_forward</mat-icon>
+                    <div class="fe-step fe-step--cta">
+                        <mat-icon>send</mat-icon>
+                        <span>Publicar</span>
+                    </div>
+                </div>
+            </div>
+
+            } @else {
+            <div class="feed-body">
+                @for (a of list(); track a.id; let i = $index) {
+                <article class="ann-card" [attr.data-i]="i">
+                    <div class="ac-top">
+                        <div class="ac-chips">
+                            @for (d of a.destinatarios; track d) {
+                            <span class="ac-chip ac-chip--{{ d }}">{{ labelDest(d) }}</span>
+                            }
+                        </div>
+                        <div class="ac-meta">
+                            <span class="ac-time">
+                                <mat-icon>schedule</mat-icon>
+                                {{ a.created_at | date:'d MMM · HH:mm' }}
+                            </span>
+                            <button class="ac-del" (click)="eliminar(a)" matTooltip="Eliminar">
+                                <mat-icon>delete_outline</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                    <h3 class="ac-title">{{ a.titulo }}</h3>
+                    <p class="ac-body">{{ a.contenido }}</p>
+                    @if (a.admin) {
+                    <div class="ac-footer">
+                        <div class="ac-avatar">{{ a.admin.nombre.charAt(0) }}{{ a.admin.apellido_paterno.charAt(0) }}
+                        </div>
+                        <span class="ac-author">{{ a.admin.nombre }} {{ a.admin.apellido_paterno }}</span>
+                    </div>
+                    }
+                </article>
+                }
+            </div>
+            }
+
+        </section>
+    </div>
 </div>
