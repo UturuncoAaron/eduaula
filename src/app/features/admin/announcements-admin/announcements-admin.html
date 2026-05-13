@@ -116,6 +116,19 @@
                 </div>
                 }
 
+                <!-- Adjuntos (staged: se suben al publicar) -->
+                <div class="fld">
+                    <label class="fld-label">
+                        <mat-icon>attach_file</mat-icon>Adjuntos (opcional)
+                    </label>
+                    <app-staged-attachments-picker
+                        label="Arrastra archivos o haz clic para seleccionar"
+                        [maxBytes]="maxFileBytes"
+                        [maxFiles]="maxFiles"
+                        [files]="stagedFiles()"
+                        (filesChange)="stagedFiles.set($event)" />
+                </div>
+
                 <!-- Botón publicar -->
                 <button class="btn-pub" type="submit" [disabled]="saving() || form.invalid">
                     @if (saving()) {

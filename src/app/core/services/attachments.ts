@@ -5,7 +5,9 @@ import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api-response';
 
-export type AttachmentOwnerType = 'forum_post' | 'message' | 'announcement';
+// Backend enforces the same set via a CHECK on attachments.owner_type.
+// 'message' fue eliminado al sacar el módulo de mensajería.
+export type AttachmentOwnerType = 'forum_post' | 'announcement';
 
 export interface AttachmentDto {
   id: string;

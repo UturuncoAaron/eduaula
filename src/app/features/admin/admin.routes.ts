@@ -78,6 +78,14 @@ export const ADMIN_ROUTES: Routes = [
       import('./permisos-management/permisos-management').then(c => c.PermisosManagement),
   },
 
+  // ─── Editor de horario por sección ────────────────────────────────────────
+  {
+    path: 'secciones/:seccionId/periodo/:periodoId/horario',
+    loadComponent: () =>
+      import('./schedule-editor/schedule-editor').then(c => c.ScheduleEditor),
+    title: 'Editor de horario | EduAula',
+  },
+
   // ─── Vínculo Padre-Hijo ───────────────────────────────────────────────────
   {
     path: 'padre-hijo',

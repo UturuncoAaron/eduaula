@@ -49,6 +49,16 @@
                     <mat-error>Escribe al menos 5 caracteres</mat-error>
                     }
                 </mat-form-field>
+
+                <div class="reply-attach">
+                    <app-staged-attachments-picker
+                        label="Adjuntar archivos (opcional)"
+                        [maxBytes]="maxFileBytes"
+                        [maxFiles]="maxFiles"
+                        [files]="stagedFiles()"
+                        (filesChange)="stagedFiles.set($event)" />
+                </div>
+
                 <div class="reply-actions">
                     <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || sending()">
                         <mat-icon>send</mat-icon>
@@ -56,17 +66,6 @@
                     </button>
                 </div>
             </form>
-
-            @if (pendingPostId()) {
-                <div class="post-attach">
-                    <p class="post-attach-hint">Adjunta archivos a tu última respuesta (opcional):</p>
-                    <app-attachments-uploader
-                        ownerType="forum_post"
-                        [ownerId]="pendingPostId()!"
-                        (added)="loadPosts()"
-                        (removed)="loadPosts()" />
-                </div>
-            }
         </mat-card-content>
     </mat-card>
 </div>

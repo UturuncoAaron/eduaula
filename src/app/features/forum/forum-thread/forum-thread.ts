@@ -8,13 +8,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { ForumPost, ForumThread as ForumThreadData } from '../../../core/models/forum';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
-import { AttachmentsUploader } from '../../../shared/components/attachments-uploader/attachments-uploader';
 import { AttachmentsPreview } from '../../../shared/components/attachments-preview/attachments-preview';
-import { AttachmentDto } from '../../../core/services/attachments';
+import { StagedAttachmentsPicker } from '../../../shared/components/staged-attachments-picker/staged-attachments-picker';
+import { AttachmentDto, AttachmentsService, ATTACHMENT_MAX_BYTES } from '../../../core/services/attachments';
 
 @Component({
   selector: 'app-forum-thread',
@@ -22,7 +24,7 @@ import { AttachmentDto } from '../../../core/services/attachments';
     ReactiveFormsModule, MatCardModule, MatButtonModule,
     MatFormFieldModule, MatInputModule, MatIconModule,
     MatProgressSpinnerModule, DatePipe, PageHeader,
-    AttachmentsUploader, AttachmentsPreview,
+    AttachmentsPreview, StagedAttachmentsPicker,
   ],
   templateUrl: './forum-thread.html',
   styleUrl: './forum-thread.scss',
@@ -32,6 +34,7 @@ export class ForumThread implements OnInit {
   private api = inject(ApiService);
   private toastr = inject(ToastService);
   private fb = inject(FormBuilder);
+  private readonly attachments = inject(AttachmentsService);
 
   forumId = this.route.snapshot.paramMap.get('id')!;
   courseId = this.route.snapshot.queryParamMap.get('courseId') ?? '';
@@ -42,8 +45,11 @@ export class ForumThread implements OnInit {
   loading = signal(true);
   sending = signal(false);
 
-  /** ID temporal del post recién creado, para asociar adjuntos antes de publicar la reply final. */
-  pendingPostId = signal<string | null>(null);
+  /** Archivos elegidos por el usuario ANTES de publicar la respuesta. */
+  stagedFiles = signal<File[]>([]);
+
+  readonly maxFileBytes = ATTACHMENT_MAX_BYTES;
+  readonly maxFiles = 5;
 
   form = this.fb.group({
     contenido: ['', [Validators.required, Validators.minLength(5)]],
@@ -90,24 +96,39 @@ export class ForumThread implements OnInit {
       this.form.value
     ).subscribe({
       next: r => {
-        // El post ya fue creado en backend con un id real; los adjuntos
-        // que el usuario eligió antes se subieron contra `pendingPostId`
-        // (un id provisional). Acá no necesitamos hacer nada extra porque
-        // el componente de adjuntos publica directamente contra el endpoint
-        // de attachments — pero como en este flujo creamos el post DESPUÉS,
-        // el uploader sólo aparece luego de publicar (ver template).
-        // Mantenemos referencia al último post creado para que el usuario
-        // pueda adjuntar archivos a su respuesta recién creada.
-        this.pendingPostId.set(r.data?.id ?? null);
-        this.toastr.success('Respuesta publicada');
-        this.form.reset();
-        this.sending.set(false);
-        this.loadPosts();
+        const postId = r.data?.id;
+        const files = this.stagedFiles();
+        if (postId && files.length > 0) {
+          // Sube cada archivo en paralelo, pero no falla todo el flujo si uno falla.
+          forkJoin(
+            files.map(f =>
+              this.attachments.upload(f, 'forum_post', postId).pipe(catchError(() => of(null))),
+            ),
+          ).subscribe({
+            next: results => {
+              const failures = results.filter(x => x === null).length;
+              if (failures > 0) {
+                this.toastr.error(`No se pudieron subir ${failures} archivo(s)`);
+              }
+              this.finishReply();
+            },
+          });
+        } else {
+          this.finishReply();
+        }
       },
       error: () => {
         this.toastr.error('Error al publicar');
         this.sending.set(false);
       },
     });
+  }
+
+  private finishReply(): void {
+    this.toastr.success('Respuesta publicada');
+    this.form.reset();
+    this.stagedFiles.set([]);
+    this.sending.set(false);
+    this.loadPosts();
   }
 }
