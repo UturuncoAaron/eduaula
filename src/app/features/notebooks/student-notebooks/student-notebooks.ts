@@ -41,7 +41,13 @@ export class StudentNotebooks implements OnInit {
     });
   }
 
-  open(url: string) {
+  open(libretaId: string, url: string) {
+    // Marca la libreta como vista por el usuario actual (alumno/padre).
+    // Endpoint idempotente, ignoramos errores para no bloquear la apertura.
+    this.api.post(`libretas/${libretaId}/marcar-vista`, {}).subscribe({
+      next: () => undefined,
+      error: () => undefined,
+    });
     window.open(url, '_blank');
   }
 }

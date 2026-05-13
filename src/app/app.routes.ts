@@ -169,6 +169,13 @@ export const routes: Routes = [
           import('./features/assists/assists.routes').then(r => r.ASSISTS_ROUTES),
       },
       {
+        path: 'mi-horario',
+        canActivate: [roleGuard(['alumno'])],
+        loadComponent: () =>
+          import('./features/student/mi-horario/mi-horario').then(c => c.MiHorario),
+        title: 'Mi horario | EduAula',
+      },
+      {
         path: 'mis-libretas',
         canActivate: [permissionGuard([MODULO.MIS_LIBRETAS])],
         loadChildren: () =>

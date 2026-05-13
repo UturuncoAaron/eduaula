@@ -1,0 +1,25 @@
+<app-page-header
+  title="Mi horario"
+  subtitle="Tu horario semanal del periodo activo."
+  icon="calendar_month">
+</app-page-header>
+
+@if (loading()) {
+  <div class="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else if (slots().length === 0) {
+  <app-empty-state
+    icon="event_busy"
+    title="No tienes horario asignado"
+    subtitle="Cuando dirección publique el horario de tu sección lo verás acá."
+  ></app-empty-state>
+} @else {
+  <app-calendar-grid
+    mode="schedule"
+    [slots]="slots()"
+    [hideNav]="true"
+    [startHour]="7"
+    [endHour]="18">
+  </app-calendar-grid>
+}

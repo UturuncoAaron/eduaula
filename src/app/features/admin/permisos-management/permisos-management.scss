@@ -1,0 +1,109 @@
+:host { display: block; padding: 1rem; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 1rem;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cuentas {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 70vh;
+
+  .filters {
+    display: flex;
+    gap: .5rem;
+    padding: .75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+
+    .rol { width: 110px; }
+    .q { flex: 1; }
+  }
+
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: .25rem;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: .5rem;
+    align-items: center;
+    padding: .5rem .6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color .15s;
+
+    &:hover { background: rgba(0, 0, 0, .04); }
+    &.active { background: rgba(25, 118, 210, .1); }
+
+    .ic { color: rgba(0, 0, 0, .55); }
+    .info { display: flex; flex-direction: column; min-width: 0; }
+    .name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .email { font-size: .75rem; color: rgba(0, 0, 0, .55); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  }
+
+  .empty { padding: 1rem; text-align: center; color: rgba(0, 0, 0, .55); }
+  .loading { display: flex; justify-content: center; padding: 1.5rem; }
+}
+
+.rol-chip {
+  font-size: .7rem;
+  padding: .15rem .5rem;
+  border-radius: 999px;
+  background: rgba(25, 118, 210, .1);
+  color: #1976d2;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.detail {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+
+  .hint {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: rgba(0, 0, 0, .55);
+    padding: 2rem;
+    justify-content: center;
+  }
+
+  .detail-head {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 0 0 1rem;
+
+    h2 { margin: 0; font-size: 1.25rem; }
+  }
+}
+
+.perm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.perm {
+  padding: .65rem .75rem;
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-radius: 10px;
+
+  .perm-text { display: flex; flex-direction: column; gap: .2rem; margin-left: .25rem; }
+  .hint { font-size: .8rem; color: rgba(0, 0, 0, .6); }
+  .key { font-size: .7rem; color: rgba(0, 0, 0, .5); }
+}
+
+.loading { display: flex; justify-content: center; padding: 1.5rem; }

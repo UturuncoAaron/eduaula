@@ -8,7 +8,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
 import { Forum } from '../../../core/models/forum';
-import { Course } from '../../../core/models/course';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 
@@ -53,22 +52,12 @@ export class ForumList implements OnInit {
   }
 
   loadAllForums() {
-    this.api.get<Course[]>('courses').subscribe({
+    // 1 fetch global: el backend agrupa cursos+foros para el usuario actual
+    // y nos devuelve `curso_nombre` ya enriquecido.
+    this.api.get<ForumWithCourse[]>('forums/my').subscribe({
       next: res => {
-        const courses = res.data;
-        if (!courses.length) { this.loading.set(false); return; }
-
-        const requests = courses.map(c =>
-          this.api.get<Forum[]>(`courses/${c.id}/forums`).toPromise()
-            .then(r => (r?.data ?? []).map(f => ({ ...f, curso_nombre: c.nombre })))
-            .catch(() => [])
-        );
-
-        Promise.all(requests).then(results => {
-          const all = (results.flat()) as ForumWithCourse[];
-          this.forums.set(all);
-          this.loading.set(false);
-        });
+        this.forums.set(res.data ?? []);
+        this.loading.set(false);
       },
       error: () => { this.forums.set([]); this.loading.set(false); },
     });

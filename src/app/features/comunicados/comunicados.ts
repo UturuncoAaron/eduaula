@@ -4,6 +4,8 @@ import { ApiService } from '../../core/services/api';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago-pipe';
+import { AttachmentsPreview } from '../../shared/components/attachments-preview/attachments-preview';
+import { AttachmentDto } from '../../core/services/attachments';
 
 type Destinatario = 'todos' | 'alumnos' | 'docentes' | 'padres' | 'psicologas';
 
@@ -14,6 +16,7 @@ interface Announcement {
     destinatarios: Destinatario[];
     created_at: string;
     autor?: { nombre?: string; email?: string };
+    attachments?: AttachmentDto[];
 }
 
 const DEST_LABELS: Record<Destinatario, string> = {
@@ -27,7 +30,7 @@ const DEST_LABELS: Record<Destinatario, string> = {
 @Component({
     selector: 'app-comunicados',
     standalone: true,
-    imports: [MatIconModule, PageHeader, EmptyState, TimeAgoPipe],
+    imports: [MatIconModule, PageHeader, EmptyState, TimeAgoPipe, AttachmentsPreview],
     templateUrl: './comunicados.html',
     styleUrl: './comunicados.scss',
 })
