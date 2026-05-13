@@ -81,7 +81,6 @@ export class Navbar implements OnInit {
 
   goToProfile() { this.router.navigate(['/perfil']); }
   goToNotificaciones() { this.router.navigate(['/notificaciones']); }
-  goToConfiguracion() { this.router.navigate(['/configuracion']); }
 
   onLogout() {
     this.auth.logout();

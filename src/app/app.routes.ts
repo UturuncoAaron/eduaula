@@ -134,6 +134,31 @@ export const routes: Routes = [
           import('./features/courses/courses.routes').then(r => r.COURSES_ROUTES),
       },
       {
+        path: 'foro',
+        loadChildren: () =>
+          import('./features/forum/forum.routes').then(r => r.FORUM_ROUTES),
+      },
+      {
+        path: 'notas',
+        loadChildren: () =>
+          import('./features/grades/grades.routes').then(r => r.GRADES_ROUTES),
+      },
+      {
+        path: 'asistencia',
+        loadChildren: () =>
+          import('./features/assists/assists.routes').then(r => r.ASSISTS_ROUTES),
+      },
+      {
+        path: 'tareas',
+        loadChildren: () =>
+          import('./features/tasks/task.routes').then(r => r.TASKS_ROUTES),
+      },
+      {
+        path: 'clases-vivo',
+        loadChildren: () =>
+          import('./features/live-classes/live-classes.routes').then(r => r.LIVE_CLASSES_ROUTES),
+      },
+      {
         path: 'mis-libretas',
         canActivate: [permissionGuard([MODULO.MIS_LIBRETAS])],
         loadChildren: () =>

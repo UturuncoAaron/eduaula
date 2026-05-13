@@ -14,7 +14,9 @@ import {
   EnrollmentRow,
   EstadoAsistencia,
   RosterRow,
+  fromBackendEstado,
   fullName,
+  toBackendEstado,
 } from './asistencia.types';
 import { RosterDelDia } from './components/roster-del-dia';
 import { HistorialAsistencia } from './components/historial-asistencia';
@@ -130,11 +132,14 @@ export class TabAsistencia implements OnInit {
           const a = e.alumno;
           const id = a?.id ?? e.alumno_id ?? '';
           const exist = byAlumno.get(id);
+          const ui = exist
+            ? fromBackendEstado(exist.estado, exist.observacion)
+            : null;
           return {
             alumnoId: id,
             nombre: fullName(a),
-            estado: (exist?.estado ?? null) as EstadoAsistencia | null,
-            observacion: exist?.observacion ?? '',
+            estado: (ui?.estado ?? null) as EstadoAsistencia | null,
+            observacion: ui?.observacion ?? '',
             asistenciaId: exist?.id,
             dirty: false,
           };
@@ -151,11 +156,12 @@ export class TabAsistencia implements OnInit {
 
   private loadHistorialCurso() {
     // Trae todo el historial del curso (limit alto). El componente lo agrupa
-    // por alumno y construye una matriz por fecha.
+    // por alumno y construye una matriz por fecha. Mapeamos el estado del
+    // backend (4 valores) al vocab UI (5 valores) antes de exponerlo.
     this.api.get<AsistenciaCurso[]>(
       `asistencias/curso/${this.courseId()}?limit=500`,
     ).subscribe({
-      next: r => this.cursoHistorial.set(r.data ?? []),
+      next: r => this.cursoHistorial.set(this.mapHistorial(r.data ?? [])),
       error: () => this.cursoHistorial.set([]),
     });
   }
@@ -165,13 +171,20 @@ export class TabAsistencia implements OnInit {
     const url = `asistencias/curso/alumno/${this.auth.currentUser()?.id}?cursoId=${this.courseId()}`;
     this.api.get<AsistenciaCurso[]>(url).subscribe({
       next: r => {
-        this.miHistorial.set(r.data ?? []);
+        this.miHistorial.set(this.mapHistorial(r.data ?? []));
         this.loading.set(false);
       },
       error: () => {
         this.miHistorial.set([]);
         this.loading.set(false);
       },
+    });
+  }
+
+  private mapHistorial(rows: AsistenciaCurso[]): AsistenciaCurso[] {
+    return rows.map(r => {
+      const ui = fromBackendEstado(r.estado as unknown as string, r.observacion);
+      return { ...r, estado: ui.estado, observacion: ui.observacion };
     });
   }
 
@@ -206,13 +219,13 @@ export class TabAsistencia implements OnInit {
     if (dirtyRows.length === 0 || this.saving()) return;
 
     this.saving.set(true);
-    // BulkAsistenciaDto del backend: { fecha, alumnos: [{ alumno_id, estado, observacion? }] }
+    // BulkAsistenciaDto del backend: { fecha, alumnos: [{ alumno_id, estado, observacion? }] }.
+    // El estado UI (5 valores) se mapea al vocab del backend (4 valores).
     const payload = {
       fecha: this.today(),
       alumnos: dirtyRows.map(r => ({
         alumno_id: r.alumnoId,
-        estado: r.estado as NonNullable<EstadoAsistencia>,
-        ...(r.observacion ? { observacion: r.observacion } : {}),
+        ...toBackendEstado(r.estado as NonNullable<EstadoAsistencia>, r.observacion),
       })),
     };
 
