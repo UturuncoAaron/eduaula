@@ -1,62 +1,31 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { environment } from '../../../../../../environments/environment';
 
+/**
+ * Panel de branding del login (lado izquierdo del split). Pintaba metadata
+ * dinámica del colegio (`/configuracion`) y conteos (`/admin/users/stats`),
+ * pero esos endpoints fueron retirados del backend. Hoy el panel es estático
+ * para evitar 404 ruidosos en la pantalla de login.
+ *
+ * Si vuelven a existir endpoints públicos de branding, se pueden re-inyectar
+ * acá vía `HttpClient` sin romper la API del componente.
+ */
 @Component({
     selector: 'app-brand-panel',
     imports: [MatIconModule],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './brand-panel.html',
     styleUrl: './brand-panel.scss',
 })
-export class BrandPanel implements OnInit {
-    private http = inject(HttpClient);
+export class BrandPanel {
+    readonly nombreColegio = signal('IE Juan Pablo Vizcardo y Guzmán');
+    readonly ugel = signal('UGEL 04 · Comas, Lima · Perú');
+    readonly anioEscolar = signal('2026');
+    readonly director = signal('');
 
-    nombreColegio = signal('IE Juan Pablo Vizcardo y Guzmán');
-    ugel = signal('UGEL 04 · Comas, Lima · Perú');
-    anioEscolar = signal('2026');
-    director = signal('');
-
-    stats = signal([
+    readonly stats = signal([
         { label: 'Alumnos', value: '—', icon: 'school' },
         { label: 'Docentes', value: '—', icon: 'person' },
         { label: 'Cursos', value: '—', icon: 'menu_book' },
     ]);
-
-    ngOnInit() {
-        const token = localStorage.getItem('token'); // o como guardas el token
-        if (!token) return;
-        this.http
-            .get<{ success: boolean; data: { clave: string; valor: string }[] }>(
-                `${environment.apiUrl}/configuracion`,
-            )
-            .subscribe({
-                next: res => {
-                    const get = (k: string) =>
-                        res.data?.find(c => c.clave === k)?.valor ?? '';
-                    if (get('nombre_colegio')) this.nombreColegio.set(get('nombre_colegio'));
-                    if (get('ugel')) this.ugel.set(get('ugel'));
-                    if (get('anio_escolar')) this.anioEscolar.set(get('anio_escolar'));
-                    if (get('director')) this.director.set(get('director'));
-                },
-                error: () => { },
-            });
-
-        this.http
-            .get<{ success: boolean; data: any }>(
-                `${environment.apiUrl}/admin/users/stats`,
-            )
-            .subscribe({
-                next: res => {
-                    const d = res.data;
-                    if (!d) return;
-                    this.stats.set([
-                        { label: 'Alumnos', value: d.alumnos ?? '—', icon: 'school' },
-                        { label: 'Docentes', value: d.docentes ?? '—', icon: 'person' },
-                        { label: 'Cursos', value: d.cursos ?? '—', icon: 'menu_book' },
-                    ]);
-                },
-                error: () => { },
-            });
-    }
 }
