@@ -1,0 +1,114 @@
+@if (registros().length === 0) {
+  <div class="empty-state">
+    <mat-icon>history</mat-icon>
+    <p>
+      @if (showByAlumno()) {
+        Todavía no hay asistencias registradas en este curso.
+      } @else {
+        Aún no tenés registros de asistencia para este curso.
+      }
+    </p>
+  </div>
+} @else if (showByAlumno()) {
+  <!-- ───────── Tabla docente: resumen por alumno + matriz por fecha ───────── -->
+  <div class="hist-card">
+    <h3 class="hist-title">
+      <mat-icon>history_toggle_off</mat-icon>
+      Historial del curso
+      <small>({{ registros().length }} registro{{ registros().length === 1 ? '' : 's' }})</small>
+    </h3>
+
+    <!-- Resumen por alumno -->
+    <div class="hist-table-wrap">
+      <table class="hist-summary">
+        <thead>
+          <tr>
+            <th>Alumno</th>
+            <th class="num">Tot.</th>
+            <th class="num estado-presente">Pres.</th>
+            <th class="num estado-tardanza">Tard.</th>
+            <th class="num estado-ausente">Aus.</th>
+            <th class="num estado-permiso">Perm.</th>
+            <th class="num estado-licencia">Lic.</th>
+            <th class="num">% Asis.</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of porAlumno(); track s.alumnoId) {
+            <tr>
+              <td>{{ s.nombre }}</td>
+              <td class="num">{{ s.total }}</td>
+              <td class="num">{{ s.presente }}</td>
+              <td class="num">{{ s.tardanza }}</td>
+              <td class="num">{{ s.ausente }}</td>
+              <td class="num">{{ s.permiso }}</td>
+              <td class="num">{{ s.licencia }}</td>
+              <td class="num"
+                  [class.pct-good]="s.asistenciaPct >= 90"
+                  [class.pct-mid]="s.asistenciaPct >= 75 && s.asistenciaPct < 90"
+                  [class.pct-bad]="s.asistenciaPct < 75">
+                {{ s.asistenciaPct }}%
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Matriz por fecha (todos los días) -->
+    @if (fechas().length > 0) {
+      <h4 class="hist-subtitle">Detalle por fecha</h4>
+      <div class="hist-table-wrap">
+        <table class="hist-matrix">
+          <thead>
+            <tr>
+              <th class="sticky-col">Alumno</th>
+              @for (f of fechas(); track f) {
+                <th class="fecha-col" [title]="f">{{ f | date:'dd MMM' }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of porAlumno(); track s.alumnoId) {
+              <tr>
+                <td class="sticky-col">{{ s.nombre }}</td>
+                @for (f of fechas(); track f) {
+                  @let reg = estadoEnFecha(s.alumnoId, f);
+                  <td class="cell-estado">
+                    @if (reg) {
+                      <span class="badge-dot"
+                            [class]="badgeFor(reg.estado)"
+                            [title]="labelFor(reg.estado) + (reg.observacion ? ': ' + reg.observacion : '')">
+                        {{ labelFor(reg.estado).charAt(0) }}
+                      </span>
+                    } @else {
+                      <span class="cell-empty">·</span>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+} @else {
+  <!-- ───────── Vista alumno: cards cronológicos ───────── -->
+  <div class="historial">
+    @for (a of cronologico(); track a.id) {
+      <div class="historial-row" [class]="badgeFor(a.estado)">
+        <div class="historial-fecha">
+          <span class="historial-dia">{{ a.fecha | date:'dd' }}</span>
+          <span class="historial-mes">{{ a.fecha | date:'MMM yyyy' }}</span>
+        </div>
+        <div class="historial-body">
+          <span class="historial-estado">{{ labelFor(a.estado) }}</span>
+          @if (a.observacion) {
+            <span class="historial-obs">{{ a.observacion }}</span>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

@@ -49,61 +49,14 @@
   } @else {
 
     <p class="hint">
-      Hacé clic en un bloque para asignar un curso, o clic en uno existente para editarlo o quitarlo.
+      Hacé clic en un espacio libre para asignar un bloque, o clic en uno existente para editarlo o quitarlo.
+      Los bloques pueden tener cualquier duración (no están limitados a 30 min).
     </p>
 
-    <div class="grid-wrap" role="region" aria-label="Editor de horario semanal">
-      <!-- Header de días -->
-      <div class="grid-header">
-        <div class="hh-cell hh-hour"></div>
-        @for (d of dias; track d.key) {
-          <div class="hh-cell" [attr.data-day]="d.key">
-            <span class="hh-short">{{ d.short }}</span>
-            <span class="hh-long">{{ d.label }}</span>
-          </div>
-        }
-      </div>
-
-      <!-- Filas por bloque de 30 min -->
-      <div class="grid-body">
-        @for (h of hourTicks; track h; let i = $index) {
-          @if (i < hourTicks.length - 1) {
-            <div class="row">
-              <div class="hour-col">{{ h }}</div>
-              @for (d of dias; track d.key) {
-                @let starting = slotStartingAt(d.key, h);
-                @let covering = slotsForCell(d.key, h, hourTicks[i + 1]);
-                <button
-                  type="button"
-                  class="cell"
-                  [class.has-slot]="covering.length > 0"
-                  [class.slot-start]="starting !== null"
-                  [class.pending]="covering.length > 0 && covering[0].pending"
-                  [style.--cell-color]="covering.length > 0 ? covering[0].color : null"
-                  [attr.aria-label]="
-                    covering.length > 0
-                      ? 'Editar bloque de ' + covering[0].curso_nombre
-                      : 'Asignar curso en ' + d.label + ' a las ' + h
-                  "
-                  (click)="onCellClick(d.key, h)">
-                  @if (starting !== null) {
-                    <div class="slot-label">
-                      <span class="cn">{{ starting.curso_nombre }}</span>
-                      <span class="hr">{{ starting.hora_inicio }}–{{ starting.hora_fin }}</span>
-                      @if (starting.aula) {
-                        <span class="rm">
-                          <mat-icon>place</mat-icon>{{ starting.aula }}
-                        </span>
-                      }
-                    </div>
-                  }
-                </button>
-              }
-            </div>
-          }
-        }
-      </div>
-    </div>
+    <app-schedule-grid
+      [slots]="flatSlots()"
+      (createAt)="onGridCreate($event)"
+      (editSlot)="onGridEdit($event)" />
 
     <!-- Leyenda de cursos -->
     <div class="legend">

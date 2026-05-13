@@ -1,0 +1,171 @@
+@use 'sass:color';
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+$col-min: 140px;
+$hour-col-width: 100px;
+$row-tick: 48px;     // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_MIN)
+
+.sg-wrap {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.sg-header {
+  display: grid;
+  grid-template-columns: $hour-col-width repeat(5, minmax($col-min, 1fr));
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+
+  > div {
+    padding: 10px 12px;
+    border-right: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+    text-align: center;
+
+    &:last-child { border-right: none; }
+  }
+
+  .sg-cell-hour { background: #f3f4f6; }
+
+  .sg-day-head {
+    display: flex; flex-direction: column; gap: 2px;
+    .sg-day-long { font-size: 0.95rem; }
+    .sg-day-short { display: none; }
+  }
+}
+
+@media (max-width: 760px) {
+  .sg-header .sg-day-head {
+    .sg-day-long { display: none; }
+    .sg-day-short { display: inline; font-size: 0.85rem; }
+  }
+}
+
+.sg-body {
+  display: grid;
+  grid-template-columns: $hour-col-width repeat(5, minmax($col-min, 1fr));
+  min-height: var(--col-h);
+}
+
+.sg-hours-col {
+  background: #fafafa;
+  border-right: 1px solid #e5e7eb;
+  display: flex; flex-direction: column;
+
+  .sg-hour-row {
+    height: $row-tick;
+    box-sizing: border-box;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 4px 8px;
+    display: flex; align-items: flex-start;
+    color: #6b7280;
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.sg-day-col {
+  position: relative;
+  height: var(--col-h);
+  background: #fff;
+  border: none;
+  border-right: 1px solid #e5e7eb;
+  padding: 0;
+  cursor: crosshair;
+  text-align: left;
+
+  &:last-child { border-right: none; }
+
+  // Hover sutil para mostrar la zona clickable
+  &:hover { background: #fcfcfd; }
+
+  // Guías horarias (cada 30 min)
+  .sg-grid-line {
+    height: $row-tick;
+    border-bottom: 1px dashed #eef2f7;
+    box-sizing: border-box;
+    pointer-events: none;
+
+    // Cada segunda línea (cada hora) más oscura
+    &:nth-child(odd) { border-bottom-color: #e5e7eb; border-bottom-style: solid; }
+  }
+}
+
+// ── Slots posicionados absolute ──────────────────────────────────
+.sg-slot {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  text-align: left;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  z-index: 2;
+
+  // Texto siempre con buen contraste sobre el color del curso.
+  // Se aplica un velo oscuro semi-transparente al fondo del slot.
+  background-blend-mode: normal;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+    z-index: 3;
+  }
+
+  &.is-pending::after {
+    content: '';
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fbbf24;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+  }
+
+  .sg-slot-title {
+    font-weight: 600;
+    font-size: 0.84rem;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  }
+
+  .sg-slot-time {
+    font-size: 0.72rem;
+    opacity: 0.92;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sg-slot-room {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    mat-icon {
+      font-size: 0.85rem;
+      width: 0.85rem;
+      height: 0.85rem;
+    }
+  }
+}

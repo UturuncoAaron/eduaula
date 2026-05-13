@@ -1,0 +1,186 @@
+:host { display: block; }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px;
+  color: var(--mat-sys-on-surface-variant, #5b5f72);
+
+  mat-icon { font-size: 32px; width: 32px; height: 32px; }
+}
+
+/* ───── Tabla docente ───── */
+.hist-card {
+  background: var(--mat-sys-surface, #fff);
+  border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.hist-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+
+  small {
+    font-weight: 400;
+    color: var(--mat-sys-on-surface-variant, #5b5f72);
+    font-size: 12px;
+  }
+}
+
+.hist-subtitle {
+  margin: 20px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface-variant, #5b5f72);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hist-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+}
+
+table.hist-summary,
+table.hist-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th, td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+  }
+
+  th {
+    background: var(--mat-sys-surface-container, #f6f7fb);
+    font-weight: 600;
+    color: var(--mat-sys-on-surface, #1c1d23);
+    white-space: nowrap;
+  }
+
+  td.num, th.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+}
+
+th.estado-presente { color: #2e7d32; }
+th.estado-tardanza { color: #ef6c00; }
+th.estado-ausente  { color: #c62828; }
+th.estado-permiso  { color: #6a1b9a; }
+th.estado-licencia { color: #1565c0; }
+
+.pct-good { color: #2e7d32; font-weight: 600; }
+.pct-mid  { color: #ef6c00; font-weight: 600; }
+.pct-bad  { color: #c62828; font-weight: 700; }
+
+table.hist-matrix {
+  .sticky-col {
+    position: sticky;
+    left: 0;
+    background: var(--mat-sys-surface, #fff);
+    z-index: 1;
+    min-width: 180px;
+  }
+
+  thead .sticky-col {
+    background: var(--mat-sys-surface-container, #f6f7fb);
+    z-index: 2;
+  }
+
+  .fecha-col {
+    text-align: center;
+    font-size: 12px;
+    min-width: 64px;
+  }
+
+  .cell-estado {
+    text-align: center;
+    padding: 4px;
+  }
+
+  .cell-empty { color: var(--mat-sys-outline, #c8cad6); }
+}
+
+.badge-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 11px;
+  color: #fff;
+
+  &.estado-presente { background: #2e7d32; }
+  &.estado-tardanza { background: #ef6c00; }
+  &.estado-ausente  { background: #c62828; }
+  &.estado-permiso  { background: #6a1b9a; }
+  &.estado-licencia { background: #1565c0; }
+}
+
+/* ───── Vista alumno (cards) ───── */
+.historial {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.historial-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+  background: var(--mat-sys-surface, #fff);
+
+  &.estado-presente { border-left: 4px solid #2e7d32; }
+  &.estado-tardanza { border-left: 4px solid #ef6c00; }
+  &.estado-ausente  { border-left: 4px solid #c62828; }
+  &.estado-permiso  { border-left: 4px solid #6a1b9a; }
+  &.estado-licencia { border-left: 4px solid #1565c0; }
+}
+
+.historial-fecha {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+
+  .historial-dia {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .historial-mes {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--mat-sys-on-surface-variant, #5b5f72);
+  }
+}
+
+.historial-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.historial-estado { font-weight: 600; }
+.historial-obs    { font-size: 12px; color: var(--mat-sys-on-surface-variant, #5b5f72); }
