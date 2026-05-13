@@ -326,6 +326,42 @@ export class ScheduleEditor implements OnInit {
     });
   }
 
+  // ─── Crear cursos sin salir del editor ───────────────────────
+  /**
+   * Cuando la sección no tiene cursos (o el admin quiere agregar uno
+   * más) lanzamos el plantillado CNEB para que el editor de horario sea
+   * usable de inmediato sin tener que viajar a otra pantalla.
+   */
+  generateCoursesFromTemplate(): void {
+    if (this.saving()) return;
+    const ref = this.dialog.open(ConfirmDialog, {
+      data: {
+        title: 'Generar cursos por plantilla',
+        message:
+          'Vamos a crear los cursos estándar del grado en esta sección. ' +
+          'Los que ya existen no se duplicarán. ¿Continuar?',
+        confirm: 'Generar',
+      },
+    });
+    ref.afterClosed().subscribe((ok) => {
+      if (!ok) return;
+      this.saving.set(true);
+      this.api
+        .post(`courses/generate/${this.seccionId}/${this.periodoId}`, {})
+        .pipe(finalize(() => this.saving.set(false)))
+        .subscribe({
+          next: (r) => {
+            const data = r.data as { mensaje?: string } | undefined;
+            this.toastr.success(data?.mensaje ?? 'Cursos generados');
+            this.load();
+          },
+          error: () => {
+            this.toastr.error('No se pudo generar los cursos');
+          },
+        });
+    });
+  }
+
   back(): void {
     if (this.dirtyCourses().size === 0) { this.goBack(); return; }
     const ref = this.dialog.open(ConfirmDialog, {
