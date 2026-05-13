@@ -6,6 +6,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -30,6 +31,7 @@ export class GradosTab implements OnInit {
     private api = inject(ApiService);
     private toastr = inject(ToastService);
     private dialog = inject(MatDialog);
+    private router = inject(Router);
 
     // ── Estado ────────────────────────────────────────────────────
     grados = signal<GradeLevel[]>([]);
@@ -300,13 +302,17 @@ export class GradosTab implements OnInit {
         ref.afterClosed().subscribe((c: any) => { if (c) this.reloadCursos(); });
     }
 
-    async openSchedule(): Promise<void> {
+    // Navegamos al editor visual (grilla 5xN + modal por slot) en una página
+    // dedicada; antes esto abría un modal con un formulario por curso.
+    openSchedule(): void {
         const s = this.selectedSeccion(); const g = this.selectedGrado();
         if (!s || !g) return;
         const pid = this.periodoActivo();
         if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
-        const { ScheduleDialog } = await import('../../../../shared/components/schedule-dialog/schedule-dialog');
-        this.dialog.open(ScheduleDialog, { width: '860px', maxHeight: '90vh', data: { seccionId: s.id, periodoId: pid, seccionNombre: s.nombre, gradoNombre: g.nombre } });
+        this.router.navigate(
+            ['/admin/secciones', s.id, 'periodo', pid, 'horario'],
+            { queryParams: { seccion: s.nombre, grado: g.nombre } },
+        );
     }
 
     async openAssignDocente(curso: Course): Promise<void> {

@@ -5,9 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { StagedAttachmentsPicker } from '../../../shared/components/staged-attachments-picker/staged-attachments-picker';
+import { AttachmentsService, ATTACHMENT_MAX_BYTES } from '../../../core/services/attachments';
 
 type Destinatario = 'todos' | 'alumnos' | 'docentes' | 'padres' | 'psicologas';
 
@@ -32,6 +36,7 @@ const LABELS: Record<Destinatario, string> = {
     ReactiveFormsModule, DatePipe,
     MatButtonModule, MatIconModule,
     MatDialogModule, MatTooltipModule,
+    StagedAttachmentsPicker,
   ],
   templateUrl: './announcements-admin.html',
   styleUrl: './announcements-admin.scss',
@@ -41,10 +46,15 @@ export class AnnouncementsAdmin implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
+  private attachments = inject(AttachmentsService);
 
   list = signal<Announcement[]>([]);
   loading = signal(true);
   saving = signal(false);
+
+  stagedFiles = signal<File[]>([]);
+  readonly maxFileBytes = ATTACHMENT_MAX_BYTES;
+  readonly maxFiles = 5;
 
   titleFocused = false;
   contentFocused = false;
@@ -101,14 +111,40 @@ export class AnnouncementsAdmin implements OnInit {
     if (!dests?.length) { this.toastr.error('Selecciona al menos un destinatario', 'Error'); return; }
     this.saving.set(true);
     this.api.post<Announcement>('announcements', this.form.value).subscribe({
-      next: () => {
-        this.toastr.success('Comunicado publicado', 'Éxito');
-        this.form.reset({ titulo: '', contenido: '', destinatarios: ['todos'] });
-        this.saving.set(false);
-        this.cargar();
+      next: r => {
+        const newId = r.data?.id;
+        const files = this.stagedFiles();
+        if (newId && files.length > 0) {
+          // Sube cada archivo al comunicado recién creado; reportamos fallos parciales.
+          forkJoin(
+            files.map(f =>
+              this.attachments.upload(f, 'announcement', newId).pipe(catchError(() => of(null))),
+            ),
+          ).subscribe({
+            next: results => {
+              const failures = results.filter(x => x === null).length;
+              if (failures > 0) {
+                this.toastr.error(`No se pudieron subir ${failures} archivo(s)`);
+              } else {
+                this.toastr.success('Comunicado publicado', 'Éxito');
+              }
+              this.finishPublicar();
+            },
+          });
+        } else {
+          this.toastr.success('Comunicado publicado', 'Éxito');
+          this.finishPublicar();
+        }
       },
       error: () => { this.toastr.error('No se pudo publicar', 'Error'); this.saving.set(false); },
     });
+  }
+
+  private finishPublicar(): void {
+    this.form.reset({ titulo: '', contenido: '', destinatarios: ['todos'] });
+    this.stagedFiles.set([]);
+    this.saving.set(false);
+    this.cargar();
   }
 
   eliminar(a: Announcement) {

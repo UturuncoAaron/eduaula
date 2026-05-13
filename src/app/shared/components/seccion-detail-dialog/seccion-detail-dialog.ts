@@ -7,6 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ToastService } from 'ngx-toastr-notifier';
@@ -37,6 +38,7 @@ export class SeccionDetailDialog implements OnInit {
     readonly data: SeccionDetailDialogData = inject(MAT_DIALOG_DATA);
     private ref = inject(MatDialogRef<SeccionDetailDialog>);
     private dialog = inject(MatDialog);
+    private router = inject(Router);
     private api = inject(ApiService);
     private toastr = inject(ToastService);
 
@@ -278,13 +280,20 @@ export class SeccionDetailDialog implements OnInit {
     }
 
     // ── Gestionar horario ─────────────────────────────────────────
-    async gestionarHorario(): Promise<void> {
+    // Navegamos al editor visual (página dedicada con grilla + modal de slot)
+    // en vez del modal-en-modal anterior, que era más limitado.
+    gestionarHorario(): void {
         const pid = this.data.periodoId;
         if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
-        const { ScheduleDialog } = await import('../schedule-dialog/schedule-dialog');
-        this.dialog.open(ScheduleDialog, {
-            width: '860px', maxHeight: '90vh',
-            data: { seccionId: this.data.seccion.id, periodoId: pid, seccionNombre: this.data.seccion.nombre, gradoNombre: this.data.gradoNombre },
-        });
+        this.ref.close();
+        this.router.navigate(
+            ['/admin/secciones', this.data.seccion.id, 'periodo', pid, 'horario'],
+            {
+                queryParams: {
+                    seccion: this.data.seccion.nombre,
+                    grado: this.data.gradoNombre,
+                },
+            },
+        );
     }
 }

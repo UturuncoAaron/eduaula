@@ -1,0 +1,283 @@
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+  background: #f7f9fc;
+  min-height: 100%;
+}
+
+.sched-editor {
+  padding: 1rem 1.25rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ─── Topbar ────────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .25rem 0 1rem;
+}
+
+.title-block { flex: 1; min-width: 0; }
+.eyebrow {
+  margin: 0;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgba(0, 0, 0, .55);
+  font-weight: 600;
+}
+.title {
+  margin: .15rem 0 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #102a43;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.grade-chip {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #eaf2ff;
+  color: #1d4ed8;
+  padding: .15rem .55rem;
+  border-radius: 999px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.dirty-badge {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: rgba(245, 158, 11, .15);
+  color: #b45309;
+  padding: .25rem .6rem;
+  border-radius: 999px;
+}
+
+/* ─── States ────────────────────────────────────────────────── */
+.loading-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  padding: 4rem 0;
+  color: rgba(0,0,0,.55);
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba(0,0,0,.6);
+  background: #fff;
+  border: 1px dashed rgba(0,0,0,.12);
+  border-radius: 14px;
+  mat-icon {
+    font-size: 44px;
+    width: 44px;
+    height: 44px;
+    color: rgba(0,0,0,.35);
+  }
+  h3 { margin: .35rem 0 .15rem; font-weight: 600; color: #1f2937; }
+  p { margin: 0; }
+}
+
+.hint {
+  margin: 0 0 .65rem;
+  font-size: .82rem;
+  color: rgba(0,0,0,.6);
+}
+
+/* ─── Grid ──────────────────────────────────────────────────── */
+.grid-wrap {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,.06);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 6px 18px rgba(15,23,42,.05);
+}
+
+$hour-col-width: 72px;
+
+.grid-header {
+  display: grid;
+  grid-template-columns: $hour-col-width repeat(5, 1fr);
+  background: linear-gradient(to bottom, #f8fafc, #eef2f7);
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+.hh-cell {
+  padding: .55rem .25rem;
+  text-align: center;
+  font-size: .78rem;
+  color: rgba(0,0,0,.65);
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.hh-cell.hh-hour { border-right: 1px solid rgba(0,0,0,.06); }
+.hh-short { display: none; }
+.hh-long  { display: inline; }
+
+@media (max-width: 720px) {
+  .hh-short { display: inline; }
+  .hh-long  { display: none; }
+}
+
+.grid-body { display: flex; flex-direction: column; }
+
+.row {
+  display: grid;
+  grid-template-columns: $hour-col-width repeat(5, 1fr);
+  border-top: 1px dashed rgba(0,0,0,.05);
+  min-height: 34px;
+}
+
+.row:first-child { border-top: none; }
+
+.hour-col {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: .15rem;
+  font-size: .72rem;
+  color: rgba(0,0,0,.55);
+  font-weight: 600;
+  border-right: 1px solid rgba(0,0,0,.05);
+  background: #fafbfd;
+}
+
+.cell {
+  --cell-color: rgba(99, 102, 241, .8);
+  position: relative;
+  border: none;
+  background: transparent;
+  border-left: 1px solid rgba(0,0,0,.04);
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  transition: background .18s;
+
+  &:hover { background: rgba(99, 102, 241, .06); }
+  &:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, .55);
+    outline-offset: -2px;
+    z-index: 2;
+  }
+}
+
+.cell.has-slot {
+  background: color-mix(in srgb, var(--cell-color) 14%, white 86%);
+}
+
+.cell.slot-start {
+  background: color-mix(in srgb, var(--cell-color) 22%, white 78%);
+  border-top: 2px solid var(--cell-color);
+}
+
+.cell.pending::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, .25);
+}
+
+.slot-label {
+  padding: .25rem .4rem .15rem .55rem;
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  line-height: 1.15;
+}
+
+.cn {
+  font-size: .78rem;
+  font-weight: 700;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hr {
+  font-size: .68rem;
+  color: rgba(0,0,0,.6);
+  font-variant-numeric: tabular-nums;
+}
+.rm {
+  font-size: .68rem;
+  color: rgba(0,0,0,.55);
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+  mat-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+  }
+}
+
+/* ─── Legend ────────────────────────────────────────────────── */
+.legend {
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.06);
+  padding: .85rem 1rem;
+}
+.legend-title {
+  margin: 0 0 .5rem;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(0,0,0,.55);
+  font-weight: 700;
+}
+.legend-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .25rem .65rem;
+  font-size: .82rem;
+  background: #f6f8fb;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 999px;
+  color: #1f2937;
+  small { color: rgba(0,0,0,.5); font-size: .7rem; }
+  .pending-ic {
+    color: #f59e0b;
+    font-size: 10px;
+    width: 10px;
+    height: 10px;
+    line-height: 10px;
+  }
+  &.is-dirty {
+    background: #fff7ed;
+    border-color: rgba(245, 158, 11, .25);
+  }
+}
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
