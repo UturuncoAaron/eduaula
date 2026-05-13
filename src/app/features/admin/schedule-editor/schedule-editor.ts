@@ -26,9 +26,9 @@ import {
   DIAS,
   EditableSlot,
   ServerSlot,
-  buildHourTicks,
   toMinutes,
 } from './schedule-editor.types';
+import { ScheduleGrid } from './schedule-grid';
 import {
   SlotAssignDialog,
   SlotAssignData,
@@ -52,6 +52,7 @@ interface PendingPayloadSlot {
     MatButtonModule, MatIconModule,
     MatDialogModule, MatTooltipModule,
     MatProgressBarModule, MatProgressSpinnerModule,
+    ScheduleGrid,
   ],
   templateUrl: './schedule-editor.html',
   styleUrl: './schedule-editor.scss',
@@ -82,7 +83,6 @@ export class ScheduleEditor implements OnInit {
 
   // Constantes UI
   readonly dias = DIAS;
-  readonly hourTicks = buildHourTicks(7, 17, 30);
 
   readonly isDirty = computed(() => this.dirtyCourses().size > 0);
   readonly dirtyCount = computed(() => this.dirtyCourses().size);
@@ -144,35 +144,13 @@ export class ScheduleEditor implements OnInit {
       });
   }
 
-  // ─── Grid interaction ──────────────────────────────────────────
-  /** Slots que entran en la celda (día, ticks[i]..ticks[i+1]) parcialmente. */
-  slotsForCell(dia: DiaSemana, tickStart: string, tickEnd: string): EditableSlot[] {
-    const startMin = toMinutes(tickStart);
-    const endMin = toMinutes(tickEnd);
-    return this.flatSlots()
-      .filter(s => s.dia_semana === dia)
-      .filter(s => {
-        const a = toMinutes(s.hora_inicio);
-        const b = toMinutes(s.hora_fin);
-        // Solapamiento [a,b) con [startMin, endMin)
-        return a < endMin && b > startMin;
-      });
+  // ─── Grid interaction (delegadas desde <app-schedule-grid>) ────
+  onGridCreate(payload: { dia: DiaSemana; hora: string }): void {
+    this.openCreateDialog(payload.dia, payload.hora);
   }
 
-  /** Devuelve slot que comienza EXACTAMENTE en la celda (para etiqueta). */
-  slotStartingAt(dia: DiaSemana, tickStart: string): EditableSlot | null {
-    return this.flatSlots().find(
-      s => s.dia_semana === dia && s.hora_inicio === tickStart,
-    ) ?? null;
-  }
-
-  onCellClick(dia: DiaSemana, tick: string): void {
-    const overlapping = this.slotsForCell(dia, tick, addMinutes(tick, 30));
-    if (overlapping.length > 0) {
-      this.openEditDialog(overlapping[0]);
-    } else {
-      this.openCreateDialog(dia, tick);
-    }
+  onGridEdit(slot: EditableSlot): void {
+    this.openEditDialog(slot);
   }
 
   private openCreateDialog(dia: DiaSemana, hora: string): void {
@@ -382,10 +360,3 @@ function clone<T>(x: T): T { return JSON.parse(JSON.stringify(x)); }
 
 let _tempCounter = 1;
 function tempSlotId(): string { return `__pending_${_tempCounter++}`; }
-
-function addMinutes(hhmm: string, minutes: number): string {
-  const total = toMinutes(hhmm) + minutes;
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}

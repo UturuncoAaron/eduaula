@@ -21,7 +21,9 @@ export class TabForo implements OnInit {
   private api    = inject(ApiService);
   private dialog = inject(MatDialog);
 
-  courseId = input.required<string>();
+  // Recibe el `:id` del path /cursos/:id/foro via withComponentInputBinding.
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  courseId = input.required<string>({ alias: 'id' });
 
   forums  = signal<Forum[]>([]);
   loading = signal(true);

@@ -1,0 +1,63 @@
+<div class="sg-wrap" role="region" aria-label="Grilla de horario semanal">
+
+  <!-- Header: filas de cabecera (hora + 5 días) -->
+  <div class="sg-header">
+    <div class="sg-cell-hour"></div>
+    @for (d of dias; track d.key) {
+      <div class="sg-day-head">
+        <span class="sg-day-short">{{ d.short }}</span>
+        <span class="sg-day-long">{{ d.label }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Cuerpo: una sola pieza CSS-grid con todas las columnas. Las filas de hora
+       sólo sirven como guías de fondo y para el label de tiempo de la izquierda. -->
+  <div class="sg-body" [style.--col-h.px]="columnHeightPx()">
+
+    <!-- Columna de horas (rangos legibles) -->
+    <div class="sg-hours-col">
+      @for (r of rows(); track r.startMin) {
+        <div class="sg-hour-row">
+          <span class="sg-hour-range">{{ r.rangeLabel }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Una columna por día -->
+    @for (d of dias; track d.key) {
+      <button
+        type="button"
+        class="sg-day-col"
+        (click)="onColumnClick($event, d.key)"
+        [attr.aria-label]="'Asignar bloque en ' + d.label">
+
+        <!-- Guías horarias (background) -->
+        @for (r of rows(); track r.startMin) {
+          <div class="sg-grid-line"></div>
+        }
+
+        <!-- Slots posicionados absolute -->
+        @for (rs of slotsByDay()[d.key]; track trackSlot($index, rs)) {
+          <button
+            type="button"
+            class="sg-slot"
+            [class.is-pending]="rs.slot.pending"
+            [style.background]="rs.slot.color"
+            [style.top.px]="rs.topPx"
+            [style.height.px]="rs.heightPx"
+            (click)="onSlotClick($event, rs.slot)"
+            [attr.aria-label]="'Editar ' + rs.slot.curso_nombre + ' ' + rs.slot.hora_inicio + ' a ' + rs.slot.hora_fin">
+            <span class="sg-slot-title">{{ rs.slot.curso_nombre }}</span>
+            <span class="sg-slot-time">{{ rs.slot.hora_inicio }}–{{ rs.slot.hora_fin }}</span>
+            @if (rs.slot.aula) {
+              <span class="sg-slot-room">
+                <mat-icon>place</mat-icon>{{ rs.slot.aula }}
+              </span>
+            }
+          </button>
+        }
+      </button>
+    }
+  </div>
+</div>

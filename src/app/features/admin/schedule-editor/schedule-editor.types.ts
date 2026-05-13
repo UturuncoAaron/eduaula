@@ -56,3 +56,23 @@ export function toMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
 }
+
+/** Inversa de toMinutes: minutos del día → "HH:mm". */
+export function toHHMM(totalMin: number): string {
+  const h = Math.floor(totalMin / 60);
+  const m = Math.round(totalMin % 60);
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+/** Snap a un múltiplo del step (default 30) hacia abajo. */
+export function snapDown(totalMin: number, step = 30): number {
+  return Math.floor(totalMin / step) * step;
+}
+
+// ── Parámetros del render visual ─────────────────────────────────────
+// Cada minuto = N píxeles. Con 1.6 px/min, una franja de 30 min mide 48px
+// (suficiente para que el texto del curso quepa en una sola línea pequeña).
+export const PX_PER_MIN = 1.6;
+export const TICK_STEP_MIN = 30;
+export const DAY_START_MIN = 7 * 60;  // 07:00
+export const DAY_END_MIN = 17 * 60 + 30; // 17:30 (último tick inclusive)
