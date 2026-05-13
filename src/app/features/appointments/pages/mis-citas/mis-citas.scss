@@ -169,6 +169,26 @@
       font-weight: 600;
       color: #0f172a;
     }
+
+    &--toggle {
+      cursor: pointer;
+      user-select: none;
+      padding: 6px 10px;
+      border-radius: 10px;
+      transition: background .15s ease;
+
+      &:hover { background: #f1f5f9; }
+      &:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__chevron {
+    margin-left: auto;
+    color: #64748b;
+    transition: transform .2s ease;
   }
 
   &__bullet {

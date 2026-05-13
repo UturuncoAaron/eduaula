@@ -336,9 +336,24 @@ export class TeacherRequestAppointmentDialog implements OnInit {
       this.toastr.success('Cita enviada al padre/tutor — pendiente de su confirmación');
       this.ref.close(true);
     } catch (err: unknown) {
-      this.errorMsg.set(parseApiError(err, 'No se pudo crear la cita'));
+      // 409 → otro pidió el mismo slot entre el load y el submit. Reset
+      // selección + refrescar slotsTaken para que el usuario vea el
+      // bloque marcado como ocupado.
+      if (isConflictError(err)) {
+        this.errorMsg.set('Ese horario ya está ocupado. Elige otro slot disponible.');
+        this.picked.set(null);
+        this.refreshSlotsTaken();
+      } else {
+        this.errorMsg.set(parseApiError(err, 'No se pudo crear la cita'));
+      }
     } finally {
       this.loading.set(false);
     }
   }
+}
+
+function isConflictError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const status = (err as { status?: unknown }).status;
+  return status === 409;
 }

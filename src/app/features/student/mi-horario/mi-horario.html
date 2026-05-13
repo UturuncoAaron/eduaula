@@ -15,11 +15,12 @@
     subtitle="Cuando dirección publique el horario de tu sección lo verás acá."
   ></app-empty-state>
 } @else {
+  <!-- Horario de clases del alumno: 07:00 a 14:30 (el colegio termina a las 2:30 pm). -->
   <app-week-grid
     mode="schedule"
     [slots]="slots()"
     [startHour]="7"
-    [endHour]="17"
+    [endHour]="14"
     [endHourExtraMin]="30">
   </app-week-grid>
 }

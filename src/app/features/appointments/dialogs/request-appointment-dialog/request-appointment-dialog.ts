@@ -454,11 +454,26 @@ export class RequestAppointmentDialog implements OnInit {
             }
             this.ref.close(true);
         } catch (err: unknown) {
-            this.errorMsg.set(
-                parseApiError(err, rs ? 'No se pudo reagendar la cita' : 'No se pudo solicitar la cita'),
-            );
+            // Si el backend nos devuelve 409 (slot tomado por otro entre el
+            // load inicial y el submit), refrescamos slotsTaken para que el
+            // usuario vea el bloque ocupado en gris y elija otro.
+            if (isConflictError(err)) {
+                this.errorMsg.set('Ese horario ya está ocupado. Elige otro slot disponible.');
+                this.clearPicked();
+                this.refreshSlotsTaken();
+            } else {
+                this.errorMsg.set(
+                    parseApiError(err, rs ? 'No se pudo reagendar la cita' : 'No se pudo solicitar la cita'),
+                );
+            }
         } finally {
             this.loading.set(false);
         }
     }
+}
+
+function isConflictError(err: unknown): boolean {
+    if (!err || typeof err !== 'object') return false;
+    const status = (err as { status?: unknown }).status;
+    return status === 409;
 }

@@ -55,6 +55,12 @@ export class MisCitas {
 
     readonly filterEstado = signal<EstadoFilter>('all');
     readonly search = signal('');
+    /**
+     * Historial colapsado por defecto. El usuario lo abre solo si quiere
+     * revisar citas pasadas/canceladas. Evita que la página luzca llena
+     * de basura histórica desde el primer load.
+     */
+    readonly historialOpen = signal(false);
 
     readonly estados: { value: EstadoFilter; label: string }[] = [
         { value: 'all', label: 'Todos los estados' },
