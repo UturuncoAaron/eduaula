@@ -1,11 +1,11 @@
-<div class="editor" [style.--days-count]="visibleDias().length">
+<div class="editor">
     <header class="editor__header">
         <div class="editor__title">
             <mat-icon>event_available</mat-icon>
             <div>
                 <h3>Disponibilidad semanal</h3>
                 <small>
-                    Haz clic en cada celda de {{ step() }} min para marcarla como disponible.
+                    Haz clic dentro de la grilla para marcar bloques de {{ step() }} min como disponibles.
                 </small>
                 @if (ruleHint(); as hint) {
                 <small class="editor__rule">
@@ -33,24 +33,16 @@
         </div>
     </header>
 
-    <div class="grid">
-        <div class="cell head head--corner"></div>
-        @for (dia of visibleDias(); track trackByDia($index, dia)) {
-        <button class="cell head head--day" type="button" (click)="selectAllDay(dia)"
-            matTooltip="Activar/desactivar todo el día">
-            {{ DIA_LABEL[dia] }}
-        </button>
-        }
-
-        @for (hour of hours(); track trackByHour($index, hour)) {
-        <div class="cell head head--hour">{{ hour }}</div>
-        @for (dia of visibleDias(); track trackByDia($index, dia)) {
-        <button class="cell slot" type="button" [class.slot--on]="isOn(dia, hour)" [disabled]="saving()"
-            (click)="toggle(dia, hour)">
-        </button>
-        }
-        }
-    </div>
+    <app-week-grid
+        mode="availability"
+        [slots]="draftSlots()"
+        [startHour]="effectiveStartHour()"
+        [endHour]="effectiveEndHour()"
+        [endHourExtraMin]="0"
+        [tickStepMin]="step()"
+        [allowedDays]="allowedWeekDays()"
+        (cellClick)="onCellClick($event)">
+    </app-week-grid>
 
     <footer class="editor__footer muted">
         <button mat-button type="button" (click)="clearAll()" [disabled]="saving() || cellsCount() === 0">
@@ -60,7 +52,7 @@
 
         <span class="legend-wrap">
             <span class="legend legend--on"></span> disponible &nbsp;·&nbsp;
-            <span class="legend legend--off"></span> no disponible
+            <span class="legend legend--off"></span> click para marcar
         </span>
     </footer>
 </div>

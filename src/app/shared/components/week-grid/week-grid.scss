@@ -1,0 +1,256 @@
+// Grilla semanal pixel-perfect compartida.
+// Layout: CSS grid con `wg__hours` ocupando la columna 1 + 5/6 columnas día.
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.wg {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__today {
+    margin-left: 4px;
+  }
+
+  &__board {
+    display: grid;
+    // 80px reservados para la columna de horas, resto distribuido equitativo.
+    grid-template-columns: 80px repeat(5, minmax(0, 1fr));
+    grid-template-rows: auto 1fr;
+    border: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--mat-sys-surface, #fff);
+  }
+
+  &__corner {
+    background: var(--mat-sys-surface-container, #f5f5f5);
+    border-bottom: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+    border-right: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px;
+    background: var(--mat-sys-surface-container, #f5f5f5);
+    border-bottom: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+    border-right: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface, #1f1f1f);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    &:last-child { border-right: none; }
+
+    &--today {
+      background: rgba(63, 81, 181, 0.08);
+      color: var(--mat-sys-primary, #3f51b5);
+    }
+
+    &--blocked {
+      opacity: 0.55;
+    }
+  }
+
+  &__day-short { display: none; }
+  &__day-long {
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  &__day-date {
+    margin-top: 2px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--mat-sys-on-surface, #1f1f1f);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+
+    &--today {
+      background: var(--mat-sys-primary, #3f51b5);
+      color: var(--mat-sys-on-primary, #fff);
+      border-radius: 50%;
+    }
+  }
+
+  &__hours {
+    position: relative;
+    grid-column: 1;
+    grid-row: 2;
+    background: var(--mat-sys-surface-container-low, #fafafa);
+    border-right: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+  }
+
+  &__hour-row {
+    position: relative;
+    border-bottom: 1px dashed var(--mat-sys-outline-variant, #e0e0e0);
+    display: flex;
+    align-items: flex-start;
+    padding-top: 4px;
+    padding-right: 8px;
+    justify-content: flex-end;
+    box-sizing: border-box;
+
+    &:last-child { border-bottom: none; }
+  }
+
+  &__hour-label {
+    font-size: 10.5px;
+    color: var(--mat-sys-on-surface-variant, #5f6368);
+    line-height: 1.2;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  &__col {
+    position: relative;
+    grid-row: 2;
+    border-right: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+    background: var(--mat-sys-surface, #fff);
+
+    &:last-child { border-right: none; }
+
+    &--blocked {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(0, 0, 0, 0.025),
+        rgba(0, 0, 0, 0.025) 6px,
+        rgba(0, 0, 0, 0.06) 6px,
+        rgba(0, 0, 0, 0.06) 12px
+      );
+      cursor: not-allowed;
+    }
+
+    &--clickable {
+      cursor: cell;
+
+      &:hover {
+        background: rgba(63, 81, 181, 0.04);
+      }
+    }
+  }
+
+  &__tick {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-bottom: 1px dashed var(--mat-sys-outline-variant, #e0e0e0);
+    pointer-events: none;
+  }
+
+  &__slot {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    padding: 4px 6px;
+    text-align: left;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    font: inherit;
+    cursor: default;
+    background: var(--mat-sys-primary-container, #c5cae9);
+    color: var(--mat-sys-on-primary-container, #1a237e);
+    transition: filter 0.15s ease, transform 0.15s ease;
+
+    &-title {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    &-sub {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 2px;
+      line-height: 1.15;
+    }
+
+    &--course {
+      // El color real lo pone style.background-color desde el TS.
+    }
+
+    &--editor {
+      // Igual visual que course pero el padre activa cursor pointer.
+    }
+
+    &--available {
+      background: rgba(76, 175, 80, 0.18);
+      border-color: rgba(76, 175, 80, 0.5);
+      color: #1b5e20;
+    }
+    &--taken {
+      background: rgba(96, 125, 139, 0.32);
+      border-color: rgba(96, 125, 139, 0.55);
+      color: #263238;
+      cursor: not-allowed;
+    }
+    &--blocked {
+      background: rgba(0, 0, 0, 0.08);
+      border: 1px dashed rgba(0, 0, 0, 0.25);
+      color: rgba(0, 0, 0, 0.55);
+      cursor: not-allowed;
+    }
+    &--appointment {
+      background: rgba(124, 77, 255, 0.18);
+      border-color: rgba(124, 77, 255, 0.5);
+      color: #4527a0;
+    }
+
+    &--pending {
+      border-style: dashed;
+      filter: saturate(0.85);
+    }
+
+    &--clickable {
+      cursor: pointer;
+
+      &:hover {
+        filter: brightness(0.95);
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  &__empty {
+    padding: 16px;
+    text-align: center;
+    color: var(--mat-sys-on-surface-variant, #5f6368);
+    font-size: 14px;
+  }
+}
+
+// Mobile — colapsar el long label a short y reducir el ancho de horas.
+@media (max-width: 720px) {
+  .wg__board {
+    grid-template-columns: 56px repeat(5, minmax(0, 1fr));
+  }
+  .wg__day-short { display: inline; }
+  .wg__day-long { display: none; }
+  .wg__hour-label { font-size: 10px; }
+}

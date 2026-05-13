@@ -1,8 +1,17 @@
 @if (!hasAnyAvailable() && !loading()) {
-<p class="booking-calendar__empty">{{ emptyMessage() }}</p>
+  <p class="booking-calendar__empty">{{ emptyMessage() }}</p>
 }
 
-<app-calendar-grid mode="booking" [slots]="bookingSlots()" [loading]="loading()" [weekStart]="weekStart()"
-    [startHour]="startHour()" [endHour]="endHour()" [slotMinutes]="slotMinutes()"
-    [maxBodyHeight]="maxBodyHeight()" [selectedKey]="selectedKey()"
-    (cellClick)="onCellClick($event)" (weekChange)="onWeekChange($event)" />
+<app-week-grid
+  mode="booking"
+  [slots]="weekSlots()"
+  [startHour]="startHour()"
+  [endHour]="endHour()"
+  [endHourExtraMin]="0"
+  [tickStepMin]="slotMinutes()"
+  [showDates]="true"
+  [weekStart]="weekStart()"
+  [allowedDays]="allowedWeekDays()"
+  [showNav]="true"
+  (cellClick)="onCellClick($event)"
+  (weekChange)="onWeekChange($event)" />

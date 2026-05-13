@@ -79,9 +79,12 @@
             </h2>
         </div>
 
-        <app-calendar-grid mode="schedule" [slots]="calendarSlots()" [events]="calendarEvents()" [loading]="loading()"
-            [weekStart]="weekStart()" [startHour]="7" [endHour]="15" (cellClick)="onCellClick($event)"
-            (weekChange)="onWeekChange($event)" />
+        <app-week-grid
+            mode="schedule"
+            [slots]="calendarSlots()"
+            [startHour]="7"
+            [endHour]="17"
+            [endHourExtraMin]="30" />
     </section>
 
     <!-- TAREAS + COMUNICADOS -->
