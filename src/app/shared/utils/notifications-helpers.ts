@@ -3,7 +3,6 @@ export const NOTIFICATION_TYPES = [
     'cita_confirmada',
     'cita_cancelada',
     'cita_recordatorio',
-    'mensaje_nuevo',
     'libreta_disponible',
     'tarea_nueva',
     'tarea_vence_pronto',
@@ -20,7 +19,6 @@ const ICONS: Record<string, string> = {
     cita_confirmada: 'event_available',
     cita_cancelada: 'event_busy',
     cita_recordatorio: 'alarm',
-    mensaje_nuevo: 'mail',
     libreta_disponible: 'menu_book',
     tarea_nueva: 'assignment',
     tarea_vence_pronto: 'schedule',
@@ -35,7 +33,6 @@ const COLORS: Record<string, string> = {
     cita_confirmada: '#10b981',
     cita_cancelada: '#ef4444',
     cita_recordatorio: '#f59e0b',
-    mensaje_nuevo: '#0ea5e9',
     libreta_disponible: '#8b5cf6',
     tarea_nueva: '#f59e0b',
     tarea_vence_pronto: '#ef4444',
@@ -50,7 +47,6 @@ const ROUTES: Record<string, string> = {
     tarea: '/tareas',
     comunicado: '/comunicados',
     libreta: '/mis-libretas',
-    mensaje: '/mensajes',
     alumno: '/notificaciones',
 };
 

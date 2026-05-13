@@ -10,6 +10,14 @@ export interface Forum {
     created_at: string;
 }
 
+export interface ForumPostAuthor {
+    id: string;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno?: string;
+    rol: string;
+}
+
 export interface ForumPost {
     id: string;
     foro_id: string;
@@ -18,12 +26,8 @@ export interface ForumPost {
     activo: boolean;
     created_at: string;
     updated_at: string;
-    usuario: {
-        id: string;
-        nombre: string;
-        apellido_paterno: string;
-        rol: string;
-    };
+    usuario?: ForumPostAuthor;
+    respuestas?: ForumPost[];
 }
 
 export interface ForumThread {

@@ -1,80 +1,156 @@
 <app-page-header
   title="Permisos extra"
-  subtitle="Otorga permisos específicos a docentes/auxiliares (ej: que un docente designado pueda subir la libreta del padre)."
-  icon="vpn_key">
-</app-page-header>
+  subtitle="Otorgá permisos puntuales a docentes, auxiliares y admins. Alumnos, padres y psicólogas no aplican." />
 
-<div class="layout">
-  <aside class="cuentas">
-    <header class="filters">
-      <mat-form-field appearance="outline" class="rol">
+<div class="permisos-page">
+  <!-- Panel izquierdo: lista de cuentas -->
+  <aside class="cuenta-list">
+    <header class="cuenta-list__filters">
+      <mat-form-field appearance="outline" class="filter-search">
+        <mat-label>Buscar</mat-label>
+        <input
+          matInput
+          placeholder="Nombre, apellido o email"
+          (input)="onSearchInput($any($event.target).value)"
+          aria-label="Buscar cuenta" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-rol">
         <mat-label>Rol</mat-label>
-        <mat-select [ngModel]="filtroRol()" (ngModelChange)="filtroRol.set($event)">
+        <mat-select
+          [value]="filtroRol()"
+          (selectionChange)="filtroRol.set($event.value)">
           @for (r of rolesOtorgables; track r) {
-            <mat-option [value]="r">{{ r }}</mat-option>
+            <mat-option [value]="r">{{ rolLabel(r) }}</mat-option>
           }
         </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="q">
-        <mat-label>Buscar</mat-label>
-        <input matInput [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Nombre o email" />
-        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
     </header>
 
     @if (loadingCuentas()) {
-      <div class="loading"><mat-spinner diameter="32"></mat-spinner></div>
+      <div class="empty-state"><mat-spinner diameter="32" /></div>
+    } @else if (cuentasFiltradas().length === 0) {
+      <div class="empty-state">
+        <mat-icon>person_off</mat-icon>
+        <p>Sin cuentas que coincidan.</p>
+      </div>
     } @else {
-      <ul class="list">
+      <ul class="cuenta-rows" role="listbox">
         @for (c of cuentasFiltradas(); track c.id) {
-          <li class="row"
-              [class.active]="cuentaSeleccionada()?.id === c.id"
-              (click)="onPickCuenta(c)">
-            <mat-icon class="ic">{{ rolBadge(c.rol) }}</mat-icon>
-            <div class="info">
-              <span class="name">{{ fullName(c) }}</span>
-              <span class="email">{{ c.email }}</span>
+          <li
+            class="cuenta-row"
+            [class.is-active]="cuentaSeleccionada()?.id === c.id"
+            (click)="onPickCuenta(c)"
+            (keydown.enter)="onPickCuenta(c)"
+            tabindex="0"
+            role="option"
+            [attr.aria-selected]="cuentaSeleccionada()?.id === c.id">
+            <mat-icon class="cuenta-row__rol-icon">{{ rolBadge(c.rol) }}</mat-icon>
+            <div class="cuenta-row__body">
+              <span class="cuenta-row__name">{{ fullName(c) }}</span>
+              @if (c.email) {
+                <span class="cuenta-row__email">{{ c.email }}</span>
+              }
             </div>
-            <span class="rol-chip">{{ c.rol }}</span>
+            <span class="cuenta-row__chip">{{ rolLabel(c.rol) }}</span>
           </li>
-        }
-        @if (cuentasFiltradas().length === 0) {
-          <li class="empty">Sin resultados</li>
         }
       </ul>
     }
   </aside>
 
-  <section class="detail">
+  <!-- Panel derecho: permisos de la cuenta seleccionada -->
+  <section class="permisos-panel">
     @if (!cuentaSeleccionada()) {
-      <div class="hint">
-        <mat-icon>arrow_back</mat-icon>
-        Elegí una cuenta a la izquierda para gestionar sus permisos.
+      <div class="empty-state empty-state--big">
+        <mat-icon>shield_person</mat-icon>
+        <h3>Seleccioná una cuenta</h3>
+        <p>Elegí una cuenta del panel izquierdo para ver y editar sus permisos extra.</p>
       </div>
     } @else {
-      <header class="detail-head">
-        <h2>{{ fullName(cuentaSeleccionada()!) }}</h2>
-        <span class="rol-chip">{{ cuentaSeleccionada()!.rol }}</span>
+      <header class="permisos-panel__header">
+        <div>
+          <h3>{{ fullName(cuentaSeleccionada()!) }}</h3>
+          <span class="permisos-panel__sub">
+            {{ rolLabel(cuentaSeleccionada()!.rol) }}
+            @if (cuentaSeleccionada()!.email) {
+              · {{ cuentaSeleccionada()!.email }}
+            }
+          </span>
+        </div>
+
+        <div class="permisos-panel__actions">
+          @if (hasPending()) {
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="savingChanges()"
+              (click)="discardChanges()">
+              <mat-icon>undo</mat-icon>
+              Descartar
+            </button>
+          }
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="!hasPending() || savingChanges()"
+            (click)="saveChanges()"
+            [attr.aria-label]="'Guardar ' + pendingCount() + ' cambios pendientes'">
+            @if (savingChanges()) {
+              <mat-spinner diameter="18" />
+            } @else {
+              <mat-icon>save</mat-icon>
+            }
+            Guardar
+            @if (hasPending()) {
+              <span class="pending-count">({{ pendingCount() }})</span>
+            }
+          </button>
+        </div>
       </header>
 
       @if (loadingPermisos()) {
-        <div class="loading"><mat-spinner diameter="32"></mat-spinner></div>
+        <div class="empty-state"><mat-spinner diameter="32" /></div>
       } @else {
-        <ul class="perm-list">
-          @for (item of catalogo; track item.modulo + ':' + item.accion) {
-            <li class="perm">
-              <mat-checkbox
-                [checked]="tienePermiso(item)"
-                (change)="togglePermiso(item, $event.checked)">
-                <div class="perm-text">
-                  <strong>{{ item.label }}</strong>
-                  <span class="hint">{{ item.descripcion }}</span>
-                  <code class="key">{{ item.modulo }}:{{ item.accion }}</code>
-                </div>
-              </mat-checkbox>
-            </li>
+        <div class="permisos-grupos">
+          @for (grupo of catalogo; track grupo.modulo) {
+            <article class="permiso-grupo">
+              <h4 class="permiso-grupo__title">{{ grupo.label }}</h4>
+              <ul class="permiso-grupo__items">
+                @for (item of grupo.items; track item.modulo + '/' + item.accion) {
+                  <li
+                    class="permiso-item"
+                    [class.is-pending]="isPending(item)"
+                    [class.is-sensitive]="item.sensitive">
+                    <mat-checkbox
+                      [checked]="tienePermiso(item)"
+                      (change)="togglePermiso(item, $event.checked)"
+                      [attr.aria-label]="item.label">
+                      <div class="permiso-item__text">
+                        <span class="permiso-item__label">
+                          {{ item.label }}
+                          @if (item.sensitive) {
+                            <mat-icon
+                              class="permiso-item__sensitive-icon"
+                              matTooltip="Permiso sensible: pide confirmación al otorgar.">
+                              priority_high
+                            </mat-icon>
+                          }
+                          @if (isPending(item)) {
+                            <span class="pending-badge">pendiente</span>
+                          }
+                        </span>
+                        <small class="permiso-item__desc">{{ item.descripcion }}</small>
+                      </div>
+                    </mat-checkbox>
+                  </li>
+                }
+              </ul>
+            </article>
           }
-        </ul>
+        </div>
       }
     }
   </section>

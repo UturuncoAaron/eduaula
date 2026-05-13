@@ -49,6 +49,24 @@ export class ForumThread implements OnInit {
     contenido: ['', [Validators.required, Validators.minLength(5)]],
   });
 
+  /** Etiqueta legible para el rol del autor del post. */
+  rolLabel(rol: string | undefined): string {
+    switch (rol) {
+      case 'docente': return 'Docente';
+      case 'alumno': return 'Alumno';
+      case 'padre': return 'Padre';
+      case 'admin': return 'Admin';
+      case 'auxiliar': return 'Auxiliar';
+      case 'psicologa': return 'Psicología';
+      default: return rol ?? '';
+    }
+  }
+
+  /** Inicial del avatar, segura contra autor sin nombre. */
+  initial(nombre: string | undefined | null): string {
+    return (nombre ?? '?').charAt(0).toUpperCase();
+  }
+
   ngOnInit() { this.loadPosts(); }
 
   loadPosts() {
