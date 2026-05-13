@@ -22,6 +22,17 @@
           <mat-icon>undo</mat-icon> Descartar
         </button>
       }
+      @if (workingCourses().length > 0) {
+        <!-- Reusable también con cursos cargados: re-aplica plantilla y
+             agrega los faltantes sin duplicar. -->
+        <button mat-stroked-button type="button"
+                (click)="generateCoursesFromTemplate()"
+                [disabled]="saving()"
+                matTooltip="Generar cursos faltantes de la plantilla del grado">
+          <mat-icon>playlist_add</mat-icon>
+          Plantilla
+        </button>
+      }
       <button mat-flat-button color="primary" type="button"
               (click)="save()" [disabled]="!isDirty() || saving()">
         <mat-icon>save</mat-icon>
@@ -43,8 +54,13 @@
   } @else if (workingCourses().length === 0) {
     <div class="empty">
       <mat-icon>calendar_month</mat-icon>
-      <h3>Esta sección no tiene cursos en el periodo seleccionado</h3>
-      <p>Crea o genera los cursos de la sección antes de asignar horario.</p>
+      <h3>Esta sección aún no tiene cursos en el periodo</h3>
+      <p>Generá los cursos estándar del grado para empezar a armar el horario.</p>
+      <button mat-flat-button color="primary" type="button"
+              (click)="generateCoursesFromTemplate()" [disabled]="saving()">
+        <mat-icon>playlist_add</mat-icon>
+        {{ saving() ? 'Generando…' : 'Generar cursos del grado' }}
+      </button>
     </div>
   } @else {
 
