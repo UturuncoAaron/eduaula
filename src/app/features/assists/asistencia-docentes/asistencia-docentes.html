@@ -1,0 +1,55 @@
+<app-page-header
+  title="Asistencia a docentes"
+  subtitle="Registra presente/tardanza/ausente por bloque del día."
+  icon="badge">
+</app-page-header>
+
+<div class="toolbar">
+  <mat-form-field appearance="outline" class="fecha-field">
+    <mat-label>Fecha</mat-label>
+    <input matInput type="date" [ngModel]="fecha()" (ngModelChange)="onFechaChange($event)" />
+  </mat-form-field>
+
+  <button mat-flat-button color="primary"
+          (click)="guardar()"
+          [disabled]="saving() || loading() || bloques().length === 0">
+    <mat-icon>save</mat-icon>
+    Guardar registro
+  </button>
+</div>
+
+@if (loading()) {
+  <div class="loading"><mat-spinner diameter="36"></mat-spinner></div>
+} @else if (bloques().length === 0) {
+  <app-empty-state
+    icon="event_busy"
+    title="No hay bloques programados"
+    subtitle="No se encontró horario para esta fecha."
+  ></app-empty-state>
+} @else {
+  <ul class="bloques">
+    @for (b of bloques(); track b.horario_id) {
+      <li class="bloque">
+        <div class="info">
+          <span class="hora">{{ b.hora_inicio }} – {{ b.hora_fin }}</span>
+          <h4 class="docente">{{ b.docente_nombre }} {{ b.apellido_paterno }}</h4>
+          <p class="curso">{{ b.curso_nombre }} · {{ b.seccion_nombre }}@if (b.aula) { · Aula {{ b.aula }} }</p>
+        </div>
+
+        <div class="estados">
+          @for (s of estadosDisponibles; track s.value) {
+            <button
+              type="button"
+              class="estado-btn"
+              [class.active]="estadoActual(b) === s.value"
+              [class]="'estado-' + s.value"
+              (click)="pickEstado(b, s.value)">
+              <mat-icon>{{ s.icon }}</mat-icon>
+              <span>{{ s.label }}</span>
+            </button>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+}

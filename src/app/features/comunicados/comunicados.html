@@ -38,6 +38,10 @@
             <div class="detail-divider"></div>
             <p class="detail-body">{{ s.contenido }}</p>
 
+            @if (s.attachments?.length) {
+                <app-attachments-preview [items]="s.attachments ?? []" />
+            }
+
             @if (s.autor?.nombre) {
             <div class="detail-author">
                 <div class="author-avatar">
