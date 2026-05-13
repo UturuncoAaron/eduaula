@@ -144,8 +144,9 @@
                         <mat-label>Teléfono (Celular)</mat-label>
                         <mat-icon matPrefix>smartphone</mat-icon>
                         <input matInput formControlName="telefono" placeholder="9XXXXXXXX" maxlength="9" />
-                        @if (form.controls['telefono'].hasError('pattern')) { <mat-error>Debe tener 9
-                            dígitos</mat-error> }
+                        @if (form.controls['telefono'].hasError('pattern')) {
+                        <mat-error>Debe empezar con 9 y tener 9 dígitos (ej. 987654321)</mat-error>
+                        }
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">

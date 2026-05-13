@@ -104,8 +104,9 @@ export class UserDialog implements OnInit, OnDestroy {
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_paterno: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_materno: ['', Validators.maxLength(100)],
-    email: ['', [Validators.email, Validators.maxLength(100)]],
-    telefono: ['', Validators.pattern(/^[0-9]{9}$/)], // 9 dígitos exactos
+    email: ['', [Validators.email, Validators.maxLength(255)]],
+    // Teléfono celular peruano: empieza con 9 + 8 dígitos (9XXXXXXXX).
+    telefono: ['', Validators.pattern(/^9\d{8}$/)],
     fecha_nacimiento: [null as Date | null, this.fechaRequerida ? Validators.required : null],
 
     // Roles específicos
