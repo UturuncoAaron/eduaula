@@ -15,11 +15,11 @@
     subtitle="Cuando dirección publique el horario de tu sección lo verás acá."
   ></app-empty-state>
 } @else {
-  <app-calendar-grid
+  <app-week-grid
     mode="schedule"
     [slots]="slots()"
-    [hideNav]="true"
     [startHour]="7"
-    [endHour]="18">
-  </app-calendar-grid>
+    [endHour]="17"
+    [endHourExtraMin]="30">
+  </app-week-grid>
 }

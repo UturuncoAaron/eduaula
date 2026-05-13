@@ -11,6 +11,15 @@ import {
   SetAvailabilityPayload,
   ruleToStartHour, ruleToEndHour, ruleToSlotMinutes,
 } from '../../../core/models/appointments';
+import { WeekGrid } from '../week-grid/week-grid';
+import {
+  WeekDia,
+  WeekGridCellClick,
+  WeekSlot,
+  isWeekDia,
+  toHHMM,
+  toMin,
+} from '../week-grid/week-grid.types';
 
 const ALL_DIAS: DiaSemana[] = [
   'lunes', 'martes', 'miercoles', 'jueves', 'viernes',
@@ -25,40 +34,30 @@ const DIA_LABEL: Record<DiaSemana, string> = {
 };
 const DEFAULT_STEP = 30;
 
-function pad2(n: number) { return n.toString().padStart(2, '0'); }
-function minToHM(m: number) { return `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`; }
-function hmToMin(s: string) { const [h, m] = s.split(':').map(Number); return (h ?? 0) * 60 + (m ?? 0); }
-function cellKey(dia: DiaSemana, hm: string) { return `${dia}|${hm}`; }
+function cellKey(dia: DiaSemana, m: number) { return `${dia}|${m}`; }
 function setsEqual(a: Set<string>, b: Set<string>): boolean {
   if (a.size !== b.size) return false;
   for (const k of a) if (!b.has(k)) return false;
   return true;
 }
 
-/**
- * Expande un bloque de disponibilidad a celdas individuales del editor.
- * Cada celda mide `step` minutos.
- */
+/** Expande un bloque de disponibilidad a celdas individuales (minuto inicial). */
 function expandToCells(av: AccountAvailability, step: number): string[] {
   const out: string[] = [];
-  const start = hmToMin(av.horaInicio);
-  const end = hmToMin(av.horaFin);
+  const start = toMin(av.horaInicio);
+  const end = toMin(av.horaFin);
   for (let m = start; m + step <= end; m += step) {
-    out.push(cellKey(av.diaSemana, minToHM(m)));
+    out.push(cellKey(av.diaSemana, m));
   }
   return out;
 }
 
-/**
- * Convierte el set de celdas seleccionadas a bloques contiguos
- * (`SetAvailabilityPayload[]`) listos para enviar al BE. Las celdas
- * contiguas del mismo día se colapsan en un solo bloque.
- */
+/** Colapsa el set de celdas (minuto inicial) en bloques contiguos. */
 function collapseToBlocks(cells: Set<string>, step: number): SetAvailabilityPayload[] {
   const byDay: Record<string, number[]> = {};
   for (const k of cells) {
-    const [dia, hm] = k.split('|');
-    (byDay[dia] ??= []).push(hmToMin(hm));
+    const [dia, mStr] = k.split('|');
+    (byDay[dia] ??= []).push(Number(mStr));
   }
   const blocks: SetAvailabilityPayload[] = [];
   for (const dia of Object.keys(byDay)) {
@@ -70,16 +69,16 @@ function collapseToBlocks(cells: Set<string>, step: number): SetAvailabilityPayl
       if (m === (prev as number) + step) { prev = m; continue; }
       blocks.push({
         diaSemana: dia as DiaSemana,
-        horaInicio: minToHM(runStart),
-        horaFin: minToHM((prev as number) + step),
+        horaInicio: toHHMM(runStart),
+        horaFin: toHHMM((prev as number) + step),
       });
       runStart = m; prev = m;
     }
     if (runStart !== null) {
       blocks.push({
         diaSemana: dia as DiaSemana,
-        horaInicio: minToHM(runStart),
-        horaFin: minToHM((prev as number) + step),
+        horaInicio: toHHMM(runStart),
+        horaFin: toHHMM((prev as number) + step),
       });
     }
   }
@@ -90,7 +89,13 @@ function collapseToBlocks(cells: Set<string>, step: number): SetAvailabilityPayl
   selector: 'app-availability-calendar-editor',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    CommonModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+    WeekGrid,
+  ],
   templateUrl: './availability-calendar-editor.html',
   styleUrl: './availability-calendar-editor.scss',
 })
@@ -112,8 +117,6 @@ export class AvailabilityCalendarEditor {
   // ── Outputs ────────────────────────────────────────────────
   readonly save = output<SetAvailabilityPayload[]>();
   readonly cancel = output<void>();
-
-  readonly DIA_LABEL = DIA_LABEL;
 
   // ── Computed: cotas + días + paso ──────────────────────────
   readonly effectiveStartHour = computed<number>(() => {
@@ -144,6 +147,11 @@ export class AvailabilityCalendarEditor {
     return ALL_DIAS.filter(d => allowed.has(d));
   });
 
+  /** Para pasar al week-grid como `allowedDays`. */
+  readonly allowedWeekDays = computed<readonly WeekDia[]>(() =>
+    this.visibleDias().filter(isWeekDia),
+  );
+
   /** Celdas originales (vienen del backend, expandidas al paso actual). */
   readonly originalCells = computed<Set<string>>(() => {
     const step = this.step();
@@ -165,23 +173,25 @@ export class AvailabilityCalendarEditor {
     () => !setsEqual(this.originalCells(), this._draft()),
   );
 
-  readonly hours = computed<string[]>(() => {
-    const out: string[] = [];
-    const step = this.step();
-    const startMin = this.effectiveStartHour() * 60;
-    const endMin = this.effectiveEndHour() * 60;
-    for (let m = startMin; m + step <= endMin; m += step) {
-      out.push(minToHM(m));
-    }
-    return out;
-  });
-
   readonly cellsCount = computed(() => this._draft().size);
 
-  /** Total de horas seleccionadas (cellsCount * step / 60). */
+  /** Total de horas seleccionadas. */
   readonly hoursCount = computed(
     () => ((this._draft().size * this.step()) / 60).toFixed(1),
   );
+
+  /** WeekSlot[] para el week-grid — colapsados a franjas contiguas. */
+  readonly draftSlots = computed<WeekSlot[]>(() => {
+    const blocks = collapseToBlocks(this._draft(), this.step());
+    return blocks.map<WeekSlot>((b, i) => ({
+      id: `draft-${b.diaSemana}-${b.horaInicio}-${i}`,
+      dia: b.diaSemana,
+      horaInicio: b.horaInicio,
+      horaFin: b.horaFin,
+      title: 'Disponible',
+      kind: 'available',
+    }));
+  });
 
   /**
    * Texto descriptivo del rol y reglas activas para mostrar al usuario
@@ -208,28 +218,13 @@ export class AvailabilityCalendarEditor {
   }
 
   // ── Acciones ───────────────────────────────────────────────
-  isOn(dia: DiaSemana, hour: string): boolean {
-    return this._draft().has(cellKey(dia, hour));
-  }
-
-  toggle(dia: DiaSemana, hour: string): void {
+  onCellClick(ev: WeekGridCellClick): void {
     if (this.saving()) return;
-    const k = cellKey(dia, hour);
+    const m = toMin(ev.hora);
     const next = new Set(this._draft());
+    const k = cellKey(ev.dia, m);
     if (next.has(k)) next.delete(k);
     else next.add(k);
-    this._draft.set(next);
-  }
-
-  selectAllDay(dia: DiaSemana): void {
-    if (this.saving()) return;
-    const next = new Set(this._draft());
-    const allOn = this.hours().every(h => next.has(cellKey(dia, h)));
-    for (const h of this.hours()) {
-      const k = cellKey(dia, h);
-      if (allOn) next.delete(k);
-      else next.add(k);
-    }
     this._draft.set(next);
   }
 
@@ -249,8 +244,4 @@ export class AvailabilityCalendarEditor {
     const blocks = collapseToBlocks(this._draft(), this.step());
     this.save.emit(blocks);
   }
-
-  // Track-by helpers para la template.
-  trackByDia = (_: number, d: DiaSemana): string => d;
-  trackByHour = (_: number, h: string): string => h;
 }

@@ -188,7 +188,7 @@
                     <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()"
                         [weekStart]="weekStart()" [loading]="loadingAvailability() || loadingSlots()"
                         [slotMinutes]="mySlotMinutes()" [allowedDays]="myAllowedDays()" [startHour]="myStartHour()"
-                        [endHour]="myEndHour()" [maxBodyHeight]="320"
+                        [endHour]="myEndHour()"
                         emptyMessage="Aún no tienes disponibilidad configurada." [selectedDia]="picked()?.dia ?? null"
                         [selectedHour]="picked()?.hour ?? null" (pick)="onSlotPick($event)"
                         (weekChange)="onWeekChange($event)" />
