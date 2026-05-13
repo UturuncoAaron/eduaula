@@ -17,6 +17,16 @@ export interface UserDetailDialogData {
   tipo: UserTipo;
 }
 
+/** Padre vinculado al alumno (solo se carga si tipo === 'alumnos'). */
+interface PadreVinculado {
+  id: string;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string | null;
+  telefono: string | null;
+  numero_documento: string | null;
+}
+
 interface UserDetail {
   id?: string;
   nombre?: string;
@@ -92,6 +102,8 @@ export class UserDetailDialog implements OnInit {
   data = inject<UserDetailDialogData>(MAT_DIALOG_DATA);
   loading = signal(true);
   user = signal<UserDetail | null>(null);
+  /** Padres vinculados al alumno (solo aplica cuando tipo === 'alumnos'). */
+  padresVinculados = signal<PadreVinculado[]>([]);
 
   meta = computed<TipoMeta>(
     () => TIPO_META[this.data.tipo] ?? TIPO_META.alumnos,
@@ -110,6 +122,21 @@ export class UserDetailDialog implements OnInit {
         this.dialogRef.close();
       },
     });
+
+    // Si estamos viendo un alumno, en paralelo traemos sus padres vinculados
+    // para mostrarlos en el perfil. No bloquea el render del resto del dialog.
+    if (this.data.tipo === 'alumnos') {
+      this.api
+        .get<any>(`admin/users/alumnos/${this.data.id}/padres`)
+        .subscribe({
+          next: (r) => {
+            const list = Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : [];
+            this.padresVinculados.set(list as PadreVinculado[]);
+          },
+          // Silencioso: la falta de padres es un estado válido (no error).
+          error: () => this.padresVinculados.set([]),
+        });
+    }
   }
 
   // ── Derivados ────────────────────────────────────────────────

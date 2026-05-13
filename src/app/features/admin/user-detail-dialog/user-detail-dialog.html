@@ -159,6 +159,35 @@
         </section>
         }
 
+        <!-- Padres vinculados (solo cuando estamos viendo un alumno) -->
+        @if (data.tipo === 'alumnos') {
+        <section class="udd__section">
+            <h3 class="udd__section-title">Padres / Tutores vinculados</h3>
+            <div class="udd__card">
+                @if (padresVinculados().length === 0) {
+                <div class="udd__field udd__field--full">
+                    <span class="udd__val udd__val-text" style="color: rgba(0,0,0,.55)">
+                        Este alumno aún no tiene un padre/tutor vinculado.
+                    </span>
+                </div>
+                } @else {
+                @for (p of padresVinculados(); track p.id) {
+                <div class="udd__field udd__field--full">
+                    <span class="udd__lbl">
+                        <mat-icon style="font-size:18px;width:18px;height:18px;vertical-align:middle">family_restroom</mat-icon>
+                        {{ p.apellido_paterno }} {{ p.apellido_materno ?? '' }} {{ p.nombre }}
+                    </span>
+                    <span class="udd__val udd__val-text">
+                        @if (p.numero_documento) { DNI {{ p.numero_documento }} }
+                        @if (p.telefono) { · {{ p.telefono }} }
+                    </span>
+                </div>
+                }
+                }
+            </div>
+        </section>
+        }
+
         <!-- Contrato -->
         @if (u.tipo_contrato) {
         <section class="udd__section">
