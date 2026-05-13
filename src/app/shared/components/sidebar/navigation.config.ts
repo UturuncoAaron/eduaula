@@ -21,52 +21,14 @@ export const NAV_ITEMS: NavItem[] = [
     exactMatch: true,
   },
 
-  // ─── Alumno + Docente ─────────────────────────────────────────────────────
-  { label: 'Mis cursos', icon: 'menu_book', route: '/cursos', modulos: [MODULO.MIS_CURSOS, MODULO.CURSOS_DOCENTE] },
-  { label: 'Tareas', icon: 'task_alt', route: '/tareas', modulos: [MODULO.MIS_TAREAS, MODULO.TAREAS_GESTIONAR] },
-  { label: 'Notas', icon: 'grade', route: '/notas', modulos: [MODULO.MIS_NOTAS, MODULO.NOTAS_CURSO] },
-  { label: 'Foro', icon: 'forum', route: '/foro', modulos: [MODULO.FORO] },
-  { label: 'Clases en vivo', icon: 'videocam', route: '/clases-vivo', modulos: [MODULO.CLASES_VIVO] },
-
-  // ─── Tutor ────────────────────────────────────────────────────────────────
-  {
-    label: 'Mi Tutoría',
-    icon: 'school',
-    route: '/mi-tutoria',
-    modulos: [MODULO.TUTORIA],
-    exactMatch: true,
-    dividerBefore: true,
-  },
-
-  // ─── Asistencia ───────────────────────────────────────────────────────────
-  { label: 'Asistencia entrada', icon: 'how_to_reg', route: '/asistencia/general', modulos: [MODULO.ASIST_GENERAL] },
-  { label: 'Asistencia curso', icon: 'fact_check', route: '/asistencia/curso', modulos: [MODULO.ASIST_CURSO] },
-
-  // ─── Docente — Citas y Disponibilidad ────────────────────────────────────
-  {
-    label: 'Mis Citas',
-    icon: 'event_available',
-    route: '/docente/citas',
-    modulos: [MODULO.CITAS_DOCENTE],
-    dividerBefore: true,
-  },
-  {
-    label: 'Disponibilidad',
-    icon: 'schedule',
-    route: '/docente/disponibilidad',
-    modulos: [MODULO.DISPONIBILIDAD_DOCENTE],
-  },
-
-  // ─── Solo Alumno ──────────────────────────────────────────────────────────
+  // ─── Alumno ───────────────────────────────────────────────────────────────
+  { label: 'Mis cursos', icon: 'menu_book', route: '/cursos', modulos: [MODULO.MIS_CURSOS] },
   {
     label: 'Mis libretas',
     icon: 'auto_stories',
     route: '/mis-libretas',
     modulos: [MODULO.MIS_LIBRETAS],
-    dividerBefore: true,
   },
-
-  // ─── Alumno — Citas ───────────────────────────────────────────────────────
   {
     label: 'Mis citas',
     icon: 'event_available',
@@ -74,8 +36,34 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.MIS_CITAS],
   },
 
+  // ─── Docente ──────────────────────────────────────────────────────────────
+  { label: 'Mis cursos', icon: 'menu_book', route: '/cursos', modulos: [MODULO.CURSOS_DOCENTE] },
+
+  // Mi Tutoría — solo docentes que sean tutores de sección
+  {
+    label: 'Mi Tutoría',
+    icon: 'school',
+    route: '/mi-tutoria',
+    modulos: [MODULO.TUTORIA],
+    exactMatch: true,
+  },
+
+  // ─── Comunicados (alumno / docente / etc.) ────────────────────────────────
+  {
+    label: 'Comunicados',
+    icon: 'campaign',
+    route: '/comunicados',
+    modulos: [MODULO.COMUNICADOS],
+    dividerBefore: true,
+  },
+
   // ─── Solo Padre ───────────────────────────────────────────────────────────
-  { label: 'Portal Padres', icon: 'family_restroom', route: '/portal-padres', modulos: [MODULO.HIJOS] },
+  {
+    label: 'Portal Padres',
+    icon: 'family_restroom',
+    route: '/portal-padres',
+    modulos: [MODULO.HIJOS],
+  },
   {
     label: 'Mis Citas',
     icon: 'event_available',
@@ -83,13 +71,16 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.CITAS_PADRE, MODULO.CITAS_AGENDADAS],
   },
 
-  // ─── Comunicados ──────────────────────────────────────────────────────────
+  // ─── Docente — Mi Agenda ──────────────────────────────────────────────────
   {
-    label: 'Comunicados',
-    icon: 'campaign',
-    route: '/comunicados',
-    modulos: [MODULO.COMUNICADOS],
+    label: 'Mi Agenda',
+    icon: 'event_note',
+    modulos: [MODULO.CITAS_DOCENTE, MODULO.DISPONIBILIDAD_DOCENTE],
     dividerBefore: true,
+    children: [
+      { label: 'Mis Citas', icon: 'event_available', route: '/docente/citas', modulos: [MODULO.CITAS_DOCENTE] },
+      { label: 'Disponibilidad', icon: 'schedule', route: '/docente/disponibilidad', modulos: [MODULO.DISPONIBILIDAD_DOCENTE] },
+    ],
   },
 
   // ─── Agenda propia (admin, auxiliar) ──────────────────────────────────────
@@ -112,7 +103,6 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.CASOS],
     dividerBefore: true,
   },
-  { label: 'Fichas', icon: 'folder_open', route: '/psicologa/fichas', modulos: [MODULO.FICHAS] },
   { label: 'Agenda y Citas', icon: 'event', route: '/psicologa/citas', modulos: [MODULO.CITAS] },
   { label: 'Disponibilidad', icon: 'schedule', route: '/psicologa/disponibilidad', modulos: [MODULO.DISPONIBILIDAD] },
 
@@ -140,11 +130,10 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Auxiliares', icon: 'support_agent', route: '/admin/usuarios/auxiliares', modulos: [MODULO.USUARIOS], exactMatch: true },
       { label: 'Psicología', icon: 'psychology', route: '/admin/usuarios/psicologos', modulos: [MODULO.USUARIOS], exactMatch: true },
       { label: 'Administración', icon: 'admin_panel_settings', route: '/admin/usuarios/admins', modulos: [MODULO.USUARIOS], exactMatch: true },
-      // ── Histórico movido al nivel superior ──────────────────────────────
     ],
   },
 
-  // ─── Histórico de Alumnos (nivel superior, junto a Comunicados/Reportes) ──
+  // ─── Histórico de Alumnos ─────────────────────────────────────────────────
   {
     label: 'Histórico de Alumnos',
     icon: 'history_edu',
@@ -167,15 +156,5 @@ export const NAV_ITEMS: NavItem[] = [
     route: '/admin/reportes',
     modulos: [MODULO.REPORTES_GLOBALES],
     exactMatch: true,
-  },
-  {
-    label: 'Configuración',
-    icon: 'settings',
-    modulos: [MODULO.IMPORTAR, MODULO.AJUSTES],
-    dividerBefore: true,
-    children: [
-      { label: 'Importar alumnos', icon: 'upload_file', route: '/admin/importar', modulos: [MODULO.IMPORTAR], exactMatch: true },
-      { label: 'Ajustes del sistema', icon: 'tune', route: '/admin/ajustes', modulos: [MODULO.AJUSTES], exactMatch: true },
-    ],
   },
 ];

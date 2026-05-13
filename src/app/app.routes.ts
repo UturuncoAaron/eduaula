@@ -17,7 +17,7 @@ export const routes: Routes = [
       import('./layouts/main-layout/main-layout').then(c => c.MainLayout),
     children: [
 
-      // ═══ DASHBOARD (todos los roles) ══════════════════════════════════
+      // ═══ DASHBOARD ════════════════════════════════════════════════════════
       {
         path: 'dashboard',
         loadChildren: () =>
@@ -25,7 +25,7 @@ export const routes: Routes = [
             .then(r => r.DASHBOARD_ROUTES),
       },
 
-      // ═══ PSICOLOGÍA ═══════════════════════════════════════════════════
+      // ═══ PSICOLOGÍA ═══════════════════════════════════════════════════════
       {
         path: 'psicologa',
         canActivate: [roleGuard(['psicologa'])],
@@ -34,7 +34,7 @@ export const routes: Routes = [
             .then(r => r.PSYCHOLOGY_ROUTES),
       },
 
-      // ═══ DOCENTE ══════════════════════════════════════════════════
+      // ═══ DOCENTE ══════════════════════════════════════════════════════════
       {
         path: 'docente',
         canActivate: [roleGuard(['docente'])],
@@ -59,7 +59,7 @@ export const routes: Routes = [
         ],
       },
 
-      // ═══ PADRE ════════════════════════════════════════════════════
+      // ═══ PADRE ════════════════════════════════════════════════════════════
       {
         path: 'padre',
         canActivate: [roleGuard(['padre'])],
@@ -76,7 +76,7 @@ export const routes: Routes = [
         ],
       },
 
-      // ═══ ALUMNO — Mis citas ════════════════════════════════════════
+      // ═══ ALUMNO — Mis citas ═══════════════════════════════════════════════
       {
         path: 'mis-citas',
         canActivate: [permissionGuard([MODULO.MIS_CITAS])],
@@ -86,9 +86,7 @@ export const routes: Routes = [
         title: 'Mis citas | EduAula',
       },
 
-      // ═══ ADMIN / AUXILIAR — Agenda propia ═════════════════════════
-      // Director, secretaria y auxiliar también pueden marcar
-      // disponibilidad y convocar a otros usuarios.
+      // ═══ ADMIN / AUXILIAR — Agenda propia ════════════════════════════════
       {
         path: 'agenda',
         canActivate: [permissionGuard([MODULO.AGENDA_PROPIA])],
@@ -111,7 +109,7 @@ export const routes: Routes = [
         ],
       },
 
-      // ═══ COMUNES ══════════════════════════════════════════════════════
+      // ═══ COMUNES ══════════════════════════════════════════════════════════
       {
         path: 'perfil',
         loadComponent: () =>
@@ -128,7 +126,7 @@ export const routes: Routes = [
           import('./features/notificaciones/notificaciones').then(c => c.Notificaciones),
       },
 
-      // ═══ ACADÉMICO ════════════════════════════════════════════════════
+      // ═══ ACADÉMICO ════════════════════════════════════════════════════════
       {
         path: 'cursos',
         canActivate: [permissionGuard([MODULO.MIS_CURSOS, MODULO.CURSOS_DOCENTE])],
@@ -136,57 +134,10 @@ export const routes: Routes = [
           import('./features/courses/courses.routes').then(r => r.COURSES_ROUTES),
       },
       {
-        path: 'tareas',
-        canActivate: [permissionGuard([MODULO.MIS_TAREAS, MODULO.TAREAS_GESTIONAR])],
-        loadChildren: () =>
-          import('./features/tasks/task.routes').then(r => r.TASKS_ROUTES),
-      },
-      {
-        path: 'notas',
-        canActivate: [permissionGuard([MODULO.MIS_NOTAS, MODULO.NOTAS_CURSO])],
-        loadChildren: () =>
-          import('./features/grades/grades.routes').then(r => r.GRADES_ROUTES),
-      },
-      {
-        path: 'foro',
-        canActivate: [permissionGuard([MODULO.FORO])],
-        loadChildren: () =>
-          import('./features/forum/forum.routes').then(r => r.FORUM_ROUTES),
-      },
-      {
-        path: 'clases-vivo',
-        canActivate: [permissionGuard([MODULO.CLASES_VIVO])],
-        loadChildren: () =>
-          import('./features/live-classes/live-classes.routes')
-            .then(r => r.LIVE_CLASSES_ROUTES),
-      },
-      {
-        path: 'asistencia',
-        canActivate: [permissionGuard([
-          MODULO.ASIST_CURSO, MODULO.ASIST_GENERAL, MODULO.MI_ASISTENCIA,
-        ])],
-        loadChildren: () =>
-          import('./features/assists/assists.routes').then(r => r.ASSISTS_ROUTES),
-      },
-      {
-        path: 'mi-horario',
-        canActivate: [roleGuard(['alumno'])],
-        loadComponent: () =>
-          import('./features/student/mi-horario/mi-horario').then(c => c.MiHorario),
-        title: 'Mi horario | EduAula',
-      },
-      {
         path: 'mis-libretas',
         canActivate: [permissionGuard([MODULO.MIS_LIBRETAS])],
         loadChildren: () =>
           import('./features/notebooks/notebooks.routes').then(r => r.NOTEBOOKS_ROUTES),
-      },
-      {
-        path: 'mis-citas',
-        canActivate: [permissionGuard([MODULO.MIS_CITAS])],
-        loadChildren: () =>
-          import('./features/appointments/appointments.routes')
-            .then(r => r.APPOINTMENTS_ROUTES),
       },
       {
         path: 'mi-tutoria',

@@ -1,6 +1,3 @@
-// 📁 PATH: src/app/features/admin/admin.routes.ts
-// (Reemplaza el actual)
-
 import { Routes } from '@angular/router';
 
 export const ADMIN_ROUTES: Routes = [
@@ -18,9 +15,7 @@ export const ADMIN_ROUTES: Routes = [
       import('./academic-setup/periodos-tab/periodos-tab').then(c => c.PeriodosTab),
   },
 
-  // ─── Gestión de Usuarios (Vistas Separadas) ───────────────────────────────
-
-  // 1. Rutas específicas para cada lista (Apuntan directo a tus componentes Tab)
+  // ─── Usuarios ─────────────────────────────────────────────────────────────
   {
     path: 'usuarios/alumnos',
     loadComponent: () =>
@@ -107,10 +102,4 @@ export const ADMIN_ROUTES: Routes = [
       import('./reports/reports').then(c => c.Reports),
   },
 
-  // ─── Configuración ────────────────────────────────────────────────────────
-  {
-    path: 'importar',
-    loadComponent: () =>
-      import('../../shared/components/import-students/import-students-dialog').then(c => c.ImportStudentsDialog),
-  },
 ];
