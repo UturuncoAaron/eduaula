@@ -176,15 +176,23 @@
     </div>
     }
 
-    <!-- Historial -->
+    <!-- Historial (colapsado por defecto) -->
     @if (past().length > 0) {
-    <div class="section-block section-block--past">
-        <header class="section-block__header">
+    <div class="section-block section-block--past" [class.collapsed]="!historialOpen()">
+        <header class="section-block__header section-block__header--toggle"
+                role="button" tabindex="0"
+                (click)="historialOpen.set(!historialOpen())"
+                (keydown.enter)="historialOpen.set(!historialOpen())"
+                (keydown.space)="historialOpen.set(!historialOpen())">
             <span class="section-block__bullet section-block__bullet--past"></span>
             <h3>Historial</h3>
             <span class="section-block__count">{{ past().length }}</span>
+            <mat-icon class="section-block__chevron" [class.open]="historialOpen()">
+                {{ historialOpen() ? 'expand_less' : 'expand_more' }}
+            </mat-icon>
         </header>
 
+        @if (historialOpen()) {
         <div class="cards-grid">
             @for (a of past(); track trackById($index, a)) {
             <article class="appt-card appt-card--past" [attr.data-estado]="a.estado">
@@ -242,6 +250,7 @@
             </article>
             }
         </div>
+        }
     </div>
     }
     }
