@@ -14,7 +14,8 @@
     } @else {
     <div class="resource-grid">
         @for (f of forums(); track f.id) {
-        <div class="resource-card" [routerLink]="['/foro', f.id]" role="button">
+        <div class="resource-card" (click)="openForum(f)" role="button" tabindex="0"
+             (keydown.enter)="openForum(f)" (keydown.space)="openForum(f)">
             <div class="resource-icon" style="background: #1565C0"><mat-icon>forum</mat-icon></div>
             <div class="resource-info">
                 <h3>{{ f.titulo }}</h3>

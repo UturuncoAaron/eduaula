@@ -9,7 +9,8 @@
 } @else {
 <div class="forums-list">
     @for (f of forums(); track f.id) {
-    <mat-card class="forum-card" [routerLink]="['/foro', f.id]" [queryParams]="{ courseId: f.curso_id }">
+    <mat-card class="forum-card" (click)="openForum(f)" role="button" tabindex="0"
+              (keydown.enter)="openForum(f)" (keydown.space)="openForum(f)">
         <mat-card-content>
             <div class="forum-row">
                 <div class="forum-icon">

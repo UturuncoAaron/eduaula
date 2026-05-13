@@ -1,10 +1,11 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
 import { Forum } from '../../../core/models/forum';
@@ -20,7 +21,7 @@ interface ForumWithCourse extends Forum {
   imports: [
     MatCardModule, MatIconModule, MatButtonModule,
     MatProgressSpinnerModule, DatePipe,
-    RouterLink, PageHeader, EmptyState,
+    PageHeader, EmptyState,
   ],
   templateUrl: './forum-list.html',
   styleUrl: './forum-list.scss',
@@ -29,10 +30,32 @@ export class ForumList implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
+  private dialog = inject(MatDialog);
 
   forums = signal<ForumWithCourse[]>([]);
   loading = signal(true);
   courseId = '';
+
+  /**
+   * Abre el foro como sidebar (MatDialog lateral). Reusa el componente
+   * `ForumThread` pasándole `forumId` + `courseId` por `MAT_DIALOG_DATA`.
+   */
+  async openForum(forum: ForumWithCourse): Promise<void> {
+    const { ForumThread } = await import('../forum-thread/forum-thread');
+    this.dialog.open(ForumThread, {
+      width: '720px',
+      maxWidth: '100vw',
+      height: '100vh',
+      maxHeight: '100vh',
+      position: { right: '0' },
+      panelClass: 'forum-thread-dialog-panel',
+      autoFocus: false,
+      data: {
+        forumId: forum.id,
+        courseId: forum.curso_id ?? this.courseId,
+      },
+    });
+  }
 
   ngOnInit() {
     this.courseId = this.route.snapshot.queryParamMap.get('courseId') ?? '';

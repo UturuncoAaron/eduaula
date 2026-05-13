@@ -1,4 +1,15 @@
+@if (!isDialog) {
 <app-page-header title="Foro" backRoute="/foro" />
+}
+
+@if (isDialog) {
+<div class="dialog-toolbar">
+    <h2 mat-dialog-title class="dialog-title">{{ forumTitle() || 'Foro' }}</h2>
+    <button mat-icon-button (click)="dialogRef?.close()" matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+}
 
 @if (loading()) {
 <div class="loading-center">

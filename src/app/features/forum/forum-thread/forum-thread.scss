@@ -4,6 +4,30 @@
     padding: 48px;
 }
 
+// Modo dialog (sidebar/modal del foro) — header fijo con título y close.
+.dialog-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+
+    .dialog-title {
+        margin: 0;
+        flex: 1;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #0f172a;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
 .thread {
     display: flex;
     flex-direction: column;

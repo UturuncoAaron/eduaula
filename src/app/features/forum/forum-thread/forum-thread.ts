@@ -8,6 +8,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ToastService } from 'ngx-toastr-notifier';
@@ -18,6 +20,17 @@ import { AttachmentsPreview } from '../../../shared/components/attachments-previ
 import { StagedAttachmentsPicker } from '../../../shared/components/staged-attachments-picker/staged-attachments-picker';
 import { AttachmentDto, AttachmentsService, ATTACHMENT_MAX_BYTES } from '../../../core/services/attachments';
 
+/**
+ * Datos opcionales cuando el thread se monta dentro de un MatDialog
+ * en vez de la ruta /foro/:id. Permite reusar el componente como
+ * sidebar/modal desde la tab Foro del curso o la lista de foros sin
+ * salir del contexto.
+ */
+export interface ForumThreadDialogData {
+  forumId: string;
+  courseId: string;
+}
+
 @Component({
   selector: 'app-forum-thread',
   imports: [
@@ -25,6 +38,7 @@ import { AttachmentDto, AttachmentsService, ATTACHMENT_MAX_BYTES } from '../../.
     MatFormFieldModule, MatInputModule, MatIconModule,
     MatProgressSpinnerModule, DatePipe, PageHeader,
     AttachmentsPreview, StagedAttachmentsPicker,
+    MatDialogModule, MatTooltipModule,
   ],
   templateUrl: './forum-thread.html',
   styleUrl: './forum-thread.scss',
@@ -35,9 +49,26 @@ export class ForumThread implements OnInit {
   private toastr = inject(ToastService);
   private fb = inject(FormBuilder);
   private readonly attachments = inject(AttachmentsService);
+  /**
+   * Cuando el componente vive dentro de un MatDialog estos dos están
+   * presentes y tienen prioridad sobre los params de ruta. Permite que
+   * el mismo ForumThread funcione como pantalla y como dialog sin
+   * duplicar lógica.
+   */
+  private readonly dialogData = inject<ForumThreadDialogData | null>(
+    MAT_DIALOG_DATA, { optional: true },
+  );
+  readonly dialogRef = inject<MatDialogRef<ForumThread> | null>(
+    MatDialogRef, { optional: true },
+  );
 
-  forumId = this.route.snapshot.paramMap.get('id')!;
-  courseId = this.route.snapshot.queryParamMap.get('courseId') ?? '';
+  forumId = this.dialogData?.forumId
+    ?? this.route.snapshot.paramMap.get('id')!;
+  courseId = this.dialogData?.courseId
+    ?? this.route.snapshot.queryParamMap.get('courseId') ?? '';
+
+  /** Renderizamos el header solo en modo pantalla (no dialog). */
+  readonly isDialog = !!this.dialogRef;
 
   posts = signal<(ForumPost & { attachments?: AttachmentDto[] })[]>([]);
   forumTitle = signal('');
