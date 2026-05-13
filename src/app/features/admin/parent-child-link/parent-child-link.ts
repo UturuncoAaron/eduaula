@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -62,7 +62,7 @@ function extractArray(res: any): any[] {
   styleUrl: './parent-child-link.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ParentChildLink {
+export class ParentChildLink implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private toastr = inject(ToastService);
@@ -70,6 +70,11 @@ export class ParentChildLink {
   loading = signal(false);
   isSearchingPadre = signal(false);
   isSearchingAlumno = signal(false);
+  /**
+   * Panel "Vínculos recientes" — persistente: se hidrata desde
+   * GET /admin/users/parent-child/recent. Antes vivía solo en memoria
+   * y se perdía al recargar.
+   */
   recentLinks = signal<RecentLink[]>([]);
 
   form = this.fb.group({
@@ -121,6 +126,22 @@ export class ParentChildLink {
     { initialValue: [] as UserSearchResult[] },
   );
 
+  ngOnInit(): void {
+    this.loadRecentLinks();
+  }
+
+  private loadRecentLinks(): void {
+    this.api
+      .get<any>('admin/users/parent-child/recent?limit=10')
+      .subscribe({
+        next: (r) => {
+          const list = Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : [];
+          this.recentLinks.set(list as RecentLink[]);
+        },
+        error: () => this.recentLinks.set([]),
+      });
+  }
+
   /** Texto que muestra el input cuando se selecciona una opción */
   displayFn(user: UserSearchResult | null): string {
     if (!user || typeof user !== 'object') return '';
@@ -146,17 +167,12 @@ export class ParentChildLink {
       alumno_doc: alumno.numero_documento ?? alumno.codigo_estudiante ?? alumno.id,
     }).subscribe({
       next: () => {
-        this.recentLinks.update(links => [
-          {
-            id: Date.now().toString(),
-            padre: `${padre.nombre} ${padre.apellido_paterno}`,
-            alumno: `${alumno.nombre} ${alumno.apellido_paterno}`,
-          },
-          ...links.slice(0, 9),
-        ]);
         this.toastr.success('Vínculo creado exitosamente', 'Éxito');
         this.form.reset();
         this.loading.set(false);
+        // Re-hidratar desde server para que el "reciente" sea autoritativo
+        // (incluye created_at real y sobrevive al refresh).
+        this.loadRecentLinks();
       },
       error: (err) => {
         this.toastr.error(err?.error?.message ?? 'Error al vincular', 'Error');
