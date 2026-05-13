@@ -46,9 +46,9 @@
     } @else {
     <div class="cards-grid">
         @for (a of alumnosFiltrados(); track trackById($index, a)) {
-        <article class="student-card" [class.completo]="isCompleto(a)">
+        <article class="student-card" [class.completo]="isCompleto(a)" [class.inclusivo]="a.inclusivo">
             <div class="card-header">
-                <div class="avatar">
+                <div class="avatar" [class.inclusivo]="a.inclusivo">
                     @if (a.foto_url) {
                     <img [src]="a.foto_url" [alt]="a.nombre" loading="lazy" />
                     } @else {
@@ -62,6 +62,12 @@
                         <mat-icon>badge</mat-icon>
                         {{ a.codigo_estudiante }}
                     </div>
+                    @if (a.inclusivo) {
+                    <div class="inclusivo-chip" matTooltip="Inclusión educativa (necesidades especiales)">
+                        <mat-icon>accessibility_new</mat-icon>
+                        <span>Inclusión</span>
+                    </div>
+                    }
                 </div>
                 @if (isCompleto(a)) {
                 <span class="check" matTooltip="Todas las libretas cargadas">

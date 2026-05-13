@@ -97,6 +97,38 @@ $shadow-md:     0 6px 18px rgba(15, 23, 42, .08);
     border-color: #a7f3d0;
     background: linear-gradient(180deg, #f0fdf4 0%, $bg-card 60%);
   }
+
+  // Alumno con inclusión educativa: marco rosa suave (independiente del
+  // estado de libretas; se combina con `.completo`).
+  &.inclusivo {
+    border-color: #f9a8d4;
+    box-shadow: 0 0 0 2px rgba(236, 72, 153, .15), $shadow-sm;
+  }
+}
+
+.avatar.inclusivo {
+  background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+}
+
+.inclusivo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: #be185d;
+  background: #fce7f3;
+  border: 1px solid #f9a8d4;
+  border-radius: 999px;
+  width: fit-content;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .card-header {
