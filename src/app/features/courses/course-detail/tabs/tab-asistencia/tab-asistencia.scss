@@ -1,0 +1,204 @@
+:host {
+  display: block;
+  padding: 16px 0;
+}
+
+.loading-center,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px;
+  color: var(--mat-sys-on-surface-variant, #5b5f72);
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ───────────── Toolbar ───────────── */
+.asis-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0 4px 12px;
+
+  .asis-date {
+    width: 200px;
+  }
+
+  .asis-bulk-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .asis-save {
+    margin-left: auto;
+  }
+}
+
+/* ───────────── Resumen chips ───────────── */
+.asis-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.resumen-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--mat-sys-surface-container, #f6f7fb);
+  font-size: 13px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &.total      { background: #eef2ff; color: #3949ab; }
+  &.estado-presente { background: #e8f5e9; color: #2e7d32; }
+  &.estado-tardanza { background: #fff8e1; color: #ef6c00; }
+  &.estado-ausente  { background: #ffebee; color: #c62828; }
+  &.pendiente       { background: #eceff1; color: #546e7a; }
+}
+
+/* ───────────── Roster ───────────── */
+.roster {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roster-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 220px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--mat-sys-surface, #fff);
+  border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+  border-radius: 10px;
+  transition: border-color 120ms ease;
+
+  &.is-dirty {
+    border-color: var(--mat-sys-primary, #1a73e8);
+    background: var(--mat-sys-primary-container, #f5f9ff);
+  }
+}
+
+.roster-alumno {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+
+  mat-icon {
+    color: var(--mat-sys-on-surface-variant, #5b5f72);
+  }
+}
+
+.roster-estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.estado-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  min-width: 0;
+  padding: 0 10px !important;
+  opacity: 0.5;
+  border: 1px solid transparent;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &.is-active {
+    opacity: 1;
+    font-weight: 600;
+    border-color: currentColor;
+  }
+
+  &.estado-presente.is-active { color: #2e7d32; background: #e8f5e9; }
+  &.estado-tardanza.is-active { color: #ef6c00; background: #fff8e1; }
+  &.estado-ausente.is-active  { color: #c62828; background: #ffebee; }
+  &.estado-permiso.is-active  { color: #6a1b9a; background: #f3e5f5; }
+  &.estado-licencia.is-active { color: #1565c0; background: #e3f2fd; }
+}
+
+.roster-obs {
+  width: 100%;
+}
+
+/* ───────────── Historial (alumno) ───────────── */
+.historial {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.historial-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+  background: var(--mat-sys-surface, #fff);
+
+  &.estado-presente { border-left: 4px solid #2e7d32; }
+  &.estado-tardanza { border-left: 4px solid #ef6c00; }
+  &.estado-ausente  { border-left: 4px solid #c62828; }
+  &.estado-permiso  { border-left: 4px solid #6a1b9a; }
+  &.estado-licencia { border-left: 4px solid #1565c0; }
+}
+
+.historial-fecha {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+
+  .historial-dia {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .historial-mes {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--mat-sys-on-surface-variant, #5b5f72);
+  }
+}
+
+.historial-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.historial-estado { font-weight: 600; }
+.historial-obs    { font-size: 12px; color: var(--mat-sys-on-surface-variant, #5b5f72); }
+
+@media (max-width: 768px) {
+  .roster-row {
+    grid-template-columns: 1fr;
+  }
+}

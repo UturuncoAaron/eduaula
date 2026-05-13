@@ -2,7 +2,6 @@ export const MODULO = {
   // ── Comunes
   DASHBOARD: 'dashboard',
   COMUNICADOS: 'comunicados',
-  MENSAJES: 'mensajes',
   NOTIFICACIONES: 'notificaciones',
   PERFIL: 'perfil',
 

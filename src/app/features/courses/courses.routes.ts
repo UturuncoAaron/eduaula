@@ -36,6 +36,12 @@ export const COURSES_ROUTES: Routes = [
           import('./course-detail/tabs/tab-materiales/tab-materiales')
             .then(c => c.TabMateriales),
       },
+      {
+        path: 'asistencia',
+        loadComponent: () =>
+          import('./course-detail/tabs/tab-asistencia/tab-asistencia')
+            .then(c => c.TabAsistencia),
+      },
     ],
   },
 ];

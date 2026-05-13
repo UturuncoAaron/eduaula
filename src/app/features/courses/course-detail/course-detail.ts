@@ -57,10 +57,11 @@ export class CourseDetail implements OnInit {
   });
 
   readonly tabs: CourseTab[] = [
-    { path: 'contenido',   label: 'Contenido',     icon: 'school' },
-    { path: 'actividades', label: 'Actividades',   icon: 'task_alt' },
-    { path: 'foro',        label: 'Mensajes / Foro', icon: 'forum' },
-    { path: 'materiales',  label: 'Materiales',    icon: 'folder' },
+    { path: 'contenido',   label: 'Contenido',    icon: 'school' },
+    { path: 'actividades', label: 'Actividades',  icon: 'task_alt' },
+    { path: 'foro',        label: 'Foro',         icon: 'forum' },
+    { path: 'materiales',  label: 'Materiales',   icon: 'folder' },
+    { path: 'asistencia',  label: 'Asistencia',   icon: 'fact_check' },
   ];
 
   readonly calificacionesQueryParams = computed(() => {
