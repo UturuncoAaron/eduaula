@@ -25,6 +25,8 @@ export interface AlumnoTutoria {
     apellido_paterno: string;
     apellido_materno: string | null;
     foto_url: string | null;
+    /** Marca de inclusión educativa (necesidades especiales). */
+    inclusivo?: boolean;
     libretas: NotebookItem[];
 }
 
