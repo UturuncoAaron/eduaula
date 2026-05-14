@@ -59,6 +59,7 @@ export class LazyCourseStore {
   private itemsStreams    = new Map<string, Observable<ItemsByWeek>>();
   private liveStreams     = new Map<string, Observable<LiveClass[]>>();
   private rosterStreams   = new Map<string, Observable<RosterStudent[]>>();
+  private rosterRawStreams = new Map<string, Observable<unknown[]>>();
 
   /** Curso meta. Usar con `toSignal()` o `takeUntilDestroyed()`. */
   course$(courseId: string): Observable<Course | null> {
@@ -121,9 +122,8 @@ export class LazyCourseStore {
   roster$(seccionId: string): Observable<RosterStudent[]> {
     let s = this.rosterStreams.get(seccionId);
     if (!s) {
-      s = this.api.get<unknown[]>(`courses/seccion/${seccionId}/students`).pipe(
-        map(r => (r.data ?? []).map(normalizeRosterStudent)),
-        catchError(() => of<RosterStudent[]>([])),
+      s = this.rosterRaw$(seccionId).pipe(
+        map(rows => rows.map(normalizeRosterStudent)),
         shareReplay({ bufferSize: 1, refCount: false }),
       );
       this.rosterStreams.set(seccionId, s);
@@ -131,9 +131,33 @@ export class LazyCourseStore {
     return s;
   }
 
+  /**
+   * Variante "raw" del roster: devuelve los `Enrollment` con su `alumno`
+   * anidado tal cual los emite el backend, **pero compartiendo el mismo
+   * HTTP fetch** que `roster$()` vía shareReplay.
+   *
+   * Esto deja que componentes legacy con su propio mapper (grados-tab,
+   * seccion-alumnos, seccion-detail-dialog, asistencia-curso-detail)
+   * dejen de duplicar requests sin tener que migrar a `RosterStudent`.
+   * Cuando se decida unificar shapes, deprecar esta y usar solo `roster$`.
+   */
+  rosterRaw$<T = unknown>(seccionId: string): Observable<T[]> {
+    let s = this.rosterRawStreams.get(seccionId);
+    if (!s) {
+      s = this.api.get<unknown[]>(`courses/seccion/${seccionId}/students`).pipe(
+        map(r => r.data ?? []),
+        catchError(() => of<unknown[]>([])),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+      this.rosterRawStreams.set(seccionId, s);
+    }
+    return s as Observable<T[]>;
+  }
+
   /** Invalida el roster (post-matrícula / des-matrícula). */
   invalidateRoster(seccionId: string): void {
     this.rosterStreams.delete(seccionId);
+    this.rosterRawStreams.delete(seccionId);
   }
 
   /** Videoconferencias del curso. Lazy: solo al expandir el panel. */
