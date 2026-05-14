@@ -1,0 +1,241 @@
+:host {
+    display: block;
+    background: #f4f4f6;
+    min-height: 100vh;
+    padding: 24px 16px;
+    color: #111;
+}
+
+.print-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto 16px;
+
+    button[mat-stroked-button],
+    a[mat-button] {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+}
+
+.loading-state,
+.error-state {
+    max-width: 800px;
+    margin: 48px auto;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.65);
+
+    mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+    }
+
+    p {
+        margin-top: 12px;
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Documento
+   ════════════════════════════════════════════════════════════════ */
+
+.informe-doc {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #d6d6da;
+    border-radius: 4px;
+    padding: 56px 64px;
+    font-family: Georgia, "Times New Roman", serif;
+    color: #111;
+    line-height: 1.55;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+
+    .doc-header {
+        text-align: center;
+        margin-bottom: 32px;
+
+        h1 {
+            margin: 0;
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            margin: 4px 0 12px;
+            color: #555;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        hr {
+            border: none;
+            border-top: 1.5px solid #111;
+            margin: 0;
+        }
+    }
+
+    .doc-meta {
+        margin-bottom: 28px;
+
+        h2 {
+            margin: 0 0 4px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .doc-title {
+            margin: 0 0 16px;
+            font-size: 1.1rem;
+            font-style: italic;
+            color: #333;
+        }
+    }
+
+    .meta-grid {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        column-gap: 14px;
+        row-gap: 6px;
+        margin: 0;
+
+        dt {
+            font-weight: 700;
+            color: #444;
+        }
+
+        dd {
+            margin: 0;
+        }
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .badge-finalizado {
+        background: #d8f0d8;
+        color: #245c25;
+    }
+
+    .badge-borrador {
+        background: #fff0d0;
+        color: #7a4f00;
+    }
+
+    .doc-section {
+        margin-top: 22px;
+
+        h3 {
+            margin: 0 0 6px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+            color: #222;
+        }
+
+        p {
+            margin: 6px 0 0;
+            text-align: justify;
+        }
+
+        .multiline {
+            white-space: pre-wrap;
+        }
+    }
+
+    .parents-list {
+        list-style: disc;
+        padding-left: 22px;
+        margin: 6px 0 0;
+
+        li {
+            margin: 2px 0;
+        }
+
+        .parent-rel {
+            font-weight: 700;
+        }
+
+        .parent-dni {
+            color: #555;
+        }
+    }
+
+    .doc-footer {
+        margin-top: 64px;
+
+        .signature {
+            margin-left: auto;
+            width: 280px;
+            text-align: center;
+
+            hr {
+                border: none;
+                border-top: 1px solid #111;
+                margin: 0 0 6px;
+            }
+
+            p {
+                margin: 0;
+                font-size: 0.95rem;
+            }
+
+            .sig-note {
+                color: #777;
+                font-size: 0.85rem;
+                margin-top: 2px;
+            }
+        }
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Modo impresión (Save as PDF)
+   ════════════════════════════════════════════════════════════════ */
+
+@media print {
+
+    /* el browser arma el PDF a partir de #informe-doc; ocultamos chrome */
+    :host {
+        background: #fff;
+        padding: 0;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .informe-doc {
+        margin: 0;
+        max-width: none;
+        border: none;
+        box-shadow: none;
+        padding: 32px 48px;
+    }
+
+    .doc-section {
+        break-inside: avoid;
+    }
+}

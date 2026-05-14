@@ -9,6 +9,9 @@ import {
   CreateRecordPayload,
   UpdateRecordPayload,
   Psicologa,
+  InformePsicologico,
+  CreateInformePayload,
+  UpdateInformePayload,
 } from '../../../core/models/psychology';
 import { AccountAvailability } from '../../../core/models/appointments';
 
@@ -28,15 +31,18 @@ export class PsychologyStore {
   readonly myStudents = signal<AssignedStudent[]>([]);
   readonly currentStudent = signal<AssignedStudent | null>(null);
   readonly currentStudentRecords = signal<PsychologyRecord[]>([]);
+  readonly currentStudentInformes = signal<InformePsicologico[]>([]);
 
   readonly loadingStudents = signal(false);
   readonly loadingRecords = signal(false);
+  readonly loadingInformes = signal(false);
   readonly error = signal<string | null>(null);
 
   reset(): void {
     this.myStudents.set([]);
     this.currentStudent.set(null);
     this.currentStudentRecords.set([]);
+    this.currentStudentInformes.set([]);
     this.error.set(null);
   }
 
@@ -192,5 +198,89 @@ export class PsychologyStore {
       ),
     );
     return unwrapList<AccountAvailability>(res.data);
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // INFORMES PSICOLÓGICOS
+  // ════════════════════════════════════════════════════════════
+  //
+  // Los informes son documentos formales (evaluación, seguimiento,
+  // derivación familia/externa) sobre un alumno. El backend ya gestiona:
+  //   POST   /psychology/informes
+  //   GET    /psychology/informes/student/:studentId   (paginado)
+  //   GET    /psychology/informes/:id
+  //   PATCH  /psychology/informes/:id                  (solo borrador)
+  //   POST   /psychology/informes/:id/finalizar        (lo vuelve inmutable)
+  //   DELETE /psychology/informes/:id                  (solo borrador)
+  //
+  // El PDF se genera client-side via `window.print()` desde la vista
+  // `/informes/:id/print` (con `@media print` afinado) — no requiere
+  // librería en backend, evita carga adicional para 600 alumnos/año.
+
+  async loadStudentInformes(studentId: string): Promise<void> {
+    this.loadingInformes.set(true);
+    try {
+      const res = await firstValueFrom(
+        this.api.get<
+          InformePsicologico[] | { data: InformePsicologico[] }
+        >(`psychology/informes/student/${studentId}`),
+      );
+      this.currentStudentInformes.set(unwrapList<InformePsicologico>(res.data));
+    } catch {
+      this.error.set('Error al cargar los informes del alumno');
+    } finally {
+      this.loadingInformes.set(false);
+    }
+  }
+
+  async createInforme(payload: CreateInformePayload): Promise<InformePsicologico> {
+    const res = await firstValueFrom(
+      this.api.post<InformePsicologico>('psychology/informes', payload),
+    );
+    await this.loadStudentInformes(payload.studentId);
+    return res.data;
+  }
+
+  async updateInforme(
+    informeId: string,
+    studentId: string,
+    payload: UpdateInformePayload,
+  ): Promise<InformePsicologico> {
+    const res = await firstValueFrom(
+      this.api.patch<InformePsicologico>(
+        `psychology/informes/${informeId}`,
+        payload,
+      ),
+    );
+    await this.loadStudentInformes(studentId);
+    return res.data;
+  }
+
+  async finalizeInforme(
+    informeId: string,
+    studentId: string,
+  ): Promise<InformePsicologico> {
+    const res = await firstValueFrom(
+      this.api.post<InformePsicologico>(
+        `psychology/informes/${informeId}/finalizar`,
+        {},
+      ),
+    );
+    await this.loadStudentInformes(studentId);
+    return res.data;
+  }
+
+  async deleteInforme(informeId: string, studentId: string): Promise<void> {
+    await firstValueFrom(
+      this.api.delete(`psychology/informes/${informeId}`),
+    );
+    await this.loadStudentInformes(studentId);
+  }
+
+  async getInformeById(informeId: string): Promise<InformePsicologico> {
+    const res = await firstValueFrom(
+      this.api.get<InformePsicologico>(`psychology/informes/${informeId}`),
+    );
+    return res.data;
   }
 }

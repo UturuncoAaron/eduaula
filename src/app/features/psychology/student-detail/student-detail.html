@@ -4,6 +4,12 @@
         title="Ficha del alumno"
         subtitle="Historial psicológico y anotaciones"
         backRoute="/dashboard/psicologa/alumnos">
+        <button mat-stroked-button
+                (click)="openCreateInforme()"
+                [disabled]="!store.currentStudent()">
+            <mat-icon>description</mat-icon>
+            <span>Nuevo informe</span>
+        </button>
         <button mat-flat-button color="primary"
                 (click)="openCreate()"
                 [disabled]="!store.currentStudent()">
@@ -69,6 +75,92 @@
                                         aria-label="Eliminar" class="danger">
                                     <mat-icon>delete</mat-icon>
                                 </button>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <!--
+          ═══ Informes psicológicos ═══════════════════════════════
+          Documentos formales que se imprimen / guardan como PDF.
+          Solo los `borrador` se pueden editar / eliminar / finalizar.
+          Finalizado → solo lectura + imprimir.
+        -->
+        <section class="informes">
+            <header>
+                <h3>Informes</h3>
+                <span class="muted">{{ store.currentStudentInformes().length }} informe(s)</span>
+            </header>
+
+            @if (store.loadingInformes()) {
+                <div class="state-center">
+                    <mat-spinner diameter="24" />
+                    <span>Cargando informes...</span>
+                </div>
+            } @else if (store.currentStudentInformes().length === 0) {
+                <app-empty-state
+                    icon="description"
+                    title="Sin informes"
+                    message="Aún no se han elaborado informes para este alumno." />
+            } @else {
+                <ul class="informe-list">
+                    @for (i of store.currentStudentInformes(); track i.id) {
+                        <li class="informe-item" [class.is-final]="i.estado === 'finalizado'">
+                            <div class="left">
+                                <div class="title-row">
+                                    <span class="tipo-chip" [attr.data-tipo]="i.tipo">
+                                        {{ tipoLabels[i.tipo] }}
+                                    </span>
+                                    @if (i.estado === 'finalizado') {
+                                        <span class="estado-chip estado-final">Finalizado</span>
+                                    } @else {
+                                        <span class="estado-chip estado-draft">Borrador</span>
+                                    }
+                                    @if (i.confidencial) {
+                                        <span class="conf-chip">
+                                            <mat-icon>lock</mat-icon> Confidencial
+                                        </span>
+                                    }
+                                </div>
+                                <p class="title">{{ i.titulo }}</p>
+                                <p class="meta">
+                                    <mat-icon>schedule</mat-icon>
+                                    <span>{{ (i.finalizadoAt ?? i.createdAt) | date:'mediumDate' }}</span>
+                                    @if (i.derivadoA) {
+                                        <span class="derivado">
+                                            <mat-icon>forward</mat-icon>
+                                            Derivado a: {{ i.derivadoA }}
+                                        </span>
+                                    }
+                                </p>
+                            </div>
+                            <div class="actions">
+                                <a mat-icon-button
+                                    [routerLink]="['/psicologa/informes', i.id, 'print']"
+                                    target="_blank"
+                                    aria-label="Imprimir / Guardar como PDF"
+                                    title="Imprimir / Guardar como PDF">
+                                    <mat-icon>print</mat-icon>
+                                </a>
+                                @if (i.estado === 'borrador') {
+                                    <button mat-icon-button
+                                            (click)="openEditInforme(i)"
+                                            aria-label="Editar">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button mat-icon-button
+                                            (click)="finalizeInforme(i)"
+                                            aria-label="Finalizar">
+                                        <mat-icon>check_circle</mat-icon>
+                                    </button>
+                                    <button mat-icon-button
+                                            (click)="deleteInforme(i)"
+                                            aria-label="Eliminar" class="danger">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                }
                             </div>
                         </li>
                     }
