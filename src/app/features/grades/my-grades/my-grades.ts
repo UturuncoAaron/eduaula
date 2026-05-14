@@ -1,6 +1,8 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -78,6 +80,8 @@ export class MyGrades implements OnInit {
   readonly auth = inject(AuthService);
   readonly periodoService = inject(PeriodoService);
   private api = inject(ApiService);
+  private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
 
   readonly TIPO_LABEL = TIPO_LABEL;
   readonly TIPO_ICON = TIPO_ICON;
@@ -87,6 +91,13 @@ export class MyGrades implements OnInit {
   loading = signal(true);
   bimestre = 1;
 
+  /**
+   * Cuando se entra desde la tab "Calificaciones" de un curso, se pasa
+   * `?cursoId=<uuid>` para filtrar el listado a ese curso solamente.
+   * Si no viene, se muestran todos los cursos del alumno.
+   */
+  filtroCursoId = signal<string | null>(null);
+
   /** Bimestres que el alumno tiene en su historial (derivado de notas). */
   bimestresConData = computed(() =>
     [...new Set(this.grades().map(g => g.bimestre))]
@@ -94,7 +105,11 @@ export class MyGrades implements OnInit {
   );
 
   cursosAgrupados = computed<CursoAgrupado[]>(() => {
-    const filtered = this.grades().filter(g => g.bimestre === this.bimestre);
+    const filtroCurso = this.filtroCursoId();
+    const filtered = this.grades().filter(g =>
+      g.bimestre === this.bimestre &&
+      (!filtroCurso || g.curso_id === filtroCurso),
+    );
     const grupos = new Map<string, CursoAgrupado>();
     for (const g of filtered) {
       let grupo = grupos.get(g.curso_id);
@@ -130,7 +145,13 @@ export class MyGrades implements OnInit {
   ngOnInit() {
     this.periodoService.loadAll();
 
-    if (this.auth.isDocente() || this.auth.isAdmin?.()) {
+    // Captura el filtro `?cursoId=` y se mantiene reactivo si el usuario
+    // navega entre tabs de distintos cursos sin remontar el componente.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(p => this.filtroCursoId.set(p.get('cursoId')));
+
+    if (this.auth.isDocente() || this.auth.isAdmin()) {
       this.loadCourses();
     } else {
       this.loadMyGrades();

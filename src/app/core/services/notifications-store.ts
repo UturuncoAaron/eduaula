@@ -36,6 +36,16 @@ export class NotificationsStore {
 
     private booted = false;
     private eventSource: EventSourcePolyfill | null = null;
+    private lastRefreshAt = 0;
+    /**
+     * Throttle del REST refresh. Tener SSE abierto ya garantiza updates en
+     * tiempo real, así que estos refresh REST son sólo "safety nets" cuando
+     * el browser cambia de visibility/focus tras un sleep o reconexión.
+     * Reducir la frecuencia mínima a 15s evita que un usuario activo (que
+     * cambia de pestaña constantemente) inunde el backend con peticiones
+     * 304 — clave para escalar a 600 alumnos concurrentes.
+     */
+    private static readonly REFRESH_MIN_INTERVAL_MS = 15_000;
 
     private onFocus = () => {
         if (this.auth.isLoggedIn()) this.refresh();
@@ -54,7 +64,7 @@ export class NotificationsStore {
     connect(): void {
         if (this.booted || !this.auth.isLoggedIn()) return;
         this.booted = true;
-        this.refresh();
+        this.refresh(true);
         this.openSseStream();
         window.addEventListener('focus', this.onFocus);
         document.addEventListener('visibilitychange', this.onVisibility);
@@ -64,8 +74,23 @@ export class NotificationsStore {
         this.teardown();
     }
 
-    refresh(): void {
+    /**
+     * Hace un GET /notifications para resincronizar el estado. Se llama
+     * en boot, cuando vuelve foco/visibilidad, y como retry tras errores
+     * de mutación. Throttled: si se llamó hace menos de
+     * `REFRESH_MIN_INTERVAL_MS`, se descarta para evitar burst de
+     * peticiones cuando el usuario alterna pestañas rápido.
+     */
+    refresh(force = false): void {
         if (!this.auth.isLoggedIn()) return;
+        const now = Date.now();
+        if (
+            !force &&
+            now - this.lastRefreshAt < NotificationsStore.REFRESH_MIN_INTERVAL_MS
+        ) {
+            return;
+        }
+        this.lastRefreshAt = now;
         this.api.get<NotificationItem[]>('notifications').subscribe({
             next: (r) => this._items.set(r.data ?? []),
             error: () => {
@@ -79,7 +104,7 @@ export class NotificationsStore {
             list.map((n) => (n.id === id ? { ...n, read: true } : n)),
         );
         this.api.patch(`notifications/${id}/read`, {}).subscribe({
-            error: () => this.refresh(),
+            error: () => this.refresh(true),
         });
     }
 

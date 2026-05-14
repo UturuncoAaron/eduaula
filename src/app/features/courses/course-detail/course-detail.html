@@ -54,7 +54,7 @@
     </header>
 
     <nav class="tabs-nav" mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false" mat-align-tabs="start">
-        @for (tab of tabs; track tab.path) {
+        @for (tab of tabs(); track tab.path) {
         <a mat-tab-link [routerLink]="['./', tab.path]" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
             <mat-icon>{{ tab.icon }}</mat-icon>
             {{ tab.label }}
@@ -65,6 +65,15 @@
             [routerLink]="['/notas', 'registrar']"
             [queryParams]="qp"
             routerLinkActive #rlaCal="routerLinkActive" [active]="rlaCal.isActive">
+            <mat-icon>star</mat-icon>
+            Calificaciones
+        </a>
+        }
+        @if (auth.isAlumno() && misNotasQueryParams(); as qp) {
+        <a mat-tab-link
+            [routerLink]="['/notas']"
+            [queryParams]="qp"
+            routerLinkActive #rlaMis="routerLinkActive" [active]="rlaMis.isActive">
             <mat-icon>star</mat-icon>
             Calificaciones
         </a>
