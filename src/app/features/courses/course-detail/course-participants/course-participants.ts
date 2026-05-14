@@ -1,23 +1,15 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ApiService } from '../../../../core/services/api';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { LazyCourseStore, RosterStudent } from '../../data-access/lazy-course.store';
 
 export interface CourseParticipantsData {
   seccionId: number | string;
   cursoNombre?: string;
   seccionNombre?: string;
-}
-
-interface Participante {
-  id: string;
-  nombre: string;
-  apellido_paterno: string;
-  apellido_materno?: string;
-  codigo_estudiante: string;
-  email?: string | null;
 }
 
 @Component({
@@ -30,32 +22,29 @@ interface Participante {
   styleUrl: './course-participants.scss',
 })
 export class CourseParticipants implements OnInit {
-  private api = inject(ApiService);
+  private store = inject(LazyCourseStore);
+  private destroyRef = inject(DestroyRef);
   private ref = inject<MatDialogRef<CourseParticipants>>(MatDialogRef);
   readonly data = inject<CourseParticipantsData>(MAT_DIALOG_DATA);
 
   loading = signal(true);
-  alumnos = signal<Participante[]>([]);
+  alumnos = signal<RosterStudent[]>([]);
 
   ngOnInit(): void {
-    this.api.get<any[]>(`courses/seccion/${this.data.seccionId}/students`).subscribe({
-      next: (r) => {
-        const raw = (r.data ?? []) as any[];
-        this.alumnos.set(raw.map((e) => ({
-          id: e.alumno?.id ?? e.alumno_id ?? e.id,
-          nombre: e.alumno?.nombre ?? e.nombre ?? '',
-          apellido_paterno: e.alumno?.apellido_paterno ?? e.apellido_paterno ?? '',
-          apellido_materno: e.alumno?.apellido_materno ?? e.apellido_materno,
-          codigo_estudiante: e.alumno?.codigo_estudiante ?? e.codigo_estudiante ?? '',
-          email: e.alumno?.email ?? e.email ?? null,
-        })));
-        this.loading.set(false);
-      },
-      error: () => { this.alumnos.set([]); this.loading.set(false); },
-    });
+    // Comparte el cache de roster con tab-asistencia y otros consumidores
+    // que abren el curso simultáneamente (1 fetch en lugar de 3-4).
+    this.store.roster$(String(this.data.seccionId))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => {
+          this.alumnos.set(list);
+          this.loading.set(false);
+        },
+        error: () => { this.alumnos.set([]); this.loading.set(false); },
+      });
   }
 
-  iniciales(a: Participante): string {
+  iniciales(a: RosterStudent): string {
     return ((a.nombre?.[0] ?? '') + (a.apellido_paterno?.[0] ?? '')).toUpperCase() || 'A';
   }
 

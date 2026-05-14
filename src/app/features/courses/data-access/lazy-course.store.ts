@@ -20,6 +20,24 @@ export interface ItemsByWeek {
 }
 
 /**
+ * Forma normalizada de un alumno en el roster de una sección. El backend
+ * devuelve `Enrollment` con su `alumno` anidado; este shape aplana lo
+ * mínimo que consumen los tabs (asistencia, participantes, etc.) para
+ * que todos lean del mismo cache.
+ */
+export interface RosterStudent {
+  id: string;
+  enrollment_id: string;
+  codigo_estudiante: string | null;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string | null;
+  email?: string | null;
+  foto_storage_key?: string | null;
+  inclusivo?: boolean;
+}
+
+/**
  * Store con caché global por cursoId basado en `shareReplay`.
  *
  * - Lecturas idempotentes: subscribirse N veces dispara el fetch UNA sola vez.
@@ -40,6 +58,7 @@ export class LazyCourseStore {
   private semanasStreams  = new Map<string, Observable<SemanaResumen[]>>();
   private itemsStreams    = new Map<string, Observable<ItemsByWeek>>();
   private liveStreams     = new Map<string, Observable<LiveClass[]>>();
+  private rosterStreams   = new Map<string, Observable<RosterStudent[]>>();
 
   /** Curso meta. Usar con `toSignal()` o `takeUntilDestroyed()`. */
   course$(courseId: string): Observable<Course | null> {
@@ -93,6 +112,30 @@ export class LazyCourseStore {
     return s;
   }
 
+  /**
+   * Roster de alumnos de una sección (compartido entre tab-asistencia,
+   * course-participants modal, asistencia-curso-detail, etc.).
+   * Antes cada lugar fetcheaba independientemente y el mismo endpoint
+   * salía 3-4 veces por entrada al curso.
+   */
+  roster$(seccionId: string): Observable<RosterStudent[]> {
+    let s = this.rosterStreams.get(seccionId);
+    if (!s) {
+      s = this.api.get<unknown[]>(`courses/seccion/${seccionId}/students`).pipe(
+        map(r => (r.data ?? []).map(normalizeRosterStudent)),
+        catchError(() => of<RosterStudent[]>([])),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+      this.rosterStreams.set(seccionId, s);
+    }
+    return s;
+  }
+
+  /** Invalida el roster (post-matrícula / des-matrícula). */
+  invalidateRoster(seccionId: string): void {
+    this.rosterStreams.delete(seccionId);
+  }
+
   /** Videoconferencias del curso. Lazy: solo al expandir el panel. */
   liveClasses$(courseId: string): Observable<LiveClass[]> {
     let s = this.liveStreams.get(courseId);
@@ -139,6 +182,26 @@ export class LazyCourseStore {
     this.invalidateSemanas(courseId);
     this.courseStreams.delete(courseId);
   }
+}
+
+/**
+ * Acepta tanto el shape antiguo (`Enrollment` con `.alumno` anidado) como
+ * un alumno plano (por si en el futuro el backend cambia a delegar a
+ * UsersService). Cualquier campo faltante cae a default seguro.
+ */
+function normalizeRosterStudent(raw: any): RosterStudent {
+  const a = raw?.alumno ?? raw ?? {};
+  return {
+    id: String(a.id ?? raw?.alumno_id ?? raw?.id ?? ''),
+    enrollment_id: String(raw?.id ?? a.enrollment_id ?? ''),
+    codigo_estudiante: a.codigo_estudiante ?? null,
+    nombre: a.nombre ?? '',
+    apellido_paterno: a.apellido_paterno ?? '',
+    apellido_materno: a.apellido_materno ?? null,
+    email: a.email ?? null,
+    foto_storage_key: a.foto_storage_key ?? null,
+    inclusivo: Boolean(a.inclusivo),
+  };
 }
 
 /** Agrupa items por número de semana (descarta los que no tienen `semana`). */
