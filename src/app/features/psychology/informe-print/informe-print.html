@@ -1,0 +1,118 @@
+<div class="print-toolbar no-print">
+    <button mat-stroked-button (click)="print()" [disabled]="loading() || !informe()">
+        <mat-icon>print</mat-icon>
+        Imprimir / Guardar como PDF
+    </button>
+    <a mat-button [routerLink]="['..']" routerLinkActive="active">
+        <mat-icon>arrow_back</mat-icon>
+        Volver
+    </a>
+</div>
+
+@if (loading()) {
+<div class="loading-state">
+    <mat-spinner diameter="32" />
+    <p>Cargando informe...</p>
+</div>
+}
+
+@else if (error()) {
+<div class="error-state">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ error() }}</p>
+</div>
+}
+
+@else if (informe(); as inf) {
+<article class="informe-doc">
+
+    <header class="doc-header">
+        <h1>EduAula</h1>
+        <p class="subtitle">Servicio de Psicología Educativa</p>
+        <hr />
+    </header>
+
+    <section class="doc-meta">
+        <h2>{{ tipoLabels[inf.tipo] }}</h2>
+        <p class="doc-title">{{ inf.titulo }}</p>
+        <dl class="meta-grid">
+            <dt>Alumno/a:</dt>
+            <dd>{{ studentFullName(student()) }}</dd>
+            @if (student()?.codigo_estudiante) {
+            <dt>Código:</dt>
+            <dd>{{ student()?.codigo_estudiante }}</dd>
+            }
+            <dt>Estado:</dt>
+            <dd>
+                @if (inf.estado === 'finalizado') {
+                <span class="badge badge-finalizado">Finalizado</span>
+                } @else {
+                <span class="badge badge-borrador">Borrador</span>
+                }
+            </dd>
+            <dt>Fecha:</dt>
+            <dd>{{ (inf.finalizadoAt ?? inf.createdAt) | date:'longDate' }}</dd>
+            @if (inf.confidencial) {
+            <dt>Confidencialidad:</dt>
+            <dd>Documento confidencial — uso restringido al destinatario.</dd>
+            }
+        </dl>
+    </section>
+
+    @if (inf.tipo === 'derivacion_familia' && parents().length) {
+    <section class="doc-section">
+        <h3>Destinatarios (familia)</h3>
+        <ul class="parents-list">
+            @for (p of parents(); track p.id) {
+            <li>
+                <span class="parent-rel">{{ p.relacion | titlecase }}:</span>
+                {{ parentFullName(p) }}
+                @if (p.codigo_acceso) {
+                <span class="parent-dni">— DNI {{ p.codigo_acceso }}</span>
+                }
+            </li>
+            }
+        </ul>
+    </section>
+    }
+
+    @if (inf.derivadoA) {
+    <section class="doc-section">
+        <h3>Derivado a</h3>
+        <p>{{ inf.derivadoA }}</p>
+    </section>
+    }
+
+    <section class="doc-section">
+        <h3>Motivo</h3>
+        <p class="multiline">{{ inf.motivo }}</p>
+    </section>
+
+    @if (inf.antecedentes) {
+    <section class="doc-section">
+        <h3>Antecedentes</h3>
+        <p class="multiline">{{ inf.antecedentes }}</p>
+    </section>
+    }
+
+    <section class="doc-section">
+        <h3>Observaciones y hallazgos</h3>
+        <p class="multiline">{{ inf.observaciones }}</p>
+    </section>
+
+    @if (inf.recomendaciones) {
+    <section class="doc-section">
+        <h3>Recomendaciones</h3>
+        <p class="multiline">{{ inf.recomendaciones }}</p>
+    </section>
+    }
+
+    <footer class="doc-footer">
+        <div class="signature">
+            <hr />
+            <p>Psicología Educativa</p>
+            <p class="sig-note">Firma y sello</p>
+        </div>
+    </footer>
+</article>
+}

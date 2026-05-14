@@ -44,4 +44,13 @@ export const PSYCHOLOGY_ROUTES: Routes = [
         .then(m => m.StudentDetail),
     title: 'Ficha del alumno | EduAula',
   },
+  {
+    // Vista de impresión / PDF de un informe psicológico.
+    // El navegador usa `window.print()` → "Save as PDF" desde aquí.
+    path: 'informes/:id/print',
+    loadComponent: () =>
+      import('./informe-print/informe-print')
+        .then(m => m.InformePrint),
+    title: 'Informe psicológico | EduAula',
+  },
 ];

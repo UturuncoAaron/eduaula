@@ -1,0 +1,93 @@
+<h2 mat-dialog-title>
+    <mat-icon>description</mat-icon>
+    {{ isEdit() ? 'Editar informe' : 'Nuevo informe' }}
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-dialog-content class="informe-dialog-body">
+        <p class="student-name">
+            <mat-icon>person</mat-icon>
+            <span>{{ data.studentName }}</span>
+        </p>
+
+        @if (isLocked()) {
+        <p class="locked-msg">
+            <mat-icon>lock</mat-icon>
+            Este informe está finalizado y no puede modificarse.
+        </p>
+        }
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Tipo</mat-label>
+            <mat-select formControlName="tipo">
+                @for (t of tipos; track t.value) {
+                <mat-option [value]="t.value">{{ t.label }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="titulo"
+                placeholder="Ej. Evaluación psicológica - I Bimestre">
+            @if (form.get('titulo')?.hasError('required') && form.get('titulo')?.touched) {
+            <mat-error>El título es requerido</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Motivo</mat-label>
+            <textarea matInput rows="3" formControlName="motivo"
+                placeholder="Por qué se realiza este informe..."></textarea>
+            @if (form.get('motivo')?.hasError('required') && form.get('motivo')?.touched) {
+            <mat-error>El motivo es requerido</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Antecedentes (opcional)</mat-label>
+            <textarea matInput rows="3" formControlName="antecedentes"
+                placeholder="Historia previa, contexto familiar, sesiones anteriores..."></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Observaciones / hallazgos</mat-label>
+            <textarea matInput rows="6" formControlName="observaciones"
+                placeholder="Observaciones de la evaluación, resultados, conductas..."></textarea>
+            @if (form.get('observaciones')?.hasError('required') && form.get('observaciones')?.touched) {
+            <mat-error>Las observaciones son requeridas</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Recomendaciones (opcional)</mat-label>
+            <textarea matInput rows="3" formControlName="recomendaciones"
+                placeholder="Pautas para la familia, próximos pasos, apoyo educativo..."></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Derivado a (opcional)</mat-label>
+            <input matInput formControlName="derivadoA"
+                placeholder="Ej. Familia / Neurólogo / Psiquiatra Dr. ...">
+        </mat-form-field>
+
+        <mat-checkbox formControlName="confidencial" class="confidencial-check">
+            Marcar como confidencial
+        </mat-checkbox>
+
+        @if (errorMsg()) {
+        <p class="error-msg">{{ errorMsg() }}</p>
+        }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="cancel()" [disabled]="loading()">
+            Cancelar
+        </button>
+        <button mat-flat-button color="primary" type="submit"
+            [disabled]="loading() || form.invalid || isLocked()">
+            @if (loading()) { <mat-spinner diameter="18" /> }
+            @else { <ng-container><mat-icon>save</mat-icon><span>Guardar</span></ng-container> }
+        </button>
+    </mat-dialog-actions>
+</form>
