@@ -7,8 +7,11 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
-import { CalendarGrid } from '../../../shared/components/calendar-grid/calendar-grid';
-import { CalendarSlot } from '../../../shared/components/calendar-grid/calendar-grid.types';
+import { WeekGrid } from '../../../shared/components/week-grid/week-grid';
+import {
+  WeekSlot,
+  isWeekDia,
+} from '../../../shared/components/week-grid/week-grid.types';
 
 interface HorarioHoyItem {
   horaInicio: string;
@@ -52,7 +55,7 @@ interface DocenteDashboardData {
 @Component({
   selector: 'app-docente-dashboard',
   standalone: true,
-  imports: [MatIconModule, MatButtonModule, RouterLink, DatePipe, CalendarGrid],
+  imports: [MatIconModule, MatButtonModule, RouterLink, DatePipe, WeekGrid],
   templateUrl: './docente-dashboard.html',
   styleUrl: './docente-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,32 +73,41 @@ export class DocenteDashboard implements OnInit {
       .reduce((acc, e) => acc + e.totalSinCalificar, 0) ?? 0,
   );
 
-  // Usa horario completo si existe, si no usa horarioHoy como fallback.
-  // El título incluye grado + sección ("5to A") cuando el backend lo manda;
-  // sino cae a solo sección (compat con respuestas viejas).
-  readonly calendarSlots = computed<CalendarSlot[]>(() => {
+  // Slots del horario semanal del docente — mismo render pixel-perfect que
+  // usa el alumno (`<app-week-grid>`). El backend manda `horario` (semana
+  // completa) o `horarioHoy` (solo hoy) como fallback.
+  //
+  // Convenciones de UI:
+  //  - title    → "Curso · Grado Sección"           (ej. "Matemática · 1ro A")
+  //  - subtitle → "H:MMam/pm – H:MMam/pm"           (ej. "7:00am – 8:00am")
+  //
+  // Se ignoran días no soportados por `WeekGrid` (sábado/domingo del backend
+  // por si alguna vez aparecen) — la grilla del dashboard es Lun–Vie.
+  readonly calendarSlots = computed<WeekSlot[]>(() => {
     const data = this.dashboardData();
     if (!data) return [];
     const fuente = data.horario ?? data.horarioHoy ?? [];
-    return fuente.map(h => {
+    const out: WeekSlot[] = [];
+    for (const h of fuente) {
+      const dia = h.dia ?? getDiaHoy();
+      if (!isWeekDia(dia)) continue;
       const ubic = h.gradoNombre
         ? `${h.gradoNombre} ${h.seccionNombre}`
         : h.seccionNombre;
-      return {
-        id: `horario-${h.dia ?? 'hoy'}-${h.horaInicio}`,
+      const inicio = h.horaInicio.slice(0, 5);
+      const fin = h.horaFin.slice(0, 5);
+      out.push({
+        id: `horario-${dia}-${inicio}`,
+        dia,
+        horaInicio: inicio,
+        horaFin: fin,
         title: `${h.cursoNombre} · ${ubic}`,
-        type: 'course' as const,
-        startTime: h.horaInicio.slice(0, 5),
-        endTime: h.horaFin.slice(0, 5),
-        diaSemana: h.dia ?? getDiaHoy(),
+        subtitle: `${to12h(inicio)} – ${to12h(fin)}`,
         color: h.color,
-        meta: {
-          aula: h.aula,
-          seccion: h.seccionNombre,
-          grado: h.gradoNombre ?? null,
-        },
-      };
-    });
+        kind: 'course',
+      });
+    }
+    return out;
   });
 
   ngOnInit(): void {
@@ -125,4 +137,17 @@ function getDiaHoy(): string {
     4: 'jueves', 5: 'viernes',
   };
   return map[new Date().getDay()] ?? 'lunes';
+}
+
+/**
+ * Convierte "HH:mm" 24h a "H:MMam/pm" 12h.
+ * Ejemplos: "07:00" → "7:00am", "13:30" → "1:30pm", "00:15" → "12:15am".
+ */
+function to12h(hhmm: string): string {
+  const [hStr, mStr] = hhmm.split(':');
+  const h = Number(hStr);
+  const m = mStr ?? '00';
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${m}${ampm}`;
 }
