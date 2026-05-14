@@ -9,13 +9,12 @@ import { forkJoin } from 'rxjs';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../../core/services/api';
 import { AuthService } from '../../../../../core/auth/auth';
+import { LazyCourseStore } from '../../../data-access/lazy-course.store';
 import {
   AsistenciaCurso,
-  EnrollmentRow,
   EstadoAsistencia,
   RosterRow,
   fromBackendEstado,
-  fullName,
   toBackendEstado,
 } from './asistencia.types';
 import { RosterDelDia } from './components/roster-del-dia';
@@ -45,6 +44,7 @@ export class TabAsistencia implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
   private toastr = inject(ToastService);
+  private store = inject(LazyCourseStore);
 
   // Recibe el `:id` del path /cursos/:id/asistencia via withComponentInputBinding.
   // eslint-disable-next-line @angular-eslint/no-input-rename
@@ -117,27 +117,28 @@ export class TabAsistencia implements OnInit {
     this.loading.set(true);
 
     const fecha = this.today();
+    // El roster se lee del cache compartido (`LazyCourseStore.roster$`),
+    // así que esta llamada NO duplica la fetch si otro tab ya la disparó.
     forkJoin({
-      roster: this.api.get<EnrollmentRow[]>(`courses/seccion/${sec}/students`),
+      roster: this.store.roster$(sec),
       asistencias: this.api.get<AsistenciaCurso[]>(
         `asistencias/curso/${this.courseId()}?fecha=${fecha}`,
       ),
     }).subscribe({
       next: ({ roster, asistencias }) => {
-        const enrollments = roster.data ?? [];
         const byAlumno = new Map<string, AsistenciaCurso>();
         for (const a of asistencias.data ?? []) byAlumno.set(a.alumno_id, a);
 
-        const rows: RosterRow[] = enrollments.map(e => {
-          const a = e.alumno;
-          const id = a?.id ?? e.alumno_id ?? '';
-          const exist = byAlumno.get(id);
+        const rows: RosterRow[] = roster.map(a => {
+          const exist = byAlumno.get(a.id);
           const ui = exist
             ? fromBackendEstado(exist.estado, exist.observacion)
             : null;
+          const nombre = [a.nombre, a.apellido_paterno, a.apellido_materno]
+            .filter(Boolean).join(' ').trim();
           return {
-            alumnoId: id,
-            nombre: fullName(a),
+            alumnoId: a.id,
+            nombre,
             estado: (ui?.estado ?? null) as EstadoAsistencia | null,
             observacion: ui?.observacion ?? '',
             asistenciaId: exist?.id,
