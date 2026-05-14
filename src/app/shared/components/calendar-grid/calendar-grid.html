@@ -76,7 +76,7 @@
             <div class="cal__cell-content">
                 <span class="cal__cell-title">{{ slot.title }}</span>
                 @if (slot.type === 'course') {
-                <span class="cal__cell-time">{{ slot.startTime }} – {{ slot.endTime }}</span>
+                <span class="cal__cell-time">{{ formatHour(slot.startTime) }} – {{ formatHour(slot.endTime) }}</span>
                 }
             </div>
             } @else if (mode() === 'availability' || mode() === 'editor') {

@@ -14,7 +14,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../../core/auth/auth';
 import { LazyCourseStore } from '../../../data-access/lazy-course.store';
 import { CourseService } from '../../../data-access/course.store';
@@ -48,7 +48,6 @@ export class TabContenido implements OnInit {
   private taskSvc = inject(TaskService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
-  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
   /** Recibe `id` del path param via withComponentInputBinding. */
@@ -255,8 +254,24 @@ export class TabContenido implements OnInit {
       return;
     }
 
+    // Abrir el foro como sidebar lateral (no navegar a /foro/:id).
+    // El bug anterior: `router.navigate(['/foro', f.id])` no pasaba el
+    // `courseId` y el componente quedaba con courseId = '', resultando en
+    // peticiones a `/api/courses//forums/:id` (doble slash → 404).
     const f = item.raw as Forum;
-    this.router.navigate(['/foro', f.id]);
+    const { ForumThread } = await import(
+      '../../../../forum/forum-thread/forum-thread'
+    );
+    this.dialog.open(ForumThread, {
+      width: '720px',
+      maxWidth: '100vw',
+      height: '100vh',
+      maxHeight: '100vh',
+      position: { right: '0' },
+      panelClass: 'forum-thread-dialog-panel',
+      autoFocus: false,
+      data: { forumId: f.id, courseId: this.courseId() },
+    });
   }
 
   // ── Toggles ──────────────────────────────────────────────────

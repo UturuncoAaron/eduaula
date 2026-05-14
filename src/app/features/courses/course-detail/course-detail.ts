@@ -56,14 +56,25 @@ export class CourseDetail implements OnInit {
     return p.nombre?.trim() || `Bim ${p.bimestre} · ${p.anio}`;
   });
 
-  readonly tabs: CourseTab[] = [
-    { path: 'contenido',   label: 'Contenido',    icon: 'school' },
-    { path: 'actividades', label: 'Actividades',  icon: 'task_alt' },
-    { path: 'foro',        label: 'Foro',         icon: 'forum' },
-    { path: 'materiales',  label: 'Materiales',   icon: 'folder' },
-    { path: 'asistencia',  label: 'Asistencia',   icon: 'fact_check' },
-  ];
+  /**
+   * Tabs visibles dentro del curso. La pestaña `asistencia` solo aplica al
+   * docente (es quien toma lista). El alumno ve sus notas vía el link a
+   * `/notas?cursoId=...` que se renderiza al final del nav.
+   */
+  readonly tabs = computed<CourseTab[]>(() => {
+    const base: CourseTab[] = [
+      { path: 'contenido',   label: 'Contenido',    icon: 'school' },
+      { path: 'actividades', label: 'Actividades',  icon: 'task_alt' },
+      { path: 'foro',        label: 'Foro',         icon: 'forum' },
+      { path: 'materiales',  label: 'Materiales',   icon: 'folder' },
+    ];
+    if (this.auth.isDocente() || this.auth.isAdmin()) {
+      base.push({ path: 'asistencia', label: 'Asistencia', icon: 'fact_check' });
+    }
+    return base;
+  });
 
+  /** Params para el link "Calificaciones" del docente — abre el grid de registro. */
   readonly calificacionesQueryParams = computed(() => {
     const c = this.course();
     if (!c) return null;
@@ -73,6 +84,13 @@ export class CourseDetail implements OnInit {
       bimestre: 1,
       periodoId: c.periodo_id,
     };
+  });
+
+  /** Params para el link "Mis notas" del alumno — abre /notas filtrado por curso. */
+  readonly misNotasQueryParams = computed(() => {
+    const c = this.course();
+    if (!c) return null;
+    return { cursoId: c.id };
   });
 
   ngOnInit() {

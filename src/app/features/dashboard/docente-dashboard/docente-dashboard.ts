@@ -17,6 +17,13 @@ interface HorarioHoyItem {
   cursoNombre: string;
   color: string;
   seccionNombre: string;
+  /**
+   * Nombre del grado al que pertenece la sección (ej. "1ro", "5to").
+   * Se muestra junto a la sección para que el docente distinga "5to A"
+   * de "1ro A" cuando dicta el mismo curso en varios grados.
+   * Opcional para compatibilidad con respuestas previas del backend.
+   */
+  gradoNombre?: string | null;
   dia?: string;
 }
 
@@ -63,21 +70,32 @@ export class DocenteDashboard implements OnInit {
       .reduce((acc, e) => acc + e.totalSinCalificar, 0) ?? 0,
   );
 
-  // Usa horario completo si existe, si no usa horarioHoy como fallback
+  // Usa horario completo si existe, si no usa horarioHoy como fallback.
+  // El título incluye grado + sección ("5to A") cuando el backend lo manda;
+  // sino cae a solo sección (compat con respuestas viejas).
   readonly calendarSlots = computed<CalendarSlot[]>(() => {
     const data = this.dashboardData();
     if (!data) return [];
     const fuente = data.horario ?? data.horarioHoy ?? [];
-    return fuente.map(h => ({
-      id: `horario-${h.dia ?? 'hoy'}-${h.horaInicio}`,
-      title: `${h.cursoNombre} · ${h.seccionNombre}`,
-      type: 'course' as const,
-      startTime: h.horaInicio.slice(0, 5),
-      endTime: h.horaFin.slice(0, 5),
-      diaSemana: h.dia ?? getDiaHoy(),
-      color: h.color,
-      meta: { aula: h.aula, seccion: h.seccionNombre },
-    }));
+    return fuente.map(h => {
+      const ubic = h.gradoNombre
+        ? `${h.gradoNombre} ${h.seccionNombre}`
+        : h.seccionNombre;
+      return {
+        id: `horario-${h.dia ?? 'hoy'}-${h.horaInicio}`,
+        title: `${h.cursoNombre} · ${ubic}`,
+        type: 'course' as const,
+        startTime: h.horaInicio.slice(0, 5),
+        endTime: h.horaFin.slice(0, 5),
+        diaSemana: h.dia ?? getDiaHoy(),
+        color: h.color,
+        meta: {
+          aula: h.aula,
+          seccion: h.seccionNombre,
+          grado: h.gradoNombre ?? null,
+        },
+      };
+    });
   });
 
   ngOnInit(): void {
