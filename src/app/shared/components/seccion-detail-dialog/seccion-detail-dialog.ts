@@ -13,6 +13,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../core/services/api';
+import { LazyCourseStore } from '../../../features/courses/data-access/lazy-course.store';
 import type { Section, Course } from '../../../core/models/academic';
 
 type SeccionTab = 'cursos' | 'alumnos' | 'horario';
@@ -41,6 +42,7 @@ export class SeccionDetailDialog implements OnInit {
     private router = inject(Router);
     private api = inject(ApiService);
     private toastr = inject(ToastService);
+    private store = inject(LazyCourseStore);
 
     // ── Estado ────────────────────────────────────────────────────
     cursos = signal<Course[]>([]);
@@ -77,11 +79,12 @@ export class SeccionDetailDialog implements OnInit {
     ngOnInit(): void {
         forkJoin({
             cursos: this.api.get<Course[]>(`courses?seccion_id=${this.data.seccion.id}`),
-            alumnos: this.api.get<any[]>(`courses/seccion/${this.data.seccion.id}/students`),
+            // Comparte el cache con tab-asistencia, participantes, etc.
+            alumnos: this.store.rosterRaw$<any>(String(this.data.seccion.id)),
         }).subscribe({
             next: ({ cursos, alumnos }) => {
                 this.cursos.set((cursos as any).data ?? []);
-                this.alumnos.set(this.mapAlumnos((alumnos as any).data ?? []));
+                this.alumnos.set(this.mapAlumnos(alumnos ?? []));
                 this.loadingCursos.set(false);
                 this.loadingAlumnos.set(false);
             },
@@ -125,9 +128,10 @@ export class SeccionDetailDialog implements OnInit {
         this.loadingAlumnos.set(true);
         this.alumnoSearch.setValue('', { emitEvent: false });
         this.alumnoPage.set(0);
-        this.api.get<any[]>(`courses/seccion/${this.data.seccion.id}/students`).subscribe({
+        this.store.invalidateRoster(String(this.data.seccion.id));
+        this.store.rosterRaw$<any>(String(this.data.seccion.id)).subscribe({
             next: r => {
-                this.alumnos.set(this.mapAlumnos((r as any).data ?? []));
+                this.alumnos.set(this.mapAlumnos(r ?? []));
                 this.loadingAlumnos.set(false);
             },
             error: () => this.loadingAlumnos.set(false),

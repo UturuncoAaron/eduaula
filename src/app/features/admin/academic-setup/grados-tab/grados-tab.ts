@@ -13,6 +13,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../core/services/api';
+import { LazyCourseStore } from '../../../courses/data-access/lazy-course.store';
 import type { GradeLevel, Section, Course } from '../../../../core/models/academic';
 
 type SeccionTab = 'cursos' | 'alumnos' | 'horario';
@@ -32,6 +33,7 @@ export class GradosTab implements OnInit {
     private toastr = inject(ToastService);
     private dialog = inject(MatDialog);
     private router = inject(Router);
+    private store = inject(LazyCourseStore);
 
     // ── Estado ────────────────────────────────────────────────────
     grados = signal<GradeLevel[]>([]);
@@ -136,11 +138,12 @@ export class GradosTab implements OnInit {
 
         forkJoin({
             cursos: this.api.get<Course[]>(`courses?seccion_id=${s.id}`),
-            alumnos: this.api.get<any[]>(`courses/seccion/${s.id}/students`),
+            // Compartido con tab-asistencia / participantes / seccion-alumnos.
+            alumnos: this.store.rosterRaw$<any>(String(s.id)),
         }).subscribe({
             next: ({ cursos, alumnos }) => {
                 this.cursos.set((cursos as any).data ?? []);
-                this.alumnos.set(this.mapAlumnos((alumnos as any).data ?? []));
+                this.alumnos.set(this.mapAlumnos(alumnos ?? []));
                 this.loadingCursos.set(false);
                 this.loadingAlumnos.set(false);
             },
@@ -185,9 +188,12 @@ export class GradosTab implements OnInit {
         this.loadingAlumnos.set(true);
         this.alumnoSearch.setValue('', { emitEvent: false });
         this.alumnoPage.set(0);
-        this.api.get<any[]>(`courses/seccion/${s.id}/students`).subscribe({
+        // Invalida primero (este reload ocurre tras matricular/retirar)
+        // para que los demás consumidores vean el cambio.
+        this.store.invalidateRoster(String(s.id));
+        this.store.rosterRaw$<any>(String(s.id)).subscribe({
             next: r => {
-                this.alumnos.set(this.mapAlumnos((r as any).data ?? []));
+                this.alumnos.set(this.mapAlumnos(r ?? []));
                 this.loadingAlumnos.set(false);
             },
             error: () => this.loadingAlumnos.set(false),

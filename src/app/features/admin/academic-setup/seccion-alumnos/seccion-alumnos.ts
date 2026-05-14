@@ -9,6 +9,7 @@ import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../../core/services/api';
+import { LazyCourseStore } from '../../../courses/data-access/lazy-course.store';
 import { EnrollAlumnoDialog } from '../../../../shared/components/enroll-alumno-dialog/enroll-alumno-dialog';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import type { Section, GradeLevel } from '../../../../core/models/academic';
@@ -37,6 +38,7 @@ export class SeccionAlumnos implements OnInit {
   private api    = inject(ApiService);
   private toastr = inject(ToastService);
   private dialog = inject(MatDialog);
+  private store  = inject(LazyCourseStore);
 
   seccion = input.required<Section>();
   grado   = input.required<GradeLevel>();
@@ -63,9 +65,10 @@ export class SeccionAlumnos implements OnInit {
 
   loadAlumnos() {
     this.loading.set(true);
-    this.api.get<any[]>(`courses/seccion/${this.seccion().id}/students`).subscribe({
-      next: (res) => {
-        const raw = (res as any).data ?? [];
+    // Comparte el fetch con tab-asistencia / participantes / seccion-detail.
+    // Si otro componente ya lo trajo, este readonly subscribe es síncrono.
+    this.store.rosterRaw$<any>(String(this.seccion().id)).subscribe({
+      next: (raw) => {
         this.alumnos.set(raw.map((e: any) => ({
           id:               e.id,
           alumno_id:        e.alumno_id ?? e.alumno?.id ?? e.id,
@@ -100,7 +103,12 @@ export class SeccionAlumnos implements OnInit {
     });
 
     ref.afterClosed().subscribe((enrolled: any) => {
-      if (enrolled) this.loadAlumnos();
+      if (enrolled) {
+        // Invalida el cache compartido para que los demás consumidores
+        // (tab-asistencia, participantes, etc.) refetcheen la próxima vez.
+        this.store.invalidateRoster(String(this.seccion().id));
+        this.loadAlumnos();
+      }
     });
   }
 
@@ -122,6 +130,7 @@ export class SeccionAlumnos implements OnInit {
       this.api.delete(`courses/enroll/${alumno.id}`).subscribe({
         next: () => {
           this.alumnos.update(list => list.filter(a => a.id !== alumno.id));
+          this.store.invalidateRoster(String(this.seccion().id));
           this.toastr.success(`${alumno.nombre} ${alumno.apellido_paterno} retirado`, 'Éxito');
         },
         error: () => this.toastr.error('Error al retirar alumno', 'Error'),

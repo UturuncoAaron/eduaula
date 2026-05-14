@@ -20,8 +20,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { ToastService } from 'ngx-toastr-notifier';
 
-import { ApiService } from '../../../../core/services/api';
 import { CourseService } from '../../../courses/data-access/course.store';
+import { LazyCourseStore } from '../../../courses/data-access/lazy-course.store';
 import { AssistsStore } from '../../data-access/assists.store';
 import {
     AsistenciaCursoRecord, BulkAsistenciaPayload,
@@ -100,9 +100,9 @@ interface RawStudent {
 })
 export class AsistenciaCursoDetail implements OnInit {
     private route = inject(ActivatedRoute);
-    private api = inject(ApiService);
     private store = inject(AssistsStore);
     private courseService = inject(CourseService);
+    private lazyCourse = inject(LazyCourseStore);
     private toastr = inject(ToastService);
 
     readonly ESTADOS = ESTADOS_ASISTENCIA;
@@ -174,12 +174,13 @@ export class AsistenciaCursoDetail implements OnInit {
                 return;
             }
 
-            const [studentsRes, attendanceRes] = await Promise.all([
-                firstValueFrom(this.api.get<RawStudent[]>(`courses/seccion/${seccionId}/students`)),
+            const [students, attendanceRes] = await Promise.all([
+                // Comparte el cache con tab-asistencia / participantes / seccion-alumnos.
+                firstValueFrom(this.lazyCourse.rosterRaw$<RawStudent>(seccionId)),
                 firstValueFrom(this.store.classListByCurso(cursoId, { fecha, limit: 500 })),
             ]);
 
-            const alumnos = (studentsRes?.data ?? []).map(this.mapAlumno);
+            const alumnos = (students ?? []).map(this.mapAlumno);
             const records = (attendanceRes?.data ?? []) as AsistenciaCursoRecord[];
             const byAlumno = new Map(records.map(r => [r.alumno_id, r] as const));
 
