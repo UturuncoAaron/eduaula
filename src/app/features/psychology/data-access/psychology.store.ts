@@ -86,7 +86,13 @@ export class PsychologyStore {
     try {
       const [studentRes, recordsRes] = await Promise.all([
         firstValueFrom(
-          this.api.get<AssignedStudent>(`users/alumnos/${studentId}`),
+          // Usamos el endpoint del directorio de psicología (accesible para
+          // psicóloga / docente / auxiliar / admin). El endpoint antiguo
+          // `users/alumnos/:id` vivía bajo el controller admin y devolvía
+          // 404 para todos los demás roles.
+          this.api.get<AssignedStudent>(
+            `psychology/directory/students/${studentId}`,
+          ),
         ),
         firstValueFrom(
           this.api.get<PsychologyRecord[] | { data: PsychologyRecord[] }>(

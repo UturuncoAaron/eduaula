@@ -48,8 +48,12 @@
             </h2>
         </div>
 
-        <app-calendar-grid mode="schedule" [slots]="calendarSlots()" [loading]="loading()" [startHour]="7"
-            [endHour]="15" [hideNav]="true" />
+        <app-week-grid
+            mode="schedule"
+            [slots]="calendarSlots()"
+            [startHour]="7"
+            [endHour]="14"
+            [endHourExtraMin]="30" />
     </section>
 
     <div class="dashboard-grid">
