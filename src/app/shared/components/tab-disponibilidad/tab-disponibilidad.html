@@ -1,12 +1,11 @@
 <div class="tab-disponibilidad">
-
     @if (store.loadingAvailability()) {
     <div class="state-center">
         <mat-spinner diameter="32" />
         <span>Cargando disponibilidad…</span>
     </div>
     } @else {
-    <app-availability-calendar-editor [initial]="availability()" [saving]="saving()" (save)="onSave($event)" />
+    <app-availability-calendar-editor [initial]="availability()" [rule]="myRule()" [saving]="saving()"
+        (save)="onSave($event)" />
     }
-
 </div>

@@ -31,6 +31,7 @@ export interface User {
     modulos: string[];
     es_tutor_de: SeccionTutorada[];
     created_at?: string | null;
+    inclusivo?: boolean;
 }
 
 export interface LoginPayload {

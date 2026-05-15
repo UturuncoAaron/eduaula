@@ -21,6 +21,7 @@ import { UserDialog } from '../../../../../shared/components/user-dialog/user-di
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 import type { GradeLevel, Section } from '../../../../../core/models/academic';
+import { User } from '@core/models/user';
 
 export interface AlumnoRow {
   id: string;
@@ -40,6 +41,7 @@ export interface AlumnoRow {
   grado_id?: number;
   seccion?: string;
   seccion_id?: string;
+
 }
 
 @Component({
@@ -100,7 +102,6 @@ export class TabAlumnos implements OnInit {
         this.grados.set((grados as any).data ?? []);
         this.secciones.set((secciones as any).data ?? []);
         this.loadingFiltros.set(false);
-        // ✅ Carga automática al entrar — primeros 20 alumnos
         this.loadData();
       },
       error: () => {
@@ -215,7 +216,8 @@ export class TabAlumnos implements OnInit {
           foto_url: null,
           tipo_documento: row.tipo_documento ?? 'dni',
           numero_documento: row.numero_documento ?? '',
-        },
+          inclusivo: row.inclusivo ?? false,
+        } as unknown as User,
       },
     }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
   }

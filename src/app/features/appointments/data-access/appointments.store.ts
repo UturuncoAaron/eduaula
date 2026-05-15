@@ -13,17 +13,17 @@ import type {
     AppointmentRoleRule,
 } from '../../../core/models/appointments';
 import type { Psicologa } from '../../../core/models/psychology';
-import type { Child }     from '../../../core/models/parent-portal';
+import type { Child } from '../../../core/models/parent-portal';
 import { ApiService } from '@core/services/api';
 
 // ── Tipo Docente para el select de profesionales ─────────────────
 export interface DocenteSelectItem {
-    id:               string;
-    nombre:           string;
+    id: string;
+    nombre: string;
     apellido_paterno: string;
     apellido_materno: string | null;
-    especialidad:     string | null;
-    foto_url:         string | null;
+    especialidad: string | null;
+    foto_url: string | null;
 }
 
 // ── Re-exports — para componentes que importan tipos desde el store
@@ -40,7 +40,7 @@ export type {
 } from '../../../core/models/appointments';
 
 export type { Psicologa } from '../../../core/models/psychology';
-export type { Child }     from '../../../core/models/parent-portal';
+export type { Child } from '../../../core/models/parent-portal';
 function unwrapList<T>(payload: T[] | { data?: T[] } | null | undefined): T[] {
     if (Array.isArray(payload)) return payload;
     if (payload && Array.isArray((payload as { data?: T[] }).data)) {
@@ -56,20 +56,20 @@ export class AppointmentsStore {
     private api = inject(ApiService);
 
     // ── Signals ──────────────────────────────────────────────────
-    readonly appointments        = signal<Appointment[]>([]);
-    readonly availability        = signal<AccountAvailability[]>([]);
-    readonly docentes            = signal<DocenteSelectItem[]>([]);
-    readonly psicologas          = signal<Psicologa[]>([]);
-    readonly children            = signal<Child[]>([]);
+    readonly appointments = signal<Appointment[]>([]);
+    readonly availability = signal<AccountAvailability[]>([]);
+    readonly docentes = signal<DocenteSelectItem[]>([]);
+    readonly psicologas = signal<Psicologa[]>([]);
+    readonly children = signal<Child[]>([]);
 
-    readonly loading             = signal(false);
+    readonly loading = signal(false);
     readonly loadingAppointments = signal(false);
     readonly loadingAvailability = signal(false);
-    readonly loadingDocentes     = signal(false);
-    readonly loadingPsicologas   = signal(false);
-    readonly loadingChildren     = signal(false);
+    readonly loadingDocentes = signal(false);
+    readonly loadingPsicologas = signal(false);
+    readonly loadingChildren = signal(false);
 
-    readonly error               = signal<string | null>(null);
+    readonly error = signal<string | null>(null);
 
     reset(): void {
         this.appointments.set([]);
@@ -331,26 +331,39 @@ export class AppointmentsStore {
             return [];
         }
     }
+    async countFutureAppointments(): Promise<number> {
+        try {
+            const res = await firstValueFrom(
+                this.api.get<{ count: number } | { data: { count: number } }>(
+                    'appointments/count-future',
+                ),
+            );
+            const data = (res?.data ?? res) as { count: number };
+            return data?.count ?? 0;
+        } catch {
+            return 0;
+        }
+    }
 }
 
 // ── Tipos públicos del search ────────────────────────────────────
 export interface StudentSearchResult {
-    id:                 string;
-    nombre:             string;
-    apellido_paterno:   string;
-    apellido_materno:   string | null;
-    codigo_estudiante:  string;
-    foto_storage_key:   string | null;
-    inclusivo:          boolean;
-    grado:              string | null;
-    grado_id:           string | null;
-    seccion:            string | null;
-    seccion_id:         string | null;
+    id: string;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+    codigo_estudiante: string;
+    foto_storage_key: string | null;
+    inclusivo: boolean;
+    grado: string | null;
+    grado_id: string | null;
+    seccion: string | null;
+    seccion_id: string | null;
     padre: {
-        id:               string;
-        nombre:           string;
+        id: string;
+        nombre: string;
         apellido_paterno: string;
         apellido_materno: string | null;
-        relacion:         string | null;
+        relacion: string | null;
     } | null;
 }

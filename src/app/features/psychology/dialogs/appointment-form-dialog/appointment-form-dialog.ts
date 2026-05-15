@@ -2,41 +2,31 @@ import {
   ChangeDetectionStrategy, Component, OnInit,
   computed, inject, signal,
 } from '@angular/core';
-import {
-  FormBuilder, FormGroup, ReactiveFormsModule, Validators,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import {
-  BookingCalendar, BookingPickEvent,
+  BookingCalendar, BookingPickEvent, BookingSelectedSlot,
 } from '../../../../shared/components/booking-calendar/booking-calendar';
-import {
-  combineDateAndTime, diaLabel, getCurrentMonday, pad2, startOfDay,
-} from '../../../../shared/utils/calendar-week';
+import { combineDateAndTime, diaLabel, getCurrentMonday, pad2, startOfDay } from '../../../../shared/utils/calendar-week';
 import { parseApiError } from '../../../../shared/utils/api-errors';
-
 import { PsychologyStore } from '../../data-access/psychology.store';
 import { AppointmentsStore } from '../../../appointments/data-access/appointments.store';
 import { AuthService } from '../../../../core/auth/auth';
 import {
   AccountAvailability, AppointmentTipo, DiaSemana, SlotTaken,
-  APPOINTMENT_RULES, ruleForRol,
-  ruleToStartHour, ruleToEndHour, ruleToSlotMinutes,
+  APPOINTMENT_RULES, ruleForRol, ruleToStartHour, ruleToEndHour,
+  ruleToMaxConsecutiveSlots,
 } from '../../../../core/models/appointments';
-import {
-  AssignedStudent, ParentOfStudent, SearchableParent,
-} from '../../../../core/models/psychology';
+import { AssignedStudent, ParentOfStudent, SearchableParent } from '../../../../core/models/psychology';
 
 export interface AppointmentFormDialogData {
   preselectedStudentId?: string;
@@ -44,10 +34,18 @@ export interface AppointmentFormDialogData {
 
 const MIN_LEAD_MINUTES = 15;
 
+function addMinutesToHour(hour: string, minutes: number): string {
+  const [h, m] = hour.split(':').map(Number);
+  const total = h * 60 + m + minutes;
+  const normalized = ((total % 1440) + 1440) % 1440;
+  return `${pad2(Math.floor(normalized / 60))}:${pad2(normalized % 60)}`;
+}
+
 interface PickedSlot {
   dia: DiaSemana;
   hour: string;
-  dateLabel: string;  // 'dd/MM' para mostrar al usuario
+  dateLabel: string;
+  date: Date;
 }
 
 @Component({
@@ -57,16 +55,14 @@ interface PickedSlot {
   imports: [
     ReactiveFormsModule,
     MatDialogModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIconModule,
-    MatProgressSpinnerModule, MatAutocompleteModule, MatTooltipModule,
-    MatDatepickerModule, MatCheckboxModule,
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    MatAutocompleteModule, MatTooltipModule,
     BookingCalendar,
   ],
   templateUrl: './appointment-form-dialog.html',
   styleUrl: './appointment-form-dialog.scss',
 })
 export class AppointmentFormDialog implements OnInit {
-  // ── Inyecciones ──────────────────────────────────────────────
   readonly data: AppointmentFormDialogData = inject(MAT_DIALOG_DATA);
   private ref = inject(MatDialogRef<AppointmentFormDialog>);
   private fb = inject(FormBuilder);
@@ -75,7 +71,6 @@ export class AppointmentFormDialog implements OnInit {
   readonly store = inject(PsychologyStore);
   readonly appointmentsStore = inject(AppointmentsStore);
 
-  // ── Catálogos / config ───────────────────────────────────────
   readonly tipos: { value: AppointmentTipo; label: string }[] = [
     { value: 'academico', label: 'Académico' },
     { value: 'conductual', label: 'Conductual' },
@@ -85,9 +80,6 @@ export class AppointmentFormDialog implements OnInit {
     { value: 'otro', label: 'Otro' },
   ];
 
-  readonly minDate = startOfDay(new Date());
-
-  // ── Estado UI ────────────────────────────────────────────────
   loading = signal(false);
   loadingParents = signal(false);
   loadingSlots = signal(false);
@@ -96,7 +88,6 @@ export class AppointmentFormDialog implements OnInit {
   searchingParent = signal(false);
   errorMsg = signal('');
 
-  // ── Búsqueda de participantes ────────────────────────────────
   parents = signal<ParentOfStudent[]>([]);
   searchResults = signal<AssignedStudent[]>([]);
   parentSearchResults = signal<SearchableParent[]>([]);
@@ -107,73 +98,69 @@ export class AppointmentFormDialog implements OnInit {
   includeStudent = signal(true);
   includeParent = signal(false);
 
-  // ── Calendario booking ───────────────────────────────────────
   weekStart = signal<string>(getCurrentMonday());
   availability = signal<AccountAvailability[]>([]);
   slotsTaken = signal<SlotTaken[]>([]);
-  picked = signal<PickedSlot | null>(null);
+  picked = signal<PickedSlot[]>([]);
 
-  // Regla del rol del usuario que abre el dialog (suele ser psicóloga).
-  // Si no se resuelve (sesión inválida) usamos psicóloga como base.
   readonly myRule = computed(() => {
     const me = this.auth.currentUser();
-    if (!me) return APPOINTMENT_RULES.psicologa;
-    return ruleForRol(me.rol, me.cargo) ?? APPOINTMENT_RULES.psicologa;
+    return me ? (ruleForRol(me.rol, me.cargo) ?? APPOINTMENT_RULES.psicologa) : APPOINTMENT_RULES.psicologa;
   });
-  readonly mySlotMinutes = computed<number>(() => {
-    const dur = this.form?.value?.durationMin;
-    const fallback = typeof dur === 'number' && dur > 0 ? dur : 30;
-    return ruleToSlotMinutes(this.myRule(), fallback);
-  });
-  readonly myAllowedDays = computed<readonly string[]>(
-    () => this.myRule().allowedDays,
+
+  readonly mySlotMinutes = computed(() => this.myRule().slotMinutes);
+  readonly myAllowedDays = computed(() => this.myRule().allowedDays);
+  readonly myStartHour = computed(() => ruleToStartHour(this.myRule()));
+  readonly myEndHour = computed(() => ruleToEndHour(this.myRule()));
+  readonly maxConsecutiveSlots = computed(() => ruleToMaxConsecutiveSlots(this.myRule()));
+  readonly maxDurationMin = computed(() => this.myRule().maxDurationMin);
+
+  readonly pickedSorted = computed(() =>
+    [...this.picked()].sort((a, b) => a.hour.localeCompare(b.hour))
   );
-  readonly myStartHour = computed<number>(
-    () => ruleToStartHour(this.myRule()),
-  );
-  readonly myEndHour = computed<number>(
-    () => ruleToEndHour(this.myRule()),
+
+  readonly durationMin = computed(() => this.picked().length * this.mySlotMinutes());
+
+  readonly selectedSlots = computed<BookingSelectedSlot[]>(() =>
+    this.picked().map(s => ({ dia: s.dia, hour: s.hour }))
   );
 
   readonly pickedLabel = computed<string | null>(() => {
-    const p = this.picked();
-    if (!p) return null;
-    return `${diaLabel(p.dia)} ${p.dateLabel} a las ${p.hour}`;
+    const sorted = this.pickedSorted();
+    if (sorted.length === 0) return null;
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const endHour = addMinutesToHour(last.hour, this.mySlotMinutes());
+    return `${diaLabel(first.dia)} ${first.dateLabel} de ${first.hour} a ${endHour} (${this.durationMin()} min)`;
   });
 
   readonly availableStudents = computed<AssignedStudent[]>(() => {
-    const search = this.searchResults();
-    const mine = this.store.myStudents();
     const term = this.studentSearchQuery().trim().toLowerCase();
     const seen = new Set<string>();
     const merged: AssignedStudent[] = [];
-    for (const s of [...search, ...mine]) {
+    for (const s of [...this.searchResults(), ...this.store.myStudents()]) {
       if (seen.has(s.id)) continue;
-      const matchesTerm = !term ||
-        [s.nombre, s.apellido_paterno, s.apellido_materno ?? '', s.codigo_estudiante]
-          .join(' ').toLowerCase().includes(term);
-      if (!matchesTerm) continue;
+      const matches = !term || [s.nombre, s.apellido_paterno, s.apellido_materno ?? '', s.codigo_estudiante]
+        .join(' ').toLowerCase().includes(term);
+      if (!matches) continue;
       seen.add(s.id);
       merged.push(s);
     }
     return merged.slice(0, 25);
   });
 
-  // ── Form ─────────────────────────────────────────────────────
   form: FormGroup = this.fb.group({
     studentId: [this.data.preselectedStudentId ?? ''],
     parentId: [''],
-    tipo: ['psicologico', [Validators.required]],
+    tipo: ['psicologico', Validators.required],
     motivo: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
-    date: [null as Date | null, [Validators.required]],
-    time: ['', [Validators.required]],
-    durationMin: [30, [Validators.required, Validators.min(15), Validators.max(180)]],
+    date: [null as Date | null, Validators.required],
+    time: ['', Validators.required],
     priorNotes: [''],
   });
 
-  // ── Lifecycle ────────────────────────────────────────────────
   ngOnInit(): void {
-    if (this.store.myStudents().length === 0) this.store.loadMyStudents();
+    if (!this.store.myStudents().length) this.store.loadMyStudents();
 
     if (this.data.preselectedStudentId) {
       this.loadParents(this.data.preselectedStudentId);
@@ -186,7 +173,6 @@ export class AppointmentFormDialog implements OnInit {
     this.refreshSlotsTaken();
   }
 
-  // ── Calendario booking ───────────────────────────────────────
   onWeekChange(weekStart: string): void {
     this.weekStart.set(weekStart);
     this.clearPicked();
@@ -194,36 +180,77 @@ export class AppointmentFormDialog implements OnInit {
   }
 
   onSlotPick(ev: BookingPickEvent): void {
-    this.picked.set({
+    const current = this.picked();
+    const slotMin = this.mySlotMinutes();
+    const newSlot: PickedSlot = {
       dia: ev.dia,
       hour: ev.hour,
       dateLabel: `${pad2(ev.date.getDate())}/${pad2(ev.date.getMonth() + 1)}`,
-    });
-    this.form.patchValue({
-      date: startOfDay(ev.date),
-      time: ev.hour,
-      durationMin: ev.durationMin ?? this.form.value.durationMin ?? 30,
-    });
+      date: ev.date,
+    };
+
+    if (current.length > 0 && current[0].dia !== ev.dia) {
+      this.picked.set([newSlot]);
+      this.errorMsg.set('');
+      this.syncFormFromPicked();
+      return;
+    }
+
+    if (current.some(s => s.hour === ev.hour)) {
+      const sorted = this.pickedSorted();
+      const idx = sorted.findIndex(s => s.hour === ev.hour);
+      if (idx === 0 || idx === sorted.length - 1) {
+        this.picked.set(current.filter(s => s.hour !== ev.hour));
+        this.errorMsg.set('');
+        this.syncFormFromPicked();
+      }
+      return;
+    }
+
+    if (current.length === 0) {
+      this.picked.set([newSlot]);
+      this.errorMsg.set('');
+      this.syncFormFromPicked();
+      return;
+    }
+
+    if (current.length >= this.maxConsecutiveSlots()) {
+      this.errorMsg.set(`Máximo ${this.maxDurationMin()} minutos por cita.`);
+      return;
+    }
+
+    const sorted = this.pickedSorted();
+    const expectedBefore = addMinutesToHour(sorted[0].hour, -slotMin);
+    const expectedAfter = addMinutesToHour(sorted[sorted.length - 1].hour, slotMin);
+
+    if (ev.hour === expectedBefore || ev.hour === expectedAfter) {
+      this.picked.set([...current, newSlot]);
+    } else {
+      this.picked.set([newSlot]);
+    }
+    this.errorMsg.set('');
+    this.syncFormFromPicked();
   }
 
   clearPicked(): void {
-    this.picked.set(null);
+    this.picked.set([]);
     this.form.patchValue({ date: null, time: '' });
   }
 
-  async onDurationChange(): Promise<void> {
-    this.clearPicked();
-    await this.refreshSlotsTaken();
+  private syncFormFromPicked(): void {
+    const sorted = this.pickedSorted();
+    if (sorted.length === 0) {
+      this.form.patchValue({ date: null, time: '' });
+      return;
+    }
+    this.form.patchValue({
+      date: startOfDay(sorted[0].date),
+      time: sorted[0].hour,
+    });
   }
 
-  // ── Búsqueda alumno ──────────────────────────────────────────
   fullName(s: AssignedStudent): string {
     return `${s.nombre} ${s.apellido_paterno} ${s.apellido_materno ?? ''}`.trim();
-  }
-
-  parentName(p: ParentOfStudent): string {
-    const rel = p.relacion ? ` (${p.relacion})` : '';
-    return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
   }
 
   parentFullName(p: SearchableParent): string {
@@ -233,13 +260,10 @@ export class AppointmentFormDialog implements OnInit {
 
   async onSearchStudents(value: string): Promise<void> {
     this.studentSearchQuery.set(value);
-    const term = value.trim();
-    if (term.length < 2) { this.searchResults.set([]); return; }
-
+    if (value.trim().length < 2) { this.searchResults.set([]); return; }
     this.searching.set(true);
     try {
-      const found = await this.store.searchAllStudents(term);
-      this.searchResults.set(found);
+      this.searchResults.set(await this.store.searchAllStudents(value.trim()));
     } catch {
       this.searchResults.set([]);
     } finally {
@@ -261,13 +285,10 @@ export class AppointmentFormDialog implements OnInit {
 
   async onSearchParents(value: string): Promise<void> {
     this.parentSearchQuery.set(value);
-    const term = value.trim();
-    if (term.length < 2) { this.parentSearchResults.set([]); return; }
-
+    if (value.trim().length < 2) { this.parentSearchResults.set([]); return; }
     this.searchingParent.set(true);
     try {
-      const found = await this.store.searchAllParents(term);
-      this.parentSearchResults.set(found);
+      this.parentSearchResults.set(await this.store.searchAllParents(value.trim()));
     } catch {
       this.parentSearchResults.set([]);
     } finally {
@@ -289,30 +310,20 @@ export class AppointmentFormDialog implements OnInit {
 
   toggleIncludeStudent(checked: boolean): void {
     this.includeStudent.set(checked);
-    if (!checked) {
-      this.clearStudent();
-      if (!this.includeParent()) this.includeParent.set(true);
-    }
+    if (!checked) { this.clearStudent(); if (!this.includeParent()) this.includeParent.set(true); }
   }
 
   toggleIncludeParent(checked: boolean): void {
     this.includeParent.set(checked);
-    if (!checked) {
-      this.clearParent();
-      if (!this.includeStudent()) this.includeStudent.set(true);
-    }
+    if (!checked) { this.clearParent(); if (!this.includeStudent()) this.includeStudent.set(true); }
   }
 
-  // ── Carga remota ─────────────────────────────────────────────
   private async loadOwnAvailability(): Promise<void> {
-    const profId = this.auth.currentUser()?.id;
-    if (!profId) return;
-
+    const id = this.auth.currentUser()?.id;
+    if (!id) return;
     this.loadingAvailability.set(true);
     try {
-      const items = await this.appointmentsStore.getAvailability(profId);
-
-      this.availability.set(items);
+      this.availability.set(await this.appointmentsStore.getAvailability(id));
     } catch {
       this.availability.set([]);
     } finally {
@@ -321,13 +332,11 @@ export class AppointmentFormDialog implements OnInit {
   }
 
   private async refreshSlotsTaken(): Promise<void> {
-    const profId = this.auth.currentUser()?.id;
-    if (!profId) return;
-
+    const id = this.auth.currentUser()?.id;
+    if (!id) return;
     this.loadingSlots.set(true);
     try {
-      const items = await this.appointmentsStore.getSlotsTaken(profId, this.weekStart());
-      this.slotsTaken.set(items);
+      this.slotsTaken.set(await this.appointmentsStore.getSlotsTaken(id, this.weekStart()));
     } catch {
       this.slotsTaken.set([]);
     } finally {
@@ -348,7 +357,6 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  // ── Submit ───────────────────────────────────────────────────
   cancel(): void { this.ref.close(false); }
 
   async submit(): Promise<void> {
@@ -359,29 +367,24 @@ export class AppointmentFormDialog implements OnInit {
       this.errorMsg.set('Debe seleccionar al menos un alumno o un padre/tutor.');
       return;
     }
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    if (this.picked().length === 0) {
+      this.errorMsg.set('Debe seleccionar al menos un horario.');
       return;
     }
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
     const psicologaId = this.auth.currentUser()?.id;
     if (!psicologaId) { this.errorMsg.set('Sesión inválida.'); return; }
 
     const v = this.form.value;
     const scheduled = combineDateAndTime(v.date as Date, v.time as string);
-    const minStart = Date.now() + MIN_LEAD_MINUTES * 60_000;
-    if (Number.isNaN(scheduled.getTime()) || scheduled.getTime() < minStart) {
-      this.errorMsg.set(
-        `La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} minutos de anticipación.`,
-      );
+    if (Number.isNaN(scheduled.getTime()) || scheduled.getTime() < Date.now() + MIN_LEAD_MINUTES * 60_000) {
+      this.errorMsg.set(`La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} minutos de anticipación.`);
       return;
     }
 
     const convocadoAId = hasParent ? v.parentId : v.studentId;
-    if (convocadoAId === psicologaId) {
-      this.errorMsg.set('No puedes convocarte a ti misma.');
-      return;
-    }
+    if (convocadoAId === psicologaId) { this.errorMsg.set('No puedes convocarte a ti misma.'); return; }
 
     this.loading.set(true);
     this.errorMsg.set('');
@@ -393,7 +396,7 @@ export class AppointmentFormDialog implements OnInit {
         tipo: v.tipo,
         motivo: v.motivo,
         scheduledAt: scheduled.toISOString(),
-        durationMin: v.durationMin,
+        durationMin: this.durationMin(),
         priorNotes: v.priorNotes || undefined,
       });
       this.toastr.success('Cita creada');
@@ -406,5 +409,4 @@ export class AppointmentFormDialog implements OnInit {
   }
 }
 
-// Re-export para no romper imports antiguos del helper.
 export { parseApiError } from '../../../../shared/utils/api-errors';

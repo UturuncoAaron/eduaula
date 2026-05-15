@@ -1,16 +1,6 @@
-// Convierte la disponibilidad declarada + las citas ocupadas en `WeekSlot[]`
-// para alimentar el componente <app-week-grid>.
-//
-// A diferencia de `booking-slots.ts` (que generaba un slot pequeño por cada
-// step del paso), aquí emitimos UN bloque por cada rango contiguo de
-// disponibilidad — el render queda como una franja verde continua sin
-// gaps, igual look que el editor de horario admin (pixel-perfect).
-//
-// Los slots ocupados se emiten en otro bloque (gris) para que queden
-// renderizados encima del verde.
-
 import {
   AccountAvailability,
+  AppointmentEstado,
   SlotTaken,
 } from '../../core/models/appointments';
 import {
@@ -24,11 +14,21 @@ import {
 export interface BuildWeekBookingArgs {
   availability: readonly AccountAvailability[];
   taken: readonly SlotTaken[];
-  /** Lunes de la semana visible (YYYY-MM-DD). Usado para mapear citas reales al día. */
+  /** Lunes de la semana visible (YYYY-MM-DD). */
   weekStart: string;
-  /** Días permitidos para esta regla (filtra el resultado). */
+  /** Días permitidos por la regla (filtra el resultado). */
   allowedDays?: readonly string[] | null;
 }
+
+// Paleta de estados ocupados.
+const TAKEN_STYLES: Record<AppointmentEstado, { title: string; color: string }> = {
+  pendiente: { title: 'Pendiente', color: '#fde68a' }, // ámbar suave
+  confirmada: { title: 'Ocupado', color: '#fecaca' }, // rojo suave
+  realizada: { title: 'Realizada', color: '#d1d5db' }, // gris
+  cancelada: { title: 'Cancelada', color: '#e5e7eb' }, // gris claro
+  rechazada: { title: 'Rechazada', color: '#e5e7eb' },
+  no_asistio: { title: 'No asistió', color: '#e5e7eb' },
+};
 
 export function buildWeekBookingSlots(args: BuildWeekBookingArgs): WeekSlot[] {
   const allowFilter = args.allowedDays && args.allowedDays.length > 0
@@ -37,7 +37,7 @@ export function buildWeekBookingSlots(args: BuildWeekBookingArgs): WeekSlot[] {
 
   const result: WeekSlot[] = [];
 
-  // 1) bloques de disponibilidad por día — uno por rango contiguo.
+  // 1) Disponibilidad: un bloque por rango contiguo y mergeado.
   const byDay = new Map<WeekDia, AccountAvailability[]>();
   for (const av of args.availability) {
     if (!av.activo) continue;
@@ -50,18 +50,16 @@ export function buildWeekBookingSlots(args: BuildWeekBookingArgs): WeekSlot[] {
 
   for (const [dia, list] of byDay) {
     const ranges = list
-      .map(a => ({ s: toMin(a.horaInicio), e: toMin(a.horaFin), id: a.id }))
+      .map(a => ({ s: toMin(a.horaInicio), e: toMin(a.horaFin) }))
       .sort((a, b) => a.s - b.s);
 
-    // Mergear contiguos / solapados.
-    const merged: { s: number; e: number; ids: string[] }[] = [];
+    const merged: { s: number; e: number }[] = [];
     for (const r of ranges) {
       const last = merged[merged.length - 1];
       if (last && r.s <= last.e) {
         last.e = Math.max(last.e, r.e);
-        last.ids.push(String(r.id));
       } else {
-        merged.push({ s: r.s, e: r.e, ids: [String(r.id)] });
+        merged.push({ s: r.s, e: r.e });
       }
     }
 
@@ -77,25 +75,31 @@ export function buildWeekBookingSlots(args: BuildWeekBookingArgs): WeekSlot[] {
     }
   }
 
-  // 2) Slots ocupados — uno por cita.
+  // 2) Ocupados: un slot por cita activa, con color según estado.
   const wsStart = parseDate(args.weekStart);
   const wsEnd = parseDate(addDays(args.weekStart, 7));
+
   for (const t of args.taken) {
     const d = new Date(t.scheduledAt);
     if (d < wsStart || d >= wsEnd) continue;
+
     const diaKey = dayIdxToKey(d.getDay());
     if (!diaKey) continue;
     if (allowFilter && !allowFilter.has(diaKey)) continue;
 
     const startMin = d.getHours() * 60 + d.getMinutes();
     const dur = t.durationMin ?? 30;
+    const style = TAKEN_STYLES[t.estado] ?? TAKEN_STYLES.confirmada;
+
     result.push({
       id: `taken-${t.id}`,
       dia: diaKey,
       horaInicio: toHHMM(startMin),
       horaFin: toHHMM(startMin + dur),
-      title: 'Ocupado',
+      title: style.title,
+      subtitle: `${toHHMM(startMin)} – ${toHHMM(startMin + dur)}`,
       kind: 'taken',
+      color: style.color,
     });
   }
 
@@ -120,12 +124,6 @@ function dayIdxToKey(idx: number): WeekDia | null {
 }
 
 function isWeekDia(s: string): s is WeekDia {
-  return (
-    s === 'lunes' ||
-    s === 'martes' ||
-    s === 'miercoles' ||
-    s === 'jueves' ||
-    s === 'viernes' ||
-    s === 'sabado'
-  );
+  return s === 'lunes' || s === 'martes' || s === 'miercoles'
+    || s === 'jueves' || s === 'viernes' || s === 'sabado';
 }

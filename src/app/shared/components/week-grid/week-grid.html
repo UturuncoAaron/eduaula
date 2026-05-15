@@ -1,80 +1,65 @@
 <div class="wg">
   @if (showNav() && showDates()) {
-    <div class="wg__nav">
-      <button mat-icon-button (click)="prevWeek()" aria-label="Semana anterior">
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-      <button mat-icon-button (click)="nextWeek()" aria-label="Semana siguiente">
-        <mat-icon>chevron_right</mat-icon>
-      </button>
-      <button mat-stroked-button class="wg__today" (click)="goToday()">Hoy</button>
-    </div>
+  <div class="wg__nav">
+    <button mat-icon-button (click)="prevWeek()" aria-label="Semana anterior">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <button mat-icon-button (click)="nextWeek()" aria-label="Semana siguiente">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+    <button mat-stroked-button class="wg__today" (click)="goToday()">Hoy</button>
+  </div>
   }
 
   <div class="wg__board">
     <div class="wg__corner" aria-hidden="true"></div>
 
     @for (h of headers(); track trackHeader($index, h)) {
-      <div
-        class="wg__header"
-        [class.wg__header--today]="h.isToday"
-        [class.wg__header--blocked]="!h.allowed">
-        <span class="wg__day-short">{{ h.info.short }}</span>
-        @if (showDates() && h.dateLabel !== null) {
-          <span class="wg__day-date" [class.wg__day-date--today]="h.isToday">{{ h.dateLabel }}</span>
-        } @else {
-          <span class="wg__day-long">{{ h.info.long }}</span>
-        }
-      </div>
+    <div class="wg__header" [class.wg__header--today]="h.isToday" [class.wg__header--blocked]="!h.allowed">
+      <span class="wg__day-short">{{ h.info.short }}</span>
+      @if (showDates() && h.dateLabel !== null) {
+      <span class="wg__day-date" [class.wg__day-date--today]="h.isToday">{{ h.dateLabel }}</span>
+      } @else {
+      <span class="wg__day-long">{{ h.info.long }}</span>
+      }
+    </div>
     }
 
     <div class="wg__hours" [style.height.px]="columnHeightPx()">
       @for (r of rows(); track trackRow($index, r)) {
-        <div class="wg__hour-row"
-             [style.height.px]="pxPerMin() * tickStepMin()">
-          <span class="wg__hour-label">{{ r.rangeLabel }}</span>
-        </div>
+      <div class="wg__hour-row" [style.height.px]="pxPerMin() * tickStepMin()">
+        <span class="wg__hour-label">{{ r.rangeLabel }}</span>
+      </div>
       }
     </div>
 
     @for (h of headers(); track trackHeader($index, h)) {
-      <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events,@angular-eslint/template/interactive-supports-focus -->
-      <div
-        class="wg__col"
-        [class.wg__col--blocked]="!h.allowed"
-        [class.wg__col--clickable]="(mode() === 'editor' || mode() === 'availability') && h.allowed"
-        [style.height.px]="columnHeightPx()"
-        (click)="onColumnClick($event, h)">
+    <div class="wg__col" [class.wg__col--blocked]="!h.allowed"
+      [class.wg__col--clickable]="(mode() === 'editor' || mode() === 'availability' || mode() === 'booking') && h.allowed"
+      [style.height.px]="columnHeightPx()" (click)="onColumnClick($event, h)">
 
-        @for (r of rows(); track trackRow($index, r)) {
-          <div class="wg__tick"
-               [style.top.px]="(r.startMin - dayStartMin()) * pxPerMin()"
-               [style.height.px]="pxPerMin() * tickStepMin()"
-               aria-hidden="true"></div>
-        }
+      @for (r of rows(); track trackRow($index, r)) {
+      <div class="wg__tick" [style.top.px]="(r.startMin - dayStartMin()) * pxPerMin()"
+        [style.height.px]="pxPerMin() * tickStepMin()" aria-hidden="true"></div>
+      }
 
-        @for (rs of slotsByDay()[h.info.key]; track trackSlot($index, rs)) {
-          <button
-            type="button"
-            class="wg__slot"
-            [class]="'wg__slot--' + rs.slot.kind"
-            [class.wg__slot--pending]="rs.slot.pending"
-            [class.wg__slot--clickable]="mode() !== 'schedule' && rs.slot.kind !== 'taken' && rs.slot.kind !== 'blocked'"
-            [style.top.px]="rs.topPx"
-            [style.height.px]="rs.heightPx"
-            [style.background-color]="rs.slot.color || null"
-            (click)="onSlotClick($event, rs.slot)">
-            <span class="wg__slot-title">{{ rs.slot.title }}</span>
-            @if (rs.slot.subtitle) {
-              <span class="wg__slot-sub">{{ rs.slot.subtitle }}</span>
-            }
-          </button>
+      @for (rs of slotsByDay()[h.info.key]; track trackSlot($index, rs)) {
+      <button type="button" class="wg__slot" [class]="'wg__slot--' + rs.slot.kind"
+        [class.wg__slot--pending]="rs.slot.pending"
+        [class.wg__slot--clickable]="mode() !== 'schedule' && rs.slot.kind !== 'taken' && rs.slot.kind !== 'blocked'"
+        [style.top.px]="rs.topPx" [style.height.px]="rs.heightPx" [style.background-color]="rs.slot.color || null"
+        (click)="onSlotClick($event, rs.slot)">
+        <span class="wg__slot-title">{{ rs.slot.title }}</span>
+        @if (rs.slot.subtitle) {
+        <span class="wg__slot-sub">{{ rs.slot.subtitle }}</span>
         }
-      </div>
+      </button>
+      }
+    </div>
     }
   </div>
 
   @if (emptyLabel() && isEmpty()) {
-    <p class="wg__empty">{{ emptyLabel() }}</p>
+  <p class="wg__empty">{{ emptyLabel() }}</p>
   }
 </div>

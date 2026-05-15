@@ -1,6 +1,3 @@
-// 📁 PATH: src/app/shared/components/user-dialog/user-dialog.ts
-// (Reemplaza el actual)
-
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -17,11 +14,12 @@ import { Subscription } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api';
 import { AuthService } from '../../../core/auth/auth';
-import { Rol, User } from '../../../core/models/user'; // 🔁 Antes: UserRole desde navigation.config
+import { Rol, User } from '../../../core/models/user';
+
 
 export interface UserDialogData {
   mode: 'create' | 'edit';
-  rol: Rol; // 🔁 Antes: UserRole
+  rol: Rol;
   user?: User;
   isSelf?: boolean;
 }
@@ -100,7 +98,7 @@ export class UserDialog implements OnInit, OnDestroy {
 
   form = this.fb.group({
     tipo_documento: ['dni', Validators.required],
-    numero_documento: ['', [Validators.required]], // Validadores dinámicos asignados en ngOnInit
+    numero_documento: ['', [Validators.required]],
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_paterno: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_materno: ['', Validators.maxLength(100)],
@@ -119,10 +117,7 @@ export class UserDialog implements OnInit, OnDestroy {
     relacion: ['', this.data.rol === 'padre' ? Validators.required : null],
     cargo: ['', Validators.maxLength(100)],
     colegiatura: ['', Validators.maxLength(50)],
-
-    // Específico de alumno: marca al estudiante como caso de inclusión
-    // educativa (NEE, adaptación curricular, etc.). Por defecto false.
-    inclusivo: [false],
+    es_inclusivo: [false],
 
     // Contraseñas (solo edición)
     current_password: [''],
@@ -149,7 +144,7 @@ export class UserDialog implements OnInit, OnDestroy {
         colegiatura: u.colegiatura ?? '',
         cargo: u.cargo ?? '',
         relacion: u.relacion_familiar ?? '',
-        inclusivo: (u as { inclusivo?: boolean }).inclusivo ?? false,
+        es_inclusivo: u.inclusivo ?? false,
       });
     }
   }
@@ -224,7 +219,7 @@ export class UserDialog implements OnInit, OnDestroy {
 
     const extras: Record<Rol, Record<string, unknown>> = {
       alumno: {
-        inclusivo: !!v.inclusivo,
+         inclusivo: !!v.es_inclusivo,
       },
       docente: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
@@ -305,7 +300,7 @@ export class UserDialog implements OnInit, OnDestroy {
       if (v.colegiatura) payload['colegiatura'] = v.colegiatura;
       if (v.cargo) payload['cargo'] = v.cargo;
       if (v.relacion) payload['relacion'] = v.relacion;
-      if (this.data.rol === 'alumno') payload['inclusivo'] = !!v.inclusivo;
+      if (this.data.rol === 'alumno') payload['inclusivo'] = !!v.es_inclusivo;
 
       if (!this.isSelf) {
         payload['tipo_documento'] = v.tipo_documento;

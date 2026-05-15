@@ -62,8 +62,7 @@
                 <mat-form-field appearance="outline" class="afd-field-full">
                     <mat-label>Buscar alumno</mat-label>
                     <input matInput [matAutocomplete]="studentAuto" [value]="studentSearchQuery()"
-                        (input)="onSearchStudents($any($event.target).value)"
-                        placeholder="Nombre, apellido o código" />
+                        (input)="onSearchStudents($any($event.target).value)" placeholder="Nombre, apellido o código" />
                     @if (searching()) {
                     <mat-spinner matSuffix diameter="18" />
                     } @else {
@@ -137,10 +136,9 @@
             }
         </section>
 
-        <!-- 2. Tipo + Modalidad -->
+        <!-- 2. Tipo de cita -->
         <section class="afd-section">
             <p class="afd-section__label">Tipo de cita</p>
-
             <div class="afd-tipo-pills">
                 @for (t of tipos; track t.value) {
                 <button type="button" class="afd-tipo-pill"
@@ -151,20 +149,17 @@
                 </button>
                 }
             </div>
-
             <div class="afd-empty-availability" style="margin-top: 14px;">
                 <mat-icon>meeting_room</mat-icon>
-                <p>
-                    <strong>Modalidad presencial.</strong> Todas las citas se realizan en el consultorio
-                    de psicología del colegio.
-                </p>
+                <p><strong>Modalidad presencial.</strong> Todas las citas se realizan en el consultorio de psicología
+                    del colegio.</p>
             </div>
         </section>
 
         <!-- 3. Horario disponible -->
         <section class="afd-section">
             <div class="afd-section__header">
-                <p class="afd-section__label">Selecciona un horario disponible</p>
+                <p class="afd-section__label">Selecciona uno o varios horarios contiguos</p>
                 @if (loadingAvailability() || loadingSlots()) {
                 <mat-spinner diameter="14" />
                 }
@@ -173,18 +168,15 @@
             @if (availability().length === 0 && !loadingAvailability()) {
             <div class="afd-empty-availability">
                 <mat-icon>info</mat-icon>
-                <p>
-                    No tienes disponibilidad configurada. Ve a tu pestaña de
-                    <strong>Disponibilidad</strong> para definir tus horarios de citas.
-                </p>
+                <p>No tienes disponibilidad configurada. Ve a tu pestaña de <strong>Disponibilidad</strong> para definir
+                    tus horarios de citas.</p>
             </div>
             }
 
             <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()" [weekStart]="weekStart()"
                 [loading]="loadingAvailability() || loadingSlots()" [slotMinutes]="mySlotMinutes()"
                 [allowedDays]="myAllowedDays()" [startHour]="myStartHour()" [endHour]="myEndHour()"
-                [selectedDia]="picked()?.dia ?? null" [selectedHour]="picked()?.hour ?? null"
-                (pick)="onSlotPick($event)" (weekChange)="onWeekChange($event)" />
+                [selectedSlots]="selectedSlots()" (pick)="onSlotPick($event)" (weekChange)="onWeekChange($event)" />
 
             @if (pickedLabel(); as p) {
             <div class="afd-picked">
@@ -231,10 +223,11 @@
         <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
             @if (loading()) {
             <mat-spinner diameter="18" />
-            } @else {
-            <mat-icon>event_available</mat-icon>
-            <span>Programar cita</span>
-            }
+            } @else {<ng-container>
+                <mat-icon>event_available</mat-icon>
+                <span>Programar cita</span>
+            </ng-container> }
         </button>
     </mat-dialog-actions>
+
 </form>
