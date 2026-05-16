@@ -1,6 +1,6 @@
 <form [formGroup]="form" (ngSubmit)="submit()" autocomplete="off">
 
-    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <!-- ── HEADER ──────────────────────────────────────────────── -->
     <header class="afd-header">
         <div class="afd-header__icon">
             <mat-icon>event_available</mat-icon>
@@ -15,7 +15,7 @@
         </button>
     </header>
 
-    <!-- ── BODY ───────────────────────────────────────────────── -->
+    <!-- ── BODY ────────────────────────────────────────────────── -->
     <mat-dialog-content class="afd-body">
 
         <!-- 1. Participantes -->
@@ -45,7 +45,7 @@
                 </button>
             </div>
 
-            <!-- Alumno seleccionado o buscador -->
+            <!-- Alumno -->
             @if (includeStudent()) {
             <div class="afd-participant-row">
                 @if (selectedStudent(); as st) {
@@ -72,7 +72,7 @@
                     }
                     <mat-autocomplete #autoStudent [displayWith]="displayFn"
                         (optionSelected)="onStudentSelected($event.option.value)">
-                        @for (s of students$ | async; track s.id) {
+                        @for (s of students(); track s.id) {
                         <mat-option [value]="s">
                             <div class="afd-option">
                                 <div class="afd-option__avatar">{{ s.nombre.charAt(0) }}</div>
@@ -83,7 +83,7 @@
                             </div>
                         </mat-option>
                         }
-                        @if (!(students$ | async)?.length &&
+                        @if (!students().length &&
                         (studentSearchCtrl.value?.length ?? 0) >= 2 &&
                         !searching()) {
                         <mat-option disabled>
@@ -99,7 +99,7 @@
             </div>
             }
 
-            <!-- Padre seleccionado o buscador -->
+            <!-- Padre / tutor -->
             @if (includeParent()) {
             <div class="afd-participant-row">
                 @if (selectedParent(); as sp) {
@@ -128,7 +128,7 @@
                     }
                     <mat-autocomplete #autoParent [displayWith]="displayFn"
                         (optionSelected)="onParentSelected($event.option.value)">
-                        @for (p of parents$ | async; track p.id) {
+                        @for (p of parents(); track p.id) {
                         <mat-option [value]="p">
                             <div class="afd-option">
                                 <div class="afd-option__avatar afd-option__avatar--parent">
@@ -140,7 +140,7 @@
                             </div>
                         </mat-option>
                         }
-                        @if (!(parents$ | async)?.length &&
+                        @if (!parents().length &&
                         (parentSearchCtrl.value?.length ?? 0) >= 2 &&
                         !searchingParent()) {
                         <mat-option disabled>
@@ -238,11 +238,10 @@
                 </mat-label>
                 <textarea matInput rows="3" formControlName="priorNotes"
                     placeholder="Contexto o información relevante antes de la sesión…">
-        </textarea>
+                </textarea>
             </mat-form-field>
         </section>
 
-        <!-- Error global -->
         @if (errorMsg()) {
         <div class="afd-error" role="alert">
             <mat-icon>error_outline</mat-icon>
@@ -252,7 +251,7 @@
 
     </mat-dialog-content>
 
-    <!-- ── FOOTER ─────────────────────────────────────────────── -->
+    <!-- ── FOOTER ───────────────────────────────────────────────── -->
     <mat-dialog-actions class="afd-footer">
         <button mat-button type="button" (click)="cancel()" [disabled]="loading()">
             Cancelar
@@ -261,10 +260,10 @@
             @if (loading()) {
             <mat-spinner diameter="18" />
             <span>Guardando…</span>
-            } @else {<ng-container>
+            } @else { <ng-container>
             <mat-icon>event_available</mat-icon>
             <span>Programar cita</span>
-            </ng-container>}
+            </ng-container> }
         </button>
     </mat-dialog-actions>
 

@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   FormControl,
@@ -25,17 +26,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { AsyncPipe, TitleCasePipe } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import {
-  Observable,
   catchError,
   debounceTime,
   distinctUntilChanged,
   filter,
   from,
   of,
-  shareReplay,
-  startWith,
   switchMap,
   tap,
 } from 'rxjs';
@@ -73,7 +71,6 @@ import {
   SearchableParent,
 } from '../../../../core/models/psychology';
 
-// ── Tipos locales ────────────────────────────────────────────────
 export interface AppointmentFormDialogData {
   preselectedStudentId?: string;
 }
@@ -85,7 +82,6 @@ interface PickedSlot {
   date: Date;
 }
 
-// ── Constantes ───────────────────────────────────────────────────
 const MIN_LEAD_MINUTES = 15;
 
 function addMinutesToHour(hour: string, minutes: number): string {
@@ -95,13 +91,11 @@ function addMinutesToHour(hour: string, minutes: number): string {
   return `${pad2(Math.floor(normalized / 60))}:${pad2(normalized % 60)}`;
 }
 
-// ─────────────────────────────────────────────────────────────────
 @Component({
   selector: 'app-appointment-form-dialog',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    AsyncPipe,
     TitleCasePipe,
     ReactiveFormsModule,
     MatDialogModule,
@@ -119,7 +113,6 @@ function addMinutesToHour(hour: string, minutes: number): string {
 })
 export class AppointmentFormDialog implements OnInit {
 
-  // ── Inyecciones ──────────────────────────────────────────────
   readonly data = inject<AppointmentFormDialogData>(MAT_DIALOG_DATA);
   private readonly ref = inject(MatDialogRef<AppointmentFormDialog>);
   private readonly fb = inject(FormBuilder);
@@ -128,7 +121,6 @@ export class AppointmentFormDialog implements OnInit {
   readonly store = inject(PsychologyStore);
   readonly appointmentsStore = inject(AppointmentsStore);
 
-  // ── Catálogo de tipos ────────────────────────────────────────
   readonly tipos: { value: AppointmentTipo; label: string; icon: string }[] = [
     { value: 'academico', label: 'Académico', icon: 'menu_book' },
     { value: 'conductual', label: 'Conductual', icon: 'psychology_alt' },
@@ -138,7 +130,7 @@ export class AppointmentFormDialog implements OnInit {
     { value: 'otro', label: 'Otro', icon: 'more_horiz' },
   ];
 
-  // ── Estados de UI ────────────────────────────────────────────
+  // ── UI state ──────────────────────────────────────────────────
   readonly loading = signal(false);
   readonly loadingParents = signal(false);
   readonly loadingSlots = signal(false);
@@ -147,19 +139,22 @@ export class AppointmentFormDialog implements OnInit {
   readonly searchingParent = signal(false);
   readonly errorMsg = signal('');
 
-  // ── Participantes ────────────────────────────────────────────
+  // ── Participantes ─────────────────────────────────────────────
   readonly selectedStudent = signal<AssignedStudent | null>(null);
   readonly selectedParent = signal<SearchableParent | null>(null);
   readonly includeStudent = signal(true);
   readonly includeParent = signal(false);
 
-  // ── Búsqueda — FormControls para que mat-autocomplete funcione
-  // (con signals + OnPush el overlay no detecta cambios)
+  // FormControls para que mat-autocomplete detecte cambios
   readonly studentSearchCtrl = new FormControl('');
   readonly parentSearchCtrl = new FormControl('');
 
-  // ── Streams de búsqueda (Observable → async pipe en template) ─
-  readonly students$: Observable<AssignedStudent[]> =
+  // ── Búsqueda como signals ─────────────────────────────────────
+  // toSignal() propaga cambios al CDK overlay portal donde vive el
+  // panel de mat-autocomplete, lo que el async pipe + OnPush no logra
+  // en Angular 18+.
+
+  readonly students = toSignal(
     this.studentSearchCtrl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -176,11 +171,11 @@ export class AppointmentFormDialog implements OnInit {
         );
       }),
       tap(() => this.searching.set(false)),
-      startWith([] as AssignedStudent[]),
-      shareReplay(1),
-    );
+    ),
+    { initialValue: [] as AssignedStudent[] },
+  );
 
-  readonly parents$: Observable<SearchableParent[]> =
+  readonly parents = toSignal(
     this.parentSearchCtrl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -197,17 +192,17 @@ export class AppointmentFormDialog implements OnInit {
         );
       }),
       tap(() => this.searchingParent.set(false)),
-      startWith([] as SearchableParent[]),
-      shareReplay(1),
-    );
+    ),
+    { initialValue: [] as SearchableParent[] },
+  );
 
-  // ── Calendario ───────────────────────────────────────────────
+  // ── Calendario ────────────────────────────────────────────────
   readonly weekStart = signal<string>(getCurrentMonday());
   readonly availability = signal<AccountAvailability[]>([]);
   readonly slotsTaken = signal<SlotTaken[]>([]);
   readonly picked = signal<PickedSlot[]>([]);
 
-  // ── Reglas del rol ───────────────────────────────────────────
+  // ── Reglas del rol ────────────────────────────────────────────
   readonly myRule = computed(() => {
     const me = this.auth.currentUser();
     return me
@@ -222,7 +217,7 @@ export class AppointmentFormDialog implements OnInit {
   readonly maxConsecutiveSlots = computed(() => ruleToMaxConsecutiveSlots(this.myRule()));
   readonly maxDurationMin = computed(() => this.myRule().maxDurationMin);
 
-  // ── Slots seleccionados ──────────────────────────────────────
+  // ── Selección de slots ────────────────────────────────────────
   readonly pickedSorted = computed(() =>
     [...this.picked()].sort((a, b) => a.hour.localeCompare(b.hour)),
   );
@@ -241,7 +236,7 @@ export class AppointmentFormDialog implements OnInit {
     return `${diaLabel(first.dia)} ${first.dateLabel} · ${first.hour} – ${endHour} (${this.durationMin()} min)`;
   });
 
-  // ── Formulario principal ─────────────────────────────────────
+  // ── Formulario ────────────────────────────────────────────────
   readonly form: FormGroup = this.fb.group({
     studentId: [this.data.preselectedStudentId ?? ''],
     parentId: [''],
@@ -252,15 +247,14 @@ export class AppointmentFormDialog implements OnInit {
     priorNotes: [''],
   });
 
-  // ── Ciclo de vida ────────────────────────────────────────────
+  // ── Ciclo de vida ─────────────────────────────────────────────
   ngOnInit(): void {
     if (!this.store.myStudents().length) this.store.loadMyStudents();
 
     if (this.data.preselectedStudentId) {
       this.includeParent.set(true);
       this.loadParents(this.data.preselectedStudentId);
-      const found = this.store.myStudents()
-        .find(s => s.id === this.data.preselectedStudentId);
+      const found = this.store.myStudents().find(s => s.id === this.data.preselectedStudentId);
       if (found) this.selectedStudent.set(found);
     }
 
@@ -268,7 +262,7 @@ export class AppointmentFormDialog implements OnInit {
     this.refreshSlotsTaken();
   }
 
-  // ── Participantes ────────────────────────────────────────────
+  // ── Participantes ─────────────────────────────────────────────
   toggleIncludeStudent(checked: boolean): void {
     this.includeStudent.set(checked);
     if (!checked) {
@@ -309,7 +303,7 @@ export class AppointmentFormDialog implements OnInit {
     this.form.patchValue({ parentId: '' });
   }
 
-  // ── Calendario ───────────────────────────────────────────────
+  // ── Calendario ────────────────────────────────────────────────
   onWeekChange(weekStart: string): void {
     this.weekStart.set(weekStart);
     this.clearPicked();
@@ -326,7 +320,6 @@ export class AppointmentFormDialog implements OnInit {
       date: ev.date,
     };
 
-    // Día distinto → reiniciar
     if (current.length > 0 && current[0].dia !== ev.dia) {
       this.picked.set([newSlot]);
       this.errorMsg.set('');
@@ -334,7 +327,6 @@ export class AppointmentFormDialog implements OnInit {
       return;
     }
 
-    // Toggle: deseleccionar solo extremos del rango
     if (current.some(s => s.hour === ev.hour)) {
       const sorted = this.pickedSorted();
       const idx = sorted.findIndex(s => s.hour === ev.hour);
@@ -346,7 +338,6 @@ export class AppointmentFormDialog implements OnInit {
       return;
     }
 
-    // Primer slot
     if (!current.length) {
       this.picked.set([newSlot]);
       this.errorMsg.set('');
@@ -354,13 +345,11 @@ export class AppointmentFormDialog implements OnInit {
       return;
     }
 
-    // Límite máximo
     if (current.length >= this.maxConsecutiveSlots()) {
       this.errorMsg.set(`Máximo ${this.maxDurationMin()} minutos por cita.`);
       return;
     }
 
-    // Solo adyacente al rango actual
     const sorted = this.pickedSorted();
     const expectedBefore = addMinutesToHour(sorted[0].hour, -slotMin);
     const expectedAfter = addMinutesToHour(sorted[sorted.length - 1].hour, slotMin);
@@ -389,10 +378,9 @@ export class AppointmentFormDialog implements OnInit {
     return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
   }
 
-  /** Devuelve '' para que el input quede limpio al seleccionar una opción */
-  displayFn(): string { return ''; }
+  // Retorna '' para limpiar el input al seleccionar una opción
+  readonly displayFn = (): string => '';
 
-  // ── Acciones de diálogo ──────────────────────────────────────
   cancel(): void { this.ref.close(false); }
 
   async submit(): Promise<void> {
@@ -420,9 +408,7 @@ export class AppointmentFormDialog implements OnInit {
 
     if (Number.isNaN(scheduled.getTime()) ||
       scheduled.getTime() < Date.now() + MIN_LEAD_MINUTES * 60_000) {
-      this.errorMsg.set(
-        `La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} minutos de anticipación.`,
-      );
+      this.errorMsg.set(`La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} minutos de anticipación.`);
       return;
     }
 
@@ -454,7 +440,7 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  // ── Privados ─────────────────────────────────────────────────
+  // ── Privados ──────────────────────────────────────────────────
   private syncFormFromPicked(): void {
     const sorted = this.pickedSorted();
     if (!sorted.length) {
@@ -499,9 +485,7 @@ export class AppointmentFormDialog implements OnInit {
     this.loadingParents.set(true);
     try {
       const parents = await this.store.getStudentParents(studentId);
-      if (parents.length === 1) {
-        this.form.patchValue({ parentId: parents[0].id });
-      }
+      if (parents.length === 1) this.form.patchValue({ parentId: parents[0].id });
     } catch {
       // silencioso — no bloquea el flujo principal
     } finally {
