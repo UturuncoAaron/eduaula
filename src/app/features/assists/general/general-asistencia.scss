@@ -1,0 +1,726 @@
+$teal: #14b8a6;
+$green: #10b981;
+$orange: #f59e0b;
+$red: #ef4444;
+$blue: #3b82f6;
+$dark: #0f172a;
+$muted: #64748b;
+$border: #e2e8f0;
+$bg: #f8fafc;
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fade-in {
+    animation: fadeIn .35s ease-out;
+}
+
+.spinning {
+    animation: spin .7s linear infinite;
+    display: inline-block;
+}
+
+// ── Layout ────────────────────────────────────────────────────
+.asistencia-container {
+    padding: 24px 32px 120px;
+    max-width: 1080px;
+    margin: 0 auto;
+    font-family: 'Inter', sans-serif;
+
+    @media (max-width: 768px) {
+        padding: 16px 16px 100px;
+    }
+}
+
+// ── Header ────────────────────────────────────────────────────
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+
+    .btn-back {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid $border;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all .15s;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+
+        &:hover {
+            border-color: $teal;
+            color: $teal;
+            background: rgba($teal, .05);
+        }
+    }
+
+    .header-info {
+        flex: 1;
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: $dark;
+            margin: 0 0 5px;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: $muted;
+            margin: 0;
+            flex-wrap: wrap;
+
+            mat-icon {
+                font-size: 14px;
+                width: 14px;
+                height: 14px;
+            }
+
+            .sep {
+                color: $border;
+            }
+        }
+    }
+
+    .btn-save {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        background: linear-gradient(135deg, $teal, #0d9488);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .2s;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+
+        &:hover:not(:disabled) {
+            box-shadow: 0 6px 18px rgba($teal, .4);
+            transform: translateY(-1px);
+        }
+
+        &:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+    }
+}
+
+// ── States ────────────────────────────────────────────────────
+.state-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 20px;
+    text-align: center;
+    color: $muted;
+
+    .spinner-ring {
+        width: 38px;
+        height: 38px;
+        border: 3px solid $border;
+        border-top-color: $teal;
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+        margin-bottom: 16px;
+    }
+
+    p {
+        font-size: 14px;
+        margin: 0;
+    }
+}
+
+.error-state {
+    mat-icon {
+        font-size: 44px;
+        width: 44px;
+        height: 44px;
+        color: $red;
+        margin-bottom: 8px;
+    }
+
+    h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: $dark;
+        margin: 0 0 4px;
+    }
+
+    .btn-retry {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 20px;
+        border: 1px solid $teal;
+        border-radius: 8px;
+        background: transparent;
+        color: $teal;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+
+        &:hover {
+            background: rgba($teal, .08);
+        }
+    }
+}
+
+// ── Stats ─────────────────────────────────────────────────────
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+
+    @media (max-width: 900px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 560px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .03);
+    transition: transform .2s, box-shadow .2s;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, .07);
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+            font-size: 22px;
+            width: 22px;
+            height: 22px;
+        }
+    }
+
+    .stat-data {
+        display: flex;
+        flex-direction: column;
+
+        .num {
+            font-size: 28px;
+            font-weight: 700;
+            color: $dark;
+            line-height: 1;
+        }
+
+        .lbl {
+            font-size: 11px;
+            color: $muted;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin-top: 3px;
+        }
+    }
+
+    &.green .stat-icon {
+        background: rgba($green, .1);
+        color: $green;
+    }
+
+    &.orange .stat-icon {
+        background: rgba($orange, .1);
+        color: $orange;
+    }
+
+    &.red .stat-icon {
+        background: rgba($red, .1);
+        color: $red;
+    }
+
+    &.blue .stat-icon {
+        background: rgba($blue, .1);
+        color: $blue;
+    }
+
+    &.teal.pct-card {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 14px;
+        border-left: 3px solid $teal;
+
+        .pct-ring {
+            position: relative;
+            width: 60px;
+            height: 60px;
+
+            svg {
+                width: 60px;
+                height: 60px;
+                transform: rotate(-90deg);
+
+                circle {
+                    fill: none;
+                    stroke-width: 3;
+                }
+
+                .bg {
+                    stroke: $border;
+                }
+
+                .fg {
+                    stroke: $teal;
+                    stroke-linecap: round;
+                    transition: stroke-dasharray .6s ease;
+                }
+            }
+
+            .pct-num {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 13px;
+                font-weight: 700;
+                color: $dark;
+            }
+        }
+
+        .lbl {
+            font-size: 11px;
+            color: $muted;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+    }
+}
+
+// ── Quick actions ─────────────────────────────────────────────
+.quick-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+
+    .qa-label {
+        font-size: 13px;
+        color: $muted;
+        font-weight: 500;
+    }
+
+    .qa-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 8px;
+        border: 1px solid;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s;
+
+        mat-icon {
+            font-size: 15px;
+            width: 15px;
+            height: 15px;
+        }
+
+        &.green {
+            border-color: rgba($green, .3);
+            color: $green;
+            background: rgba($green, .06);
+
+            &:hover {
+                background: rgba($green, .12);
+            }
+        }
+
+        &.orange {
+            border-color: rgba($orange, .3);
+            color: $orange;
+            background: rgba($orange, .06);
+
+            &:hover {
+                background: rgba($orange, .12);
+            }
+        }
+
+        &.red {
+            border-color: rgba($red, .3);
+            color: $red;
+            background: rgba($red, .06);
+
+            &:hover {
+                background: rgba($red, .12);
+            }
+        }
+    }
+}
+
+// ── Student list ──────────────────────────────────────────────
+.students-card {
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .04);
+}
+
+.list-header {
+    display: grid;
+    grid-template-columns: 44px 1fr 380px;
+    padding: 12px 20px;
+    background: $bg;
+    border-bottom: 1px solid $border;
+    font-size: 11px;
+    font-weight: 700;
+    color: $muted;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+
+    .col-estado {
+        text-align: left;
+    }
+
+    @media (max-width: 720px) {
+        display: none;
+    }
+}
+
+.student-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 380px;
+    align-items: center;
+    padding: 11px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    border-left: 3px solid transparent;
+    transition: background .12s;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: #f8fafc;
+    }
+
+    &.borde-asistio {
+        border-left-color: $green;
+    }
+
+    &.borde-tardanza {
+        border-left-color: $orange;
+    }
+
+    &.borde-falta {
+        border-left-color: $red;
+    }
+
+    &.borde-justificado {
+        border-left-color: $blue;
+    }
+
+    .muted {
+        font-size: 12px;
+        color: $muted;
+        font-weight: 600;
+    }
+
+    .col-alumno {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .avatar-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .alumno-info {
+            .nombre {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: $dark;
+            }
+
+            .codigo {
+                display: block;
+                font-size: 11px;
+                color: $muted;
+            }
+        }
+    }
+
+    .col-estado {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    @media (max-width: 720px) {
+        grid-template-columns: 36px 1fr;
+        grid-template-rows: auto auto;
+        gap: 8px;
+
+        .col-estado {
+            grid-column: 1 / -1;
+            flex-wrap: wrap;
+        }
+    }
+}
+
+// ── Status buttons ────────────────────────────────────────────
+.est-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border-radius: 8px;
+    border: 1px solid;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    transition: all .12s;
+
+    mat-icon {
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+    }
+
+    span {
+        @media (max-width: 860px) {
+            display: none;
+        }
+    }
+
+    &.asistio {
+        border-color: #d1fae5;
+        color: $green;
+
+        &.active {
+            background: $green;
+            color: #fff;
+            border-color: $green;
+        }
+
+        &:not(.active):hover {
+            background: rgba($green, .1);
+        }
+    }
+
+    &.tardanza {
+        border-color: #fef3c7;
+        color: $orange;
+
+        &.active {
+            background: $orange;
+            color: #fff;
+            border-color: $orange;
+        }
+
+        &:not(.active):hover {
+            background: rgba($orange, .1);
+        }
+    }
+
+    &.falta {
+        border-color: #fee2e2;
+        color: $red;
+
+        &.active {
+            background: $red;
+            color: #fff;
+            border-color: $red;
+        }
+
+        &:not(.active):hover {
+            background: rgba($red, .1);
+        }
+    }
+
+    &.justificado {
+        border-color: #dbeafe;
+        color: $blue;
+
+        &.active {
+            background: $blue;
+            color: #fff;
+            border-color: $blue;
+        }
+
+        &:not(.active):hover {
+            background: rgba($blue, .1);
+        }
+    }
+}
+
+// ── Empty ─────────────────────────────────────────────────────
+.empty-list {
+    text-align: center;
+    padding: 56px 20px;
+    color: $muted;
+
+    mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        opacity: .35;
+        display: block;
+        margin: 0 auto 12px;
+    }
+
+    p {
+        font-size: 14px;
+        margin: 0;
+    }
+}
+
+// ── Bottom bar ────────────────────────────────────────────────
+.bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, .95);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid $border;
+    padding: 14px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 200;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, .07);
+
+    @media (max-width: 768px) {
+        padding: 12px 16px;
+    }
+
+    .bottom-stats {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: $muted;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .pct-badge {
+            background: rgba($teal, .1);
+            color: $teal;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+    }
+
+    .btn-save-bottom {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        background: linear-gradient(135deg, $teal, #0d9488);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .2s;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+
+        &:hover:not(:disabled) {
+            box-shadow: 0 6px 22px rgba($teal, .45);
+        }
+
+        &:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+    }
+}

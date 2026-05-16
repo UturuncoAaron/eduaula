@@ -1,0 +1,178 @@
+<div class="asistencia-container fade-in">
+
+    <!-- ── HEADER ──────────────────────────────────────────── -->
+    <div class="page-header">
+        <button class="btn-back" (click)="volver()" title="Volver al dashboard">
+            <mat-icon>arrow_back_ios_new</mat-icon>
+        </button>
+        <div class="header-info">
+            <h1>Registro de Asistencia</h1>
+            <p class="header-meta">
+                <mat-icon>school</mat-icon>
+                {{ gradoNombre() }} — Sección {{ seccionNombre() }}
+                <span class="sep">·</span>
+                <mat-icon>calendar_today</mat-icon>
+                {{ fechaLabel }}
+            </p>
+        </div>
+        @if (!loading() && !error() && alumnos().length) {
+        <button class="btn-save" (click)="guardar()" [disabled]="saving()">
+            <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
+            {{ saving() ? 'Guardando...' : 'Guardar asistencia' }}
+        </button>
+        }
+    </div>
+
+    <!-- ── LOADING ──────────────────────────────────────────── -->
+    @if (loading()) {
+    <div class="state-center">
+        <div class="spinner-ring"></div>
+        <p>Cargando lista de alumnos...</p>
+    </div>
+
+    <!-- ── ERROR ────────────────────────────────────────────── -->
+    } @else if (error()) {
+    <div class="state-center error-state">
+        <mat-icon>error_outline</mat-icon>
+        <h3>No se pudo cargar</h3>
+        <p>{{ error() }}</p>
+        <button class="btn-retry" (click)="loadData()">
+            <mat-icon>refresh</mat-icon> Reintentar
+        </button>
+    </div>
+
+    <!-- ── CONTENIDO ────────────────────────────────────────── -->
+    } @else {
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card green">
+            <div class="stat-icon"><mat-icon>check_circle</mat-icon></div>
+            <div class="stat-data">
+                <span class="num">{{ totalPresentes() }}</span>
+                <span class="lbl">Presentes</span>
+            </div>
+        </div>
+        <div class="stat-card orange">
+            <div class="stat-icon"><mat-icon>schedule</mat-icon></div>
+            <div class="stat-data">
+                <span class="num">{{ totalTardanzas() }}</span>
+                <span class="lbl">Tardanzas</span>
+            </div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-icon"><mat-icon>cancel</mat-icon></div>
+            <div class="stat-data">
+                <span class="num">{{ totalFaltas() }}</span>
+                <span class="lbl">Faltas</span>
+            </div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-icon"><mat-icon>assignment_turned_in</mat-icon></div>
+            <div class="stat-data">
+                <span class="num">{{ totalJustificados() }}</span>
+                <span class="lbl">Justificados</span>
+            </div>
+        </div>
+        <div class="stat-card teal pct-card">
+            <div class="pct-ring">
+                <svg viewBox="0 0 36 36">
+                    <circle class="bg" cx="18" cy="18" r="15.9" />
+                    <circle class="fg" cx="18" cy="18" r="15.9" [style.stroke-dasharray]="pctAsistencia() + ' 100'" />
+                </svg>
+                <span class="pct-num">{{ pctAsistencia() }}%</span>
+            </div>
+            <span class="lbl">Asistencia general</span>
+        </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="quick-actions">
+        <span class="qa-label">Marcar todos como:</span>
+        <button class="qa-btn green" (click)="marcarTodos('asistio')">
+            <mat-icon>check_circle</mat-icon> Presentes
+        </button>
+        <button class="qa-btn orange" (click)="marcarTodos('tardanza')">
+            <mat-icon>schedule</mat-icon> Tardanza
+        </button>
+        <button class="qa-btn red" (click)="marcarTodos('falta')">
+            <mat-icon>cancel</mat-icon> Falta
+        </button>
+    </div>
+
+    <!-- Student list -->
+    <div class="students-card">
+
+        <div class="list-header">
+            <span class="col-num">#</span>
+            <span class="col-alumno">Alumno</span>
+            <span class="col-estado">Estado de asistencia</span>
+        </div>
+
+        @for (a of alumnos(); track a.id; let i = $index) {
+        <div class="student-row" [class]="'borde-' + a.estado">
+            <span class="col-num muted">{{ i + 1 }}</span>
+
+            <div class="col-alumno">
+                @if (a.foto_url) {
+                <img class="avatar" [src]="a.foto_url" [alt]="a.nombre" />
+                } @else {
+                <div class="avatar avatar-initials" [style.background]="getAvatarColor(a.apellido_paterno)">
+                    {{ initials(a) }}
+                </div>
+                }
+                <div class="alumno-info">
+                    <span class="nombre">{{ a.apellido_paterno }} {{ a.apellido_materno }}, {{ a.nombre }}</span>
+                    <span class="codigo">{{ a.codigo_estudiante }}</span>
+                </div>
+            </div>
+
+            <div class="col-estado">
+                <button class="est-btn asistio" [class.active]="a.estado === 'asistio'"
+                    (click)="setEstado(a.id, 'asistio')" title="Asistió">
+                    <mat-icon>check</mat-icon>
+                    <span>Asistió</span>
+                </button>
+                <button class="est-btn tardanza" [class.active]="a.estado === 'tardanza'"
+                    (click)="setEstado(a.id, 'tardanza')" title="Tardanza">
+                    <mat-icon>schedule</mat-icon>
+                    <span>Tardanza</span>
+                </button>
+                <button class="est-btn falta" [class.active]="a.estado === 'falta'" (click)="setEstado(a.id, 'falta')"
+                    title="Falta">
+                    <mat-icon>close</mat-icon>
+                    <span>Falta</span>
+                </button>
+                <button class="est-btn justificado" [class.active]="a.estado === 'justificado'"
+                    (click)="setEstado(a.id, 'justificado')" title="Justificado">
+                    <mat-icon>assignment_turned_in</mat-icon>
+                    <span>Justificado</span>
+                </button>
+            </div>
+        </div>
+        }
+
+        @empty {
+        <div class="empty-list">
+            <mat-icon>person_search</mat-icon>
+            <p>No hay alumnos matriculados en esta sección.</p>
+        </div>
+        }
+    </div>
+    }
+</div>
+
+<!-- ── BOTTOM BAR ──────────────────────────────────────── -->
+@if (!loading() && !error() && alumnos().length) {
+<div class="bottom-bar">
+    <div class="bottom-stats">
+        <mat-icon>people</mat-icon>
+        <span>{{ alumnos().length }} alumnos</span>
+        <span class="pct-badge">{{ pctAsistencia() }}% asistencia</span>
+    </div>
+    <button class="btn-save-bottom" (click)="guardar()" [disabled]="saving()">
+        <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
+        {{ saving() ? 'Guardando...' : 'Guardar asistencia' }}
+    </button>
+</div>
+}

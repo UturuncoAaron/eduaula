@@ -5,7 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { debounceTime, distinctUntilChanged, switchMap, filter, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -42,7 +42,7 @@ function unwrapArray(res: any): any[] {
   imports: [
     ReactiveFormsModule, MatDialogModule, MatFormFieldModule,
     MatInputModule, MatButtonModule, MatIconModule,
-    MatSnackBarModule, MatProgressSpinnerModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './enroll-alumno-dialog.html',
   styleUrl: './enroll-alumno-dialog.scss',
@@ -51,7 +51,7 @@ export class EnrollAlumnoDialog implements OnInit {
   readonly data: EnrollAlumnoDialogData = inject(MAT_DIALOG_DATA);
   private ref = inject(MatDialogRef<EnrollAlumnoDialog>);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   searchCtrl = new FormControl('');
   searching = signal(false);
@@ -101,14 +101,14 @@ export class EnrollAlumnoDialog implements OnInit {
     }).subscribe({
       next: () => {
         const a = this.selectedAlumno();
-        this.snack.open(
+        this.toastr.success(
           `${a?.nombre} ${a?.apellido_paterno} matriculado correctamente`,
           'OK', { duration: 3000 },
         );
         this.ref.close(this.selectedAlumno());
       },
       error: (err) => {
-        this.snack.open(err?.error?.message ?? 'Error al matricular', 'Cerrar', { duration: 4000 });
+        this.toastr.error(err?.error?.message ?? 'Error al matricular', 'Cerrar', { duration: 4000 });
         this.saving.set(false);
       },
     });

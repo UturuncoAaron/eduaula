@@ -14,7 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AppointmentsStore } from '../../data-access/appointments.store';
@@ -36,7 +36,7 @@ type EstadoFilter = AppointmentEstado | 'all';
         MatDialogModule, MatDividerModule,
         MatFormFieldModule, MatIconModule, MatInputModule,
         MatProgressSpinnerModule, MatSelectModule,
-        MatSnackBarModule, MatTooltipModule,
+        MatTooltipModule,
         EmptyState,
     ],
     templateUrl: './mis-citas.html',
@@ -47,7 +47,7 @@ export class MisCitas {
     protected readonly store = inject(AppointmentsStore);
     private readonly auth = inject(AuthService);
     private readonly dialog = inject(MatDialog);
-    private readonly snack = inject(MatSnackBar);
+    private readonly toastr = inject(ToastService);
 
     readonly mode = computed<'alumno' | 'padre'>(() =>
         this.auth.isPadre() ? 'padre' : 'alumno',
@@ -208,9 +208,9 @@ export class MisCitas {
                     ? 'Cancelada por el alumno'
                     : 'Cancelada por el padre/tutor',
             });
-            this.snack.open('Cita cancelada', 'OK', { duration: 2500 });
+            this.toastr.success('Cita cancelada', 'OK', { duration: 2500 });
         } catch (err: unknown) {
-            this.snack.open(parseApiError(err, 'No se pudo cancelar la cita'), 'OK', { duration: 4500 });
+            this.toastr.error(parseApiError(err, 'No se pudo cancelar la cita'), 'OK', { duration: 4500 });
         }
     }
 }

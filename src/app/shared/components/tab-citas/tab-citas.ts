@@ -15,7 +15,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -53,7 +53,7 @@ function startOfWeek(d: Date): Date {
     MatButtonModule, MatDialogModule, MatDividerModule,
     MatFormFieldModule, MatIconModule, MatInputModule, MatMenuModule,
     MatPaginatorModule, MatProgressSpinnerModule, MatSelectModule,
-    MatSnackBarModule, MatSortModule, MatTableModule, MatTooltipModule,
+    MatSortModule, MatTableModule, MatTooltipModule,
     MatChipsModule,
     EmptyState,
   ],
@@ -64,7 +64,7 @@ export class TabCitas {
   protected readonly apptStore = inject(AppointmentsStore);
   private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
-  private readonly snack = inject(MatSnackBar);
+  private readonly toastr = inject(ToastService);
 
   // ── Rol del usuario logueado ─────────────────────────────────
   readonly rol = computed(() => this.auth.currentUser()?.rol ?? '');
@@ -302,21 +302,21 @@ export class TabCitas {
     if (row.estado === estado) return;
     try {
       await this.apptStore.updateAppointment(row.id, { estado });
-      this.snack.open(
+      this.toastr.success(
         `Marcada como ${this.estadoLabel(estado).toLowerCase()}`, 'OK',
         { duration: 2500 },
       );
     } catch {
-      this.snack.open('No se pudo actualizar el estado', 'OK', { duration: 4000 });
+      this.toastr.error('No se pudo actualizar el estado', 'OK', { duration: 4000 });
     }
   }
 
   async aceptar(row: Appointment): Promise<void> {
     try {
       await this.apptStore.acceptAppointment(row.id);
-      this.snack.open('Cita aceptada', 'OK', { duration: 2500 });
+      this.toastr.success('Cita aceptada', 'OK', { duration: 2500 });
     } catch {
-      this.snack.open('No se pudo aceptar la cita', 'OK', { duration: 4000 });
+      this.toastr.error('No se pudo aceptar la cita', 'OK', { duration: 4000 });
     }
   }
 
@@ -332,9 +332,9 @@ export class TabCitas {
 
     try {
       await this.apptStore.rejectAppointment(row.id, res.motivo);
-      this.snack.open('Cita rechazada', 'OK', { duration: 2500 });
+      this.toastr.success('Cita rechazada', 'OK', { duration: 2500 });
     } catch {
-      this.snack.open('No se pudo rechazar la cita', 'OK', { duration: 4000 });
+      this.toastr.error('No se pudo rechazar la cita', 'OK', { duration: 4000 });
     }
   }
 

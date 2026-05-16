@@ -15,7 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
 import { ReportsStore } from '../../data-access/reports.store';
@@ -48,7 +48,7 @@ interface ListaItem {
 })
 export class SectionReportTab implements OnInit {
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr= inject(ToastService);
   readonly store = inject(ReportsStore);
 
   readonly grados = signal<ListaItem[]>([]);
@@ -90,7 +90,7 @@ export class SectionReportTab implements OnInit {
 
   cargar(): void {
     if (!this.seccionId || !this.periodoId) {
-      this.snack.open('Selecciona sección y periodo', 'OK', { duration: 3000 });
+      this.toastr.success('Selecciona sección y periodo', 'OK', { duration: 3000 });
       return;
     }
     this.store.loadSeccionResumen(this.seccionId, this.periodoId);

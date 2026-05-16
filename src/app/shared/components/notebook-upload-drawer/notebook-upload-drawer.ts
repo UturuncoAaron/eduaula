@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 
 import { environment } from '../../../../environments/environment';
 
@@ -40,7 +40,7 @@ export interface NotebookUploadTarget {
 })
 export class NotebookUploadDrawer {
   private http = inject(HttpClient);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   target = input<NotebookUploadTarget | null>(null);
 
@@ -68,7 +68,7 @@ export class NotebookUploadDrawer {
     const f = e.dataTransfer?.files?.[0];
     if (!f) return;
     if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) {
-      this.snack.open('Solo se aceptan archivos PDF', 'Cerrar', { duration: 3000 });
+      this.toastr.error('Solo se aceptan archivos PDF', 'Cerrar', { duration: 3000 });
       return;
     }
     this.file.set(f);
@@ -107,15 +107,14 @@ export class NotebookUploadDrawer {
     this.http.post(url, fd).subscribe({
       next: () => {
         this.uploading.set(false);
-        this.snack.open('Libreta subida correctamente', 'Cerrar',
-          { duration: 3000 });
+        this.toastr.success('Libreta subida correctamente', 'Cerrar', { duration: 3000 });
         this.uploaded.emit();
         this.reset();
       },
       error: (err) => {
         this.uploading.set(false);
         const msg = err?.error?.message ?? 'Error al subir la libreta';
-        this.snack.open(msg, 'Cerrar', { duration: 5000 });
+        this.toastr.error(msg, 'Cerrar', { duration: 5000 });
       },
     });
   }

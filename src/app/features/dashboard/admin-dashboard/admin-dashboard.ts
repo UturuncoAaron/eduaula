@@ -44,7 +44,6 @@ export class AdminDashboard implements OnInit {
     { label: 'Vincular familias', desc: 'Relación padre-hijo', icon: 'family_restroom', route: '/admin/parent-child-link', color: 'green' },
     { label: 'Matrículas', desc: 'Gestión de matrículas', icon: 'how_to_reg', route: '/admin/matriculas', color: 'teal' },
     { label: 'Exportar reportes', desc: 'Métricas y excel', icon: 'analytics', route: '/admin/reports', color: 'orange' },
-    { label: 'Ajustes del sistema', desc: 'Configuración general', icon: 'settings', route: '/admin/settings', color: 'gray' },
   ];
 
   readonly alertaConfig: Record<AlertaOperativa['tipo'], { icon: string; color: string }> = {

@@ -6,12 +6,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 
 export interface AddCourseDialogData {
-  seccionId: number;
-  periodoId: number;
+  seccionId: string;
+  periodoId: string;
   seccionNombre: string;
   gradoNombre: string;
 }
@@ -23,7 +23,6 @@ interface DocenteOption {
   especialidad?: string;
 }
 
-// Colores predefinidos para el curso
 const COURSE_COLORS = [
   { label: 'Azul', value: '#3B82F6' },
   { label: 'Verde', value: '#10B981' },
@@ -46,7 +45,6 @@ const COURSE_COLORS = [
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule,
   ],
   templateUrl: './add-course-dialog.html',
   styleUrl: './add-course-dialog.scss',
@@ -56,7 +54,7 @@ export class AddCourseDialog implements OnInit {
   private ref = inject(MatDialogRef<AddCourseDialog>);
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
 
   docentes = signal<DocenteOption[]>([]);
   saving = signal(false);
@@ -69,44 +67,58 @@ export class AddCourseDialog implements OnInit {
     docente_id: [null as string | null],
   });
 
-  ngOnInit() {
-    // Cargar docentes para asignación opcional
-    this.api.get<DocenteOption[]>('admin/users/docentes').subscribe({
-      next: r => this.docentes.set(r.data ?? []),
+  ngOnInit(): void {
+    this.api.get<any>('admin/users/docentes').subscribe({
+      next: (r: any) => {
+        const lista: DocenteOption[] = (
+          r?.data?.data ?? r?.data ?? []
+        ) as DocenteOption[];
+        this.docentes.set(lista);
+      },
       error: () => { },
     });
   }
 
-  submit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+  submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     this.saving.set(true);
     const v = this.form.value;
 
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       nombre: v.nombre!.trim(),
       seccion_id: this.data.seccionId,
       periodo_id: this.data.periodoId,
       color: v.color ?? '#6B7280',
     };
 
-    if (v.descripcion?.trim()) payload.descripcion = v.descripcion.trim();
-    if (v.docente_id) payload.docente_id = v.docente_id;
+    if (v.descripcion?.trim()) payload['descripcion'] = v.descripcion.trim();
+    if (v.docente_id) payload['docente_id'] = v.docente_id;
 
     this.api.post('courses', payload).subscribe({
-      next: (r) => {
-        this.snack.open(`Curso "${v.nombre}" agregado correctamente`, 'OK', { duration: 3000 });
-        this.ref.close(r.data); // devuelve el curso creado
+      next: (r: any) => {
+        this.toastr.success(
+          `Curso "${v.nombre}" agregado correctamente`,
+          'OK',
+          { duration: 3000 },
+        );
+        this.ref.close(r.data);
       },
-      error: (err) => {
-        this.snack.open(
+      error: (err: any) => {
+        this.toastr.error(
           err?.error?.message ?? 'Error al crear el curso',
-          'Cerrar', { duration: 4000 },
+          'Cerrar',
+          { duration: 4000 },
         );
         this.saving.set(false);
       },
     });
   }
 
-  cancel() { this.ref.close(null); }
+  cancel(): void {
+    this.ref.close(null);
+  }
 }

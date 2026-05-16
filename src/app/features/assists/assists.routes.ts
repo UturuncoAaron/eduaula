@@ -39,4 +39,16 @@ export const ASSISTS_ROUTES: Routes = [
             import('./asistencia-docentes/asistencia-docentes')
                 .then(c => c.AsistenciaDocentes),
     },
+
+
+    {
+        path: 'general/:seccionId',              // ← esta es la que faltaba
+        loadComponent: () =>
+            import('./general/general-asistencia').then(m => m.GeneralAsistencia),
+    },
+    {
+        path: 'docentes',
+        loadComponent: () =>
+            import('./docente/docente-asistencia').then(m => m.DocenteAsistencia),
+    },
 ];

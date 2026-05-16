@@ -1,0 +1,169 @@
+<div class="asistencia-container fade-in">
+
+    <div class="page-header">
+        <button class="btn-back" (click)="volver()">
+            <mat-icon>arrow_back_ios_new</mat-icon>
+        </button>
+        <div class="header-info">
+            <h1>Asistencia de Docentes</h1>
+            <p class="header-meta">
+                <mat-icon>calendar_today</mat-icon>
+                {{ fechaLabel }}
+            </p>
+        </div>
+        @if (!loading() && !error() && horarios().length) {
+        <button class="btn-save" (click)="guardar()" [disabled]="saving()">
+            <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
+            {{ saving() ? 'Guardando...' : 'Guardar asistencia' }}
+        </button>
+        }
+    </div>
+
+    @if (loading()) {
+    <div class="state-center">
+        <div class="spinner-ring"></div>
+        <p>Cargando horarios del día...</p>
+    </div>
+
+    } @else if (error()) {
+    <div class="state-center error-state">
+        <mat-icon>error_outline</mat-icon>
+        <h3>No se pudo cargar</h3>
+        <p>{{ error() }}</p>
+        <button class="btn-retry" (click)="loadHorarios()">
+            <mat-icon>refresh</mat-icon> Reintentar
+        </button>
+    </div>
+
+    } @else {
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card green">
+            <div class="stat-icon"><mat-icon>how_to_reg</mat-icon></div>
+            <div class="stat-data">
+                <span class="num">{{ totalPresentes() }}</span>
+                <span class="lbl">Presentes</span>
+            </div>
+        </div>
+        <div class="stat-card orange">
+            <div class="stat-icon"><mat-icon>schedule</mat-icon></div>
+            <div class="stat-data">
+                <span class="num">{{ totalTardanzas() }}</span>
+                <span class="lbl">Tardanzas</span>
+            </div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-icon"><mat-icon>person_off</mat-icon></div>
+            <div class="stat-data">
+                <span class="num">{{ totalAusentes() }}</span>
+                <span class="lbl">Ausentes</span>
+            </div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-icon"><mat-icon>groups</mat-icon></div>
+            <div class="stat-data">
+                <span class="num">{{ horarios().length }}</span>
+                <span class="lbl">Clases hoy</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="quick-actions">
+        <span class="qa-label">Marcar todos:</span>
+        <button class="qa-btn green" (click)="marcarTodos('presente')">
+            <mat-icon>check_circle</mat-icon> Presentes
+        </button>
+        <button class="qa-btn orange" (click)="marcarTodos('tardanza')">
+            <mat-icon>schedule</mat-icon> Tardanza
+        </button>
+        <button class="qa-btn red" (click)="marcarTodos('ausente')">
+            <mat-icon>cancel</mat-icon> Ausente
+        </button>
+    </div>
+
+    <!-- Docente list -->
+    <div class="students-card">
+
+        <div class="list-header">
+            <span class="col-num">#</span>
+            <span class="col-alumno">Docente</span>
+            <span class="col-clase">Clase</span>
+            <span class="col-estado">Estado</span>
+        </div>
+
+        @for (h of horarios(); track h.horarioId; let i = $index) {
+        <div class="student-row" [class]="'borde-' + h.estado">
+            <span class="col-num muted">{{ i + 1 }}</span>
+
+            <div class="col-alumno">
+                <div class="avatar-initials" [style.background]="getAvatarColor(h.apellidoPaterno)">
+                    {{ initials(h) }}
+                </div>
+                <div class="alumno-info">
+                    <span class="nombre">{{ h.apellidoPaterno }}, {{ h.nombre }}</span>
+                    <span class="codigo">{{ h.especialidad || 'Sin especialidad' }}</span>
+                </div>
+            </div>
+
+            <div class="col-clase">
+                <span class="curso-badge">{{ h.cursoNombre }}</span>
+                <span class="horario-meta">
+                    <mat-icon>schedule</mat-icon>
+                    {{ h.horaInicio }} – {{ h.horaFin }}
+                    @if (h.aula) { · Aula {{ h.aula }} }
+                </span>
+            </div>
+
+            <div class="col-estado">
+                <button class="est-btn presente" [class.active]="h.estado === 'presente'"
+                    (click)="setEstado(h.horarioId, 'presente')">
+                    <mat-icon>check</mat-icon><span>Presente</span>
+                </button>
+                <button class="est-btn tardanza" [class.active]="h.estado === 'tardanza'"
+                    (click)="setEstado(h.horarioId, 'tardanza')">
+                    <mat-icon>schedule</mat-icon><span>Tardanza</span>
+                </button>
+                <button class="est-btn ausente" [class.active]="h.estado === 'ausente'"
+                    (click)="setEstado(h.horarioId, 'ausente')">
+                    <mat-icon>close</mat-icon><span>Ausente</span>
+                </button>
+                <button class="est-btn permiso" [class.active]="h.estado === 'permiso'"
+                    (click)="setEstado(h.horarioId, 'permiso')">
+                    <mat-icon>assignment_ind</mat-icon><span>Permiso</span>
+                </button>
+                <button class="est-btn licencia" [class.active]="h.estado === 'licencia'"
+                    (click)="setEstado(h.horarioId, 'licencia')">
+                    <mat-icon>beach_access</mat-icon><span>Licencia</span>
+                </button>
+            </div>
+        </div>
+        }
+
+        @empty {
+        <div class="empty-list">
+            <mat-icon>event_busy</mat-icon>
+            <p>No hay clases programadas para hoy ({{ diaSemana }}).</p>
+        </div>
+        }
+    </div>
+    }
+</div>
+
+@if (!loading() && !error() && horarios().length) {
+<div class="bottom-bar">
+    <div class="bottom-stats">
+        <mat-icon>person</mat-icon>
+        <span>{{ horarios().length }} clases hoy</span>
+        <span class="pct-badge teal">{{ totalPresentes() }} presentes</span>
+        @if (totalAusentes()) {
+        <span class="pct-badge red">{{ totalAusentes() }} ausentes</span>
+        }
+    </div>
+    <button class="btn-save-bottom" (click)="guardar()" [disabled]="saving()">
+        <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
+        {{ saving() ? 'Guardando...' : 'Guardar asistencia' }}
+    </button>
+</div>
+}

@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
@@ -64,7 +64,7 @@ const TIME_OPTIONS = Array.from({ length: 22 }, (_, i) => {
   imports: [
     MatDialogModule, MatButtonModule, MatIconModule,
     MatSelectModule, MatInputModule, MatFormFieldModule,
-    MatSnackBarModule, MatProgressSpinnerModule,
+    MatProgressSpinnerModule,
     MatTooltipModule, ReactiveFormsModule,
   ],
   templateUrl: './schedule-dialog.html',
@@ -74,7 +74,7 @@ export class ScheduleDialog implements OnInit {
   readonly data = inject<ScheduleDialogData>(MAT_DIALOG_DATA);
   private dialogRef = inject(MatDialogRef<ScheduleDialog>);
   private api = inject(ApiService);
-  private snack = inject(MatSnackBar);
+  private toastr = inject(ToastService);
   private fb = inject(FormBuilder);
 
   // ── State ─────────────────────────────────────────────────────
@@ -110,7 +110,7 @@ export class ScheduleDialog implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.snack.open('Error al cargar el horario', 'Cerrar', { duration: 3000 });
+        this.toastr.error('Error al cargar el horario', 'Cerrar', { duration: 3000 });
         this.loading.set(false);
       },
     });
@@ -154,11 +154,11 @@ export class ScheduleDialog implements OnInit {
             ? { ...c, slots: this.slotsArray.value }
             : c,
         ));
-        this.snack.open('Horario guardado', 'OK', { duration: 2000 });
+        this.toastr.success('Horario guardado', 'OK', { duration: 2000 });
         this.saving.set(false);
       },
       error: (err) => {
-        this.snack.open(
+        this.toastr.error(
           err.error?.message ?? 'Error al guardar el horario',
           'Cerrar', { duration: 4000 },
         );
