@@ -251,3 +251,13 @@ export interface SlotTaken {
     durationMin: number;
     estado: AppointmentEstado;
 }
+
+/**
+ * Slot calculado por el backend: disponibilidad − ocupados − pasados.
+ * `available = false` indica que el slot está ocupado o ya pasó.
+ */
+export interface FreeSlot {
+    start: string;   // HH:mm
+    end: string;     // HH:mm
+    available: boolean;
+}

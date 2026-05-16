@@ -11,6 +11,7 @@ import type {
     SlotTaken,
     AppointmentEstado,
     AppointmentRoleRule,
+    FreeSlot,
 } from '../../../core/models/appointments';
 import type { Psicologa } from '../../../core/models/psychology';
 import type { Child } from '../../../core/models/parent-portal';
@@ -37,6 +38,7 @@ export type {
     ListAppointmentsQuery,
     SlotTaken,
     AppointmentEstado,
+    FreeSlot,
 } from '../../../core/models/appointments';
 
 export type { Psicologa } from '../../../core/models/psychology';
@@ -187,6 +189,30 @@ export class AppointmentsStore {
                 ),
             );
             return unwrapList<SlotTaken>(res.data);
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Slots libres calculados por el backend (disponibilidad − ocupados − pasados).
+     * Ideal para un selector de fecha + hora tipo grid.
+     */
+    async getFreeSlots(
+        cuentaId: string,
+        date: string,
+        slotMinutes?: number,
+    ): Promise<FreeSlot[]> {
+        try {
+            const params: Record<string, string> = { date };
+            if (slotMinutes) params['slotMinutes'] = String(slotMinutes);
+            const res = await firstValueFrom(
+                this.api.get<FreeSlot[] | { data: FreeSlot[] }>(
+                    `appointments/free-slots/${cuentaId}`,
+                    params,
+                ),
+            );
+            return unwrapList<FreeSlot>(res.data);
         } catch {
             return [];
         }

@@ -58,19 +58,19 @@
 
                 <!-- Quick access tiles -->
                 <div class="tiles">
-                    <a class="tile" [routerLink]="['/cursos', course.id]" [queryParams]="{ tab: 'materiales' }">
+                    <a class="tile" [routerLink]="['/cursos', course.id, 'materiales']">
                         <div class="tile-ic tile-ic--blue"><mat-icon>folder_open</mat-icon></div>
                         <span>Materiales</span>
                     </a>
-                    <a class="tile" [routerLink]="['/cursos', course.id]" [queryParams]="{ tab: 'tareas' }">
+                    <a class="tile" [routerLink]="['/cursos', course.id, 'actividades']">
                         <div class="tile-ic tile-ic--green"><mat-icon>assignment</mat-icon></div>
                         <span>Tareas</span>
                     </a>
-                    <a class="tile" [routerLink]="['/cursos', course.id]" [queryParams]="{ tab: 'examenes' }">
-                        <div class="tile-ic tile-ic--amber"><mat-icon>quiz</mat-icon></div>
-                        <span>Exámenes</span>
+                    <a class="tile" [routerLink]="['/cursos', course.id, 'foro']">
+                        <div class="tile-ic tile-ic--amber"><mat-icon>forum</mat-icon></div>
+                        <span>Foro</span>
                     </a>
-                    <a class="tile" [routerLink]="['/cursos', course.id]" [queryParams]="{ tab: 'vivo' }">
+                    <a class="tile" [routerLink]="['/cursos', course.id, 'contenido']">
                         <div class="tile-ic tile-ic--purple"><mat-icon>videocam</mat-icon></div>
                         <span>En vivo</span>
                     </a>

@@ -103,6 +103,37 @@ export function buildWeekBookingSlots(args: BuildWeekBookingArgs): WeekSlot[] {
     });
   }
 
+  // 3) Bloquear slots pasados — si la semana visible incluye "hoy",
+  //    cubrimos desde el inicio de la disponibilidad hasta now + 15 min
+  //    con un bloque 'taken' gris que impide la selección.
+  const MIN_LEAD = 15;
+  const now = new Date();
+  const todayKey = dayIdxToKey(now.getDay());
+  if (todayKey) {
+    // ¿Hoy cae dentro de esta semana?
+    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (todayDate >= wsStart && todayDate < wsEnd) {
+      const cutoff = now.getHours() * 60 + now.getMinutes() + MIN_LEAD;
+      const dayAvail = byDay.get(todayKey);
+      if (dayAvail?.length) {
+        const earliest = Math.min(
+          ...dayAvail.map(a => toMin(a.horaInicio)),
+        );
+        if (cutoff > earliest) {
+          result.push({
+            id: `past-${todayKey}`,
+            dia: todayKey,
+            horaInicio: toHHMM(earliest),
+            horaFin: toHHMM(cutoff),
+            title: 'Pasado',
+            kind: 'taken',
+            color: '#e5e7eb',
+          });
+        }
+      }
+    }
+  }
+
   return result;
 }
 
