@@ -1,0 +1,396 @@
+// ═══════════════════════════════════════════════════════════════
+// not-found.scss — Pantalla completa sin navbar ni sidebar
+// ═══════════════════════════════════════════════════════════════
+
+.nf-page {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #060d1a 0%, #0c1f3f 50%, #102650 100%);
+    overflow: hidden;
+    isolation: isolate;
+    z-index: 9999;
+}
+
+// ── Fondo decorativo ─────────────────────────────────────────
+.nf-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.nf-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+
+    &.b1 {
+        width: 500px;
+        height: 500px;
+        opacity: 0.12;
+        background: radial-gradient(circle, #3b82f6, transparent);
+        top: -150px;
+        right: -100px;
+        animation: blobFloat 10s ease-in-out infinite;
+    }
+
+    &.b2 {
+        width: 350px;
+        height: 350px;
+        opacity: 0.1;
+        background: radial-gradient(circle, #7c3aed, transparent);
+        bottom: -100px;
+        left: -80px;
+        animation: blobFloat 13s ease-in-out infinite reverse;
+    }
+
+    &.b3 {
+        width: 250px;
+        height: 250px;
+        opacity: 0.08;
+        background: radial-gradient(circle, #06b6d4, transparent);
+        top: 40%;
+        left: 40%;
+        animation: blobFloat 8s ease-in-out infinite 2s;
+    }
+}
+
+@keyframes blobFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-24px) scale(1.06);
+    }
+}
+
+.nf-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+}
+
+// ── Contenido ────────────────────────────────────────────────
+.nf-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    padding: 32px 24px;
+    text-align: center;
+    animation: contentIn 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+@keyframes contentIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+// ── Número 404 ───────────────────────────────────────────────
+.nf-number-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    line-height: 1;
+}
+
+.nf-four {
+    font-size: clamp(6rem, 15vw, 11rem);
+    font-weight: 900;
+    letter-spacing: -8px;
+    background: linear-gradient(180deg, #fff 30%, rgba(255, 255, 255, 0.3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 40px rgba(96, 165, 250, 0.3));
+    animation: numberFloat 4s ease-in-out infinite;
+
+    &:first-child {
+        animation-delay: 0s;
+    }
+
+    &:last-child {
+        animation-delay: 0.3s;
+    }
+}
+
+@keyframes numberFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.nf-zero {
+    width: clamp(90px, 13vw, 160px);
+    height: clamp(90px, 13vw, 160px);
+    border-radius: 50%;
+    background: linear-gradient(135deg,
+            rgba(37, 99, 235, 0.2) 0%,
+            rgba(124, 58, 237, 0.2) 100%);
+    border: 3px solid rgba(96, 165, 250, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin: 0 -4px;
+    animation: zeroGlow 3s ease-in-out infinite;
+    box-shadow:
+        0 0 40px rgba(37, 99, 235, 0.2),
+        inset 0 0 30px rgba(37, 99, 235, 0.1);
+}
+
+@keyframes zeroGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 40px rgba(37, 99, 235, 0.2), inset 0 0 30px rgba(37, 99, 235, 0.1);
+    }
+
+    50% {
+        box-shadow: 0 0 60px rgba(124, 58, 237, 0.3), inset 0 0 40px rgba(124, 58, 237, 0.15);
+    }
+}
+
+.nf-zero-inner {
+    width: 85%;
+    height: 85%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nf-svg {
+    width: 100%;
+    height: 100%;
+    animation: svgFloat 3s ease-in-out infinite;
+}
+
+@keyframes svgFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-4px) rotate(3deg);
+    }
+}
+
+// ── Texto ─────────────────────────────────────────────────────
+.nf-text {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 480px;
+}
+
+.nf-title {
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.8px;
+    line-height: 1.1;
+}
+
+.nf-desc {
+    margin: 0;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.65;
+}
+
+// ── Acciones ──────────────────────────────────────────────────
+.nf-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-home {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 32px;
+    height: 52px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #1a3a6b 0%, #2563eb 60%, #3b82f6 100%);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(37, 99, 235, 0.4);
+    transition: all 0.25s ease;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 36px rgba(37, 99, 235, 0.5);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.btn-glow {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+    }
+
+    50%,
+    100% {
+        left: 150%;
+    }
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 24px;
+    height: 52px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+}
+
+// ── Código de error ───────────────────────────────────────────
+.nf-code-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+}
+
+.nf-code-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.nf-code {
+    font-size: 12px;
+    font-weight: 700;
+    color: #60a5fa;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+}
+
+// ════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ════════════════════════════════════════════════════════════════
+@media (max-width: 600px) {
+    .nf-content {
+        gap: 24px;
+        padding: 24px 20px;
+    }
+
+    .nf-four {
+        letter-spacing: -4px;
+    }
+
+    .nf-desc {
+        font-size: 14px;
+    }
+
+    .btn-home,
+    .btn-back {
+        height: 46px;
+        font-size: 13px;
+    }
+
+    .btn-home {
+        padding: 0 24px;
+    }
+}
+
+@media (max-width: 380px) {
+    .nf-actions {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        max-width: 280px;
+    }
+
+    .btn-home,
+    .btn-back {
+        justify-content: center;
+    }
+
+    .nf-four {
+        letter-spacing: -2px;
+    }
+}

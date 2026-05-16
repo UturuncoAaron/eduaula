@@ -1,0 +1,72 @@
+<div class="nf-page">
+
+    <!-- Fondo decorativo -->
+    <div class="nf-bg">
+        <div class="nf-blob b1"></div>
+        <div class="nf-blob b2"></div>
+        <div class="nf-blob b3"></div>
+        <div class="nf-grid"></div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="nf-content">
+
+        <!-- Número 404 gigante -->
+        <div class="nf-number-wrap">
+            <span class="nf-four">4</span>
+            <div class="nf-zero">
+                <div class="nf-zero-inner">
+                    <!-- Ilustración dentro del 0 -->
+                    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="nf-svg">
+                        <circle cx="60" cy="60" r="54" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)"
+                            stroke-width="2" />
+                        <!-- Telescopio / lupa buscando -->
+                        <circle cx="52" cy="50" r="20" stroke="#60a5fa" stroke-width="3" fill="rgba(96,165,250,0.1)" />
+                        <line x1="66" y1="64" x2="82" y2="82" stroke="#60a5fa" stroke-width="4"
+                            stroke-linecap="round" />
+                        <!-- Estrellitas -->
+                        <circle cx="30" cy="30" r="2" fill="#a78bfa" opacity="0.8" />
+                        <circle cx="88" cy="28" r="1.5" fill="#60a5fa" opacity="0.7" />
+                        <circle cx="92" cy="55" r="2" fill="#a78bfa" opacity="0.6" />
+                        <circle cx="25" cy="75" r="1.5" fill="#67e8f9" opacity="0.7" />
+                        <circle cx="78" cy="90" r="2" fill="#60a5fa" opacity="0.5" />
+                        <!-- Signo de interrogación -->
+                        <text x="38" y="55" font-size="22" font-weight="900" fill="#fff" opacity="0.9"
+                            font-family="system-ui">?</text>
+                    </svg>
+                </div>
+            </div>
+            <span class="nf-four">4</span>
+        </div>
+
+        <!-- Texto -->
+        <div class="nf-text">
+            <h1 class="nf-title">Página no encontrada</h1>
+            <p class="nf-desc">
+                La ruta que buscas no existe o fue movida.<br>
+                Verifica la URL o regresa al inicio.
+            </p>
+        </div>
+
+        <!-- Acciones -->
+        <div class="nf-actions">
+            <button class="btn-home" (click)="goHome()">
+                <span class="btn-glow"></span>
+                <mat-icon>home</mat-icon>
+                <span>Ir al Dashboard</span>
+            </button>
+            <button class="btn-back" (click)="goBack()">
+                <mat-icon>arrow_back</mat-icon>
+                <span>Volver atrás</span>
+            </button>
+        </div>
+
+        <!-- Info extra -->
+        <div class="nf-code-wrap">
+            <span class="nf-code-label">Código de error</span>
+            <span class="nf-code">404 — NOT FOUND</span>
+        </div>
+
+    </div>
+
+</div>

@@ -87,6 +87,7 @@ export const routes: Routes = [
       },
 
       // ═══ ADMIN / AUXILIAR — Agenda propia ════════════════════════════════
+      // ═══ ADMIN / AUXILIAR — Agenda propia ═════════════════════════
       {
         path: 'agenda',
         canActivate: [permissionGuard([MODULO.AGENDA_PROPIA])],
@@ -187,5 +188,17 @@ export const routes: Routes = [
     ],
   },
 
-  { path: '**', redirectTo: 'auth/login' },
+  // ══ 404 — FUERA del layout, pantalla completa ══════════════════════
+  {
+    path: '404',
+    loadComponent: () =>
+      import('./features/not-found/not-found').then(c => c.NotFound),
+    title: 'Página no encontrada | EduAula',
+  },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./features/not-found/not-found').then(c => c.NotFound),
+    title: 'Página no encontrada | EduAula',
+  },
 ];
