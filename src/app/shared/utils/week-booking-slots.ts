@@ -1,160 +1,187 @@
 import {
   AccountAvailability,
   AppointmentEstado,
+  DiaSemana,
   SlotTaken,
 } from '../../core/models/appointments';
+import { WeekSlot } from '../components/week-grid/week-grid.types';
+import { CalendarSlot } from '../components/calendar-grid/calendar-grid.types';
 import {
-  WeekDia,
-  WeekSlot,
-  addDays,
-  toHHMM,
-  toMin,
-} from '../components/week-grid/week-grid.types';
+  addDaysDate,
+  dayIdxToKey,
+  formatHM,
+  parseHM,
+  parseLocalDate,
+} from './calendar-week';
 
-export interface BuildWeekBookingArgs {
-  availability: readonly AccountAvailability[];
-  taken: readonly SlotTaken[];
-  /** Lunes de la semana visible (YYYY-MM-DD). */
-  weekStart: string;
-  /** Días permitidos por la regla (filtra el resultado). */
-  allowedDays?: readonly string[] | null;
+const DEFAULT_SLOT_MINUTES = 30;
+
+// ── Helpers privados ──────────────────────────────────────────────
+
+function titleForEstado(estado: AppointmentEstado): string {
+  switch (estado) {
+    case 'realizada': return 'Realizada';
+    case 'no_asistio': return 'No asistió';
+    default: return 'Ocupado';
+  }
 }
 
-// Paleta de estados ocupados.
-const TAKEN_STYLES: Record<AppointmentEstado, { title: string; color: string }> = {
-  pendiente: { title: 'Pendiente', color: '#fde68a' }, // ámbar suave
-  confirmada: { title: 'Ocupado', color: '#fecaca' }, // rojo suave
-  realizada: { title: 'Realizada', color: '#d1d5db' }, // gris
-  cancelada: { title: 'Cancelada', color: '#e5e7eb' }, // gris claro
-  rechazada: { title: 'Rechazada', color: '#e5e7eb' },
-  no_asistio: { title: 'No asistió', color: '#e5e7eb' },
-};
+function weekRange(weekStart: string): { wsDate: Date; weDate: Date } {
+  const wsDate = parseLocalDate(weekStart);
+  return { wsDate, weDate: addDaysDate(wsDate, 7) };
+}
 
-export function buildWeekBookingSlots(args: BuildWeekBookingArgs): WeekSlot[] {
-  const allowFilter = args.allowedDays && args.allowedDays.length > 0
-    ? new Set(args.allowedDays)
-    : null;
+// ── buildWeekBookingSlots ─────────────────────────────────────────
+// Versión principal — devuelve WeekSlot[] para BookingCalendar.
+// Los slots "realizados" y "no asistió" se muestran con título
+// diferente al de "Ocupado" para que la psicóloga vea el historial.
 
-  const result: WeekSlot[] = [];
+export interface BuildWeekBookingSlotsParams {
+  availability: AccountAvailability[];
+  taken: SlotTaken[];
+  weekStart: string;
+  allowedDays?: readonly string[] | null;
+  slotMinutes?: number;
+}
 
-  // 1) Disponibilidad: un bloque por rango contiguo y mergeado.
-  const byDay = new Map<WeekDia, AccountAvailability[]>();
-  for (const av of args.availability) {
-    if (!av.activo) continue;
-    if (allowFilter && !allowFilter.has(av.diaSemana)) continue;
-    if (!isWeekDia(av.diaSemana)) continue;
-    const list = byDay.get(av.diaSemana) ?? [];
-    list.push(av);
-    byDay.set(av.diaSemana, list);
-  }
+export function buildWeekBookingSlots({
+  availability,
+  taken,
+  weekStart,
+  allowedDays,
+  slotMinutes = DEFAULT_SLOT_MINUTES,
+}: BuildWeekBookingSlotsParams): WeekSlot[] {
+  const slots: WeekSlot[] = [];
+  const index = new Map<string, number>();
+  const step = slotMinutes > 0 ? slotMinutes : DEFAULT_SLOT_MINUTES;
+  const dayFilter = allowedDays?.length ? new Set(allowedDays) : null;
 
-  for (const [dia, list] of byDay) {
-    const ranges = list
-      .map(a => ({ s: toMin(a.horaInicio), e: toMin(a.horaFin) }))
-      .sort((a, b) => a.s - b.s);
-
-    const merged: { s: number; e: number }[] = [];
-    for (const r of ranges) {
-      const last = merged[merged.length - 1];
-      if (last && r.s <= last.e) {
-        last.e = Math.max(last.e, r.e);
-      } else {
-        merged.push({ s: r.s, e: r.e });
-      }
+  const upsert = (slot: WeekSlot): void => {
+    const key = `${slot.dia}__${slot.horaInicio}`;
+    const idx = index.get(key);
+    if (idx !== undefined) {
+      slots[idx] = slot;
+    } else {
+      index.set(key, slots.length);
+      slots.push(slot);
     }
+  };
 
-    for (const m of merged) {
-      result.push({
-        id: `av-${dia}-${m.s}-${m.e}`,
-        dia,
-        horaInicio: toHHMM(m.s),
-        horaFin: toHHMM(m.e),
+  // ── Bloques de disponibilidad → slots "Disponible" ────────────
+  for (const av of availability) {
+    if (!av.activo) continue;
+    if (dayFilter && !dayFilter.has(av.diaSemana)) continue;
+    const startMin = parseHM(av.horaInicio);
+    const endMin = parseHM(av.horaFin);
+    for (let m = startMin; m + step <= endMin; m += step) {
+      upsert({
+        id: `av-${av.id}-${formatHM(m)}`,
+        dia: av.diaSemana,
+        horaInicio: formatHM(m),
+        horaFin: formatHM(m + step),
         title: 'Disponible',
         kind: 'available',
       });
     }
   }
 
-  // 2) Ocupados: un slot por cita activa, con color según estado.
-  const wsStart = parseDate(args.weekStart);
-  const wsEnd = parseDate(addDays(args.weekStart, 7));
+  // ── Citas tomadas → sobrescriben disponibilidad ───────────────
+  const { wsDate, weDate } = weekRange(weekStart);
 
-  for (const t of args.taken) {
+  for (const t of taken) {
     const d = new Date(t.scheduledAt);
-    if (d < wsStart || d >= wsEnd) continue;
+    if (d < wsDate || d >= weDate) continue;
 
-    const diaKey = dayIdxToKey(d.getDay());
-    if (!diaKey) continue;
-    if (allowFilter && !allowFilter.has(diaKey)) continue;
+    const dia = dayIdxToKey(d.getDay());
+    if (!dia) continue;
+    if (dayFilter && !dayFilter.has(dia)) continue;
 
     const startMin = d.getHours() * 60 + d.getMinutes();
-    const dur = t.durationMin ?? 30;
-    const style = TAKEN_STYLES[t.estado] ?? TAKEN_STYLES.confirmada;
+    const dur = t.durationMin ?? step;
 
-    result.push({
-      id: `taken-${t.id}`,
-      dia: diaKey,
-      horaInicio: toHHMM(startMin),
-      horaFin: toHHMM(startMin + dur),
-      title: style.title,
-      subtitle: `${toHHMM(startMin)} – ${toHHMM(startMin + dur)}`,
-      kind: 'taken',
-      color: style.color,
-    });
-  }
-
-  // 3) Bloquear slots pasados — si la semana visible incluye "hoy",
-  //    cubrimos desde el inicio de la disponibilidad hasta now + 15 min
-  //    con un bloque 'taken' gris que impide la selección.
-  const MIN_LEAD = 15;
-  const now = new Date();
-  const todayKey = dayIdxToKey(now.getDay());
-  if (todayKey) {
-    // ¿Hoy cae dentro de esta semana?
-    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    if (todayDate >= wsStart && todayDate < wsEnd) {
-      const cutoff = now.getHours() * 60 + now.getMinutes() + MIN_LEAD;
-      const dayAvail = byDay.get(todayKey);
-      if (dayAvail?.length) {
-        const earliest = Math.min(
-          ...dayAvail.map(a => toMin(a.horaInicio)),
-        );
-        if (cutoff > earliest) {
-          result.push({
-            id: `past-${todayKey}`,
-            dia: todayKey,
-            horaInicio: toHHMM(earliest),
-            horaFin: toHHMM(cutoff),
-            title: 'Pasado',
-            kind: 'taken',
-            color: '#e5e7eb',
-          });
-        }
-      }
+    for (let m = startMin; m < startMin + dur; m += step) {
+      upsert({
+        id: `taken-${t.id}-${formatHM(m)}`,
+        dia: dia as DiaSemana,
+        horaInicio: formatHM(m),
+        horaFin: formatHM(m + step),
+        title: titleForEstado(t.estado),
+        kind: 'taken',
+      });
     }
   }
 
-  return result;
+  return slots;
 }
 
-function parseDate(s: string): Date {
-  const [y, m, d] = s.split('-').map(Number);
-  return new Date(y, (m ?? 1) - 1, d ?? 1);
-}
+// ── buildBookingSlots (legacy) ────────────────────────────────────
+// Mantiene compatibilidad con componentes que usan CalendarSlot.
+// Preferir buildWeekBookingSlots en código nuevo.
 
-function dayIdxToKey(idx: number): WeekDia | null {
-  switch (idx) {
-    case 1: return 'lunes';
-    case 2: return 'martes';
-    case 3: return 'miercoles';
-    case 4: return 'jueves';
-    case 5: return 'viernes';
-    case 6: return 'sabado';
-    default: return null;
+export function buildBookingSlots(
+  availability: AccountAvailability[],
+  taken: SlotTaken[],
+  weekStart: string,
+  slotMinutes: number = DEFAULT_SLOT_MINUTES,
+  allowedDays?: readonly string[] | null,
+): CalendarSlot[] {
+  const slots: CalendarSlot[] = [];
+  const index = new Map<string, number>();
+  const step = slotMinutes > 0 ? slotMinutes : DEFAULT_SLOT_MINUTES;
+  const dayFilter = allowedDays?.length ? new Set(allowedDays) : null;
+
+  const upsert = (slot: CalendarSlot): void => {
+    const key = `${slot.diaSemana}__${slot.startTime}`;
+    const idx = index.get(key);
+    if (idx !== undefined) {
+      slots[idx] = slot;
+    } else {
+      index.set(key, slots.length);
+      slots.push(slot);
+    }
+  };
+
+  for (const av of availability) {
+    if (!av.activo) continue;
+    if (dayFilter && !dayFilter.has(av.diaSemana)) continue;
+    const startMin = parseHM(av.horaInicio);
+    const endMin = parseHM(av.horaFin);
+    for (let m = startMin; m + step <= endMin; m += step) {
+      upsert({
+        id: `av-${av.id}-${formatHM(m)}`,
+        title: 'Disponible',
+        type: 'available',
+        startTime: formatHM(m),
+        endTime: formatHM(m + step),
+        diaSemana: av.diaSemana,
+      });
+    }
   }
-}
 
-function isWeekDia(s: string): s is WeekDia {
-  return s === 'lunes' || s === 'martes' || s === 'miercoles'
-    || s === 'jueves' || s === 'viernes' || s === 'sabado';
+  const { wsDate, weDate } = weekRange(weekStart);
+
+  for (const t of taken) {
+    const d = new Date(t.scheduledAt);
+    if (d < wsDate || d >= weDate) continue;
+
+    const dia = dayIdxToKey(d.getDay());
+    if (!dia) continue;
+    if (dayFilter && !dayFilter.has(dia)) continue;
+
+    const startMin = d.getHours() * 60 + d.getMinutes();
+    const dur = t.durationMin ?? step;
+
+    for (let m = startMin; m < startMin + dur; m += step) {
+      upsert({
+        id: `taken-${t.id}-${formatHM(m)}`,
+        title: titleForEstado(t.estado),
+        type: 'taken',
+        startTime: formatHM(m),
+        endTime: formatHM(m + step),
+        diaSemana: dia as DiaSemana,
+      });
+    }
+  }
+
+  return slots;
 }
