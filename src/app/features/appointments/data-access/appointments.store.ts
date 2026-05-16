@@ -188,8 +188,13 @@ export class AppointmentsStore {
                     { date } as Record<string, string>,
                 ),
             );
-            return unwrapList<SlotTaken>(res.data);
-        } catch {
+            const list = unwrapList<SlotTaken>(res.data);
+            // ✅ log para ver exactamente qué devuelve el backend
+            console.log('[AppointmentsStore] getSlotsTaken recibidos:', list.length, list);
+            return list;
+        } catch (err) {
+            // ✅ antes tragaba el error silenciosamente
+            console.error('[AppointmentsStore] getSlotsTaken ERROR:', err);
             return [];
         }
     }
