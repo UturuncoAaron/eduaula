@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 
 type EstadoDocente = 'presente' | 'tardanza' | 'ausente' | 'permiso' | 'licencia';
@@ -28,7 +28,7 @@ const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', '
 @Component({
     selector: 'app-docente-asistencia',
     standalone: true,
-    imports: [MatIconModule, MatSnackBarModule],
+    imports: [MatIconModule],
     templateUrl: './docente-asistencia.html',
     styleUrl: './docente-asistencia.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,7 +36,7 @@ const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', '
 export class DocenteAsistencia implements OnInit {
     private router = inject(Router);
     private api = inject(ApiService);
-    private snack = inject(MatSnackBar);
+    private toastr = inject(ToastService);
 
     readonly today = new Date();
     readonly todayStr = this.today.toISOString().slice(0, 10);
@@ -118,11 +118,11 @@ export class DocenteAsistencia implements OnInit {
             })),
         }).subscribe({
             next: () => {
-                this.snack.open('Asistencia de docentes guardada ✓', 'OK', { duration: 3000 });
+                this.toastr.success('Asistencia de docentes guardada ✓');
                 this.router.navigate(['/dashboard']);
             },
             error: (err: any) => {
-                this.snack.open(err?.error?.message ?? 'Error al guardar', 'Cerrar', { duration: 4000 });
+                this.toastr.error(err?.error?.message ?? 'Error al guardar');
                 this.saving.set(false);
             },
         });

@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -37,7 +37,7 @@ const DIAS = [
 @Component({
     selector: 'app-general-asistencia',
     standalone: true,
-    imports: [MatIconModule, MatSnackBarModule],
+    imports: [MatIconModule],
     templateUrl: './general-asistencia.html',
     styleUrl: './general-asistencia.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,7 +46,7 @@ export class GeneralAsistencia implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private api = inject(ApiService);
-    private snack = inject(MatSnackBar);
+    private toastr = inject(ToastService);
 
     seccionId = '';
     readonly today = new Date();
@@ -150,15 +150,11 @@ export class GeneralAsistencia implements OnInit {
             alumnos: this.alumnos().map(a => ({ alumno_id: a.id, estado: a.estado })),
         }).subscribe({
             next: () => {
-                this.snack.open('Asistencia guardada correctamente ✓', 'OK', { duration: 3000 });
+                this.toastr.success('Asistencia guardada correctamente ✓');
                 this.router.navigate(['/dashboard']);
             },
             error: (err: any) => {
-                this.snack.open(
-                    err?.error?.message ?? 'Error al guardar la asistencia',
-                    'Cerrar',
-                    { duration: 4000 },
-                );
+                this.toastr.error(err?.error?.message ?? 'Error al guardar la asistencia');
                 this.saving.set(false);
             },
         });
