@@ -723,4 +723,68 @@ $bg: #f8fafc;
             cursor: not-allowed;
         }
     }
+
+    // ── Agregar al final de general-asistencia.scss ───────────────
+
+    // Selector de fecha en el header
+    .date-picker-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1px solid $border;
+        border-radius: 10px;
+        padding: 8px 14px;
+        cursor: pointer;
+        transition: border-color .15s;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: $teal;
+            flex-shrink: 0;
+        }
+
+        &:hover {
+            border-color: $teal;
+        }
+
+        .date-input {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: $dark;
+            background: transparent;
+            cursor: pointer;
+            font-family: inherit;
+        }
+    }
+
+    // Aviso de edición de fecha pasada
+    .edit-notice {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(#f59e0b, .08);
+        border: 1px solid rgba(#f59e0b, .25);
+        border-radius: 10px;
+        padding: 12px 18px;
+        font-size: 13px;
+        color: #92400e;
+        margin-bottom: 20px;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: #f59e0b;
+            flex-shrink: 0;
+        }
+
+        strong {
+            font-weight: 700;
+        }
+    }
 }

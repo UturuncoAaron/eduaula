@@ -97,6 +97,10 @@
                         <mat-icon>edit_note</mat-icon>
                         Registrar
                     </a>
+                    } @else {
+                    <a class="btn-editar" [routerLink]="['/asistencia', 'general', seccion.seccionId]" title="Editar">
+                        <mat-icon>edit</mat-icon>
+                    </a>
                     }
                 </div>
                 } @empty {

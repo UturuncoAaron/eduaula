@@ -8,16 +8,33 @@
             <h1>Asistencia de Docentes</h1>
             <p class="header-meta">
                 <mat-icon>calendar_today</mat-icon>
-                {{ fechaLabel }}
+                {{ fechaLabel() }}
             </p>
         </div>
+
+        <!-- Selector de fecha -->
+        <div class="date-picker-wrap">
+            <mat-icon>edit_calendar</mat-icon>
+            <input type="date" class="date-input" [value]="selectedDate()" [max]="todayStr"
+                (change)="onDateChange($any($event.target).value)" title="Seleccionar fecha" />
+        </div>
+
         @if (!loading() && !error() && horarios().length) {
         <button class="btn-save" (click)="guardar()" [disabled]="saving()">
             <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
-            {{ saving() ? 'Guardando...' : 'Guardar asistencia' }}
+            {{ saving() ? 'Guardando...' : (isToday() ? 'Guardar asistencia' : 'Actualizar registro') }}
         </button>
         }
     </div>
+
+    <!-- Aviso cuando se edita un día pasado -->
+    @if (!isToday() && !loading()) {
+    <div class="edit-notice">
+        <mat-icon>history</mat-icon>
+        Estás editando el registro del <strong>{{ fechaLabel() }}</strong>. Los cambios sobreescribirán el registro
+        existente.
+    </div>
+    }
 
     @if (loading()) {
     <div class="state-center">
@@ -144,7 +161,7 @@
         @empty {
         <div class="empty-list">
             <mat-icon>event_busy</mat-icon>
-            <p>No hay clases programadas para hoy ({{ diaSemana }}).</p>
+            <p>No hay clases programadas para {{ diaSemana() }}.</p>
         </div>
         }
     </div>
@@ -163,7 +180,7 @@
     </div>
     <button class="btn-save-bottom" (click)="guardar()" [disabled]="saving()">
         <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
-        {{ saving() ? 'Guardando...' : 'Guardar asistencia' }}
+        {{ saving() ? 'Guardando...' : (isToday() ? 'Guardar asistencia' : 'Actualizar registro') }}
     </button>
 </div>
 }

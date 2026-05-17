@@ -5,6 +5,8 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 type EstadoDocente = 'presente' | 'tardanza' | 'ausente' | 'permiso' | 'licencia';
 
@@ -38,11 +40,24 @@ export class DocenteAsistencia implements OnInit {
     private api = inject(ApiService);
     private toastr = inject(ToastService);
 
-    readonly today = new Date();
-    readonly todayStr = this.today.toISOString().slice(0, 10);
-    readonly diaSemana = DIAS[this.today.getDay()];
-    readonly fechaLabel = `${this.diaSemana}, ${this.today.getDate()} de ${MESES[this.today.getMonth()]} de ${this.today.getFullYear()}`;
+    // ── Fecha seleccionada (editable) ──────────────────────────
+    readonly todayStr = new Date().toISOString().slice(0, 10);
+    selectedDate = signal<string>(this.todayStr);
 
+    readonly diaSemana = computed(() => {
+        const d = new Date(this.selectedDate() + 'T00:00:00');
+        return DIAS[d.getDay()];
+    });
+
+    readonly fechaLabel = computed(() => {
+        const d = new Date(this.selectedDate() + 'T00:00:00');
+        return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+    });
+
+    readonly isToday = computed(() => this.selectedDate() === this.todayStr);
+    readonly isFuture = computed(() => this.selectedDate() > this.todayStr);
+
+    // ── Estado ─────────────────────────────────────────────────
     loading = signal(true);
     saving = signal(false);
     error = signal<string | null>(null);
@@ -54,15 +69,42 @@ export class DocenteAsistencia implements OnInit {
 
     ngOnInit() { this.loadHorarios(); }
 
+    // ── Cambia la fecha y recarga ──────────────────────────────
+    onDateChange(value: string) {
+        if (!value) return;
+        if (value > this.todayStr) {
+            this.toastr.warning('No puedes registrar asistencia de fechas futuras');
+            return;
+        }
+        this.selectedDate.set(value);
+        this.loadHorarios();
+    }
+
     loadHorarios() {
         this.loading.set(true);
         this.error.set(null);
 
-        // Endpoint: GET /horarios/hoy?dia=lunes
-        // Devuelve los horarios del día con docente_id, docente info, curso info
-        this.api.get<any>(`horarios/hoy?dia=${this.diaSemana}`).subscribe({
-            next: (r: any) => {
-                const lista: any[] = r?.data ?? r ?? [];
+        const dia = this.diaSemana();
+        const fecha = this.selectedDate();
+
+        // Carga horarios del día + registros existentes para esa fecha en paralelo
+        forkJoin({
+            horarios: this.api.get<any>(`horarios/hoy?dia=${dia}`),
+            existentes: this.api.get<any>(`asistencias/docente/horarios-dia?fecha=${fecha}`)
+                .pipe(catchError(() => of({ data: [] }))),
+        }).subscribe({
+            next: ({ horarios, existentes }) => {
+                const lista: any[] = horarios?.data ?? horarios ?? [];
+
+                // Construye un mapa horario_id → estado a partir de registros existentes
+                const existList: any[] = existentes?.data ?? existentes ?? [];
+                const estadoMap = new Map<string, EstadoDocente>(
+                    existList.map((e: any) => [
+                        e.horario_id ?? e.horarioId,
+                        e.estado as EstadoDocente,
+                    ]),
+                );
+
                 this.horarios.set(lista.map((h: any): HorarioDocente => ({
                     horarioId: h.id ?? h.horario_id,
                     docenteId: h.docente_id,
@@ -73,8 +115,10 @@ export class DocenteAsistencia implements OnInit {
                     horaInicio: h.hora_inicio,
                     horaFin: h.hora_fin,
                     aula: h.aula ?? '',
-                    estado: 'presente',
+                    // Si ya existe un registro para esa fecha, lo usa; si no, 'presente'
+                    estado: estadoMap.get(h.id ?? h.horario_id) ?? 'presente',
                 })));
+
                 this.loading.set(false);
             },
             error: () => {
@@ -108,9 +152,8 @@ export class DocenteAsistencia implements OnInit {
         if (this.saving() || !this.horarios().length) return;
         this.saving.set(true);
 
-        // Endpoint: POST /asistencias/docente/bulk
         this.api.post('asistencias/docente/bulk', {
-            fecha: this.todayStr,
+            fecha: this.selectedDate(),
             registros: this.horarios().map(h => ({
                 horario_id: h.horarioId,
                 docente_id: h.docenteId,
@@ -118,7 +161,10 @@ export class DocenteAsistencia implements OnInit {
             })),
         }).subscribe({
             next: () => {
-                this.toastr.success('Asistencia de docentes guardada ✓');
+                const msg = this.isToday()
+                    ? 'Asistencia de docentes guardada ✓'
+                    : `Registro del ${this.selectedDate()} actualizado ✓`;
+                this.toastr.success(msg);
                 this.router.navigate(['/dashboard']);
             },
             error: (err: any) => {

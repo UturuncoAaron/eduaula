@@ -26,8 +26,8 @@ export interface MatriculaRow {
   seccion_id: string;
   seccion_nombre: string;
   grado_nombre: string;
-  grado_id: number;
-  periodo_id: number;
+  grado_id: number; // ── CORRECCIÓN: number para coincidir con GradeLevel.id ──
+  anio: number;
   activo: boolean;
   fecha_matricula: string;
 }
@@ -54,9 +54,10 @@ export class Matriculas implements OnInit {
   secciones = signal<Section[]>([]);
   periodos = signal<Period[]>([]);
 
+  // ── CORRECCIÓN: number | null para coincidir con GradeLevel.id (number) ──
   gradoFiltro = new FormControl<number | null>(null);
   seccionFiltro = new FormControl<string | null>(null);
-  periodoFiltro = new FormControl<number | null>(null);
+  anioFiltro = new FormControl<number | null>(null);
   busqueda = new FormControl('');
 
   // ── Datos ─────────────────────────────────────────────────────
@@ -68,10 +69,16 @@ export class Matriculas implements OnInit {
   page = signal(0);
   pageSize = signal(10);
 
+  // ── Años disponibles (derivados de periodos) ──────────────────
+  aniosDisponibles = computed(() => {
+    const set = new Set(this.periodos().map(p => p.anio));
+    return [...set].sort((a, b) => b - a); // descendente
+  });
+
   // ── Computed ──────────────────────────────────────────────────
   seccionesFiltradas = computed(() => {
     const gId = this.gradoFiltro.value;
-    return gId ? this.secciones().filter(s => s.grado_id === gId) : this.secciones();
+    return gId !== null ? this.secciones().filter(s => s.grado_id === gId) : this.secciones();
   });
 
   periodoActivo = computed(() => this.periodos().find(p => p.activo) ?? null);
@@ -95,7 +102,6 @@ export class Matriculas implements OnInit {
   totalInactivas = computed(() => this.matriculas().filter(m => !m.activo).length);
 
   // ── Init ──────────────────────────────────────────────────────
-  // ── Init ──────────────────────────────────────────────────────
   ngOnInit(): void {
     forkJoin({
       grados: this.api.get<GradeLevel[]>('academic/grados'),
@@ -107,11 +113,11 @@ export class Matriculas implements OnInit {
         this.secciones.set((secciones as any).data ?? []);
         this.periodos.set((periodos as any).data ?? []);
 
+        // Default: año del periodo activo
         const activo = ((periodos as any).data as Period[]).find(p => p.activo);
-        if (activo) this.periodoFiltro.setValue(activo.id);
+        if (activo) this.anioFiltro.setValue(activo.anio);
 
         this.loadingFiltros.set(false);
-        // ✅ NO llamar cargarMatriculas() aquí — esperar que seleccionen sección
       },
       error: () => this.loadingFiltros.set(false),
     });
@@ -122,21 +128,18 @@ export class Matriculas implements OnInit {
 
     this.gradoFiltro.valueChanges.subscribe(() => {
       this.seccionFiltro.setValue(null);
-      this.matriculas.set([]); // ✅ limpiar tabla al cambiar grado
+      this.matriculas.set([]);
     });
   }
 
   // ── Carga ─────────────────────────────────────────────────────
   cargarMatriculas(): void {
     const sid = this.seccionFiltro.value;
-    if (!sid) {
-      this.matriculas.set([]);
-      return;
-    }
+    if (!sid) { this.matriculas.set([]); return; }
 
     const params = new URLSearchParams();
-    const pid = this.periodoFiltro.value;
-    if (pid) params.set('periodo_id', String(pid));
+    const anio = this.anioFiltro.value;
+    if (anio) params.set('anio', String(anio));
     params.set('seccion_id', String(sid));
 
     this.loading.set(true);
@@ -144,28 +147,31 @@ export class Matriculas implements OnInit {
 
     this.api.get<MatriculaRow[]>(`academic/matriculas?${params.toString()}`).subscribe({
       next: r => { this.matriculas.set((r as any).data ?? []); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.toastr.error('Error al cargar matrículas', 'Error'); },
+      error: () => { this.loading.set(false); this.toastr.error('Error al cargar matrículas'); },
     });
   }
+
   aplicarFiltros(): void { this.cargarMatriculas(); }
 
   limpiarFiltros(): void {
     this.gradoFiltro.setValue(null);
     this.seccionFiltro.setValue(null);
-    this.periodoFiltro.setValue(this.periodoActivo()?.id ?? null);
+    this.anioFiltro.setValue(this.periodoActivo()?.anio ?? null);
     this.busqueda.setValue('');
     this.cargarMatriculas();
   }
 
   // ── Acciones ──────────────────────────────────────────────────
   async matricularAlumno(): Promise<void> {
-    const pid = this.periodoFiltro.value ?? this.periodoActivo()?.id;
+    const anio = this.anioFiltro.value ?? this.periodoActivo()?.anio;
     const sid = this.seccionFiltro.value;
+    const periodo = this.periodos().find(p => p.anio === anio && p.activo)
+      ?? this.periodos().find(p => p.anio === anio);
 
-    if (!pid) { this.toastr.error('Selecciona un periodo primero', 'Error'); return; }
-    if (!sid) { this.toastr.error('Selecciona una sección primero', 'Error'); return; }  // ← validar
+    if (!anio) { this.toastr.error('Selecciona un año primero'); return; }
+    if (!sid) { this.toastr.error('Selecciona una sección primero'); return; }
+    if (!periodo) { this.toastr.error('No hay periodo configurado para ese año'); return; }
 
-    // Obtener nombres para mostrar en el dialog
     const seccion = this.secciones().find(s => s.id === sid);
     const grado = this.grados().find(g => g.id === seccion?.grado_id);
 
@@ -175,10 +181,10 @@ export class Matriculas implements OnInit {
     const ref = this.dialog.open(EnrollAlumnoDialog, {
       width: '500px',
       data: {
-        periodoId: pid,
-        seccionId: sid,                        // ← garantizado no null
-        seccionNombre: seccion?.nombre ?? '',      // ← agregar
-        gradoNombre: grado?.nombre ?? '',        // ← agregar
+        periodoId: periodo.id,
+        seccionId: sid,
+        seccionNombre: seccion?.nombre ?? '',
+        gradoNombre: grado?.nombre ?? '',
         alumnosMatriculadosIds: this.matriculas().map(m => m.alumno_id),
       },
     });
@@ -190,9 +196,7 @@ export class Matriculas implements OnInit {
       '../../../shared/components/import-students/import-students-dialog'
     );
     const ref = this.dialog.open(ImportStudentsDialog, {
-      width: '580px',
-      maxHeight: '90vh',
-      disableClose: false,
+      width: '580px', maxHeight: '90vh', disableClose: false,
     });
     ref.afterClosed().subscribe((huboImportacion: boolean) => {
       if (huboImportacion) this.cargarMatriculas();
@@ -220,9 +224,9 @@ export class Matriculas implements OnInit {
           this.matriculas.update(list =>
             list.map(x => x.id === m.id ? { ...x, activo: false } : x),
           );
-          this.toastr.success('Alumno retirado correctamente', 'Éxito');
+          this.toastr.success('Alumno retirado correctamente');
         },
-        error: () => this.toastr.error('Error al retirar alumno', 'Error'),
+        error: () => this.toastr.error('Error al retirar alumno'),
       });
     });
   }
@@ -238,8 +242,8 @@ export class Matriculas implements OnInit {
     return `${nombre[0] ?? ''}${apellido[0] ?? ''}`.toUpperCase();
   }
 
-  getPeriodoNombre(id: number): string {
-    return this.periodos().find(p => p.id === id)?.nombre ?? '—';
+  getAnioLabel(anio: number): string {
+    return anio ? String(anio) : '—';
   }
 
   hayFiltrosActivos(): boolean {

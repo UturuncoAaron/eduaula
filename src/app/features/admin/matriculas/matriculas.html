@@ -25,7 +25,7 @@
 
             <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Periodo</mat-label>
-                <mat-select [formControl]="periodoFiltro">
+                <mat-select [formControl]="anioFiltro">
                     @for (p of periodos(); track p.id) {
                     <mat-option [value]="p.id">
                         {{ p.nombre }}
@@ -168,7 +168,7 @@
                     </td>
 
                     <!-- Periodo -->
-                    <td class="col-periodo">{{ getPeriodoNombre(m.periodo_id) }}</td>
+                    <td class="col-periodo">{{ getAnioLabel(m.anio) }}</td>
 
                     <!-- Fecha -->
                     <td class="col-fecha">{{ m.fecha_matricula | date:'dd/MM/yyyy' }}</td>

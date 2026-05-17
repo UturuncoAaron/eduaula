@@ -49,10 +49,20 @@ export class GeneralAsistencia implements OnInit {
     private toastr = inject(ToastService);
 
     seccionId = '';
-    readonly today = new Date();
-    readonly todayStr = this.today.toISOString().slice(0, 10);
-    readonly fechaLabel = `${DIAS[this.today.getDay()]}, ${this.today.getDate()} de ${MESES[this.today.getMonth()]} de ${this.today.getFullYear()}`;
 
+    // ── Fecha seleccionada (editable) ──────────────────────────
+    readonly todayStr = new Date().toISOString().slice(0, 10);
+    selectedDate = signal<string>(this.todayStr);
+
+    readonly fechaLabel = computed(() => {
+        const d = new Date(this.selectedDate() + 'T00:00:00');
+        return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+    });
+
+    readonly isToday = computed(() => this.selectedDate() === this.todayStr);
+    readonly isFuture = computed(() => this.selectedDate() > this.todayStr);
+
+    // ── Estado ─────────────────────────────────────────────────
     loading = signal(true);
     saving = signal(false);
     error = signal<string | null>(null);
@@ -74,17 +84,41 @@ export class GeneralAsistencia implements OnInit {
 
     ngOnInit() {
         this.seccionId = this.route.snapshot.paramMap.get('seccionId') ?? '';
+
+        // Guard: si no es un UUID válido (ej: viene de la ruta /general/scan), no cargar
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!this.seccionId || !uuidRegex.test(this.seccionId)) {
+            this.error.set('Sección no válida. Vuelve al dashboard y selecciona una sección.');
+            this.loading.set(false);
+            return;
+        }
+
+        this.loadData();
+    }
+
+    // ── Cambia la fecha y recarga ──────────────────────────────
+    onDateChange(value: string) {
+        if (!value) return;
+        this.selectedDate.set(value);
         this.loadData();
     }
 
     loadData() {
+        if (this.isFuture()) {
+            this.toastr.warning('No puedes registrar asistencia de fechas futuras');
+            this.selectedDate.set(this.todayStr);
+            return;
+        }
+
         this.loading.set(true);
         this.error.set(null);
+
+        const fecha = this.selectedDate();
 
         forkJoin({
             alumnos: this.api.get<any>(`admin/users/alumnos?seccion_id=${this.seccionId}&limit=100`),
             asistencias: this.api.get<any>(
-                `asistencias/general/${this.seccionId}?fecha=${this.todayStr}`,
+                `asistencias/general/${this.seccionId}?fecha=${fecha}`,
             ).pipe(catchError(() => of({ data: [] }))),
         }).subscribe({
             next: ({ alumnos, asistencias }) => {
@@ -109,6 +143,7 @@ export class GeneralAsistencia implements OnInit {
                     apellido_materno: a.apellido_materno ?? '',
                     codigo_estudiante: a.codigo_estudiante,
                     foto_url: a.foto_url ?? null,
+                    // Si hay registro existente lo usa; si no, por defecto 'asistio'
                     estado: map.get(a.id) ?? 'asistio',
                 })));
 
@@ -141,20 +176,32 @@ export class GeneralAsistencia implements OnInit {
         return `${a.nombre.charAt(0)}${a.apellido_paterno.charAt(0)}`.toUpperCase();
     }
 
+    private parseErrorMsg(err: any): string {
+        const body = err?.error;
+        if (!body) return 'Error al guardar la asistencia';
+        if (Array.isArray(body.message)) return body.message.join(', ');
+        if (typeof body.message === 'string') return body.message;
+        if (typeof body.error === 'string') return body.error;
+        return 'Error al guardar la asistencia';
+    }
+
     guardar() {
         if (this.saving() || !this.alumnos().length) return;
         this.saving.set(true);
 
         this.api.post(`asistencias/general/${this.seccionId}/bulk`, {
-            fecha: this.todayStr,
+            fecha: this.selectedDate(),
             alumnos: this.alumnos().map(a => ({ alumno_id: a.id, estado: a.estado })),
         }).subscribe({
             next: () => {
-                this.toastr.success('Asistencia guardada correctamente ✓');
+                const msg = this.isToday()
+                    ? 'Asistencia guardada correctamente ✓'
+                    : `Asistencia del ${this.selectedDate()} actualizada ✓`;
+                this.toastr.success(msg);
                 this.router.navigate(['/dashboard']);
             },
             error: (err: any) => {
-                this.toastr.error(err?.error?.message ?? 'Error al guardar la asistencia');
+                this.toastr.error(this.parseErrorMsg(err));
                 this.saving.set(false);
             },
         });

@@ -37,11 +37,6 @@ interface HorarioBloque {
   observacion?: string | null;
 }
 
-/**
- * Auxiliar registra asistencia de docentes por bloque/día.
- * GET /api/reports/docentes/horarios-dia?fecha=YYYY-MM-DD
- * POST /api/reports/docentes/registrar/bulk
- */
 @Component({
   selector: 'app-asistencia-docentes',
   standalone: true,
@@ -70,21 +65,25 @@ export class AsistenciaDocentes implements OnInit {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly bloques = signal<HorarioBloque[]>([]);
-  readonly estados = signal<Map<string, { estado: EstadoAsistencia; hora_llegada?: string; observacion?: string }>>(new Map());
+  readonly estados = signal<Map<string, {
+    estado: EstadoAsistencia;
+    hora_llegada?: string;
+    observacion?: string;
+  }>>(new Map());
 
-  readonly hayPendientes = computed(() => this.bloques().some(b => !this.estados().get(b.horario_id)?.estado));
+  readonly hayPendientes = computed(() =>
+    this.bloques().some(b => !this.estados().get(b.horario_id)?.estado),
+  );
 
   readonly estadosDisponibles: { value: EstadoAsistencia; label: string; icon: string }[] = [
     { value: 'presente', label: 'Presente', icon: 'check_circle' },
     { value: 'tardanza', label: 'Tardanza', icon: 'schedule' },
-    { value: 'ausente',  label: 'Ausente',  icon: 'cancel' },
-    { value: 'permiso',  label: 'Permiso',  icon: 'event_available' },
+    { value: 'ausente', label: 'Ausente', icon: 'cancel' },
+    { value: 'permiso', label: 'Permiso', icon: 'event_available' },
     { value: 'licencia', label: 'Licencia', icon: 'medical_services' },
   ];
 
-  ngOnInit() {
-    this.loadHorarios();
-  }
+  ngOnInit() { this.loadHorarios(); }
 
   private todayISO(): string {
     return new Date().toISOString().slice(0, 10);
@@ -97,10 +96,19 @@ export class AsistenciaDocentes implements OnInit {
 
   loadHorarios() {
     this.loading.set(true);
-    this.api.get<HorarioBloque[]>(`reports/docentes/horarios-dia?fecha=${this.fecha()}`).subscribe({
+
+    // ── FIX: endpoint correcto ─────────────────────────────────
+    // Antes: reports/docentes/horarios-dia  (no existe)
+    // Ahora: asistencias/docente/horarios-dia  (creado en el service)
+    this.api.get<any>(`asistencias/docente/horarios-dia?fecha=${this.fecha()}`).subscribe({
       next: r => {
-        const data = r.data ?? [];
+        // Soporta array directo o { data: [] }
+        const data: HorarioBloque[] = Array.isArray(r)
+          ? r
+          : Array.isArray(r?.data) ? r.data : [];
+
         this.bloques.set(data);
+
         const m = new Map<string, { estado: EstadoAsistencia; hora_llegada?: string; observacion?: string }>();
         for (const b of data) {
           if (b.estado_actual) {
@@ -141,7 +149,7 @@ export class AsistenciaDocentes implements OnInit {
         if (!e) return null;
         return {
           horario_id: b.horario_id,
-          fecha: this.fecha(),
+          docente_id: b.docente_id,
           estado: e.estado,
           ...(e.estado === 'tardanza' && e.hora_llegada ? { hora_llegada: e.hora_llegada } : {}),
           ...(e.observacion ? { observacion: e.observacion } : {}),
@@ -149,21 +157,31 @@ export class AsistenciaDocentes implements OnInit {
       })
       .filter(Boolean);
 
-    if (registros.length === 0) {
+    if (!registros.length) {
       this.toastr.error('No marcaste ningún bloque');
       return;
     }
 
     this.saving.set(true);
-    this.api.post('reports/docentes/registrar/bulk', { fecha: this.fecha(), registros }).subscribe({
+
+    // ── FIX: endpoint correcto para guardar ───────────────────
+    // Antes: reports/docentes/registrar/bulk  (no existe)
+    // Ahora: asistencias/docente/bulk  (existe en el controller)
+    this.api.post('asistencias/docente/bulk', {
+      fecha: this.fecha(),
+      registros,
+    }).subscribe({
       next: () => {
         this.saving.set(false);
         this.toastr.success(`Se registraron ${registros.length} bloque(s)`);
         this.loadHorarios();
       },
-      error: () => {
+      error: (err) => {
         this.saving.set(false);
-        this.toastr.error('No se pudo guardar el registro');
+        const msg = Array.isArray(err?.error?.message)
+          ? err.error.message.join(', ')
+          : err?.error?.message ?? 'No se pudo guardar el registro';
+        this.toastr.error(msg);
       },
     });
   }

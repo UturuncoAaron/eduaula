@@ -10,13 +10,8 @@ import { MODULO } from '../../core/auth/modulos';
  * se irán agregando aquí en PRs siguientes.
  */
 export const ASSISTS_ROUTES: Routes = [
-    {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'curso',
-    },
+    { path: '', pathMatch: 'full', redirectTo: 'curso' },
 
-    // ─── Docente: pasa lista por curso ───────────────────────────────────
     {
         path: 'curso',
         canActivate: [permissionGuard([MODULO.ASIST_CURSO])],
@@ -32,7 +27,7 @@ export const ASSISTS_ROUTES: Routes = [
                 .then(c => c.AsistenciaCursoDetail),
     },
 
-    // ─── Auxiliar: registrar asistencia a docentes por bloque del día ──────
+    // ── única ruta de docentes (la que realmente se usa) ──
     {
         path: 'docentes',
         loadComponent: () =>
@@ -40,15 +35,10 @@ export const ASSISTS_ROUTES: Routes = [
                 .then(c => c.AsistenciaDocentes),
     },
 
-
     {
-        path: 'general/:seccionId',              // ← esta es la que faltaba
+        path: 'general/:seccionId',
         loadComponent: () =>
             import('./general/general-asistencia').then(m => m.GeneralAsistencia),
     },
-    {
-        path: 'docentes',
-        loadComponent: () =>
-            import('./docente/docente-asistencia').then(m => m.DocenteAsistencia),
-    },
+    // ← eliminar la segunda ruta 'docentes' que estaba aquí
 ];
