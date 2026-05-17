@@ -1,7 +1,9 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import {
+  Component, inject, signal, computed, OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -9,8 +11,9 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
-import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
-import { StagedAttachmentsPicker } from '../../../shared/components/staged-attachments-picker/staged-attachments-picker';
+import { AuthService } from '../../../core/auth/auth';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
+import { StagedAttachmentsPicker } from '../staged-attachments-picker/staged-attachments-picker';
 import { AttachmentsService, ATTACHMENT_MAX_BYTES } from '../../../core/services/attachments';
 
 type Destinatario = 'todos' | 'alumnos' | 'docentes' | 'padres' | 'psicologas';
@@ -21,7 +24,7 @@ interface Announcement {
   contenido: string;
   destinatarios: Destinatario[];
   created_at: string;
-  admin?: { nombre: string; apellido_paterno: string };
+  autor?: { nombre: string; apellido_paterno: string; rol?: string };
 }
 
 const LABELS: Record<Destinatario, string> = {
@@ -30,20 +33,21 @@ const LABELS: Record<Destinatario, string> = {
 };
 
 @Component({
-  selector: 'app-announcements-admin',
+  selector: 'app-announcements-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule, DatePipe,
-    MatButtonModule, MatIconModule,
-    MatDialogModule, MatTooltipModule,
+    MatIconModule, MatDialogModule, MatTooltipModule,
     StagedAttachmentsPicker,
   ],
-  templateUrl: './announcements-admin.html',
-  styleUrl: './announcements-admin.scss',
+  templateUrl: './announcements-page.html',
+  styleUrl: './announcements-page.scss',
 })
-export class AnnouncementsAdmin implements OnInit {
+export class AnnouncementsPage implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private auth = inject(AuthService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
   private attachments = inject(AttachmentsService);
@@ -51,6 +55,8 @@ export class AnnouncementsAdmin implements OnInit {
   list = signal<Announcement[]>([]);
   loading = signal(true);
   saving = signal(false);
+  checkingPermiso = signal(true);
+  tienePermiso = signal(false);
 
   stagedFiles = signal<File[]>([]);
   readonly maxFileBytes = ATTACHMENT_MAX_BYTES;
@@ -58,6 +64,17 @@ export class AnnouncementsAdmin implements OnInit {
 
   titleFocused = false;
   contentFocused = false;
+
+  private get rol() { return this.auth.currentUser()?.rol; }
+  private get userId() { return this.auth.currentUser()?.id; }
+
+  // Admin siempre puede; otros roles necesitan permiso explícito
+  canCreate = computed(() => {
+    if (this.rol === 'admin') return true;
+    return !this.checkingPermiso() && this.tienePermiso();
+  });
+
+  canDelete = computed(() => this.rol === 'admin');
 
   destOptions: { value: Destinatario; label: string; icon: string }[] = [
     { value: 'todos', label: 'Todos', icon: 'groups' },
@@ -95,7 +112,31 @@ export class AnnouncementsAdmin implements OnInit {
     this.form.get('destinatarios')?.setValue(sinTodos);
   }
 
-  ngOnInit() { this.cargar(); }
+  ngOnInit() {
+    this.verificarPermiso();
+    this.cargar();
+  }
+
+  private verificarPermiso() {
+    if (this.rol === 'admin') {
+      this.tienePermiso.set(true);
+      this.checkingPermiso.set(false);
+      return;
+    }
+    if (!this.userId) {
+      this.checkingPermiso.set(false);
+      return;
+    }
+    this.api.get<{ tiene: boolean }>(
+      `permissions/check/${this.userId}/comunicados/crear`
+    ).subscribe({
+      next: r => {
+        this.tienePermiso.set((r as any).data?.tiene ?? false);
+        this.checkingPermiso.set(false);
+      },
+      error: () => this.checkingPermiso.set(false),
+    });
+  }
 
   private cargar() {
     this.loading.set(true);
@@ -112,22 +153,18 @@ export class AnnouncementsAdmin implements OnInit {
     this.saving.set(true);
     this.api.post<Announcement>('announcements', this.form.value).subscribe({
       next: r => {
-        const newId = r.data?.id;
+        const newId = (r as any).data?.id;
         const files = this.stagedFiles();
         if (newId && files.length > 0) {
-          // Sube cada archivo al comunicado recién creado; reportamos fallos parciales.
           forkJoin(
             files.map(f =>
-              this.attachments.upload(f, 'announcement', newId).pipe(catchError(() => of(null))),
-            ),
+              this.attachments.upload(f, 'announcement', newId).pipe(catchError(() => of(null)))
+            )
           ).subscribe({
             next: results => {
               const failures = results.filter(x => x === null).length;
-              if (failures > 0) {
-                this.toastr.error(`No se pudieron subir ${failures} archivo(s)`);
-              } else {
-                this.toastr.success('Comunicado publicado', 'Éxito');
-              }
+              if (failures > 0) this.toastr.error(`No se pudieron subir ${failures} archivo(s)`);
+              else this.toastr.success('Comunicado publicado', 'Éxito');
               this.finishPublicar();
             },
           });
@@ -149,7 +186,13 @@ export class AnnouncementsAdmin implements OnInit {
 
   eliminar(a: Announcement) {
     const ref = this.dialog.open(ConfirmDialog, {
-      data: { title: 'Eliminar comunicado', message: `¿Eliminar "${a.titulo}"?`, confirm: 'Eliminar', danger: true },
+      data: {
+        title: 'Eliminar comunicado',
+        message: `¿Eliminar "${a.titulo}"?`,
+        confirm: 'Eliminar',
+        cancel: 'Cancelar',
+        danger: true,
+      },
     });
     ref.afterClosed().subscribe(ok => {
       if (!ok) return;

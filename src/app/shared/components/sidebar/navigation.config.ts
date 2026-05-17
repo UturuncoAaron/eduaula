@@ -141,15 +141,6 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.HISTORICO_ALUMNOS],
     exactMatch: true,
   },
-
-  {
-    label: 'Comunicados',
-    icon: 'campaign',
-    route: '/admin/comunicados',
-    modulos: [MODULO.COMUNICADOS_ADMIN],
-    exactMatch: true,
-    dividerBefore: true,
-  },
   {
     label: 'Reportes',
     icon: 'bar_chart',

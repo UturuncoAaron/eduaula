@@ -66,13 +66,6 @@ export const ADMIN_ROUTES: Routes = [
       import('./reporte-alumno/reporte-alumno').then(c => c.ReporteAlumno),
   },
 
-  // ─── Permisos extra ───────────────────────────────────────────────────────
-  {
-    path: 'permisos',
-    loadComponent: () =>
-      import('./permisos-management/permisos-management').then(c => c.PermisosManagement),
-  },
-
   // ─── Editor de horario por sección ────────────────────────────────────────
   {
     path: 'secciones/:seccionId/periodo/:periodoId/horario',
@@ -92,7 +85,8 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'comunicados',
     loadComponent: () =>
-      import('./announcements-admin/announcements-admin').then(c => c.AnnouncementsAdmin),
+      import('../../shared/components/announcements-page/announcements-page')
+        .then(c => c.AnnouncementsPage),
   },
 
   // ─── Reportes ─────────────────────────────────────────────────────────────

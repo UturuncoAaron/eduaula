@@ -1,0 +1,88 @@
+<div class="pd-wrap">
+
+    <!-- Header -->
+    <div class="pd-header">
+        <div class="pd-header__left">
+            <div class="pd-avatar">
+                {{ data.nombre.charAt(0) }}{{ data.apellido_paterno.charAt(0) }}
+            </div>
+            <div>
+                <p class="pd-header__name">{{ data.nombre }} {{ data.apellido_paterno }}</p>
+                <p class="pd-header__sub">Gestión de permisos extra</p>
+            </div>
+        </div>
+        <button class="pd-header__close" (click)="cerrar()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="pd-body">
+
+        @if (loading()) {
+        <div class="pd-state">
+            <mat-spinner diameter="28" />
+            <span>Cargando permisos...</span>
+        </div>
+
+        } @else if (items.length === 0) {
+        <div class="pd-state">
+            <mat-icon>shield</mat-icon>
+            <span>No hay permisos configurables para este rol.</span>
+        </div>
+
+        } @else {
+        <ul class="pd-list">
+            @for (item of items; track item.modulo + item.accion) {
+            <li class="pd-item" [class.pd-item--pending]="isPending(item)">
+                <div class="pd-item__check">
+                    <mat-checkbox [checked]="tienePermiso(item)" (change)="toggle(item, $event.checked)"
+                        [disabled]="saving()" />
+                </div>
+                <div class="pd-item__body" (click)="toggle(item, !tienePermiso(item))">
+                    <div class="pd-item__title">
+                        <span>{{ item.label }}</span>
+                        @if (item.sensitive) {
+                        <span class="pd-item__warn" matTooltip="Permiso sensible — requiere confirmación">
+                            <mat-icon>warning_amber</mat-icon>
+                        </span>
+                        }
+                        @if (isPending(item)) {
+                        <span class="pd-item__badge">
+                            {{ tienePermiso(item) ? 'por otorgar' : 'por revocar' }}
+                        </span>
+                        }
+                    </div>
+                    <p class="pd-item__desc">{{ item.descripcion }}</p>
+                </div>
+            </li>
+            }
+        </ul>
+        }
+
+    </div>
+
+    <!-- Footer -->
+    <div class="pd-footer">
+        <span class="pd-footer__hint">
+            @if (hasPending()) {
+            {{ pendingCount() }} cambio{{ pendingCount() !== 1 ? 's' : '' }} pendiente{{ pendingCount() !== 1 ? 's' : ''
+            }}
+            }
+        </span>
+        <div class="pd-footer__actions">
+            <button class="pd-btn pd-btn--secondary" (click)="cerrar()" [disabled]="saving()">
+                Cerrar
+            </button>
+            <button class="pd-btn pd-btn--primary" [disabled]="!hasPending() || saving()" (click)="guardar()">
+                @if (saving()) {
+                <mat-spinner diameter="16" />
+                } @else {
+                <mat-icon>save</mat-icon>
+                }
+                Guardar
+            </button>
+        </div>
+    </div>
+
+</div>

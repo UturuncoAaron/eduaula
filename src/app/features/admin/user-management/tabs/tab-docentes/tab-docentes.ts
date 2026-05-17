@@ -18,6 +18,7 @@ import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/c
 import { UserDialog } from '../../../../../shared/components/user-dialog/user-dialog';
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
+import { PermisoUsuarioDialog } from '@shared/components/permiso-usuario-dialog/permiso-usuario-dialog';
 
 export interface DocenteRow {
   id: string;
@@ -160,6 +161,18 @@ export class TabDocentes implements OnInit {
       maxHeight: '90vh',
       autoFocus: false,
       data: { id: row.id, tipo: 'docentes' },
+    });
+  }
+  gestionarPermisos(row: DocenteRow): void {
+    this.dialog.open(PermisoUsuarioDialog, {
+      width: '480px',
+      autoFocus: false,
+      data: {
+        id: row.id,
+        nombre: row.nombre,
+        apellido_paterno: row.apellido_paterno,
+        rol: 'docente',   // ← correcto
+      },
     });
   }
 

@@ -1,0 +1,187 @@
+<div class="ann-wrap">
+
+    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <div class="ann-header">
+        <div class="ann-header__left">
+            <div class="ann-header__icon">
+                <mat-icon>campaign</mat-icon>
+            </div>
+            <div>
+                <h1 class="ann-header__title">Comunicados</h1>
+                <p class="ann-header__sub">
+                    @if (!loading()) { {{ list().length }} publicado{{ list().length !== 1 ? 's' : '' }} }
+                    @else { Cargando... }
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── BODY ───────────────────────────────────────────────── -->
+    <div class="ann-body" [class.ann-body--full]="!canCreate()">
+
+        <!-- ── COMPOSE (solo si tiene permiso) ───────────────────── -->
+        @if (canCreate()) {
+        <aside class="compose-card">
+            <p class="compose-card__title">Nuevo comunicado</p>
+
+            <form [formGroup]="form" (ngSubmit)="publicar()" class="compose-form">
+
+                <!-- Título -->
+                <div class="field">
+                    <label class="field__label">Título</label>
+                    <div class="field__box" [class.field__box--focus]="titleFocused">
+                        <input class="field__input" formControlName="titulo" maxlength="200"
+                            placeholder="Ej: Reunión de padres de familia..." (focus)="titleFocused=true"
+                            (blur)="titleFocused=false" />
+                        <span class="field__count">{{ form.get('titulo')?.value?.length ?? 0 }}/200</span>
+                    </div>
+                </div>
+
+                <!-- Contenido -->
+                <div class="field">
+                    <label class="field__label">Contenido</label>
+                    <div class="field__box field__box--ta" [class.field__box--focus]="contentFocused">
+                        <textarea class="field__input field__ta" formControlName="contenido" rows="5"
+                            placeholder="Escribe el cuerpo del comunicado..." (focus)="contentFocused=true"
+                            (blur)="contentFocused=false">
+            </textarea>
+                    </div>
+                </div>
+
+                <!-- Destinatarios -->
+                <div class="field">
+                    <label class="field__label">Destinatarios</label>
+                    <div class="dest-grid">
+                        @for (opt of destOptions; track opt.value) {
+                        <button type="button" class="dest-btn" [class.dest-btn--active]="isDestSelected(opt.value)"
+                            [attr.data-dest]="opt.value" (click)="toggleDest(opt.value)">
+                            <mat-icon class="dest-btn__icon">{{ opt.icon }}</mat-icon>
+                            <span class="dest-btn__label">{{ opt.label }}</span>
+                            @if (isDestSelected(opt.value)) {
+                            <mat-icon class="dest-btn__check">check_circle</mat-icon>
+                            }
+                        </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Preview destinatarios -->
+                @if (selectedDests().length > 0) {
+                <div class="dest-preview">
+                    <mat-icon>near_me</mat-icon>
+                    <span>
+                        Para:&nbsp;
+                        @for (d of selectedDests(); track d; let last = $last) {
+                        <strong>{{ labelDest(d) }}</strong>@if (!last) {,&nbsp;}
+                        }
+                    </span>
+                </div>
+                }
+
+                <!-- Adjuntos -->
+                <div class="field">
+                    <label class="field__label">Adjuntos (opcional)</label>
+                    <app-staged-attachments-picker label="Arrastra archivos o haz clic para seleccionar"
+                        [maxBytes]="maxFileBytes" [maxFiles]="maxFiles" [files]="stagedFiles()"
+                        (filesChange)="stagedFiles.set($event)" />
+                </div>
+
+                <!-- Botón -->
+                <button class="btn-publish" type="submit" [disabled]="saving() || form.invalid">
+                    @if (saving()) {
+                    <span class="btn-publish__spinner"></span>
+                    <span>Publicando...</span>
+                    } @else {
+                    <mat-icon>send</mat-icon>
+                    <span>Publicar comunicado</span>
+                    }
+                </button>
+
+            </form>
+        </aside>
+        }
+
+        <!-- ── FEED ───────────────────────────────────────────────── -->
+        <section class="feed">
+
+            <div class="feed__bar">
+                <span class="feed__bar-title">Publicados</span>
+                @if (!loading()) {
+                <span class="feed__badge">{{ list().length }}</span>
+                }
+            </div>
+
+            @if (loading()) {
+            <div class="feed__body">
+                @for (i of [1,2,3]; track i) {
+                <div class="sk-card">
+                    <div class="sk-row">
+                        <div class="sk-pill"></div>
+                        <div class="sk-dash"></div>
+                    </div>
+                    <div class="sk-line" style="width:60%"></div>
+                    <div class="sk-line sk-line--sm" style="width:88%"></div>
+                    <div class="sk-line sk-line--sm" style="width:72%"></div>
+                </div>
+                }
+            </div>
+
+            } @else if (list().length === 0) {
+            <div class="feed__empty">
+                <mat-icon class="feed__empty-icon">inbox</mat-icon>
+                <p class="feed__empty-title">Sin comunicados aún</p>
+                <p class="feed__empty-desc">
+                    @if (canCreate()) {
+                    Usa el formulario para publicar tu primer comunicado.
+                    } @else {
+                    No hay comunicados disponibles en este momento.
+                    }
+                </p>
+            </div>
+
+            } @else {
+            <div class="feed__body">
+                @for (a of list(); track a.id; let i = $index) {
+                <article class="ann-card" [attr.data-i]="i">
+
+                    <div class="ann-card__top">
+                        <div class="ann-card__chips">
+                            @for (d of a.destinatarios; track d) {
+                            <span class="chip chip--{{ d }}">{{ labelDest(d) }}</span>
+                            }
+                        </div>
+                        <div class="ann-card__meta">
+                            <span class="ann-card__time">
+                                <mat-icon>schedule</mat-icon>
+                                {{ a.created_at | date:'d MMM · HH:mm' }}
+                            </span>
+                            @if (canDelete()) {
+                            <button class="ann-card__del" (click)="eliminar(a)" matTooltip="Eliminar comunicado">
+                                <mat-icon>delete_outline</mat-icon>
+                            </button>
+                            }
+                        </div>
+                    </div>
+
+                    <h3 class="ann-card__title">{{ a.titulo }}</h3>
+                    <p class="ann-card__body">{{ a.contenido }}</p>
+
+                    @if (a.autor) {
+                    <div class="ann-card__footer">
+                        <div class="ann-card__avatar">
+                            {{ a.autor.nombre.charAt(0) }}{{ a.autor.apellido_paterno.charAt(0) }}
+                        </div>
+                        <span class="ann-card__author">
+                            {{ a.autor.nombre }} {{ a.autor.apellido_paterno }}
+                        </span>
+                    </div>
+                    }
+
+                </article>
+                }
+            </div>
+            }
+
+        </section>
+    </div>
+</div>

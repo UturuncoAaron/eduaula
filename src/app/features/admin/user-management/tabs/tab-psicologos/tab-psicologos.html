@@ -152,6 +152,9 @@
         <button mat-menu-item (click)="asignarAlumnos(row)">
             <mat-icon>group_add</mat-icon><span>Asignar alumnos</span>
         </button>
+        <button mat-menu-item (click)="gestionarPermisos(row)">
+            <mat-icon>shield_person</mat-icon><span>Gestionar permisos</span>
+        </button>
         <mat-divider />
         @if (row.activo !== false) {
         <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">

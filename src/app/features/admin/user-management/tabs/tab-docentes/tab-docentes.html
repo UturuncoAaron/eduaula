@@ -150,6 +150,10 @@
             <mat-icon color="primary">visibility</mat-icon><span>Ver detalle</span>
         </button>
         <mat-divider />
+        <button mat-menu-item (click)="gestionarPermisos(row)">
+            <mat-icon>shield_person</mat-icon><span>Gestionar permisos</span>
+        </button>
+        <mat-divider />
         @if (row.activo !== false) {
         <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
             <mat-icon color="warn">block</mat-icon><span>Desactivar cuenta</span>

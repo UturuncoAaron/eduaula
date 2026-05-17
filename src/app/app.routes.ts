@@ -119,13 +119,16 @@ export const routes: Routes = [
       {
         path: 'comunicados',
         loadComponent: () =>
-          import('./features/comunicados/comunicados').then(c => c.Comunicados),
+          import('./shared/components/announcements-page/announcements-page')
+            .then(c => c.AnnouncementsPage),
       },
       {
         path: 'notificaciones',
         loadComponent: () =>
           import('./features/notificaciones/notificaciones').then(c => c.Notificaciones),
       },
+
+
 
       // ═══ ACADÉMICO ════════════════════════════════════════════════════════
       {

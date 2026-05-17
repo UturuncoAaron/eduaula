@@ -53,9 +53,10 @@ export const MODULO = {
   MATRICULAS: 'matriculas',
   PADRE_HIJO_ADMIN: 'padre_hijo',
   REPORTES_GLOBALES: 'reportes_globales',
-  COMUNICADOS_ADMIN: 'comunicados_admin',
+  COMUNICADOS_ADMIN: 'comunicados', // mismo valor, mismo módulo
   IMPORTAR: 'importar',
   AJUSTES: 'ajustes',
+  PERMISOS: 'permisos',
   HISTORICO_ALUMNOS: 'historico_alumnos',
 } as const;
 
