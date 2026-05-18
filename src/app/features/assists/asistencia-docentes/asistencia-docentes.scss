@@ -1,72 +1,775 @@
-:host { display: block; padding: 1rem; }
+$teal: #14b8a6;
+$green: #10b981;
+$orange: #f59e0b;
+$red: #ef4444;
+$blue: #3b82f6;
+$dark: #0f172a;
+$muted: #64748b;
+$border: #e2e8f0;
+$bg: #f8fafc;
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-
-  .fecha-field { width: 200px; }
-}
-
-.loading { display: flex; justify-content: center; padding: 2rem; }
-
-.bloques {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-}
-
-.bloque {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1rem;
-  align-items: center;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, .08);
-  border-radius: 12px;
-  padding: .85rem 1rem;
-
-  @media (max-width: 720px) {
-    grid-template-columns: 1fr;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
 
-  .info { display: flex; flex-direction: column; gap: .15rem; }
-  .hora { font-size: .85rem; font-weight: 500; color: rgba(0, 0, 0, .55); letter-spacing: .04em; }
-  .docente { margin: 0; font-size: 1rem; }
-  .curso { margin: 0; font-size: .85rem; color: rgba(0, 0, 0, .65); }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.estados {
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fade-in {
+  animation: fadeIn .35s ease-out;
+}
+
+.spinning {
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+
+// ── Layout ────────────────────────────────────────────────────
+.asistencia-container {
+  padding: 24px 32px 120px;
+  max-width: 1080px;
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+
+  @media (max-width: 768px) {
+    padding: 16px 16px 100px;
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────
+.page-header {
   display: flex;
-  gap: .35rem;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
+
+  .btn-back {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid $border;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .15s;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      border-color: $teal;
+      color: $teal;
+      background: rgba($teal, .05);
+    }
+  }
+
+  .header-info {
+    flex: 1;
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: $dark;
+      margin: 0 0 5px;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: $muted;
+      margin: 0;
+      flex-wrap: wrap;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+
+      .sep {
+        color: $border;
+      }
+    }
+  }
+
+  .btn-save {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    background: linear-gradient(135deg, $teal, #0d9488);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 6px 18px rgba($teal, .4);
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+  }
 }
 
-.estado-btn {
+// ── Date picker ───────────────────────────────────────────────
+.date-picker-wrap {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: .25rem;
-  padding: .35rem .65rem;
-  border: 1px solid rgba(0, 0, 0, .12);
-  border-radius: 999px;
+  gap: 8px;
   background: #fff;
+  border: 1.5px solid $border;
+  border-radius: 10px;
+  padding: 9px 12px 9px 14px;
   cursor: pointer;
-  font-size: .8rem;
-  transition: background-color .15s, border-color .15s;
+  transition: border-color .15s, box-shadow .15s;
+  user-select: none;
 
-  mat-icon { font-size: 18px; height: 18px; width: 18px; }
+  &:hover {
+    border-color: $teal;
+    box-shadow: 0 0 0 3px rgba($teal, .08);
+  }
 
-  &:hover { background: rgba(0, 0, 0, .04); }
-  &.active { border-width: 2px; padding: calc(.35rem - 1px) calc(.65rem - 1px); }
+  .dp-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+    color: $teal;
+    flex-shrink: 0;
+  }
 
-  &.estado-presente.active { background: rgba(46, 125, 50, .12); border-color: #2e7d32; color: #1b5e20; }
-  &.estado-tardanza.active { background: rgba(245, 124, 0, .12); border-color: #f57c00; color: #e65100; }
-  &.estado-ausente.active  { background: rgba(211, 47, 47, .12); border-color: #d32f2f; color: #b71c1c; }
-  &.estado-permiso.active  { background: rgba(25, 118, 210, .12); border-color: #1976d2; color: #0d47a1; }
-  &.estado-licencia.active { background: rgba(123, 31, 162, .12); border-color: #7b1fa2; color: #4a148c; }
+  .dp-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $dark;
+    white-space: nowrap;
+    min-width: 78px;
+  }
+
+  .dp-chevron {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $muted;
+    flex-shrink: 0;
+    transition: transform .15s;
+  }
+
+  // El div maneja el click y llama showPicker() — el input solo escucha el change
+  .date-input-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none; // el div recibe el click; showPicker() abre el calendario
+    font-size: 0;
+    border: none;
+    background: transparent;
+  }
+}
+
+// ── Edit notice ───────────────────────────────────────────────
+.edit-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(#f59e0b, .08);
+  border: 1px solid rgba(#f59e0b, .25);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 13px;
+  color: #92400e;
+  margin-bottom: 20px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #f59e0b;
+    flex-shrink: 0;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+// ── States ────────────────────────────────────────────────────
+.state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 20px;
+  text-align: center;
+  color: $muted;
+
+  .spinner-ring {
+    width: 38px;
+    height: 38px;
+    border: 3px solid $border;
+    border-top-color: $teal;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  .empty-icon {
+    font-size: 44px;
+    width: 44px;
+    height: 44px;
+    opacity: .3;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────────────
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-card {
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .03);
+  transition: transform .2s, box-shadow .2s;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .07);
+  }
+
+  .stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  .stat-data {
+    display: flex;
+    flex-direction: column;
+
+    .num {
+      font-size: 28px;
+      font-weight: 700;
+      color: $dark;
+      line-height: 1;
+    }
+
+    .lbl {
+      font-size: 11px;
+      color: $muted;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      margin-top: 3px;
+    }
+  }
+
+  &.green .stat-icon {
+    background: rgba($green, .1);
+    color: $green;
+  }
+
+  &.orange .stat-icon {
+    background: rgba($orange, .1);
+    color: $orange;
+  }
+
+  &.red .stat-icon {
+    background: rgba($red, .1);
+    color: $red;
+  }
+
+  &.blue .stat-icon {
+    background: rgba($blue, .1);
+    color: $blue;
+  }
+}
+
+// ── Quick actions ─────────────────────────────────────────────
+.quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+
+  .qa-label {
+    font-size: 13px;
+    color: $muted;
+    font-weight: 500;
+  }
+
+  .qa-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+    }
+
+    &.green {
+      border-color: rgba($green, .3);
+      color: $green;
+      background: rgba($green, .06);
+
+      &:hover {
+        background: rgba($green, .12);
+      }
+    }
+
+    &.orange {
+      border-color: rgba($orange, .3);
+      color: $orange;
+      background: rgba($orange, .06);
+
+      &:hover {
+        background: rgba($orange, .12);
+      }
+    }
+
+    &.red {
+      border-color: rgba($red, .3);
+      color: $red;
+      background: rgba($red, .06);
+
+      &:hover {
+        background: rgba($red, .12);
+      }
+    }
+  }
+}
+
+// ── Docentes list ─────────────────────────────────────────────
+.students-card {
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, .04);
+}
+
+.list-header {
+  display: grid;
+  grid-template-columns: 44px 1fr 260px 420px;
+  padding: 12px 20px;
+  background: $bg;
+  border-bottom: 1px solid $border;
+  font-size: 11px;
+  font-weight: 700;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
+.student-row {
+  display: grid;
+  grid-template-columns: 44px 1fr 260px 420px;
+  align-items: center;
+  padding: 11px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  border-left: 3px solid transparent;
+  transition: background .12s;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #f8fafc;
+  }
+
+  &.borde-presente {
+    border-left-color: $green;
+  }
+
+  &.borde-tardanza {
+    border-left-color: $orange;
+  }
+
+  &.borde-ausente {
+    border-left-color: $red;
+  }
+
+  &.borde-permiso,
+  &.borde-licencia {
+    border-left-color: $blue;
+  }
+
+  .muted {
+    font-size: 12px;
+    color: $muted;
+    font-weight: 600;
+  }
+
+  .col-alumno {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .avatar-initials {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .alumno-info {
+      .nombre {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: $dark;
+      }
+
+      .codigo {
+        display: block;
+        font-size: 11px;
+        color: $muted;
+      }
+    }
+  }
+
+  .col-clase {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .curso-badge {
+      display: inline-flex;
+      align-items: center;
+      background: rgba($teal, .1);
+      color: darken($teal, 10%);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      width: fit-content;
+    }
+
+    .horario-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: $muted;
+
+      mat-icon {
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
+      }
+    }
+  }
+
+  .col-estado {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 36px 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 8px;
+
+    .col-clase,
+    .col-estado {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+// ── Status buttons ────────────────────────────────────────────
+.est-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  transition: all .12s;
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+  }
+
+  span {
+    @media (max-width: 1100px) {
+      display: none;
+    }
+  }
+
+  &.presente {
+    border-color: #d1fae5;
+    color: $green;
+
+    &.active {
+      background: $green;
+      color: #fff;
+      border-color: $green;
+    }
+
+    &:not(.active):hover {
+      background: rgba($green, .1);
+    }
+  }
+
+  &.tardanza {
+    border-color: #fef3c7;
+    color: $orange;
+
+    &.active {
+      background: $orange;
+      color: #fff;
+      border-color: $orange;
+    }
+
+    &:not(.active):hover {
+      background: rgba($orange, .1);
+    }
+  }
+
+  &.ausente {
+    border-color: #fee2e2;
+    color: $red;
+
+    &.active {
+      background: $red;
+      color: #fff;
+      border-color: $red;
+    }
+
+    &:not(.active):hover {
+      background: rgba($red, .1);
+    }
+  }
+
+  &.permiso {
+    border-color: #dbeafe;
+    color: $blue;
+
+    &.active {
+      background: $blue;
+      color: #fff;
+      border-color: $blue;
+    }
+
+    &:not(.active):hover {
+      background: rgba($blue, .1);
+    }
+  }
+
+  &.licencia {
+    border-color: #ede9fe;
+    color: #7c3aed;
+
+    &.active {
+      background: #7c3aed;
+      color: #fff;
+      border-color: #7c3aed;
+    }
+
+    &:not(.active):hover {
+      background: rgba(#7c3aed, .1);
+    }
+  }
+}
+
+// ── Bottom bar ────────────────────────────────────────────────
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, .95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid $border;
+  padding: 14px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 200;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, .07);
+
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+  }
+
+  .bottom-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: $muted;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .pct-badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+
+      &.teal {
+        background: rgba($teal, .1);
+        color: $teal;
+      }
+
+      &.red {
+        background: rgba($red, .1);
+        color: $red;
+      }
+    }
+  }
+
+  .btn-save-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, $teal, #0d9488);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 6px 22px rgba($teal, .45);
+    }
+
+    &:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ── Badge ya registrado ───────────────────────────────────────
+.badge-registrado {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(#10b981, .1);
+  border: 1px solid rgba(#10b981, .3);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #10b981;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
 }

@@ -59,6 +59,12 @@ export class GeneralAsistencia implements OnInit {
         return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
     });
 
+    /** Fecha en formato corto dd/mm/yyyy para el botón del date-picker */
+    readonly fechaCorta = computed(() => {
+        const [y, m, d] = this.selectedDate().split('-');
+        return `${d}/${m}/${y}`;
+    });
+
     readonly isToday = computed(() => this.selectedDate() === this.todayStr);
     readonly isFuture = computed(() => this.selectedDate() > this.todayStr);
 
@@ -69,6 +75,8 @@ export class GeneralAsistencia implements OnInit {
     seccionNombre = signal('');
     gradoNombre = signal('');
     alumnos = signal<AlumnoRow[]>([]);
+
+    yaRegistrado = signal(false);
 
     readonly totalPresentes = computed(() => this.alumnos().filter(a => a.estado === 'asistio').length);
     readonly totalFaltas = computed(() => this.alumnos().filter(a => a.estado === 'falta').length);
@@ -85,7 +93,6 @@ export class GeneralAsistencia implements OnInit {
     ngOnInit() {
         this.seccionId = this.route.snapshot.paramMap.get('seccionId') ?? '';
 
-        // Guard: si no es un UUID válido (ej: viene de la ruta /general/scan), no cargar
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (!this.seccionId || !uuidRegex.test(this.seccionId)) {
             this.error.set('Sección no válida. Vuelve al dashboard y selecciona una sección.');
@@ -136,6 +143,8 @@ export class GeneralAsistencia implements OnInit {
                     this.seccionNombre.set(lista[0].seccion ?? '');
                 }
 
+                this.yaRegistrado.set(asist.length > 0);
+
                 this.alumnos.set(lista.map((a: any): AlumnoRow => ({
                     id: a.id,
                     nombre: a.nombre,
@@ -143,7 +152,6 @@ export class GeneralAsistencia implements OnInit {
                     apellido_materno: a.apellido_materno ?? '',
                     codigo_estudiante: a.codigo_estudiante,
                     foto_url: a.foto_url ?? null,
-                    // Si hay registro existente lo usa; si no, por defecto 'asistio'
                     estado: map.get(a.id) ?? 'asistio',
                 })));
 

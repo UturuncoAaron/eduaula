@@ -16,12 +16,21 @@
             </p>
         </div>
 
-        <!-- Selector de fecha -->
-        <div class="date-picker-wrap">
-            <mat-icon>edit_calendar</mat-icon>
-            <input type="date" class="date-input" [value]="selectedDate()" [max]="todayStr"
+        <!-- Selector de fecha — showPicker() fix -->
+        <div class="date-picker-wrap" (click)="datePicker.showPicker()">
+            <mat-icon class="dp-icon">edit_calendar</mat-icon>
+            <span class="dp-label">{{ fechaCorta() }}</span>
+            <mat-icon class="dp-chevron">expand_more</mat-icon>
+            <input #datePicker type="date" class="date-input-overlay" [value]="selectedDate()" [max]="todayStr"
                 (change)="onDateChange($any($event.target).value)" title="Seleccionar fecha" />
         </div>
+
+        @if (yaRegistrado() && !loading()) {
+        <div class="badge-registrado">
+            <mat-icon>check_circle</mat-icon>
+            Ya registrado
+        </div>
+        }
 
         @if (!loading() && !error() && alumnos().length) {
         <button class="btn-save" (click)="guardar()" [disabled]="saving()">
