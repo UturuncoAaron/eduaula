@@ -21,8 +21,7 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () =>
-          import('./features/dashboard/dashboard.routes')
-            .then(r => r.DASHBOARD_ROUTES),
+          import('./features/dashboard/dashboard.routes').then(r => r.DASHBOARD_ROUTES),
       },
 
       // ═══ PSICOLOGÍA ═══════════════════════════════════════════════════════
@@ -30,8 +29,7 @@ export const routes: Routes = [
         path: 'psicologa',
         canActivate: [roleGuard(['psicologa'])],
         loadChildren: () =>
-          import('./features/psychology/psychology.routes')
-            .then(r => r.PSYCHOLOGY_ROUTES),
+          import('./features/psychology/psychology.routes').then(r => r.PSYCHOLOGY_ROUTES),
       },
 
       // ═══ DOCENTE ══════════════════════════════════════════════════════════
@@ -43,16 +41,14 @@ export const routes: Routes = [
             path: 'citas',
             canActivate: [permissionGuard([MODULO.CITAS_DOCENTE])],
             loadComponent: () =>
-              import('./shared/components/tab-citas/tab-citas')
-                .then(m => m.TabCitas),
+              import('./shared/components/tab-citas/tab-citas').then(m => m.TabCitas),
             title: 'Mis citas | EduAula',
           },
           {
             path: 'disponibilidad',
             canActivate: [permissionGuard([MODULO.DISPONIBILIDAD_DOCENTE])],
             loadComponent: () =>
-              import('./shared/components/tab-disponibilidad/tab-disponibilidad')
-                .then(m => m.TabDisponibilidad),
+              import('./shared/components/tab-disponibilidad/tab-disponibilidad').then(m => m.TabDisponibilidad),
             title: 'Disponibilidad | EduAula',
           },
           { path: '', redirectTo: 'citas', pathMatch: 'full' },
@@ -68,8 +64,7 @@ export const routes: Routes = [
             path: 'citas',
             canActivate: [permissionGuard([MODULO.CITAS_PADRE, MODULO.CITAS_AGENDADAS])],
             loadComponent: () =>
-              import('./shared/components/tab-citas/tab-citas')
-                .then(m => m.TabCitas),
+              import('./shared/components/tab-citas/tab-citas').then(m => m.TabCitas),
             title: 'Mis citas | EduAula',
           },
           { path: '', redirectTo: 'citas', pathMatch: 'full' },
@@ -81,13 +76,11 @@ export const routes: Routes = [
         path: 'mis-citas',
         canActivate: [permissionGuard([MODULO.MIS_CITAS])],
         loadComponent: () =>
-          import('./shared/components/tab-citas/tab-citas')
-            .then(m => m.TabCitas),
+          import('./shared/components/tab-citas/tab-citas').then(m => m.TabCitas),
         title: 'Mis citas | EduAula',
       },
 
       // ═══ ADMIN / AUXILIAR — Agenda propia ════════════════════════════════
-      // ═══ ADMIN / AUXILIAR — Agenda propia ═════════════════════════
       {
         path: 'agenda',
         canActivate: [permissionGuard([MODULO.AGENDA_PROPIA])],
@@ -95,15 +88,13 @@ export const routes: Routes = [
           {
             path: 'citas',
             loadComponent: () =>
-              import('./shared/components/tab-citas/tab-citas')
-                .then(m => m.TabCitas),
+              import('./shared/components/tab-citas/tab-citas').then(m => m.TabCitas),
             title: 'Mis citas | EduAula',
           },
           {
             path: 'disponibilidad',
             loadComponent: () =>
-              import('./shared/components/tab-disponibilidad/tab-disponibilidad')
-                .then(m => m.TabDisponibilidad),
+              import('./shared/components/tab-disponibilidad/tab-disponibilidad').then(m => m.TabDisponibilidad),
             title: 'Disponibilidad | EduAula',
           },
           { path: '', redirectTo: 'citas', pathMatch: 'full' },
@@ -119,8 +110,7 @@ export const routes: Routes = [
       {
         path: 'comunicados',
         loadComponent: () =>
-          import('./shared/components/announcements-page/announcements-page')
-            .then(c => c.AnnouncementsPage),
+          import('./shared/components/announcements-page/announcements-page').then(c => c.AnnouncementsPage),
       },
       {
         path: 'notificaciones',
@@ -128,7 +118,26 @@ export const routes: Routes = [
           import('./features/notificaciones/notificaciones').then(c => c.Notificaciones),
       },
 
+      // ═══ REPORTES — docente/psicologa con permiso extra ══════════════════
+      {
+        path: 'reportes',
+        canActivate: [permissionGuard([MODULO.REPORTES_ACCESO])],
+        loadComponent: () =>
+          import('./features/admin/reports/reports').then(c => c.Reports),
+        title: 'Reportes | EduAula',
+      },
 
+      // ═══ LIBRETAS PADRES — admin siempre, docente con permiso extra ══════
+      // LIBRETAS_PADRE_ACCESO está en los módulos base del admin y se inyecta
+      // dinámicamente en el JWT del docente cuando el admin otorga el permiso.
+      {
+        path: 'libretas-padres',
+        canActivate: [permissionGuard([MODULO.LIBRETAS_PADRE_ACCESO])],
+        loadComponent: () =>
+          import('./shared/components/libretas-padres-page/libretas-padres-page')
+            .then(c => c.LibretasPadresPage),
+        title: 'Libretas Padres | EduAula',
+      },
 
       // ═══ ACADÉMICO ════════════════════════════════════════════════════════
       {
@@ -191,17 +200,6 @@ export const routes: Routes = [
     ],
   },
 
-  // ══ 404 — FUERA del layout, pantalla completa ══════════════════════
-  {
-    path: '404',
-    loadComponent: () =>
-      import('./features/not-found/not-found').then(c => c.NotFound),
-    title: 'Página no encontrada | EduAula',
-  },
-  {
-    path: '**',
-    loadComponent: () =>
-      import('./features/not-found/not-found').then(c => c.NotFound),
-    title: 'Página no encontrada | EduAula',
-  },
+  { path: '404', loadComponent: () => import('./features/not-found/not-found').then(c => c.NotFound) },
+  { path: '**', redirectTo: '404' },
 ];

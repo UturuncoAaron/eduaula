@@ -35,10 +35,14 @@
         <ul class="pd-list">
             @for (item of items; track item.modulo + item.accion) {
             <li class="pd-item" [class.pd-item--pending]="isPending(item)">
-                <div class="pd-item__check">
+
+                <!-- Checkbox — único responsable del toggle, sin propagar al body -->
+                <div class="pd-item__check" (click)="$event.stopPropagation()">
                     <mat-checkbox [checked]="tienePermiso(item)" (change)="toggle(item, $event.checked)"
                         [disabled]="saving()" />
                 </div>
+
+                <!-- Label clickeable — separado del checkbox para evitar doble disparo -->
                 <div class="pd-item__body" (click)="toggle(item, !tienePermiso(item))">
                     <div class="pd-item__title">
                         <span>{{ item.label }}</span>
@@ -54,7 +58,17 @@
                         }
                     </div>
                     <p class="pd-item__desc">{{ item.descripcion }}</p>
+
+                    <!-- Auditoría — solo visible si el permiso ya está otorgado en BD -->
+                    @if (auditoria(item); as info) {
+                    <p class="pd-item__audit">
+                        <mat-icon>history</mat-icon>
+                        Otorgado por {{ info.otorgadoPorNombre ?? 'Admin' }}
+                        · {{ info.createdAt | date:'d MMM yyyy' }}
+                    </p>
+                    }
                 </div>
+
             </li>
             }
         </ul>

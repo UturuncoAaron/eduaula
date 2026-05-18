@@ -8,7 +8,7 @@ export interface Periodo {
 
 export interface NotebookItem {
     id: string;
-    alumno_id: string;
+    alumno_id?: string; 
     periodo_id: number;
     bimestre: number;
     storage_key: string;
@@ -25,7 +25,6 @@ export interface AlumnoTutoria {
     apellido_paterno: string;
     apellido_materno: string | null;
     foto_url: string | null;
-    /** Marca de inclusión educativa (necesidades especiales). */
     inclusivo?: boolean;
     libretas: NotebookItem[];
 }
@@ -39,13 +38,14 @@ export interface PadreTutoria {
     email: string | null;
     telefono: string | null;
     hijos_ids: string[];
+    libretas: NotebookItem[];
 }
 
 export interface TutoriaData {
     seccion: {
-        id: string;        // ← UUID, no number
+        id: string;
         nombre: string;
-        grado_id: string;  // ← también UUID
+        grado_id: string;
         grado_nombre: string;
         grado_orden: number;
         capacidad: number;

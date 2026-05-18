@@ -1,0 +1,164 @@
+<mat-sidenav-container class="lp-wrap" autosize>
+  <mat-sidenav-content>
+
+    <!-- ── Header ──────────────────────────────────────────── -->
+    <header class="lp-header">
+      <div class="lp-header__title">
+        <mat-icon>folder_shared</mat-icon>
+        <div>
+          <h1>Libretas de Padres</h1>
+          <p>Carga el informe UGEL dirigido al padre de familia</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Filtros ──────────────────────────────────────────── -->
+    <section class="lp-filters">
+
+      <!-- Selector de sección -->
+      <mat-form-field appearance="outline" class="lp-filters__field">
+        <mat-label>Sección</mat-label>
+        <mat-select
+          [ngModel]="seccionId()"
+          (ngModelChange)="onSeccionChange($event)"
+          [disabled]="loadingSecciones()">
+          @for (s of secciones(); track s.id) {
+            <mat-option [value]="s.id">
+              {{ s.grado_nombre }} — Sección {{ s.nombre }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Pills de periodo -->
+      <div class="lp-filters__pills">
+        @for (p of periodos(); track p.id) {
+          <button
+            class="pill"
+            [class.selected]="periodoId() === p.id"
+            [class.activo]="p.activo"
+            (click)="onPeriodoChange(p.id)">
+            <span>Bim {{ p.bimestre }}</span>
+            @if (p.activo) { <span class="pill-dot"></span> }
+          </button>
+        }
+      </div>
+
+    </section>
+
+    <!-- ── Progreso ─────────────────────────────────────────── -->
+    @if (seccionId() && periodoId()) {
+      <section class="lp-progress">
+        <div class="lp-progress__info">
+          <span class="lp-progress__label">Progreso del bimestre</span>
+          <strong class="lp-progress__count">
+            {{ progreso().cargadas }}
+            <span>/ {{ progreso().total }} libretas</span>
+          </strong>
+        </div>
+        <div class="lp-progress__bar-row">
+          <mat-progress-bar mode="determinate" [value]="progresoPct()" />
+          <span class="lp-progress__pct">{{ progresoPct() }}%</span>
+        </div>
+        <div class="lp-progress__tags">
+          <span class="tag tag--ok">
+            <mat-icon>check_circle</mat-icon>
+            {{ progreso().cargadas }} cargadas
+          </span>
+          <span class="tag tag--pending">
+            <mat-icon>schedule</mat-icon>
+            {{ pendientes() }} pendientes
+          </span>
+        </div>
+      </section>
+    }
+
+    <!-- ── Lista de padres ──────────────────────────────────── -->
+    @if (loadingPadres()) {
+      <div class="lp-state">
+        <mat-spinner diameter="36" />
+        <span>Cargando padres...</span>
+      </div>
+
+    } @else if (!seccionId() || !periodoId()) {
+      <div class="lp-state lp-state--empty">
+        <mat-icon>filter_list</mat-icon>
+        <h3>Selecciona una sección y un bimestre</h3>
+        <p>Luego verás aquí la lista de padres para cargar sus libretas.</p>
+      </div>
+
+    } @else if (padres().length === 0) {
+      <div class="lp-state lp-state--empty">
+        <mat-icon>folder_off</mat-icon>
+        <h3>Sin padres registrados</h3>
+        <p>Esta sección no tiene padres vinculados aún.</p>
+      </div>
+
+    } @else {
+      <section class="lp-list">
+        @for (p of padres(); track trackById($index, p)) {
+          <article class="lp-row" [class.lp-row--ok]="p.libreta !== null">
+
+            <div class="lp-row__info">
+              <div class="lp-row__avatar">{{ initials(p) }}</div>
+              <div class="lp-row__text">
+                <span class="lp-row__name">
+                  {{ p.nombre }} {{ p.apellido_paterno }}
+                  @if (p.apellido_materno) { {{ p.apellido_materno }} }
+                </span>
+                <span class="lp-row__sub">{{ p.relacion | titlecase }}</span>
+              </div>
+            </div>
+
+            <div class="lp-row__status">
+              @if (p.libreta) {
+                <span class="badge badge--ok">
+                  <mat-icon>check_circle</mat-icon>
+                  Cargada
+                </span>
+              } @else {
+                <span class="badge badge--pending">
+                  <mat-icon>schedule</mat-icon>
+                  Pendiente
+                </span>
+              }
+            </div>
+
+            <div class="lp-row__actions">
+              @if (p.libreta) {
+                <a mat-stroked-button color="primary"
+                   [href]="p.libreta.url" target="_blank" rel="noopener">
+                  <mat-icon>visibility</mat-icon>
+                  <span class="btn-label">Ver</span>
+                </a>
+                <button mat-stroked-button
+                        (click)="openUpload(p)"
+                        matTooltip="Reemplazar libreta">
+                  <mat-icon>refresh</mat-icon>
+                </button>
+              } @else {
+                <button mat-flat-button color="primary" (click)="openUpload(p)">
+                  <mat-icon>upload</mat-icon>
+                  <span class="btn-label">Subir</span>
+                </button>
+              }
+            </div>
+
+          </article>
+        }
+      </section>
+    }
+
+  </mat-sidenav-content>
+
+  <!-- ── Drawer ───────────────────────────────────────────── -->
+  <mat-sidenav #drawer mode="over" position="end" [autoFocus]="false">
+    @if (uploadTarget(); as target) {
+      <app-notebook-upload-drawer
+        [target]="target"
+        (uploaded)="onUploaded()"
+        (cancelled)="closeDrawer()" />
+    }
+  </mat-sidenav>
+
+</mat-sidenav-container>

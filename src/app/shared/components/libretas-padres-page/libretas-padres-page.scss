@@ -1,0 +1,404 @@
+$radius: 14px;
+$radius-sm: 10px;
+$border: #e2e8f0;
+$bg: #ffffff;
+$text-strong: #0f172a;
+$text-body: #475569;
+$text-muted: #64748b;
+$primary: #4f46e5;
+$success: #10b981;
+$warn: #f59e0b;
+$shadow-sm: 0 1px 2px rgba(15, 23, 42, .04);
+
+:host {
+    display: block;
+    height: 100%;
+}
+
+.lp-wrap {
+    background: transparent;
+    height: 100%;
+}
+
+mat-sidenav-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0;
+    background: transparent !important;
+}
+
+// ── Header ────────────────────────────────────────────────────
+.lp-header {
+    background: $bg;
+    border: 1px solid $border;
+    border-radius: $radius;
+    padding: 18px 20px;
+    box-shadow: $shadow-sm;
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+
+        mat-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+            color: $primary;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            margin: 0 0 2px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: $text-strong;
+        }
+
+        p {
+            margin: 0;
+            font-size: .8rem;
+            color: $text-muted;
+        }
+    }
+}
+
+// ── Filtros ───────────────────────────────────────────────────
+.lp-filters {
+    background: $bg;
+    border: 1px solid $border;
+    border-radius: $radius;
+    padding: 14px 16px;
+    box-shadow: $shadow-sm;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+
+    &__field {
+        min-width: 240px;
+        flex: 1 1 240px;
+
+        // quitar margen inferior de mat-form-field dentro de flex
+        ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+            display: none;
+        }
+    }
+
+    &__pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid $border;
+    background: #fff;
+    color: $text-body;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+
+    &:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    &.selected {
+        background: linear-gradient(135deg, #4a5cba 0%, #5e72e4 100%);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 2px 8px rgba(94, 114, 228, .3);
+    }
+
+    .pill-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: $success;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, .25);
+    }
+
+    &.selected .pill-dot {
+        background: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, .35);
+    }
+}
+
+// ── Progreso ──────────────────────────────────────────────────
+.lp-progress {
+    background: $bg;
+    border: 1px solid $border;
+    border-radius: $radius;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: $shadow-sm;
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__label {
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: $text-muted;
+    }
+
+    &__count {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: $text-strong;
+
+        span {
+            font-size: .85rem;
+            font-weight: 500;
+            color: $text-muted;
+            margin-left: 4px;
+        }
+    }
+
+    &__bar-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        mat-progress-bar {
+            flex: 1;
+            --mdc-linear-progress-track-height: 8px;
+            --mdc-linear-progress-active-indicator-height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+    }
+
+    &__pct {
+        font-weight: 700;
+        font-size: .9rem;
+        min-width: 40px;
+        text-align: right;
+        color: $text-strong;
+    }
+
+    &__tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 600;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+    &--ok {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    &--pending {
+        background: #fffbeb;
+        color: #b45309;
+    }
+}
+
+// ── Estado vacío / loading ────────────────────────────────────
+.lp-state {
+    background: $bg;
+    border: 1px dashed $border;
+    border-radius: $radius;
+    padding: 56px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: $text-muted;
+
+    mat-spinner {
+        margin-bottom: 4px;
+    }
+
+    &--empty mat-icon {
+        font-size: 56px;
+        width: 56px;
+        height: 56px;
+        color: #cbd5e1;
+    }
+
+    h3 {
+        margin: 4px 0 0;
+        color: $text-strong;
+        font-size: 1rem;
+    }
+
+    p {
+        margin: 0;
+        max-width: 360px;
+        font-size: .875rem;
+        line-height: 1.5;
+    }
+}
+
+// ── Lista ─────────────────────────────────────────────────────
+.lp-list {
+    background: $bg;
+    border: 1px solid $border;
+    border-radius: $radius;
+    overflow: hidden;
+    box-shadow: $shadow-sm;
+}
+
+.lp-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) auto auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background .15s;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    &:hover {
+        background: #f8fafc;
+    }
+
+    &--ok {
+        background: linear-gradient(90deg, #f0fdf4 0%, transparent 60%);
+
+        &:hover {
+            background: linear-gradient(90deg, #dcfce7 0%, transparent 60%);
+        }
+    }
+
+    &__info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    &__avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4a5cba 0%, #5e72e4 100%);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: .88rem;
+        flex-shrink: 0;
+    }
+
+    &__text {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__name {
+        font-weight: 600;
+        color: $text-strong;
+        font-size: .9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__sub {
+        font-size: .75rem;
+        color: $text-muted;
+    }
+
+    &__actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 600;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+    &--ok {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    &--pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+}
+
+// ── Drawer ────────────────────────────────────────────────────
+mat-sidenav {
+    width: min(440px, 100vw);
+}
+
+// ── Responsive ───────────────────────────────────────────────
+@media (max-width: 768px) {
+    .lp-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+
+        &__actions {
+            justify-content: flex-end;
+        }
+
+        &__status {
+            justify-self: flex-start;
+        }
+    }
+
+    .lp-filters__field {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .lp-row__actions .btn-label {
+        display: none;
+    }
+}

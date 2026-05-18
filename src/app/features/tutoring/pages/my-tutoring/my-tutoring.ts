@@ -24,13 +24,8 @@ interface NavTab {
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
-    RouterLinkActive,
-    RouterOutlet,
-    MatTabsModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
+    RouterLink, RouterLinkActive, RouterOutlet,
+    MatTabsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule,
   ],
   providers: [TutoringStore],
   templateUrl: './my-tutoring.html',
@@ -40,9 +35,11 @@ interface NavTab {
 export class MyTutoring implements OnInit {
   readonly store = inject(TutoringStore);
 
+  // Tabs fijos — las libretas de padres tienen su propia ruta /libretas-padres
+  // accesible desde el sidebar cuando el admin otorga el permiso.
   readonly tabs: readonly NavTab[] = [
-    { path: 'alumnos',  label: 'Alumnos',  icon: 'group' },
-    { path: 'padres',   label: 'Padres',   icon: 'family_restroom' },
+    { path: 'alumnos', label: 'Alumnos', icon: 'group' },
+    { path: 'padres', label: 'Padres', icon: 'family_restroom' },
     { path: 'libretas', label: 'Libretas', icon: 'description' },
   ];
 
