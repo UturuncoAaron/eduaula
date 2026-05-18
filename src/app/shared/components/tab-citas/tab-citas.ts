@@ -32,6 +32,13 @@ import {
   RejectDialog, RejectDialogData, RejectDialogResult,
 } from '../reject-dialog/reject-dialog';
 import { AppointmentFormDialogData } from '../../../features/psychology/dialogs/appointment-form-dialog/appointment-form-dialog';
+import {
+  PostponeAppointmentDialog, PostponeDialogData, PostponeDialogResult,
+} from '../../../features/appointments/dialogs/postpone-appointment-dialog/postpone-appointment-dialog';
+import {
+  RealizarAppointmentDialog, RealizarDialogData, RealizarDialogResult,
+} from '../../../features/appointments/dialogs/realizar-appointment-dialog/realizar-appointment-dialog';
+import { parseApiError } from '../../utils/api-errors';
 
 type EstadoFilter = AppointmentEstado | 'all';
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'past';
@@ -225,22 +232,38 @@ export class TabCitas {
     return false;
   }
 
+  /** Realizar = marcar la cita como atendida. Sólo psicóloga, sobre citas vivas. */
   canFinish(a: Appointment): boolean {
-    return hasAvailability(this.rol()) &&
+    return this.esPsicologa() &&
       (a.estado === 'confirmada' || a.estado === 'pendiente');
   }
 
+  /** No asistió = inasistencia. Sólo psicóloga, y sólo si ya pasó la hora. */
   canMarkNoShow(a: Appointment): boolean {
-    return hasAvailability(this.rol()) &&
-      a.estado !== 'cancelada' &&
-      a.estado !== 'rechazada' &&
-      a.estado !== 'realizada';
+    if (!this.esPsicologa()) return false;
+    if (a.estado === 'cancelada' || a.estado === 'rechazada' ||
+        a.estado === 'realizada' || a.estado === 'no_asistio') return false;
+    return new Date(a.scheduledAt).getTime() <= Date.now();
   }
+
+  /**
+   * Aplazar: el convocado vivo, mientras la cita siga en pie y aún no
+   * pasó su hora. El convocante no aplaza — cancela o reagenda.
+   */
+  canPostpone(a: Appointment): boolean {
+    if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
+    if (!this.esSoyConvocado(a)) return false;
+    return new Date(a.scheduledAt).getTime() > Date.now();
+  }
+
+  /** Derivar: sólo docente, acción top-level (no es por fila). */
+  canDerivar(): boolean { return this.esDocente(); }
 
   canCancel(a: Appointment): boolean {
     return a.estado !== 'cancelada' &&
       a.estado !== 'rechazada' &&
-      a.estado !== 'realizada';
+      a.estado !== 'realizada' &&
+      a.estado !== 'no_asistio';
   }
 
   trackById = (_: number, a: Appointment): string => a.id;
@@ -298,6 +321,11 @@ export class TabCitas {
     }
   }
 
+  /**
+   * @deprecated Usado solo por flujos legacy que cambian estado mediante
+   * PATCH /appointments/:id. Para acciones nuevas usa los wrappers canonicos
+   * (`realizar`, `inasistencia`, `cancelar`, `aplazar`).
+   */
   async setEstado(row: Appointment, estado: AppointmentEstado): Promise<void> {
     if (row.estado === estado) return;
     try {
@@ -306,17 +334,23 @@ export class TabCitas {
         `Marcada como ${this.estadoLabel(estado).toLowerCase()}`, 'OK',
         { duration: 2500 },
       );
-    } catch {
-      this.toastr.error('No se pudo actualizar el estado', 'OK', { duration: 4000 });
+    } catch (err: unknown) {
+      this.toastr.error(
+        parseApiError(err, 'No se pudo actualizar el estado'),
+        'Error', { duration: 4000 },
+      );
     }
   }
 
   async aceptar(row: Appointment): Promise<void> {
     try {
-      await this.apptStore.acceptAppointment(row.id);
-      this.toastr.success('Cita aceptada', 'OK', { duration: 2500 });
-    } catch {
-      this.toastr.error('No se pudo aceptar la cita', 'OK', { duration: 4000 });
+      await this.apptStore.confirmAppointment(row.id);
+      this.toastr.success('Cita confirmada', 'OK', { duration: 2500 });
+    } catch (err: unknown) {
+      this.toastr.error(
+        parseApiError(err, 'No se pudo confirmar la cita'),
+        'Error', { duration: 4000 },
+      );
     }
   }
 
@@ -347,19 +381,118 @@ export class TabCitas {
   }
 
   async cancelar(row: Appointment): Promise<void> {
+    // El BE exige motivo no vacío en PATCH /cancelar.
+    const data: RejectDialogData = { contextLabel: this.rejectContext(row) };
+    const res = await firstValueFrom(
+      this.dialog.open<RejectDialog, RejectDialogData, RejectDialogResult>(
+        RejectDialog,
+        { data, width: '440px', maxWidth: '95vw' },
+      ).afterClosed(),
+    );
+    if (!res?.motivo) return;
+    try {
+      await this.apptStore.cancelAppointment(row.id, { motivo: res.motivo });
+      this.toastr.success('Cita cancelada', 'OK', { duration: 2500 });
+    } catch (err: unknown) {
+      this.toastr.error(
+        parseApiError(err, 'No se pudo cancelar la cita'),
+        'Error', { duration: 4000 },
+      );
+    }
+  }
+
+  // ── Aplazar ────────────────────────────────────────────────
+  async aplazar(row: Appointment): Promise<void> {
+    const ref = this.dialog.open<PostponeAppointmentDialog, PostponeDialogData, PostponeDialogResult>(
+      PostponeAppointmentDialog,
+      {
+        width: '880px',
+        maxWidth: '95vw',
+        panelClass: 'appointment-dialog-panel',
+        data: { appointment: row },
+      },
+    );
+    const result = await firstValueFrom(ref.afterClosed());
+    if (result?.success) {
+      this.toastr.success(
+        'Cita aplazada — el convocante recibirá una notificación',
+        'OK', { duration: 3000 },
+      );
+      void this.apptStore.loadMyAppointments();
+    }
+  }
+
+  // ── Realizar (sólo psicóloga) ──────────────────────────────
+  async realizar(row: Appointment): Promise<void> {
+    const data: RealizarDialogData = { contextLabel: this.rejectContext(row) };
+    const ref = this.dialog.open<RealizarAppointmentDialog, RealizarDialogData, RealizarDialogResult>(
+      RealizarAppointmentDialog,
+      { data, width: '480px', maxWidth: '95vw' },
+    );
+    const res = await firstValueFrom(ref.afterClosed());
+    if (!res) return;
+    try {
+      await this.apptStore.markAsRealizada(row.id, {
+        notasPosteriores: res.notasPosteriores,
+      });
+      this.toastr.success('Cita marcada como realizada', 'OK', { duration: 2500 });
+    } catch (err: unknown) {
+      this.toastr.error(
+        parseApiError(err, 'No se pudo marcar la cita como realizada'),
+        'Error', { duration: 4000 },
+      );
+    }
+  }
+
+  // ── Inasistencia (sólo psicóloga) ─────────────────────────
+  async inasistencia(row: Appointment): Promise<void> {
     const ok = await firstValueFrom(
       this.dialog.open<ConfirmDialog, ConfirmData, boolean>(ConfirmDialog, {
         width: '420px',
         data: {
-          title: 'Cancelar cita',
-          message: 'Cancelar esta cita? Esta accion no se puede deshacer.',
-          confirm: 'Si, cancelar',
+          title: 'Registrar inasistencia',
+          message: '¿Marcar esta cita como "no asistió"?\n\nSe notificará al padre vinculado al alumno.',
+          confirm: 'Registrar inasistencia',
           cancel: 'Volver',
           danger: true,
         },
       }).afterClosed(),
     );
     if (!ok) return;
-    await this.setEstado(row, 'cancelada');
+    try {
+      await this.apptStore.markAsNoAsistio(row.id);
+      this.toastr.success('Inasistencia registrada', 'OK', { duration: 2500 });
+    } catch (err: unknown) {
+      this.toastr.error(
+        parseApiError(err, 'No se pudo registrar la inasistencia'),
+        'Error', { duration: 4000 },
+      );
+    }
+  }
+
+  // ── Derivar a psicóloga (docente) ──────────────────────────
+  async openDerivar(): Promise<void> {
+    if (!this.canDerivar()) return;
+    const mod = await import(
+      '../../../features/appointments/dialogs/derive-to-psicologa-dialog/derive-to-psicologa-dialog'
+    );
+    type DeriveDialogT = InstanceType<typeof mod.DeriveToPsicologaDialog>;
+    const ref = this.dialog.open<DeriveDialogT, void, boolean>(
+      mod.DeriveToPsicologaDialog,
+      {
+        width: '900px',
+        maxWidth: '95vw',
+        panelClass: 'appointment-dialog-panel',
+        autoFocus: 'first-tabbable',
+      },
+    );
+    const ok = await firstValueFrom(ref.afterClosed());
+    if (ok) {
+      this.toastr.success(
+        'Derivación enviada — la psicóloga será notificada',
+        'OK', { duration: 3000 },
+      );
+      void this.apptStore.loadMyAppointments();
+    }
   }
 }

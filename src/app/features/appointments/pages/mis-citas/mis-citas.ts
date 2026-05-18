@@ -21,9 +21,13 @@ import { AppointmentsStore } from '../../data-access/appointments.store';
 import { AuthService } from '../../../../core/auth/auth';
 import { Appointment, AppointmentEstado } from '../../../../core/models/appointments';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
-import { ConfirmDialog, ConfirmData } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { RejectDialog, RejectDialogData, RejectDialogResult } from '../../../../shared/components/reject-dialog/reject-dialog';
 import type { RequestAppointmentDialogData } from '../../dialogs/request-appointment-dialog/request-appointment-dialog';
 import { RequestAppointmentDialog } from '../../dialogs/request-appointment-dialog/request-appointment-dialog';
+import {
+    PostponeAppointmentDialog, PostponeDialogData, PostponeDialogResult,
+} from '../../dialogs/postpone-appointment-dialog/postpone-appointment-dialog';
+import { parseApiError } from '../../../../shared/utils/api-errors';
 
 type EstadoFilter = AppointmentEstado | 'all';
 
@@ -146,13 +150,47 @@ export class MisCitas {
     modalidadIcon(_modalidad: string): string { return 'meeting_room'; }
 
     canCancel(a: Appointment): boolean {
-        return a.estado !== 'cancelada' && a.estado !== 'realizada';
+        return a.estado !== 'cancelada' && a.estado !== 'realizada' &&
+            a.estado !== 'rechazada' && a.estado !== 'no_asistio';
     }
 
     /** El usuario puede reagendar si la cita sigue en curso (pendiente/confirmada)
      * y aún no pasó su hora. */
     canReschedule(a: Appointment): boolean {
         if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
+        return new Date(a.scheduledAt).getTime() > Date.now();
+    }
+
+    /**
+     * Puede confirmar la cita: sólo el convocado, y sólo si está en
+     * estado pendiente y aún no pasó su hora.
+     */
+    canConfirm(a: Appointment): boolean {
+        if (a.estado !== 'pendiente') return false;
+        const me = this.auth.currentUser()?.id;
+        if (a.convocadoAId !== me) return false;
+        return new Date(a.scheduledAt).getTime() > Date.now();
+    }
+
+    /**
+     * El padre puede rechazar (sólo padre, y sólo cuando es el convocado).
+     * El alumno cancela en su lugar.
+     */
+    canReject(a: Appointment): boolean {
+        if (this.mode() !== 'padre') return false;
+        if (a.estado !== 'pendiente') return false;
+        const me = this.auth.currentUser()?.id;
+        return a.convocadoAId === me;
+    }
+
+    /**
+     * Puede aplazar (proponer nueva fecha + motivo): el convocado, mientras
+     * la cita siga viva.
+     */
+    canPostpone(a: Appointment): boolean {
+        if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
+        const me = this.auth.currentUser()?.id;
+        if (a.convocadoAId !== me) return false;
         return new Date(a.scheduledAt).getTime() > Date.now();
     }
 
@@ -189,40 +227,72 @@ export class MisCitas {
     }
 
     async cancelar(row: Appointment): Promise<void> {
-        const ref = this.dialog.open<ConfirmDialog, ConfirmData, boolean>(ConfirmDialog, {
-            width: '420px',
-            maxWidth: '95vw',
-            data: {
-                title: 'Cancelar cita',
-                message: '¿Estás seguro/a de cancelar esta cita?',
-                confirm: 'Sí, cancelar',
-                cancel: 'Volver',
-                danger: true,
-            },
-        });
-        const ok = await firstValueFrom(ref.afterClosed());
-        if (!ok) return;
+        // Pedimos motivo explícito — el BE exige `motivo` no vacío en /cancelar.
+        const data: RejectDialogData = { contextLabel: this.contextLabel(row) };
+        const res = await firstValueFrom(
+            this.dialog.open<RejectDialog, RejectDialogData, RejectDialogResult>(
+                RejectDialog,
+                { data, width: '440px', maxWidth: '95vw' },
+            ).afterClosed(),
+        );
+        if (!res?.motivo) return;
         try {
-            await this.store.cancelAppointment(row.id, {
-                motivo: this.mode() === 'alumno'
-                    ? 'Cancelada por el alumno'
-                    : 'Cancelada por el padre/tutor',
-            });
+            await this.store.cancelAppointment(row.id, { motivo: res.motivo });
             this.toastr.success('Cita cancelada', 'OK', { duration: 2500 });
         } catch (err: unknown) {
-            this.toastr.error(parseApiError(err, 'No se pudo cancelar la cita'), 'OK', { duration: 4500 });
+            this.toastr.error(parseApiError(err, 'No se pudo cancelar la cita'), 'Error', { duration: 4500 });
         }
     }
-}
 
-function parseApiError(err: unknown, fallback: string): string {
-    const e = err as { error?: { message?: unknown } };
-    const raw = e?.error?.message;
-    if (typeof raw === 'string') return raw;
-    if (raw && typeof raw === 'object') {
-        const inner = (raw as { message?: unknown }).message;
-        if (typeof inner === 'string') return inner;
-        if (Array.isArray(inner) && inner.length > 0 && typeof inner[0] === 'string') return inner.join(', ');
+    async confirmar(row: Appointment): Promise<void> {
+        try {
+            await this.store.confirmAppointment(row.id);
+            this.toastr.success('Cita confirmada', 'OK', { duration: 2500 });
+        } catch (err: unknown) {
+            this.toastr.error(parseApiError(err, 'No se pudo confirmar la cita'), 'Error', { duration: 4500 });
+        }
     }
-    return fallback;
+
+    async rechazar(row: Appointment): Promise<void> {
+        const data: RejectDialogData = { contextLabel: this.contextLabel(row) };
+        const res = await firstValueFrom(
+            this.dialog.open<RejectDialog, RejectDialogData, RejectDialogResult>(
+                RejectDialog,
+                { data, width: '440px', maxWidth: '95vw' },
+            ).afterClosed(),
+        );
+        if (!res?.motivo) return;
+        try {
+            await this.store.rejectAppointment(row.id, res.motivo);
+            this.toastr.success('Cita rechazada', 'OK', { duration: 2500 });
+        } catch (err: unknown) {
+            this.toastr.error(parseApiError(err, 'No se pudo rechazar la cita'), 'Error', { duration: 4500 });
+        }
+    }
+
+    async aplazar(row: Appointment): Promise<void> {
+        const ref = this.dialog.open<PostponeAppointmentDialog, PostponeDialogData, PostponeDialogResult>(
+            PostponeAppointmentDialog,
+            {
+                width: '880px',
+                maxWidth: '95vw',
+                panelClass: 'appointment-dialog-panel',
+                data: { appointment: row },
+            },
+        );
+        const result = await firstValueFrom(ref.afterClosed());
+        if (result?.success) {
+            this.toastr.success('Cita aplazada — el convocante recibirá una notificación', 'OK', { duration: 3000 });
+            void this.store.loadMyAppointments();
+        }
+    }
+
+    /** Texto descriptivo "13/05 a las 10:30 con X" para los dialogs de rechazo/cancelar. */
+    private contextLabel(a: Appointment): string {
+        const d = new Date(a.scheduledAt);
+        const fecha = d.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const hora = d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        const con = this.psicologaName(a) || this.studentName(a) || '—';
+        return `${fecha} a las ${hora} con ${con}`;
+    }
 }

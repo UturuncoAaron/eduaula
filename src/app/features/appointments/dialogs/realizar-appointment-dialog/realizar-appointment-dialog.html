@@ -1,0 +1,40 @@
+<div class="realizar">
+
+    <header class="realizar__head">
+        <div class="realizar__icon">
+            <mat-icon>task_alt</mat-icon>
+        </div>
+        <div class="realizar__title-block">
+            <h2 class="realizar__title">Marcar como realizada</h2>
+            <p class="realizar__subtitle">{{ data.contextLabel }}</p>
+        </div>
+    </header>
+
+    <p class="realizar__hint">
+        Las notas posteriores son opcionales y quedan en el historial de la cita.
+    </p>
+
+    <mat-form-field appearance="outline" class="realizar__field">
+        <mat-label>Notas posteriores (opcional)</mat-label>
+        <textarea
+            matInput
+            rows="4"
+            [(ngModel)]="notas"
+            [maxlength]="maxLength"
+            placeholder="Acuerdos, observaciones, próximos pasos…"></textarea>
+        <mat-hint align="end">{{ trimmedLength }} / {{ maxLength }}</mat-hint>
+    </mat-form-field>
+
+    <footer class="realizar__actions">
+        <button mat-stroked-button type="button" (click)="cancel()">Volver</button>
+        <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="submit()">
+            <mat-icon>check_circle</mat-icon>
+            Marcar realizada
+        </button>
+    </footer>
+
+</div>

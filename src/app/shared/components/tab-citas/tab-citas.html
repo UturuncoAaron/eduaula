@@ -73,6 +73,14 @@
                 <mat-icon>filter_alt_off</mat-icon>
             </button>
 
+            @if (canDerivar()) {
+                <button mat-stroked-button color="primary" type="button" (click)="openDerivar()"
+                    matTooltip="Derivar a un alumno hacia una psicóloga">
+                    <mat-icon>psychology</mat-icon>
+                    <span>Derivar</span>
+                </button>
+            }
+
             <button mat-flat-button color="primary" type="button" (click)="openCreate()">
                 <mat-icon>add</mat-icon>
                 <span>Nueva cita</span>
@@ -176,20 +184,26 @@
                             <mat-icon>more_vert</mat-icon>
                         </button>
                         <mat-menu #menu="matMenu">
-                            <button mat-menu-item type="button" (click)="setEstado(row, 'confirmada')"
+                            <button mat-menu-item type="button" (click)="aceptar(row)"
                                 [disabled]="!canConfirm(row)">
                                 <mat-icon>check</mat-icon>
                                 <span>Confirmar</span>
                             </button>
-                            <button mat-menu-item type="button" (click)="setEstado(row, 'realizada')"
+                            <button mat-menu-item type="button" (click)="aplazar(row)"
+                                [disabled]="!canPostpone(row)">
+                                <mat-icon>event_repeat</mat-icon>
+                                <span>Aplazar</span>
+                            </button>
+                            <mat-divider />
+                            <button mat-menu-item type="button" (click)="realizar(row)"
                                 [disabled]="!canFinish(row)">
                                 <mat-icon>task_alt</mat-icon>
                                 <span>Marcar como realizada</span>
                             </button>
-                            <button mat-menu-item type="button" (click)="setEstado(row, 'no_asistio')"
+                            <button mat-menu-item type="button" (click)="inasistencia(row)"
                                 [disabled]="!canMarkNoShow(row)">
                                 <mat-icon>person_off</mat-icon>
-                                <span>No asistió</span>
+                                <span>Registrar inasistencia</span>
                             </button>
                             <mat-divider />
                             <button mat-menu-item type="button" class="danger" (click)="cancelar(row)"

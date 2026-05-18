@@ -261,3 +261,78 @@ export interface FreeSlot {
     end: string;     // HH:mm
     available: boolean;
 }
+
+// ────────────────────────────────────────────────────────────────
+// PAYLOADS NUEVOS (alineados al spec del backend)
+// ────────────────────────────────────────────────────────────────
+
+export interface PostponeAppointmentPayload {
+    motivo: string;
+    nuevaFechaHora: string; // ISO
+}
+
+export interface DeriveAppointmentPayload {
+    alumnoId: string;
+    psicologaId: string;
+    motivo: string;
+    scheduledAt: string;
+    durationMin?: number;
+}
+
+export interface CompleteAppointmentPayload {
+    notasPosteriores?: string;
+}
+
+/** Padre disponible cuando psicóloga cita a un alumno con >1 padres. */
+export interface AvailableParent {
+    id: string;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+}
+
+/** Respuesta extendida cuando psicóloga crea cita y hay múltiples padres. */
+export interface CreateAppointmentResult extends Appointment {
+    availableParents?: AvailableParent[];
+}
+
+/** Slot semanal devuelto por GET /psicologas/:id/disponibilidad. */
+export interface WeeklyAvailabilitySlot {
+    start: string;        // ISO
+    end: string;          // ISO
+    available: boolean;
+}
+
+export interface WeeklyAvailabilityDay {
+    date: string;         // YYYY-MM-DD
+    diaSemana: DiaSemana;
+    diaLabel: string;
+    slots: WeeklyAvailabilitySlot[];
+}
+
+export interface WeeklyAvailability {
+    cuentaId: string;
+    weekStart: string;    // YYYY-MM-DD (lunes)
+    slotMinutes: number;
+    days: WeeklyAvailabilityDay[];
+}
+
+/** Cita afectada cuando se intenta borrar un bloque con citas activas. */
+export interface AffectedAppointment {
+    id: string;
+    scheduledAt: string;
+    durationMin: number;
+    estado: AppointmentEstado;
+    motivo: string;
+    convocadoPor: { id: string; nombre: string; apellido_paterno: string } | null;
+    convocadoA: { id: string; nombre: string; apellido_paterno: string } | null;
+    student: { id: string; nombre: string; apellido_paterno: string } | null;
+}
+
+/** Cuerpo del 409 cuando se intenta borrar un slot con citas activas. */
+export interface SlotConflictResponse {
+    statusCode: 409;
+    message: string;
+    affectedCount: number;
+    affected: AffectedAppointment[];
+}
