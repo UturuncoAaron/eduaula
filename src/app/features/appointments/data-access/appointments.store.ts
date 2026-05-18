@@ -18,6 +18,7 @@ import type {
     CreateAppointmentResult,
     WeeklyAvailability,
     SlotConflictResponse,
+    AppointmentStatusLogEntry,
 } from '../../../core/models/appointments';
 import type { Psicologa } from '../../../core/models/psychology';
 import type { Child } from '../../../core/models/parent-portal';
@@ -314,6 +315,25 @@ export class AppointmentsStore {
                 return e.error.data;
             }
             throw err;
+        }
+    }
+
+    /**
+     * Historial completo de transiciones de estado de una cita.
+     * GET /appointments/:id/estado-log — devuelve entradas ordenadas
+     * cronológicamente (más antiguas primero). El BE filtra por rol
+     * (sólo psicóloga/docente/admin o partes de la cita pueden leer).
+     */
+    async getStatusLog(appointmentId: string): Promise<AppointmentStatusLogEntry[]> {
+        try {
+            const res = await firstValueFrom(
+                this.api.get<AppointmentStatusLogEntry[] | { data: AppointmentStatusLogEntry[] }>(
+                    `appointments/${appointmentId}/estado-log`,
+                ),
+            );
+            return unwrapList<AppointmentStatusLogEntry>(res.data);
+        } catch {
+            return [];
         }
     }
 

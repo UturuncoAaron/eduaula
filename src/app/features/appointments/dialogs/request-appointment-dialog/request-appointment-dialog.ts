@@ -33,6 +33,7 @@ import {
     AccountAvailability, Appointment, AppointmentTipo, DiaSemana, SlotTaken,
     AppointmentRoleRule, APPOINTMENT_RULES,
     ruleToStartHour, ruleToEndHour, ruleToSlotMinutes,
+    ruleToMaxConsecutiveSlots,
 } from '../../../../core/models/appointments';
 import { Psicologa, Docente } from '../../../../core/models/psychology';
 import { Child } from '../../../../core/models/parent-portal';
@@ -176,6 +177,25 @@ export class RequestAppointmentDialog implements OnInit {
     readonly ruleEndHour = computed<number>(
         () => ruleToEndHour(this.effectiveRule()),
     );
+    /**
+     * Cuántos slots consecutivos como máximo permite la regla efectiva.
+     * Mirror del BE — afecta al selector "1 slot / 2 slots" del UI.
+     */
+    readonly ruleMaxConsecutiveSlots = computed<number>(
+        () => ruleToMaxConsecutiveSlots(this.effectiveRule()),
+    );
+    /** Opciones de # de slots ofrecidas al usuario (1..max). */
+    readonly slotCountOptions = computed<number[]>(() => {
+        const n = this.ruleMaxConsecutiveSlots();
+        return Array.from({ length: n }, (_, i) => i + 1);
+    });
+    /** # de slots actualmente seleccionados según durationMin / slotMinutes. */
+    readonly selectedSlotCount = computed<number>(() => {
+        const r = this.effectiveRule();
+        const dur = Number(this.form?.value?.durationMin) || r.slotMinutes;
+        const step = r.slotMinutes > 0 ? r.slotMinutes : 30;
+        return Math.max(1, Math.round(dur / step));
+    });
 
     // ── Form ───────────────────────────────────────────────────
     form: FormGroup = this.fb.group({
@@ -277,6 +297,24 @@ export class RequestAppointmentDialog implements OnInit {
     }
 
     async onDurationChange(): Promise<void> {
+        this.clearPicked();
+        await this.refreshSlotsTaken();
+    }
+
+    /**
+     * Cambio en el toggle "1 slot / 2 slots". Recalcula `durationMin` =
+     * count × slotMinutes y limpia la selección porque el slot pickado
+     * ya no encaja.
+     */
+    async onSlotCountChange(count: number): Promise<void> {
+        const r = this.effectiveRule();
+        if (r.fixedDurationMin != null) return; // duración fija, ignorar
+        const step = r.slotMinutes > 0 ? r.slotMinutes : 30;
+        const clamped = Math.min(
+            Math.max(1, Math.round(count)),
+            this.ruleMaxConsecutiveSlots(),
+        );
+        this.form.patchValue({ durationMin: clamped * step });
         this.clearPicked();
         await this.refreshSlotsTaken();
     }

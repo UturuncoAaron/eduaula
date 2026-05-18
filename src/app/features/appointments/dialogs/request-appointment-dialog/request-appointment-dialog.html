@@ -87,11 +87,35 @@
                 </mat-select>
             </mat-form-field>
 
+            @if (effectiveRule().fixedDurationMin != null) {
             <mat-form-field appearance="outline">
-                <mat-label>Duración (min)</mat-label>
-                <input matInput type="number" min="15" max="180" formControlName="durationMin"
-                    (change)="onDurationChange()" />
+                <mat-label>Duración</mat-label>
+                <input matInput readonly
+                    [value]="effectiveRule().fixedDurationMin + ' min (fija)'" />
             </mat-form-field>
+            } @else {
+            <div class="slot-count">
+                <span class="slot-count__label">
+                    Duración
+                    <small class="muted">
+                        máx {{ ruleMaxConsecutiveSlots() }}
+                        {{ ruleMaxConsecutiveSlots() === 1 ? 'slot' : 'slots' }}
+                    </small>
+                </span>
+                <mat-button-toggle-group [value]="selectedSlotCount()"
+                    (change)="onSlotCountChange($event.value)"
+                    hideSingleSelectionIndicator>
+                    @for (n of slotCountOptions(); track n) {
+                    <mat-button-toggle [value]="n">
+                        {{ n }} slot{{ n === 1 ? '' : 's' }}
+                        <small class="muted">
+                            ({{ n * effectiveRule().slotMinutes }} min)
+                        </small>
+                    </mat-button-toggle>
+                    }
+                </mat-button-toggle-group>
+            </div>
+            }
         </div>
 
         @if (form.value.professionalId) {
@@ -105,7 +129,9 @@
             </header>
 
             <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()" [weekStart]="weekStart()"
-                [loading]="loadingAvailability() || loadingSlots()" [slotMinutes]="ruleSlotMinutes()"
+                [loading]="loadingAvailability() || loadingSlots()"
+                [slotMinutes]="effectiveRule().slotMinutes"
+                [pickDurationMin]="form.value.durationMin ?? null"
                 [allowedDays]="ruleAllowedDays()" [startHour]="ruleStartHour()" [endHour]="ruleEndHour()"
                 [emptyMessage]="
                     professionalKind() === 'docente'

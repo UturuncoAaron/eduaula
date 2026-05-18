@@ -191,6 +191,43 @@ mat-dialog-actions {
         grid-template-columns: 1fr;
     }
 }
+.slot-count {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    &__label {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        font-size: .8rem;
+        font-weight: 500;
+        color: #475569;
+
+        small {
+            font-size: .72rem;
+            font-weight: 400;
+            color: #64748b;
+        }
+    }
+
+    mat-button-toggle-group {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    mat-button-toggle {
+        font-weight: 500;
+        font-size: .85rem;
+
+        small {
+            font-size: .7rem;
+            margin-left: 4px;
+            color: #64748b;
+        }
+    }
+}
+
 .kind-toggle {
     display: flex;
     justify-content: center;

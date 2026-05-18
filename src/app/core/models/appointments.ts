@@ -37,11 +37,23 @@ export interface AppointmentRoleRule {
     maxDurationMin: number;
     /** Granularidad del bloque: la duración solicitada debe ser múltiplo de este valor. */
     slotMinutes: number;
+    /**
+     * Cantidad máxima de slots consecutivos que se pueden encadenar en una sola cita.
+     * Espejo de la regla canónica del BE (`MAX_CONSECUTIVE_SLOTS` por defecto = 2).
+     * Para roles con `fixedDurationMin` la cita siempre ocupa 1 slot.
+     */
+    maxConsecutiveSlots: number;
     allowedDays: readonly string[];
     defaultHours: { start: string; end: string };
     directBooking: boolean;
     label: string;
 }
+
+/**
+ * Tope canónico de slots consecutivos por cita: una cita simple = 1 slot,
+ * una cita doble = 2 slots. El BE rechaza cualquier cosa por arriba.
+ */
+export const MAX_CONSECUTIVE_SLOTS = 2;
 
 const WEEK_FULL: readonly string[] = [
     'lunes', 'martes', 'miercoles', 'jueves', 'viernes',
@@ -51,8 +63,9 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     psicologa: {
         role: 'psicologa',
         fixedDurationMin: null,
-        maxDurationMin: 180,
+        maxDurationMin: 60,
         slotMinutes: 30,
+        maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '16:00' },
         directBooking: true,
@@ -63,6 +76,7 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         fixedDurationMin: 45,
         maxDurationMin: 45,
         slotMinutes: 45,
+        maxConsecutiveSlots: 1,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
         directBooking: false,
@@ -71,8 +85,9 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     director: {
         role: 'director',
         fixedDurationMin: null,
-        maxDurationMin: 60,
+        maxDurationMin: 30,
         slotMinutes: 15,
+        maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
         allowedDays: ['martes', 'jueves'],
         defaultHours: { start: '08:00', end: '15:30' },
         directBooking: false,
@@ -81,8 +96,9 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     admin: {
         role: 'admin',
         fixedDurationMin: null,
-        maxDurationMin: 60,
+        maxDurationMin: 30,
         slotMinutes: 15,
+        maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
         directBooking: false,
@@ -91,8 +107,9 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     auxiliar: {
         role: 'auxiliar',
         fixedDurationMin: null,
-        maxDurationMin: 60,
+        maxDurationMin: 30,
         slotMinutes: 15,
+        maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
         directBooking: false,
@@ -103,6 +120,7 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         fixedDurationMin: null,
         maxDurationMin: 60,
         slotMinutes: 30,
+        maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '16:00' },
         directBooking: false,
@@ -152,7 +170,8 @@ export function ruleToSlotMinutes(
 
 export function ruleToMaxConsecutiveSlots(rule: AppointmentRoleRule): number {
     if (rule.fixedDurationMin !== null) return 1;
-    return Math.floor(rule.maxDurationMin / rule.slotMinutes);
+    const byMin = Math.floor(rule.maxDurationMin / rule.slotMinutes);
+    return Math.min(rule.maxConsecutiveSlots, byMin);
 }
 
 // ── Modelos de cita ────────────────────────────────────────────
@@ -335,4 +354,24 @@ export interface SlotConflictResponse {
     message: string;
     affectedCount: number;
     affected: AffectedAppointment[];
+}
+
+/**
+ * Entrada del historial de cambios de estado de una cita. Mirror del
+ * `cita_estado_log` del BE (ver `appointment-status-log.entity.ts`).
+ * `previousStatus` es `null` en la primera entrada (creación de la cita).
+ */
+export interface AppointmentStatusLogEntry {
+    id: string;
+    appointmentId: string;
+    previousStatus: AppointmentEstado | null;
+    nextStatus: AppointmentEstado;
+    changedAt: string;
+    reason: string | null;
+    changedBy: {
+        id: string;
+        nombre: string;
+        apellido_paterno: string;
+        rol: string;
+    } | null;
 }
