@@ -1,0 +1,164 @@
+<div class="derive">
+
+    <header class="derive__head">
+        <div class="derive__icon">
+            <mat-icon>psychology</mat-icon>
+        </div>
+        <div class="derive__title-block">
+            <h2 class="derive__title">Derivar a psicología</h2>
+            <p class="derive__subtitle">
+                Crea una cita psicológica para uno de tus alumnos. La psicóloga
+                la recibirá en estado pendiente.
+            </p>
+        </div>
+    </header>
+
+    <form [formGroup]="form" class="derive__form" (ngSubmit)="submit()">
+        <!-- Búsqueda de alumno -->
+        @if (!selectedStudent()) {
+            <mat-form-field appearance="outline" class="derive__field">
+                <mat-label>Alumno</mat-label>
+                <input
+                    matInput
+                    type="text"
+                    formControlName="studentQuery"
+                    [matAutocomplete]="auto"
+                    placeholder="Empieza a escribir nombre o apellido…" />
+                <mat-icon matSuffix>search</mat-icon>
+                <mat-autocomplete
+                    #auto="matAutocomplete"
+                    [displayWith]="displayStudent"
+                    (optionSelected)="onSelectStudent($event.option.value)">
+                    @for (s of students(); track s.id) {
+                        <mat-option [value]="s">
+                            <div class="derive__opt">
+                                <div class="derive__opt-avatar">{{ studentInitialsOf(s) }}</div>
+                                <div>
+                                    <div class="derive__opt-name">
+                                        {{ s.nombre }} {{ s.apellido_paterno }}
+                                    </div>
+                                    @if (s.grado || s.seccion) {
+                                        <div class="derive__opt-meta">
+                                            {{ s.grado }} {{ s.seccion }}
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </mat-option>
+                    }
+                    @if (!searching() && form.value.studentQuery && students().length === 0) {
+                        <mat-option [disabled]="true">Sin resultados</mat-option>
+                    }
+                </mat-autocomplete>
+            </mat-form-field>
+        } @else {
+            <div class="derive__selected-student">
+                <div class="derive__selected-avatar">{{ studentInitials() }}</div>
+                <div class="derive__selected-info">
+                    <div class="derive__selected-name">{{ studentLabel() }}</div>
+                    @if (selectedStudent()?.grado || selectedStudent()?.seccion) {
+                        <div class="derive__selected-meta">
+                            {{ selectedStudent()?.grado }} {{ selectedStudent()?.seccion }}
+                        </div>
+                    }
+                </div>
+                <button
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Cambiar alumno"
+                    (click)="clearStudent()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        }
+
+        <!-- Psicóloga -->
+        <mat-form-field appearance="outline" class="derive__field">
+            <mat-label>Psicóloga</mat-label>
+            <mat-select
+                formControlName="psicologaId"
+                (selectionChange)="onPsicologaChange()">
+                @for (p of store.psicologas(); track p.id) {
+                    <mat-option [value]="p.id">{{ psicologaLabel(p) }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <!-- Duración -->
+        <mat-form-field appearance="outline" class="derive__field derive__field--mini">
+            <mat-label>Duración (min)</mat-label>
+            <mat-select formControlName="durationMin">
+                <mat-option [value]="30">30</mat-option>
+                <mat-option [value]="45">45</mat-option>
+                <mat-option [value]="60">60</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <!-- Calendario -->
+        <div class="derive__calendar">
+            <app-booking-calendar
+                [availability]="availability()"
+                [slotsTaken]="slotsTaken()"
+                [weekStart]="weekStart()"
+                [loading]="loadingAvailability() || loadingSlots()"
+                [startHour]="startHour"
+                [endHour]="endHour"
+                [slotMinutes]="slotMinutes"
+                [allowedDays]="allowedDays"
+                (weekChange)="onWeekChange($event)"
+                (pick)="onSlotPick($event)" />
+        </div>
+
+        @if (pickedLabel()) {
+            <p class="derive__picked">
+                <mat-icon>event_available</mat-icon>
+                Horario:
+                <strong>{{ pickedLabel() }}</strong>
+                <button
+                    mat-icon-button
+                    type="button"
+                    (click)="clearPicked()"
+                    aria-label="Quitar selección">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </p>
+        }
+
+        <!-- Motivo -->
+        <mat-form-field appearance="outline" class="derive__field">
+            <mat-label>Motivo de la derivación</mat-label>
+            <textarea
+                matInput
+                rows="3"
+                formControlName="motivo"
+                maxlength="500"
+                placeholder="Ej. Bajo rendimiento desde el último parcial + cambios de ánimo en clase."></textarea>
+        </mat-form-field>
+
+        @if (errorMsg()) {
+            <p class="derive__error">
+                <mat-icon>error</mat-icon>
+                {{ errorMsg() }}
+            </p>
+        }
+
+        <footer class="derive__actions">
+            <button mat-stroked-button type="button" (click)="cancel()" [disabled]="loading()">
+                Cancelar
+            </button>
+            <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="form.invalid || loading() || !selectedStudent()">
+                @if (loading()) {
+                    <mat-progress-spinner mode="indeterminate" diameter="18" />
+                } @else {
+                    <mat-icon>send</mat-icon>
+                }
+                Enviar derivación
+            </button>
+        </footer>
+    </form>
+
+</div>

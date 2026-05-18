@@ -27,9 +27,20 @@ export class ApiService {
     return this.http.patch<ApiResponse<T>>(`${this.base}/${path}`, body);
   }
  
-  // Soporta DELETE con body (necesario p/ cancelar cita con motivo)
-  delete<T>(path: string, body?: unknown): Observable<ApiResponse<T>> {
-    return this.http.request<ApiResponse<T>>('DELETE', `${this.base}/${path}`, { body });
+  // Soporta DELETE con body (cancelar cita con motivo) y query params
+  // (eliminar slot con `?confirm=true` para cascade).
+  delete<T>(
+    path: string,
+    body?: unknown,
+    params?: Record<string, string>,
+  ): Observable<ApiResponse<T>> {
+    let p = new HttpParams();
+    if (params) Object.entries(params).forEach(([k, v]) => (p = p.set(k, v)));
+    return this.http.request<ApiResponse<T>>(
+      'DELETE',
+      `${this.base}/${path}`,
+      { body, params: p },
+    );
   }
  
   postForm<T>(path: string, body: FormData): Observable<ApiResponse<T>> {

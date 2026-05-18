@@ -421,7 +421,7 @@ export class AppointmentFormDialog implements OnInit {
     this.loading.set(true);
     this.errorMsg.set('');
     try {
-      await this.appointmentsStore.createAppointment({
+      const created = await this.appointmentsStore.createAppointment({
         convocadoAId,
         studentId: hasStudent ? v.studentId : undefined,
         parentId: hasParent ? v.parentId : undefined,
@@ -431,7 +431,21 @@ export class AppointmentFormDialog implements OnInit {
         durationMin: this.durationMin(),
         priorNotes: v.priorNotes || undefined,
       });
-      this.toast.success('Cita programada correctamente');
+
+      // El BE puede devolver `availableParents` cuando la psicóloga citó al
+      // alumno y existían varios padres. La cita ya quedó creada con el
+      // primer padre vinculado — aquí solo informamos al usuario para que
+      // sepa que hay más opciones y pueda recrearla si se equivocó.
+      if (created.availableParents && created.availableParents.length > 1 && !hasParent) {
+        const names = created.availableParents
+          .map(p => `${p.nombre} ${p.apellido_paterno}`).join(', ');
+        this.toast.info(
+          `Cita programada · El alumno tiene ${created.availableParents.length} padres registrados (${names}). Se vinculó al primero — si necesitas cambiarlo, créala de nuevo seleccionando el padre.`,
+          undefined, { duration: 8000 },
+        );
+      } else {
+        this.toast.success('Cita programada correctamente');
+      }
       this.ref.close(true);
     } catch (err: unknown) {
       this.errorMsg.set(parseApiError(err, 'No se pudo crear la cita'));

@@ -1,0 +1,79 @@
+<div class="postpone">
+
+    <header class="postpone__head">
+        <div class="postpone__icon">
+            <mat-icon>event_repeat</mat-icon>
+        </div>
+        <div class="postpone__title-block">
+            <h2 class="postpone__title">Aplazar cita</h2>
+            <p class="postpone__subtitle">Propón una nueva fecha dentro de la disponibilidad del profesional.</p>
+        </div>
+    </header>
+
+    <form [formGroup]="form" class="postpone__form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="postpone__field">
+            <mat-label>Motivo del aplazamiento</mat-label>
+            <textarea
+                matInput
+                rows="2"
+                formControlName="motivo"
+                maxlength="500"
+                placeholder="Ej. el alumno está enfermo, necesitamos reagendar"></textarea>
+        </mat-form-field>
+
+        <div class="postpone__calendar">
+            <app-booking-calendar
+                [availability]="availability()"
+                [slotsTaken]="slotsTaken()"
+                [weekStart]="weekStart()"
+                [loading]="loadingAvailability() || loadingSlots()"
+                [startHour]="ruleStartHour()"
+                [endHour]="ruleEndHour()"
+                [slotMinutes]="ruleSlotMinutes()"
+                [allowedDays]="ruleAllowedDays()"
+                (weekChange)="onWeekChange($event)"
+                (pick)="onSlotPick($event)" />
+        </div>
+
+        @if (pickedLabel()) {
+            <p class="postpone__picked">
+                <mat-icon>event_available</mat-icon>
+                Nuevo horario propuesto:
+                <strong>{{ pickedLabel() }}</strong>
+                <button
+                    mat-icon-button
+                    type="button"
+                    (click)="clearPicked()"
+                    aria-label="Quitar selección">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </p>
+        }
+
+        @if (errorMsg()) {
+            <p class="postpone__error">
+                <mat-icon>error</mat-icon>
+                {{ errorMsg() }}
+            </p>
+        }
+
+        <footer class="postpone__actions">
+            <button mat-stroked-button type="button" (click)="cancel()" [disabled]="loading()">
+                Volver
+            </button>
+            <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="form.invalid || loading()">
+                @if (loading()) {
+                    <mat-progress-spinner mode="indeterminate" diameter="18" />
+                } @else {
+                    <mat-icon>event_repeat</mat-icon>
+                }
+                Aplazar
+            </button>
+        </footer>
+    </form>
+
+</div>

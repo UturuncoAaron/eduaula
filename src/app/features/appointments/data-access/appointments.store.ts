@@ -12,6 +12,12 @@ import type {
     AppointmentEstado,
     AppointmentRoleRule,
     FreeSlot,
+    PostponeAppointmentPayload,
+    DeriveAppointmentPayload,
+    CompleteAppointmentPayload,
+    CreateAppointmentResult,
+    WeeklyAvailability,
+    SlotConflictResponse,
 } from '../../../core/models/appointments';
 import type { Psicologa } from '../../../core/models/psychology';
 import type { Child } from '../../../core/models/parent-portal';
@@ -39,6 +45,14 @@ export type {
     SlotTaken,
     AppointmentEstado,
     FreeSlot,
+    PostponeAppointmentPayload,
+    DeriveAppointmentPayload,
+    CompleteAppointmentPayload,
+    CreateAppointmentResult,
+    WeeklyAvailability,
+    AffectedAppointment,
+    SlotConflictResponse,
+    AvailableParent,
 } from '../../../core/models/appointments';
 
 export type { Psicologa } from '../../../core/models/psychology';
@@ -117,9 +131,16 @@ export class AppointmentsStore {
         return this.loadMine({});
     }
 
-    async createAppointment(payload: CreateAppointmentPayload): Promise<Appointment> {
+    /**
+     * Crea una cita. Si la psicóloga incluye un alumno y existen múltiples
+     * padres vinculados, el BE devuelve `availableParents` para que el FE
+     * deje al usuario elegir uno y reintente con `parentId`.
+     */
+    async createAppointment(
+        payload: CreateAppointmentPayload,
+    ): Promise<CreateAppointmentResult> {
         const res = await firstValueFrom(
-            this.api.post<Appointment>('appointments', payload),
+            this.api.post<CreateAppointmentResult>('appointments', payload),
         );
         await this.loadMine({});
         return res.data;
@@ -138,26 +159,36 @@ export class AppointmentsStore {
         return res.data;
     }
 
+    /**
+     * Cancela una cita. Usa el alias canónico `PATCH /:id/cancelar` con
+     * motivo obligatorio (el BE valida que no esté vacío).
+     */
     async cancelAppointment(
         id: string,
         payload: CancelAppointmentPayload,
     ): Promise<void> {
         await firstValueFrom(
-            this.api.delete(`appointments/${id}`, payload as Record<string, string>),
+            this.api.patch<Appointment>(`appointments/${id}/cancelar`, {
+                motivo: payload.motivo ?? '',
+            }),
         );
         this.appointments.update(list =>
             list.map(c =>
                 c.id === id
-                    ? { ...c, estado: 'cancelada' as AppointmentEstado }
+                    ? {
+                        ...c,
+                        estado: 'cancelada' as AppointmentEstado,
+                        cancelReason: payload.motivo ?? c.cancelReason,
+                    }
                     : c,
             ),
         );
     }
 
-    /** Acepta una cita pendiente (la convierte en confirmada). Solo el convocado. */
-    async acceptAppointment(id: string): Promise<Appointment> {
+    /** Confirma una cita pendiente (alias canónico del spec). */
+    async confirmAppointment(id: string): Promise<Appointment> {
         const res = await firstValueFrom(
-            this.api.post<Appointment>(`appointments/${id}/accept`, {}),
+            this.api.patch<Appointment>(`appointments/${id}/confirmar`, {}),
         );
         this.appointments.update(list =>
             list.map(c => c.id === id ? { ...c, estado: 'confirmada' } : c),
@@ -165,10 +196,15 @@ export class AppointmentsStore {
         return res.data;
     }
 
-    /** Rechaza una cita pendiente, dejando el motivo. Solo el convocado. */
+    /** Alias histórico: muchos componentes ya llaman `acceptAppointment`. */
+    acceptAppointment(id: string): Promise<Appointment> {
+        return this.confirmAppointment(id);
+    }
+
+    /** Rechaza una cita pendiente con motivo (alias canónico del spec). */
     async rejectAppointment(id: string, motivo: string): Promise<Appointment> {
         const res = await firstValueFrom(
-            this.api.post<Appointment>(`appointments/${id}/reject`, { motivo }),
+            this.api.patch<Appointment>(`appointments/${id}/rechazar`, { motivo }),
         );
         this.appointments.update(list =>
             list.map(c =>
@@ -178,6 +214,135 @@ export class AppointmentsStore {
             ),
         );
         return res.data;
+    }
+
+    /**
+     * Aplaza una cita: padre/alumno propone nueva fecha+motivo. El estado
+     * vuelve a `pendiente` con un append en `priorNotes`.
+     */
+    async postponeAppointment(
+        id: string,
+        payload: PostponeAppointmentPayload,
+    ): Promise<Appointment> {
+        const res = await firstValueFrom(
+            this.api.patch<Appointment>(`appointments/${id}/aplazar`, payload),
+        );
+        this.appointments.update(list =>
+            list.map(c =>
+                c.id === id
+                    ? {
+                        ...c,
+                        estado: 'pendiente',
+                        scheduledAt: payload.nuevaFechaHora,
+                    }
+                    : c,
+            ),
+        );
+        return res.data;
+    }
+
+    /** Marca la cita como realizada (sólo psicóloga). */
+    async markAsRealizada(
+        id: string,
+        payload: CompleteAppointmentPayload = {},
+    ): Promise<Appointment> {
+        const res = await firstValueFrom(
+            this.api.patch<Appointment>(`appointments/${id}/realizar`, payload),
+        );
+        this.appointments.update(list =>
+            list.map(c =>
+                c.id === id
+                    ? {
+                        ...c,
+                        estado: 'realizada',
+                        followUpNotes:
+                            payload.notasPosteriores ?? c.followUpNotes,
+                    }
+                    : c,
+            ),
+        );
+        return res.data;
+    }
+
+    /** Marca la cita como `no_asistio` (psicóloga). Notifica al padre. */
+    async markAsNoAsistio(id: string): Promise<Appointment> {
+        const res = await firstValueFrom(
+            this.api.patch<Appointment>(`appointments/${id}/inasistencia`, {}),
+        );
+        this.appointments.update(list =>
+            list.map(c => c.id === id ? { ...c, estado: 'no_asistio' } : c),
+        );
+        return res.data;
+    }
+
+    /**
+     * Deriva un alumno docente → psicóloga. El BE crea la cita con
+     * `tipo='psicologico'` y activa el vínculo `psicologa_alumno`.
+     */
+    async deriveToPsicologa(
+        payload: DeriveAppointmentPayload,
+    ): Promise<Appointment> {
+        const res = await firstValueFrom(
+            this.api.post<Appointment>('appointments/derivar', payload),
+        );
+        await this.loadMine({});
+        return res.data;
+    }
+
+    /**
+     * Elimina un único bloque de `disponibilidad_cuenta`. Si hay citas
+     * activas en ese bloque y `confirm` es falso, el BE responde 409
+     * con la lista de afectadas. Si `confirm=true`, el BE elimina el
+     * bloque y cancela las citas en cascada en una transacción.
+     */
+    async deleteAvailabilitySlot(
+        slotId: string,
+        confirm = false,
+    ): Promise<{ ok: true } | SlotConflictResponse> {
+        try {
+            await firstValueFrom(
+                this.api.delete(
+                    `appointments/availability/slot/${slotId}`,
+                    undefined,
+                    confirm ? { confirm: 'true' } : undefined,
+                ),
+            );
+            return { ok: true };
+        } catch (err: unknown) {
+            const e = err as { status?: number; error?: { data?: SlotConflictResponse } };
+            if (e?.status === 409 && e.error?.data) {
+                return e.error.data;
+            }
+            throw err;
+        }
+    }
+
+    /**
+     * Disponibilidad pública semanal de una psicóloga o docente.
+     * Devuelve los slots cruzados con citas activas (libre/ocupado)
+     * en formato lun–sáb.
+     */
+    async getPublicWeeklyAvailability(
+        cuentaId: string,
+        rol: 'psicologa' | 'docente',
+        weekStart?: string,
+    ): Promise<WeeklyAvailability | null> {
+        const path = rol === 'psicologa'
+            ? `psicologas/${cuentaId}/disponibilidad`
+            : `docentes/${cuentaId}/disponibilidad`;
+        const params = weekStart ? { weekStart } : undefined;
+        try {
+            const res = await firstValueFrom(
+                this.api.get<WeeklyAvailability | { data: WeeklyAvailability }>(
+                    path,
+                    params,
+                ),
+            );
+            const data = (res?.data ?? null) as WeeklyAvailability | null;
+            return data;
+        } catch {
+            return null;
+        }
     }
 
     async getSlotsTaken(cuentaId: string, date: string): Promise<SlotTaken[]> {
