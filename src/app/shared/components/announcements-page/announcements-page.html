@@ -1,187 +1,245 @@
 <div class="ann-wrap">
 
-    <!-- ── HEADER ─────────────────────────────────────────────── -->
-    <div class="ann-header">
-        <div class="ann-header__left">
-            <div class="ann-header__icon">
-                <mat-icon>campaign</mat-icon>
-            </div>
-            <div>
-                <h1 class="ann-header__title">Comunicados</h1>
-                <p class="ann-header__sub">
-                    @if (!loading()) { {{ list().length }} publicado{{ list().length !== 1 ? 's' : '' }} }
-                    @else { Cargando... }
-                </p>
-            </div>
-        </div>
+  <!-- HEADER -->
+  <div class="ann-header">
+    <div class="ann-header__left">
+      <div class="ann-header__icon"><mat-icon>campaign</mat-icon></div>
+      <div>
+        <h1 class="ann-header__title">Comunicados</h1>
+        <p class="ann-header__sub">
+          @if (!loading()) {
+            {{ items().length }} publicado{{ items().length !== 1 ? 's' : '' }}
+            @if (totalNoLeidos() > 0) { · {{ totalNoLeidos() }} sin leer }
+          } @else { Cargando... }
+        </p>
+      </div>
     </div>
+  </div>
 
-    <!-- ── BODY ───────────────────────────────────────────────── -->
-    <div class="ann-body" [class.ann-body--full]="!canCreate()">
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button type="button" class="tab" [class.tab--active]="activeTab() === 'comunicados'" (click)="switchTab('comunicados')">
+      <mat-icon>campaign</mat-icon>
+      Comunicados
+      @if (totalNoLeidos() > 0) { <span class="tab__badge">{{ totalNoLeidos() }}</span> }
+    </button>
+    <button type="button" class="tab" [class.tab--active]="activeTab() === 'notificaciones'" (click)="switchTab('notificaciones')">
+      <mat-icon>notifications</mat-icon>
+      Notificaciones
+      @if (notifUnreadCount() > 0) { <span class="tab__badge">{{ notifUnreadCount() }}</span> }
+    </button>
+  </div>
 
-        <!-- ── COMPOSE (solo si tiene permiso) ───────────────────── -->
-        @if (canCreate()) {
-        <aside class="compose-card">
-            <p class="compose-card__title">Nuevo comunicado</p>
+  <!-- BODY: COMUNICADOS -->
+  @if (activeTab() === 'comunicados') {
+  <div class="ann-body" [class.ann-body--full]="!canCreate()">
 
-            <form [formGroup]="form" (ngSubmit)="publicar()" class="compose-form">
+    <!-- COMPOSE -->
+    @if (canCreate()) {
+    <aside class="compose-card">
+      <div class="compose-card__top">
+        <p class="compose-card__title">Nuevo comunicado</p>
+        <button mat-icon-button (click)="showForm.update(v => !v)" [matTooltip]="showForm() ? 'Cerrar' : 'Abrir formulario'">
+          <mat-icon>{{ showForm() ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+      </div>
 
-                <!-- Título -->
-                <div class="field">
-                    <label class="field__label">Título</label>
-                    <div class="field__box" [class.field__box--focus]="titleFocused">
-                        <input class="field__input" formControlName="titulo" maxlength="200"
-                            placeholder="Ej: Reunión de padres de familia..." (focus)="titleFocused=true"
-                            (blur)="titleFocused=false" />
-                        <span class="field__count">{{ form.get('titulo')?.value?.length ?? 0 }}/200</span>
-                    </div>
-                </div>
+      @if (showForm()) {
+      <form [formGroup]="form" (ngSubmit)="publicar()" class="compose-form">
+        <div class="field">
+          <label class="field__label">Titulo</label>
+          <input class="field__input" formControlName="titulo" maxlength="200" placeholder="Ej: Reunion de padres..." />
+          <span class="field__count">{{ form.get('titulo')?.value?.length ?? 0 }}/200</span>
+        </div>
+        <div class="field">
+          <label class="field__label">Contenido</label>
+          <textarea class="field__input field__ta" formControlName="contenido" rows="4" placeholder="Escribe el cuerpo del comunicado..."></textarea>
+        </div>
+        <div class="field">
+          <label class="field__label">Destinatarios</label>
+          <div class="dest-grid">
+            @for (opt of destOptions; track opt.value) {
+            <button type="button" class="dest-btn" [class.dest-btn--active]="isDestSelected(opt.value)" (click)="toggleDest(opt.value)">
+              <mat-icon class="dest-btn__icon">{{ opt.icon }}</mat-icon>
+              <span class="dest-btn__label">{{ opt.label }}</span>
+              @if (isDestSelected(opt.value)) { <mat-icon class="dest-btn__check">check_circle</mat-icon> }
+            </button>
+            }
+          </div>
+        </div>
+        <div class="field">
+          <mat-slide-toggle formControlName="importante" color="warn">Marcar como importante</mat-slide-toggle>
+        </div>
+        <div class="field">
+          <label class="field__label">Adjuntos (opcional)</label>
+          <app-staged-attachments-picker label="Arrastra archivos o haz clic" [maxBytes]="maxFileBytes" [maxFiles]="maxFiles" [files]="stagedFiles()" (filesChange)="stagedFiles.set($event)" />
+        </div>
+        <button class="btn-publish" type="submit" [disabled]="saving() || form.invalid">
+          @if (saving()) { <span class="btn-publish__spinner"></span> Publicando... }
+          @else { <mat-icon>send</mat-icon> Publicar comunicado }
+        </button>
+      </form>
+      }
+    </aside>
+    }
 
-                <!-- Contenido -->
-                <div class="field">
-                    <label class="field__label">Contenido</label>
-                    <div class="field__box field__box--ta" [class.field__box--focus]="contentFocused">
-                        <textarea class="field__input field__ta" formControlName="contenido" rows="5"
-                            placeholder="Escribe el cuerpo del comunicado..." (focus)="contentFocused=true"
-                            (blur)="contentFocused=false">
-            </textarea>
-                    </div>
-                </div>
+    <!-- FEED -->
+    <section class="feed">
+      <div class="feed__bar">
+        <span class="feed__bar-title">Publicados</span>
+        <div class="feed__filters">
+          <mat-form-field appearance="outline" class="filtro-periodo">
+            <mat-select [formControl]="periodoFiltro" placeholder="Bimestre" (selectionChange)="onPeriodoChange()">
+              <mat-option [value]="null">Todos los bimestres</mat-option>
+              @for (p of periodos(); track p.id) {
+                <mat-option [value]="p.id">{{ p.nombre }} ({{ p.anio }})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button type="button" class="filter-chip" [class.filter-chip--warn]="soloImportantes()" (click)="toggleImportantes()">
+            <mat-icon>priority_high</mat-icon> Importantes
+          </button>
+          <button type="button" class="filter-chip" [class.filter-chip--active]="soloNoLeidos()" (click)="toggleNoLeidos()">
+            <mat-icon>mark_email_unread</mat-icon> No leidos
+          </button>
+        </div>
+      </div>
 
-                <!-- Destinatarios -->
-                <div class="field">
-                    <label class="field__label">Destinatarios</label>
-                    <div class="dest-grid">
-                        @for (opt of destOptions; track opt.value) {
-                        <button type="button" class="dest-btn" [class.dest-btn--active]="isDestSelected(opt.value)"
-                            [attr.data-dest]="opt.value" (click)="toggleDest(opt.value)">
-                            <mat-icon class="dest-btn__icon">{{ opt.icon }}</mat-icon>
-                            <span class="dest-btn__label">{{ opt.label }}</span>
-                            @if (isDestSelected(opt.value)) {
-                            <mat-icon class="dest-btn__check">check_circle</mat-icon>
-                            }
-                        </button>
-                        }
-                    </div>
-                </div>
+      <!-- Buscador -->
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input [formControl]="busqueda" placeholder="Buscar en comunicados..." />
+      </div>
 
-                <!-- Preview destinatarios -->
-                @if (selectedDests().length > 0) {
-                <div class="dest-preview">
-                    <mat-icon>near_me</mat-icon>
-                    <span>
-                        Para:&nbsp;
-                        @for (d of selectedDests(); track d; let last = $last) {
-                        <strong>{{ labelDest(d) }}</strong>@if (!last) {,&nbsp;}
-                        }
-                    </span>
-                </div>
-                }
-
-                <!-- Adjuntos -->
-                <div class="field">
-                    <label class="field__label">Adjuntos (opcional)</label>
-                    <app-staged-attachments-picker label="Arrastra archivos o haz clic para seleccionar"
-                        [maxBytes]="maxFileBytes" [maxFiles]="maxFiles" [files]="stagedFiles()"
-                        (filesChange)="stagedFiles.set($event)" />
-                </div>
-
-                <!-- Botón -->
-                <button class="btn-publish" type="submit" [disabled]="saving() || form.invalid">
-                    @if (saving()) {
-                    <span class="btn-publish__spinner"></span>
-                    <span>Publicando...</span>
-                    } @else {
-                    <mat-icon>send</mat-icon>
-                    <span>Publicar comunicado</span>
-                    }
-                </button>
-
-            </form>
-        </aside>
+      @if (loading()) {
+      <div class="feed__body">
+        @for (i of [1,2,3]; track i) {
+        <div class="sk-card"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:88%"></div><div class="sk-line" style="width:72%"></div></div>
         }
+      </div>
+      } @else if (items().length === 0) {
+      <div class="feed__empty">
+        <mat-icon class="feed__empty-icon">inbox</mat-icon>
+        <p class="feed__empty-title">Sin comunicados</p>
+        <p class="feed__empty-desc">No hay comunicados con los filtros actuales.</p>
+      </div>
+      } @else {
+      <div class="feed__body">
+        @for (a of items(); track a.id; let i = $index) {
+        <article class="ann-card" [class.ann-card--fijado]="a.fijado" [class.ann-card--importante]="a.importante" [class.ann-card--no-leido]="a.leido_por_mi === false" [attr.data-i]="i">
 
-        <!-- ── FEED ───────────────────────────────────────────────── -->
-        <section class="feed">
+          <div class="ann-card__badges">
+            @if (a.fijado) { <span class="badge-icon badge-icon--fijado" matTooltip="Fijado" matTooltipPosition="left"><mat-icon>push_pin</mat-icon></span> }
+            @if (a.importante) { <span class="badge-icon badge-icon--importante" matTooltip="Importante" matTooltipPosition="left"><mat-icon>priority_high</mat-icon></span> }
+          </div>
 
-            <div class="feed__bar">
-                <span class="feed__bar-title">Publicados</span>
-                @if (!loading()) {
-                <span class="feed__badge">{{ list().length }}</span>
-                }
-            </div>
-
-            @if (loading()) {
-            <div class="feed__body">
-                @for (i of [1,2,3]; track i) {
-                <div class="sk-card">
-                    <div class="sk-row">
-                        <div class="sk-pill"></div>
-                        <div class="sk-dash"></div>
-                    </div>
-                    <div class="sk-line" style="width:60%"></div>
-                    <div class="sk-line sk-line--sm" style="width:88%"></div>
-                    <div class="sk-line sk-line--sm" style="width:72%"></div>
+          <div class="ann-card__content">
+            <div class="ann-card__top">
+              <div class="ann-card__chips">
+                @for (d of a.destinatarios; track d) { <span class="chip chip--custom">{{ labelDest(d) }}</span> }
+              </div>
+              <div class="ann-card__meta">
+                @if (a.bimestre_label) { <span class="ann-card__bimestre">{{ a.bimestre_label }}</span> }
+                <span class="ann-card__time">{{ a.created_at | date:'d MMM · HH:mm' }}</span>
+                <div class="ann-card__actions">
+                  @if (canDelete() || a.creado_por?.id === userId()) {
+                  <button type="button" class="ann-card__del" (click)="archivar(a)" matTooltip="Archivar"><mat-icon>archive</mat-icon></button>
+                  }
                 </div>
-                }
+              </div>
             </div>
 
-            } @else if (list().length === 0) {
-            <div class="feed__empty">
-                <mat-icon class="feed__empty-icon">inbox</mat-icon>
-                <p class="feed__empty-title">Sin comunicados aún</p>
-                <p class="feed__empty-desc">
-                    @if (canCreate()) {
-                    Usa el formulario para publicar tu primer comunicado.
-                    } @else {
-                    No hay comunicados disponibles en este momento.
-                    }
-                </p>
-            </div>
+            <h3 class="ann-card__title">
+              @if (a.leido_por_mi === false) { <span class="unread-dot"></span> }
+              {{ a.titulo }}
+            </h3>
+            <p class="ann-card__body">{{ a.contenido_preview }}</p>
 
-            } @else {
-            <div class="feed__body">
-                @for (a of list(); track a.id; let i = $index) {
-                <article class="ann-card" [attr.data-i]="i">
-
-                    <div class="ann-card__top">
-                        <div class="ann-card__chips">
-                            @for (d of a.destinatarios; track d) {
-                            <span class="chip chip--{{ d }}">{{ labelDest(d) }}</span>
-                            }
-                        </div>
-                        <div class="ann-card__meta">
-                            <span class="ann-card__time">
-                                <mat-icon>schedule</mat-icon>
-                                {{ a.created_at | date:'d MMM · HH:mm' }}
-                            </span>
-                            @if (canDelete()) {
-                            <button class="ann-card__del" (click)="eliminar(a)" matTooltip="Eliminar comunicado">
-                                <mat-icon>delete_outline</mat-icon>
-                            </button>
-                            }
-                        </div>
-                    </div>
-
-                    <h3 class="ann-card__title">{{ a.titulo }}</h3>
-                    <p class="ann-card__body">{{ a.contenido }}</p>
-
-                    @if (a.autor) {
-                    <div class="ann-card__footer">
-                        <div class="ann-card__avatar">
-                            {{ a.autor.nombre.charAt(0) }}{{ a.autor.apellido_paterno.charAt(0) }}
-                        </div>
-                        <span class="ann-card__author">
-                            {{ a.autor.nombre }} {{ a.autor.apellido_paterno }}
-                        </span>
-                    </div>
-                    }
-
-                </article>
-                }
+            @if (a.archivos.length > 0) {
+            <div class="ann-card__archivos">
+              @for (arch of a.archivos; track arch.id) {
+              <a class="archivo-chip" [href]="arch.url" target="_blank" rel="noopener">
+                <mat-icon>{{ getUrgenciaIcon(arch.mime_type) }}</mat-icon>
+                {{ arch.original_name }} ({{ formatBytes(arch.size_bytes) }})
+              </a>
+              }
             </div>
             }
+          </div>
 
-        </section>
+          <div class="ann-card__footer">
+            <div class="ann-card__avatar">{{ a.creado_por?.nombre_completo?.charAt(0) || '?' }}</div>
+            <span class="ann-card__author">{{ a.creado_por?.nombre_completo || 'Desconocido' }}</span>
+            <span class="ann-card__stats">
+              <mat-icon>visibility</mat-icon> {{ a.vistas }}
+              @if (a.total_archivos > 0) { · <mat-icon>attach_file</mat-icon> {{ a.total_archivos }} }
+            </span>
+          </div>
+        </article>
+        }
+
+        @if (hasNext()) {
+        <div class="cargar-mas-wrap">
+          <button type="button" class="btn-cargar-mas" (click)="cargarMas()" [disabled]="loadingMore()">
+            @if (loadingMore()) { <mat-spinner diameter="18"></mat-spinner> Cargando... }
+            @else { <mat-icon>expand_more</mat-icon> Cargar mas }
+          </button>
+        </div>
+        }
+      </div>
+      }
+    </section>
+  </div>
+  }
+
+  <!-- BODY: NOTIFICACIONES -->
+  @if (activeTab() === 'notificaciones') {
+  <div class="notif-body">
+
+    <!-- Notif toolbar -->
+    <div class="notif-toolbar">
+      <div class="notif-toolbar__filters">
+        <button type="button" class="filter-chip" [class.filter-chip--active]="notifFilter() === 'todas'" (click)="toggleNotifFilter('todas')">Todas</button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="notifFilter() === 'no_leidas'" (click)="toggleNotifFilter('no_leidas')">No leídas</button>
+      </div>
+      @if (notifUnreadCount() > 0) {
+      <button type="button" class="btn-mark-all" (click)="markAllNotifAsRead()">
+        <mat-icon>done_all</mat-icon> Marcar todas como leídas
+      </button>
+      }
     </div>
+
+    <!-- Notif list -->
+    @if (filteredNotifications().length === 0) {
+    <div class="feed__empty">
+      <mat-icon class="feed__empty-icon">notifications_none</mat-icon>
+      <p class="feed__empty-title">Sin notificaciones</p>
+      <p class="feed__empty-desc">No tienes notificaciones{{ notifFilter() === 'no_leidas' ? ' sin leer' : '' }}.</p>
+    </div>
+    } @else {
+    <div class="notif-list">
+      @for (n of filteredNotifications(); track n.id; let i = $index) {
+      <div class="notif-card" [class.notif-card--unread]="!n.read" [attr.data-i]="i" (click)="onNotifClick(n)">
+        <div class="notif-card__icon" [style.background]="colorFor(n.tipo) + '18'" [style.color]="colorFor(n.tipo)">
+          <mat-icon>{{ iconFor(n.tipo) }}</mat-icon>
+        </div>
+        <div class="notif-card__body">
+          <div class="notif-card__title">{{ n.titulo }}</div>
+          @if (n.cuerpo) { <div class="notif-card__text">{{ n.cuerpo }}</div> }
+          <div class="notif-card__time">{{ n.createdAt | date:'d MMM yyyy · HH:mm' }}</div>
+        </div>
+        <div class="notif-card__actions">
+          @if (!n.read) {
+          <button type="button" class="notif-card__read-btn" (click)="markNotifAsRead(n.id, $event)" matTooltip="Marcar como leída">
+            <mat-icon>check_circle</mat-icon>
+          </button>
+          }
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+  }
+
 </div>

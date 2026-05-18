@@ -4,32 +4,90 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 import { AuthService } from '../../../core/auth/auth';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 import { StagedAttachmentsPicker } from '../staged-attachments-picker/staged-attachments-picker';
 import { AttachmentsService, ATTACHMENT_MAX_BYTES } from '../../../core/services/attachments';
+import { FormControl } from '@angular/forms';
+import { NotificationsStore, NotificationItem } from '../../../core/services/notifications-store';
+import { Router } from '@angular/router';
+import {
+  iconForType,
+  colorForType,
+  routeForReferenceType,
+} from '../../utils/notifications-helpers';
 
-type Destinatario = 'todos' | 'alumnos' | 'docentes' | 'padres' | 'psicologas';
-
-interface Announcement {
+interface ArchivoItem {
   id: string;
-  titulo: string;
-  contenido: string;
-  destinatarios: Destinatario[];
-  created_at: string;
-  autor?: { nombre: string; apellido_paterno: string; rol?: string };
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  url?: string;
 }
 
-const LABELS: Record<Destinatario, string> = {
+interface CreadorInfo {
+  id: string;
+  nombre_completo: string;
+  rol: string;
+  foto_url?: string | null;
+}
+
+interface ComunicadoItem {
+  id: string;
+  titulo: string;
+  contenido_preview: string;
+  contenido_completo?: string | null;
+  importante: boolean;
+  fijado: boolean;
+  fijado_hasta?: string | null;
+  destinatarios: string[];
+  activo: boolean;
+  vistas: number;
+  leido_por_mi?: boolean;
+  periodo_id?: string | null;
+  bimestre_label?: string | null;
+  created_at: string;
+  updated_at: string;
+  creado_por: CreadorInfo;
+  archivos: ArchivoItem[];
+  total_archivos: number;
+  lecturas_total?: number;
+}
+
+interface ComunicadosResponse {
+  data: ComunicadoItem[];
+  size: number;
+  has_next: boolean;
+  next_cursor: string | null;
+  total_fijados: number;
+  total_no_leidos: number;
+}
+
+interface PeriodoItem {
+  id: string;
+  nombre: string;
+  anio: number;
+  bimestre: number;
+}
+
+const LABELS: Record<string, string> = {
   todos: 'Todos', alumnos: 'Alumnos', docentes: 'Docentes',
-  padres: 'Padres', psicologas: 'Psicólogas',
+  padres: 'Padres', psicologas: 'Psicólogas', auxiliares: 'Auxiliares',
 };
 
 @Component({
@@ -37,8 +95,10 @@ const LABELS: Record<Destinatario, string> = {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ReactiveFormsModule, DatePipe,
-    MatIconModule, MatDialogModule, MatTooltipModule,
+    ReactiveFormsModule, DatePipe, RouterLink,
+    MatIconModule, MatButtonModule, MatDialogModule, MatTooltipModule,
+    MatFormFieldModule, MatSelectModule, MatSlideToggleModule,
+    MatChipsModule, MatDatepickerModule, MatProgressSpinnerModule,
     StagedAttachmentsPicker,
   ],
   templateUrl: './announcements-page.html',
@@ -51,57 +111,92 @@ export class AnnouncementsPage implements OnInit {
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
   private attachments = inject(AttachmentsService);
+  private notifStore = inject(NotificationsStore);
+  private router = inject(Router);
 
-  list = signal<Announcement[]>([]);
+  activeTab = signal<'comunicados' | 'notificaciones'>('comunicados');
+  notifFilter = signal<'todas' | 'no_leidas'>('todas');
+
+  notifications = this.notifStore.items;
+  notifUnreadCount = this.notifStore.unreadCount;
+
+  filteredNotifications = computed(() => {
+    const list = this.notifications();
+    if (this.notifFilter() === 'no_leidas') {
+      return list.filter(n => !n.read);
+    }
+    return list;
+  });
+
+  iconFor = iconForType;
+  colorFor = colorForType;
+
+  items = signal<ComunicadoItem[]>([]);
   loading = signal(true);
+  loadingMore = signal(false);
   saving = signal(false);
   checkingPermiso = signal(true);
   tienePermiso = signal(false);
+  totalNoLeidos = signal(0);
+  totalFijados = signal(0);
+  nextCursor = signal<string | null>(null);
+  hasNext = signal(false);
+
+  periodos = signal<PeriodoItem[]>([]);
 
   stagedFiles = signal<File[]>([]);
   readonly maxFileBytes = ATTACHMENT_MAX_BYTES;
   readonly maxFiles = 5;
 
-  titleFocused = false;
-  contentFocused = false;
+  showForm = signal(false);
 
-  private get rol() { return this.auth.currentUser()?.rol; }
-  private get userId() { return this.auth.currentUser()?.id; }
+  busqueda = new FormControl('');
+  periodoFiltro = new FormControl<string | null>(null);
+  soloImportantes = signal(false);
+  soloNoLeidos = signal(false);
 
-  // Admin siempre puede; otros roles necesitan permiso explícito
+  readonly userId = computed(() => this.auth.currentUser()?.id ?? '');
+  readonly rol = computed(() => this.auth.currentUser()?.rol ?? '');
+
   canCreate = computed(() => {
-    if (this.rol === 'admin') return true;
+    if (this.rol() === 'admin') return true;
     return !this.checkingPermiso() && this.tienePermiso();
   });
 
-  canDelete = computed(() => this.rol === 'admin');
+  canDelete = computed(() => this.rol() === 'admin');
 
-  destOptions: { value: Destinatario; label: string; icon: string }[] = [
+  destOptions: { value: string; label: string; icon: string }[] = [
     { value: 'todos', label: 'Todos', icon: 'groups' },
     { value: 'alumnos', label: 'Alumnos', icon: 'school' },
     { value: 'docentes', label: 'Docentes', icon: 'badge' },
     { value: 'padres', label: 'Padres', icon: 'family_restroom' },
     { value: 'psicologas', label: 'Psicólogas', icon: 'psychology' },
+    { value: 'auxiliares', label: 'Auxiliares', icon: 'support_agent' },
   ];
 
   form = this.fb.group({
     titulo: ['', [Validators.required, Validators.maxLength(200)]],
     contenido: ['', Validators.required],
-    destinatarios: [['todos'] as Destinatario[], Validators.required],
+    destinatarios: [['todos'] as string[], Validators.required],
+    importante: [false],
   });
 
-  selectedDests = computed<Destinatario[]>(() =>
-    (this.form.get('destinatarios')?.value as Destinatario[]) ?? []
+  selectedDests = computed<string[]>(() =>
+    (this.form.get('destinatarios')?.value as string[]) ?? []
   );
 
-  labelDest(d: string): string { return LABELS[d as Destinatario] ?? d; }
-
-  isDestSelected(value: Destinatario): boolean {
-    return ((this.form.get('destinatarios')?.value as Destinatario[]) ?? []).includes(value);
+  labelDest(d: string): string {
+    if (d.startsWith('grado:')) return 'Grado específico';
+    if (d.startsWith('seccion:')) return 'Sección específica';
+    return LABELS[d] ?? d;
   }
 
-  toggleDest(value: Destinatario): void {
-    const current = [...((this.form.get('destinatarios')?.value as Destinatario[]) ?? [])];
+  isDestSelected(value: string): boolean {
+    return ((this.form.get('destinatarios')?.value as string[]) ?? []).includes(value);
+  }
+
+  toggleDest(value: string): void {
+    const current = [...((this.form.get('destinatarios')?.value as string[]) ?? [])];
     if (value === 'todos') {
       this.form.get('destinatarios')?.setValue(current.includes('todos') ? [] : ['todos']);
       return;
@@ -114,22 +209,22 @@ export class AnnouncementsPage implements OnInit {
 
   ngOnInit() {
     this.verificarPermiso();
+    this.cargarPeriodos();
     this.cargar();
+
+    this.busqueda.valueChanges.pipe(
+      debounceTime(400), distinctUntilChanged(),
+    ).subscribe(() => this.cargar());
   }
 
   private verificarPermiso() {
-    if (this.rol === 'admin') {
+    if (this.rol() === 'admin') {
       this.tienePermiso.set(true);
       this.checkingPermiso.set(false);
       return;
     }
-    if (!this.userId) {
-      this.checkingPermiso.set(false);
-      return;
-    }
-    this.api.get<{ tiene: boolean }>(
-      `permissions/check/${this.userId}/comunicados/crear`
-    ).subscribe({
+    if (!this.userId()) { this.checkingPermiso.set(false); return; }
+    this.api.get<{ tiene: boolean }>(`permissions/check/${this.userId()}/comunicados/crear`).subscribe({
       next: r => {
         this.tienePermiso.set((r as any).data?.tiene ?? false);
         this.checkingPermiso.set(false);
@@ -138,20 +233,74 @@ export class AnnouncementsPage implements OnInit {
     });
   }
 
-  private cargar() {
-    this.loading.set(true);
-    this.api.get<Announcement[]>('announcements').subscribe({
-      next: r => { this.list.set((r as any).data ?? []); this.loading.set(false); },
-      error: () => { this.list.set([]); this.loading.set(false); },
+  private cargarPeriodos() {
+    this.api.get<PeriodoItem[]>('academic/periodos').subscribe({
+      next: r => this.periodos.set((r as any).data ?? []),
+      error: () => {},
     });
+  }
+
+  private cargar(append = false) {
+    if (append) this.loadingMore.set(true);
+    else this.loading.set(true);
+
+    const params: Record<string, string> = {};
+    if (append && this.nextCursor()) params['cursor'] = this.nextCursor()!;
+    if (this.periodoFiltro.value) params['periodo_id'] = this.periodoFiltro.value;
+    if (this.soloImportantes()) params['importante'] = 'true';
+    if (this.soloNoLeidos()) params['no_leidos'] = 'true';
+    if (this.busqueda.value?.trim()) params['buscar'] = this.busqueda.value!.trim();
+
+    this.api.get<ComunicadosResponse>('comunicados', params).subscribe({
+      next: r => {
+        const body = r.data;
+        const nuevos = body?.data ?? [];
+        if (append) {
+          this.items.update(list => [...list, ...nuevos]);
+        } else {
+          this.items.set(nuevos);
+        }
+        this.hasNext.set(body?.has_next ?? false);
+        this.nextCursor.set(body?.next_cursor ?? null);
+        this.totalFijados.set(body?.total_fijados ?? 0);
+        this.totalNoLeidos.set(body?.total_no_leidos ?? 0);
+        this.loading.set(false);
+        this.loadingMore.set(false);
+      },
+      error: () => {
+        if (!append) this.items.set([]);
+        this.loading.set(false);
+        this.loadingMore.set(false);
+      },
+    });
+  }
+
+  cargarMas() {
+    if (this.loadingMore() || !this.hasNext()) return;
+    this.cargar(true);
+  }
+
+  toggleImportantes() {
+    this.soloImportantes.update(v => !v);
+    this.cargar();
+  }
+
+  toggleNoLeidos() {
+    this.soloNoLeidos.update(v => !v);
+    this.cargar();
+  }
+
+  onPeriodoChange() {
+    this.cargar();
   }
 
   publicar() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    const dests = this.form.get('destinatarios')?.value as Destinatario[];
+    const dests = this.form.get('destinatarios')?.value as string[];
     if (!dests?.length) { this.toastr.error('Selecciona al menos un destinatario', 'Error'); return; }
     this.saving.set(true);
-    this.api.post<Announcement>('announcements', this.form.value).subscribe({
+
+    this.api.post<ComunicadoItem>('comunicados', this.form.value).subscribe({
       next: r => {
         const newId = (r as any).data?.id;
         const files = this.stagedFiles();
@@ -173,33 +322,78 @@ export class AnnouncementsPage implements OnInit {
           this.finishPublicar();
         }
       },
-      error: () => { this.toastr.error('No se pudo publicar', 'Error'); this.saving.set(false); },
+      error: (err) => {
+        this.toastr.error(err?.error?.message ?? 'No se pudo publicar', 'Error');
+        this.saving.set(false);
+      },
     });
   }
 
   private finishPublicar(): void {
-    this.form.reset({ titulo: '', contenido: '', destinatarios: ['todos'] });
+    this.form.reset({ titulo: '', contenido: '', destinatarios: ['todos'], importante: false });
     this.stagedFiles.set([]);
+    this.showForm.set(false);
     this.saving.set(false);
     this.cargar();
   }
 
-  eliminar(a: Announcement) {
+  archivar(a: ComunicadoItem) {
     const ref = this.dialog.open(ConfirmDialog, {
       data: {
-        title: 'Eliminar comunicado',
-        message: `¿Eliminar "${a.titulo}"?`,
-        confirm: 'Eliminar',
+        title: 'Archivar comunicado',
+        message: `¿Archivar "${a.titulo}"?`,
+        confirm: 'Archivar',
         cancel: 'Cancelar',
         danger: true,
       },
     });
     ref.afterClosed().subscribe(ok => {
       if (!ok) return;
-      this.api.delete(`announcements/${a.id}`).subscribe({
-        next: () => { this.toastr.success('Eliminado', 'Éxito'); this.cargar(); },
-        error: () => this.toastr.error('Error al eliminar', 'Error'),
+      this.api.patch(`comunicados/${a.id}/archivar`, {}).subscribe({
+        next: () => { this.toastr.success('Archivado', 'Éxito'); this.cargar(); },
+        error: () => this.toastr.error('Error al archivar', 'Error'),
       });
     });
+  }
+
+  getUrgenciaIcon(mime: string): string {
+    if (mime.startsWith('image/')) return 'image';
+    if (mime === 'application/pdf') return 'picture_as_pdf';
+    if (mime.startsWith('video/')) return 'videocam';
+    return 'attach_file';
+  }
+
+  formatBytes(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  // ── Notificaciones ──────────────────────────────────────────────
+
+  onNotifClick(n: NotificationItem) {
+    if (!n.read) this.notifStore.markOneAsRead(n.id);
+    const route = routeForReferenceType(n.referenceType);
+    if (route) this.router.navigate([route]);
+  }
+
+  markNotifAsRead(id: string, ev: Event) {
+    ev.stopPropagation();
+    this.notifStore.markOneAsRead(id);
+  }
+
+  markAllNotifAsRead() {
+    this.notifStore.markAllAsRead();
+  }
+
+  toggleNotifFilter(filter: 'todas' | 'no_leidas') {
+    this.notifFilter.set(filter);
+  }
+
+  switchTab(tab: 'comunicados' | 'notificaciones') {
+    this.activeTab.set(tab);
+    if (tab === 'notificaciones') {
+      this.notifStore.refresh();
+    }
   }
 }
