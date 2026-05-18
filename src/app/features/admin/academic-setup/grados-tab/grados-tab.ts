@@ -136,8 +136,13 @@ export class GradosTab implements OnInit {
         this.loadingCursos.set(true);
         this.loadingAlumnos.set(true);
 
+        const pid = this.periodoActivo();
+        const cursosUrl = pid
+            ? `courses?seccion_id=${s.id}&periodo_id=${pid}`
+            : `courses?seccion_id=${s.id}`;
+
         forkJoin({
-            cursos: this.api.get<Course[]>(`courses?seccion_id=${s.id}`),
+            cursos: this.api.get<Course[]>(cursosUrl),
             // Compartido con tab-asistencia / participantes / seccion-alumnos.
             alumnos: this.store.rosterRaw$<any>(String(s.id)),
         }).subscribe({
@@ -176,7 +181,11 @@ export class GradosTab implements OnInit {
         const s = this.selectedSeccion();
         if (!s) return;
         this.loadingCursos.set(true);
-        this.api.get<Course[]>(`courses?seccion_id=${s.id}`).subscribe({
+        const pid = this.periodoActivo();
+        const cursosUrl = pid
+            ? `courses?seccion_id=${s.id}&periodo_id=${pid}`
+            : `courses?seccion_id=${s.id}`;
+        this.api.get<Course[]>(cursosUrl).subscribe({
             next: r => { this.cursos.set((r as any).data ?? []); this.loadingCursos.set(false); },
             error: () => this.loadingCursos.set(false),
         });

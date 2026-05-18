@@ -152,7 +152,7 @@
                         <thead>
                             <tr>
                                 <th>Año</th>
-                                <th>Periodo</th>
+                                <th>Detalle</th>
                                 <th>Grado / sección</th>
                                 <th>Tutor</th>
                                 <th>Fecha</th>
@@ -163,7 +163,13 @@
                             @for (matricula of report.matriculas; track matricula.id) {
                                 <tr>
                                     <td>{{ matricula.periodo_anio }}</td>
-                                    <td>{{ matricula.periodo_nombre }}<br><small>Bim. {{ matricula.periodo_bimestre }}</small></td>
+                                    <td>
+                                        @if (matricula.periodo_nombre) {
+                                            {{ matricula.periodo_nombre }}<br><small>Bim. {{ matricula.periodo_bimestre }}</small>
+                                        } @else {
+                                            Matrícula anual
+                                        }
+                                    </td>
                                     <td>{{ matricula.grado }} — Sección {{ matricula.seccion }}</td>
                                     <td>
                                         {{ matricula.tutor_nombre

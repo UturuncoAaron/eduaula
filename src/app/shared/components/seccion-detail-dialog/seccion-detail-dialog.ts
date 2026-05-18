@@ -77,8 +77,12 @@ export class SeccionDetailDialog implements OnInit {
 
     // ── Init ──────────────────────────────────────────────────────
     ngOnInit(): void {
+        const pid = this.data.periodoId;
+        const cursosUrl = pid
+            ? `courses?seccion_id=${this.data.seccion.id}&periodo_id=${pid}`
+            : `courses?seccion_id=${this.data.seccion.id}`;
         forkJoin({
-            cursos: this.api.get<Course[]>(`courses?seccion_id=${this.data.seccion.id}`),
+            cursos: this.api.get<Course[]>(cursosUrl),
             // Comparte el cache con tab-asistencia, participantes, etc.
             alumnos: this.store.rosterRaw$<any>(String(this.data.seccion.id)),
         }).subscribe({
@@ -118,7 +122,11 @@ export class SeccionDetailDialog implements OnInit {
 
     private reloadCursos(): void {
         this.loadingCursos.set(true);
-        this.api.get<Course[]>(`courses?seccion_id=${this.data.seccion.id}`).subscribe({
+        const pid = this.data.periodoId;
+        const cursosUrl = pid
+            ? `courses?seccion_id=${this.data.seccion.id}&periodo_id=${pid}`
+            : `courses?seccion_id=${this.data.seccion.id}`;
+        this.api.get<Course[]>(cursosUrl).subscribe({
             next: r => { this.cursos.set((r as any).data ?? []); this.loadingCursos.set(false); },
             error: () => this.loadingCursos.set(false),
         });

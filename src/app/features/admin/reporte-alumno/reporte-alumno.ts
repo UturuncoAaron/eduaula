@@ -34,9 +34,9 @@ interface MatriculaRow {
     id: string;
     activo: boolean;
     fecha_matricula: string;
-    periodo_nombre: string;
+    periodo_nombre: string | null;
     periodo_anio: number;
-    periodo_bimestre: number;
+    periodo_bimestre: number | null;
     seccion: string;
     grado: string;
     tutor_nombre: string | null;
@@ -57,9 +57,9 @@ interface LibretaRow {
     id: string;
     tipo: string;
     nombre_archivo: string;
-    periodo_nombre: string;
+    periodo_nombre: string | null;
     periodo_anio: number;
-    periodo_bimestre: number;
+    periodo_bimestre: number | null;
     observaciones: string | null;
     url: string | null;
 }
@@ -106,9 +106,9 @@ interface AsistenciaDetalle {
     fecha: string;
     estado: string;
     observacion: string | null;
-    periodo_nombre: string;
+    periodo_nombre: string | null;
     periodo_anio: number;
-    periodo_bimestre: number;
+    periodo_bimestre: number | null;
     grado: string | null;
     seccion: string | null;
 }
