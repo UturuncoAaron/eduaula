@@ -51,4 +51,18 @@ export class ApiService {
   postForm<T>(path: string, body: FormData): Observable<ApiResponse<T>> {
     return this.http.post<ApiResponse<T>>(`${this.base}/${path}`, body);
   }
+
+  /**
+   * Descarga binaria (PDF, Excel, etc.). El backend debe responder con el
+   * Content-Type apropiado y, opcionalmente, Content-Disposition para que
+   * el navegador sugiera nombre al guardar.
+   */
+  getBlob(path: string, params?: Record<string, string>): Observable<Blob> {
+    let p = new HttpParams();
+    if (params) Object.entries(params).forEach(([k, v]) => (p = p.set(k, v)));
+    return this.http.get(`${this.base}/${path}`, {
+      params: p,
+      responseType: 'blob',
+    });
+  }
 }
