@@ -1,32 +1,30 @@
 /* psicologa/informe-print/informe-print.scss */
 
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-$ink: #111111;
-$muted: #555555;
-$blue: #1a3a6b;
-$border: #cccccc;
+$ink: #1a1a1a;
+$muted: #666666;
+$primary: #1a3a6b;
 $green: #1e6b3a;
 $amber: #7a4f00;
 
-// Altura del toolbar fijo
 $toolbar-h: 56px;
 
-// ── Host ────────────────────────────────────────────────────────────
+// ── Host ─────────────────────────────────────────────────────────
 :host {
     display: block;
-    background: #e8e8e4;
+    background: #f0f0ed;
     min-height: 100vh;
     color: $ink;
-    font-family: 'Source Sans 3', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
 // ══════════════════════════════════════════════════════════════════
-// TOOLBAR — position: fixed para que NUNCA baje con el scroll
+// TOOLBAR
 // ══════════════════════════════════════════════════════════════════
 
 .print-toolbar {
-    position: fixed; // ← FIJO, no sticky
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
@@ -39,13 +37,12 @@ $toolbar-h: 56px;
     padding: 0 20px;
     background: #ffffff;
     border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
 
     .toolbar-left {
         display: flex;
         align-items: center;
         gap: 6px;
-        min-width: 0;
     }
 
     .back-btn {
@@ -57,14 +54,14 @@ $toolbar-h: 56px;
         flex-direction: column;
 
         .toolbar-title {
-            font-size: .72rem;
+            font-size: .7rem;
             color: $muted;
             line-height: 1.1;
         }
 
         .toolbar-sub {
-            font-size: .9rem;
-            font-weight: 700;
+            font-size: .88rem;
+            font-weight: 600;
             color: $ink;
             white-space: nowrap;
             overflow: hidden;
@@ -86,10 +83,10 @@ $toolbar-h: 56px;
         gap: 4px;
         padding: 4px 10px;
         border-radius: 20px;
-        font-size: .7rem;
-        font-weight: 700;
+        font-size: .68rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: .5px;
+        letter-spacing: .4px;
 
         mat-icon {
             font-size: 13px;
@@ -111,16 +108,12 @@ $toolbar-h: 56px;
     }
 }
 
-// ── Compensar la altura del toolbar fijo ────────────────────────
-// El page-wrap empieza debajo del toolbar
+// ── Page wrap ───────────────────────────────────────────────────
 .page-wrap {
     padding: calc(#{$toolbar-h} + 32px) 16px 64px;
 }
 
-// ══════════════════════════════════════════════════════════════════
-// ESTADOS
-// ══════════════════════════════════════════════════════════════════
-
+// ── Estados ─────────────────────────────────────────────────────
 .state-center,
 .state-error {
     display: flex;
@@ -147,197 +140,69 @@ $toolbar-h: 56px;
 // ══════════════════════════════════════════════════════════════════
 
 .informe-doc {
-    max-width: 760px;
+    max-width: 720px;
     margin: 0 auto;
     background: #fff;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, .12), 0 1px 4px rgba(0, 0, 0, .06);
-    border-top: 5px solid $blue;
-    padding: 52px 64px 60px;
-    font-family: 'EB Garamond', Georgia, serif;
-    font-size: 11.5pt;
-    line-height: 1.65;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, .08);
+    border-radius: 4px;
+    padding: 56px 64px 60px;
+    font-size: 10.5pt;
+    line-height: 1.7;
     color: $ink;
 }
 
-// ── Encabezado ─────────────────────────────────────────────────────
-
+// ── Header (solo título) ────────────────────────────────────────
 .doc-header {
-    margin-bottom: 30px;
+    margin-bottom: 36px;
+    text-align: center;
 
-    .header-top {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 14px;
-    }
-
-    .monogram {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: $blue;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'EB Garamond', serif;
-        font-size: 1rem;
+    .doc-title {
+        margin: 0;
+        font-size: 1.5rem;
         font-weight: 700;
         letter-spacing: 1px;
-        flex-shrink: 0;
-    }
-
-    .header-text {
-        .ie-name {
-            margin: 0;
-            font-family: 'Source Sans 3', sans-serif;
-            font-size: .82rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            color: $blue;
-        }
-
-        .ie-sub {
-            margin: 2px 0 0;
-            font-family: 'Source Sans 3', sans-serif;
-            font-size: .73rem;
-            color: $muted;
-        }
-    }
-
-    .header-rule {
-        display: flex;
-        align-items: center;
-        margin-bottom: 14px;
-
-        &::before,
-        &::after {
-            content: '';
-            flex: 1;
-            height: 1.5px;
-            background: $blue;
-        }
-
-        .header-rule-label {
-            padding: 3px 14px;
-            font-family: 'Source Sans 3', sans-serif;
-            font-size: .68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            color: $blue;
-        }
-    }
-
-    .doc-main-title {
-        text-align: center;
-        margin: 0;
-        font-family: 'EB Garamond', serif;
-        font-size: 1.55rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 4px;
         color: $ink;
     }
 }
 
-// ── Secciones ──────────────────────────────────────────────────────
-
+// ── Secciones ───────────────────────────────────────────────────
 .doc-section {
-    margin-top: 26px;
+    margin-top: 28px;
     break-inside: avoid;
 }
 
 .sec-title {
-    display: flex;
-    align-items: baseline;
-    gap: 5px;
-    margin: 0 0 9px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid $border;
-    font-family: 'Source Sans 3', sans-serif;
-    font-size: .75rem;
+    margin: 0 0 10px;
+    font-size: .78rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1.4px;
-    color: $blue;
-
-    .sec-num {
-        opacity: .55;
-    }
+    letter-spacing: .8px;
+    color: $primary;
 }
 
-.data-grid {
-    display: grid;
-    grid-template-columns: 170px 1fr;
-    column-gap: 16px;
-    row-gap: 6px;
+// ── Datos del alumno (centrado) ─────────────────────────────────
+.datos-bloque {
+    text-align: center;
     margin: 0;
 
-    dt {
-        font-family: 'Source Sans 3', sans-serif;
-        font-size: .72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-        color: $muted;
-        padding-top: 2px;
-    }
+    p {
+        margin: 2px 0;
+        font-size: 10.5pt;
+        color: $ink;
 
-    dd {
-        margin: 0;
-        font-family: 'EB Garamond', serif;
-        font-size: 11pt;
-    }
-
-    .dd-bold {
-        font-weight: 700;
-        font-size: 11.5pt;
-    }
-
-    .conf-row {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-family: 'Source Sans 3', sans-serif;
-        font-size: .78rem;
-        color: $muted;
-
-        mat-icon {
-            font-size: 14px;
-            width: 14px;
-            height: 14px;
+        strong {
+            font-size: 11.5pt;
+            font-weight: 700;
         }
     }
 }
 
-.badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-family: 'Source Sans 3', sans-serif;
-    font-size: .7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-
-    &.badge-final {
-        background: #d6edd6;
-        color: $green;
-    }
-
-    &.badge-draft {
-        background: #fff3cd;
-        color: $amber;
-    }
-}
-
+// ── Texto de secciones ──────────────────────────────────────────
 .body-text {
     margin: 0;
     text-align: justify;
     hyphens: auto;
-    font-size: 11pt;
+    font-size: 10.5pt;
 
     &.multiline {
         white-space: pre-wrap;
@@ -347,103 +212,61 @@ $toolbar-h: 56px;
 .parents-list {
     margin: 0;
     padding-left: 18px;
-    font-size: 11pt;
+    font-size: 10.5pt;
 
     li {
         margin: 4px 0;
     }
-
-    .dni {
-        color: $muted;
-        font-size: 10pt;
-    }
 }
 
-// ── Footer y Firma ─────────────────────────────────────────────────
-
+// ── Footer y Firma ──────────────────────────────────────────────
 .doc-footer {
     margin-top: 60px;
     display: flex;
-    flex-direction: column;
-    gap: 28px;
-
-    .footer-legal {
-        margin: 0;
-        font-family: 'Source Sans 3', sans-serif;
-        font-size: .72rem;
-        color: $muted;
-        border-top: 1px solid $border;
-        padding-top: 10px;
-        font-style: italic;
-    }
+    justify-content: center;
 
     .signature-block {
-        margin-left: auto;
-        width: 260px;
+        width: 240px;
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
 
         .firma-img {
-            max-width: 220px;
-            max-height: 90px;
+            max-width: 200px;
+            max-height: 80px;
             object-fit: contain;
-            margin-bottom: 4px;
-        }
-
-        .firma-hint {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            background: #fff8e1;
-            border: 1px dashed #f9a825;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            font-family: 'Source Sans 3', sans-serif;
-            font-size: .72rem;
-            color: $amber;
-            text-align: left;
-
-            mat-icon {
-                font-size: 14px;
-                width: 14px;
-                height: 14px;
-                flex-shrink: 0;
-            }
+            margin-bottom: 6px;
         }
 
         .firma-blank {
-            width: 220px;
-            height: 72px;
+            width: 200px;
+            height: 60px;
         }
 
         .firma-line {
             width: 100%;
             border-top: 1px solid $ink;
-            margin-bottom: 7px;
+            margin-bottom: 8px;
         }
 
         .firma-name {
             margin: 0;
-            font-family: 'Source Sans 3', sans-serif;
             font-size: .85rem;
-            font-weight: 700;
+            font-weight: 600;
             color: $ink;
         }
 
-        .firma-sub {
-            margin: 2px 0 0;
-            font-family: 'Source Sans 3', sans-serif;
-            font-size: .72rem;
+        .firma-cpsp {
+            margin: 3px 0 0;
+            font-size: .75rem;
             color: $muted;
         }
     }
 }
 
 // ══════════════════════════════════════════════════════════════════
-// IMPRESIÓN — solo el documento, nada más
+// IMPRESIÓN
 // ══════════════════════════════════════════════════════════════════
 
 @media print {
@@ -451,10 +274,7 @@ $toolbar-h: 56px;
         background: #fff;
     }
 
-    .no-print {
-        display: none !important;
-    }
-
+    .no-print,
     .print-toolbar {
         display: none !important;
     }
@@ -465,23 +285,8 @@ $toolbar-h: 56px;
 
     .informe-doc {
         max-width: none;
-        margin: 0;
         box-shadow: none;
-        border-top: 4px solid $blue;
-        padding: 26px 42px 38px;
-        font-size: 10.5pt;
-    }
-
-    .doc-section {
-        break-inside: avoid;
-    }
-
-    .firma-hint {
-        display: none !important;
-    }
-
-    .firma-blank {
-        display: block;
-        height: 72px;
+        border-radius: 0;
+        padding: 20mm 20mm;
     }
 }

@@ -26,7 +26,7 @@ import { Rol } from '../../../core/models/user';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Navbar implements OnInit {
-  private auth = inject(AuthService);
+  protected auth = inject(AuthService);
   private router = inject(Router);
   private notifications = inject(NotificationsStore);
 
@@ -82,6 +82,9 @@ export class Navbar implements OnInit {
   goToProfile() { this.router.navigate(['/perfil']); }
   goToNotificaciones() { this.router.navigate(['/notificaciones']); }
 
+  goToFirma(): void {
+    this.router.navigate(['/psicologa/mi-firma']);
+  }
   onLogout() {
     this.auth.logout();
     this.router.navigate(['/auth/login']);

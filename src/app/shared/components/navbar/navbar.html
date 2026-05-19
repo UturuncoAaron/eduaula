@@ -66,6 +66,13 @@
                 </span>
             </button>
 
+            @if (auth.isPsicologa()) {
+            <button mat-menu-item (click)="goToFirma()">
+                <mat-icon>draw</mat-icon>
+                <span>Mi firma</span>
+            </button>
+            }
+
             <mat-divider></mat-divider>
 
             <button mat-menu-item class="logout-btn" (click)="onLogout()">

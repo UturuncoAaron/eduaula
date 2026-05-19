@@ -1,0 +1,167 @@
+<div class="mi-firma">
+
+    <header class="mf-header">
+        <a mat-icon-button [routerLink]="['..']" aria-label="Volver">
+            <mat-icon>arrow_back</mat-icon>
+        </a>
+        <div class="mf-header__title">
+            <h1>Mi firma digital</h1>
+            <p>Aparece automáticamente al pie de cada informe psicológico que descargues como PDF.</p>
+        </div>
+    </header>
+
+    <!-- ═══ Recomendaciones ═══════════════════════════════════════ -->
+    <section class="mf-tips" aria-label="Recomendaciones">
+        <mat-icon class="mf-tips__icon">tips_and_updates</mat-icon>
+        <div>
+            <h3>Recomendaciones para una mejor firma</h3>
+            <ul>
+                <li>
+                    <strong>Fondo transparente</strong> es lo ideal — usá PNG si vas a subir
+                    una imagen. Si subís JPG con fondo blanco, aparecerá un rectángulo
+                    blanco visible sobre el documento.
+                </li>
+                <li>
+                    <strong>Tinta oscura</strong> (negro o azul oscuro). Las firmas claras
+                    pierden contraste al imprimir.
+                </li>
+                <li>
+                    <strong>Mínimo 400 × 150 px</strong>. Más chico se ve pixelado.
+                </li>
+                <li>
+                    <strong>No incluyas tu nombre escrito ni el sello</strong> — el informe
+                    ya renderiza tu nombre, colegiatura e institución por separado.
+                </li>
+                <li>Tamaño máximo: <strong>2 MB</strong>.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ═══ Loading inicial ═══════════════════════════════════════ -->
+    @if (loading()) {
+    <div class="mf-loading">
+        <mat-spinner diameter="36" />
+        <span>Cargando tu firma...</span>
+    </div>
+    } @else {
+
+    <!-- ═══ Firma actual ════════════════════════════════════════ -->
+    @if (hasCurrent()) {
+    <section class="mf-current" aria-label="Firma actual">
+        <header>
+            <h2>Firma actual</h2>
+            <span class="mf-badge">Activa</span>
+        </header>
+
+        <div class="mf-current__preview">
+            <img [src]="currentFirma()" alt="Firma actual de la psicóloga" />
+        </div>
+
+        <div class="mf-current__actions">
+            <button mat-stroked-button color="warn" [disabled]="saving()" (click)="deleteFirma()">
+                <mat-icon>delete_outline</mat-icon>
+                <span>Eliminar firma</span>
+            </button>
+            <span class="mf-current__hint">
+                Cargá una nueva más abajo para reemplazar la actual.
+            </span>
+        </div>
+    </section>
+    } @else {
+    <section class="mf-empty" aria-label="Sin firma">
+        <mat-icon>draw</mat-icon>
+        <h2>Aún no tenés una firma cargada</h2>
+        <p>Tus informes saldrán sin firma hasta que configures una.</p>
+    </section>
+    }
+
+    <!-- ═══ Capturar nueva firma ════════════════════════════════ -->
+    <section class="mf-capture" aria-label="Cargar nueva firma">
+        <header class="mf-capture__header">
+            <h2>{{ hasCurrent() ? 'Reemplazar firma' : 'Crear firma' }}</h2>
+
+            <mat-button-toggle-group [value]="mode()" (change)="setMode($event.value)" aria-label="Modo de captura"
+                hideSingleSelectionIndicator>
+                <mat-button-toggle value="draw">
+                    <mat-icon>edit</mat-icon>
+                    <span>Dibujar</span>
+                </mat-button-toggle>
+                <mat-button-toggle value="upload">
+                    <mat-icon>upload_file</mat-icon>
+                    <span>Subir imagen</span>
+                </mat-button-toggle>
+            </mat-button-toggle-group>
+        </header>
+
+        <!-- ── Modo: DIBUJAR ───────────────────────────────────── -->
+        @if (mode() === 'draw') {
+        <div class="mf-canvas-wrap">
+            <canvas #padCanvas class="mf-canvas" (pointerdown)="onPointerDown($event)"
+                (pointermove)="onPointerMove($event)" (pointerup)="onPointerUp($event)"
+                (pointerleave)="onPointerUp($event)" (pointercancel)="onPointerUp($event)">
+            </canvas>
+            @if (!hasStrokes()) {
+            <span class="mf-canvas__placeholder">
+                Dibujá tu firma con el mouse, lápiz óptico o dedo
+            </span>
+            }
+        </div>
+
+        <div class="mf-actions">
+            <button mat-stroked-button [disabled]="!hasStrokes() || saving()" (click)="clearCanvas()">
+                <mat-icon>refresh</mat-icon>
+                <span>Limpiar</span>
+            </button>
+            <button mat-flat-button color="primary" [disabled]="!canSave()" (click)="save()">
+                @if (saving()) {
+                <mat-spinner diameter="18" />
+                } @else {
+                <mat-icon>save</mat-icon>
+                }
+                <span>{{ saving() ? 'Guardando…' : 'Guardar firma' }}</span>
+            </button>
+        </div>
+        }
+
+        <!-- ── Modo: SUBIR IMAGEN ──────────────────────────────── -->
+        @if (mode() === 'upload') {
+        <input #fileInput type="file" accept="image/png,image/jpeg,image/webp" style="display:none"
+            (change)="onFileSelected($event)" />
+
+        @if (!previewUrl()) {
+        <div class="mf-drop" (click)="fileInput.click()" (drop)="onDrop($event)" (dragover)="onDragOver($event)"
+            role="button" tabindex="0" (keydown.enter)="fileInput.click()">
+            <mat-icon>cloud_upload</mat-icon>
+            <p class="mf-drop__main">Arrastrá una imagen aquí o hacé clic para elegir</p>
+            <p class="mf-drop__sub">PNG transparente preferido · JPG · WEBP · máx. 2 MB</p>
+        </div>
+        } @else {
+        <div class="mf-preview">
+            <img [src]="previewUrl()" alt="Vista previa de la firma" />
+            <button mat-icon-button class="mf-preview__remove" (click)="clearPendingFile()" aria-label="Quitar imagen">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+        }
+
+        <div class="mf-actions">
+            @if (previewUrl()) {
+            <button mat-stroked-button [disabled]="saving()" (click)="clearPendingFile()">
+                <mat-icon>refresh</mat-icon>
+                <span>Cambiar imagen</span>
+            </button>
+            }
+            <button mat-flat-button color="primary" [disabled]="!canSave()" (click)="save()">
+                @if (saving()) {
+                <mat-spinner diameter="18" />
+                } @else {
+                <mat-icon>save</mat-icon>
+                }
+                <span>{{ saving() ? 'Guardando…' : 'Guardar firma' }}</span>
+            </button>
+        </div>
+        }
+    </section>
+
+    }
+</div>

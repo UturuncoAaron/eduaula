@@ -35,7 +35,9 @@ export class PsychologyStore {
   readonly currentStudentRecords = signal<PsychologyRecord[]>([]);
   readonly currentStudentInformes = signal<InformePsicologico[]>([]);
   readonly currentStudentArchivos = signal<ArchivoPsicologico[]>([]);
-
+  readonly firmaUrl = signal<string | null>(null);
+  readonly loadingFirma = signal(false);
+  readonly savingFirma = signal(false);
   readonly loadingStudents = signal(false);
   readonly loadingRecords = signal(false);
   readonly loadingInformes = signal(false);
@@ -289,6 +291,42 @@ export class PsychologyStore {
       this.api.get<InformePsicologico>(`psychology/informes/${informeId}`),
     );
     return res.data;
+  }
+  async loadMyFirma(): Promise<void> {
+    this.loadingFirma.set(true);
+    try {
+      const res = await firstValueFrom(
+        this.api.get<{ firmaUrl: string | null }>('psychology/firma'),
+      );
+      this.firmaUrl.set(res.data?.firmaUrl ?? null);
+    } catch {
+      this.error.set('No se pudo cargar la firma');
+      this.firmaUrl.set(null);
+    } finally {
+      this.loadingFirma.set(false);
+    }
+  }
+
+  async uploadMyFirma(file: File | Blob, filename = 'firma.png'): Promise<void> {
+    this.savingFirma.set(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file, filename);
+      await firstValueFrom(this.api.post('psychology/firma', fd));
+      await this.loadMyFirma();
+    } finally {
+      this.savingFirma.set(false);
+    }
+  }
+
+  async deleteMyFirma(): Promise<void> {
+    this.savingFirma.set(true);
+    try {
+      await firstValueFrom(this.api.delete('psychology/firma'));
+      this.firmaUrl.set(null);
+    } finally {
+      this.savingFirma.set(false);
+    }
   }
 
   /**

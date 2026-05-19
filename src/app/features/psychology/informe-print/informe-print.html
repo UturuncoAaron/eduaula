@@ -27,10 +27,6 @@
         </span>
         }
 
-        <!--
-          El PDF lo genera el backend y se descarga directo como archivo.
-          No abre la ventana de impresión del navegador.
-        -->
         <button mat-flat-button color="primary" (click)="downloadPdf()"
             [disabled]="loading() || !informe() || downloading()">
             @if (downloading()) {
@@ -63,128 +59,87 @@
 <div class="page-wrap">
     <article class="informe-doc">
 
-        <!-- ══ ENCABEZADO ════════════════════════════════════════════ -->
+        <!-- ══ TÍTULO ══════════════════════════════════════════════ -->
         <header class="doc-header">
-            <div class="header-top">
-                <div class="monogram">IE</div>
-                <div class="header-text">
-                    <p class="ie-name">I.E. JUAN PABLO VIZCARDO Y GUZMÁN</p>
-                    <p class="ie-sub">Ugel 04 · Comas, Lima — Perú</p>
-                </div>
-            </div>
-            <div class="header-rule">
-                <span class="header-rule-label">SERVICIO DE PSICOLOGÍA EDUCATIVA</span>
-            </div>
-            <h1 class="doc-main-title">INFORME PSICOLÓGICO</h1>
+            <h1 class="doc-title">Informe Psicológico</h1>
         </header>
 
-        <!-- ══ I. DATOS ══════════════════════════════════════════════ -->
+        <!-- ══ DATOS DEL ALUMNO ═══════════════════════════════════ -->
         <section class="doc-section">
-            <h2 class="sec-title"><span class="sec-num">I.</span> Datos de identificación</h2>
-            <dl class="data-grid">
-                <dt>Apellidos y nombres</dt>
-                <dd class="dd-bold">{{ studentFullName(student()) }}</dd>
-
-                @if (student()?.codigo_estudiante) {
-                <dt>Código</dt>
-                <dd>{{ student()?.codigo_estudiante }}</dd>
+            <h2 class="sec-title">Datos del alumno</h2>
+            <div class="datos-bloque">
+                <p><strong>{{ studentFullName(student()) }}</strong></p>
+                <p>{{ (inf.finalizadoAt ?? inf.createdAt) | date:'longDate':'':'es-PE' }}</p>
+                @if (studentAge() !== null) {
+                <p>{{ studentAge() }} años</p>
                 }
-
-                <dt>Tipo de informe</dt>
-                <dd>{{ tipoLabels[inf.tipo] }}</dd>
-
-                <dt>Fecha</dt>
-                <dd>{{ (inf.finalizadoAt ?? inf.createdAt) | date:'longDate':'':'es-PE' }}</dd>
-
-                <dt>Estado</dt>
-                <dd>
-                    @if (inf.estado === 'finalizado') {
-                    <span class="badge badge-final">Finalizado</span>
-                    } @else {
-                    <span class="badge badge-draft">Borrador</span>
-                    }
-                </dd>
-
-                @if (inf.confidencial) {
-                <dt>Confidencialidad</dt>
-                <dd class="conf-row">
-                    <mat-icon>lock</mat-icon>
-                    <span>Documento confidencial — uso restringido al destinatario</span>
-                </dd>
-                }
-            </dl>
+            </div>
         </section>
 
+        <!-- ══ DERIVADO A ═════════════════════════════════════════ -->
+        @if (inf.derivadoA) {
+        <section class="doc-section">
+            <h2 class="sec-title">Derivado a</h2>
+            <p class="body-text">{{ inf.derivadoA }}</p>
+        </section>
+        }
+
+        <!-- ══ DESTINATARIOS ══════════════════════════════════════ -->
         @if (inf.tipo === 'derivacion_familia' && parents().length) {
         <section class="doc-section">
-            <h2 class="sec-title"><span class="sec-num">II.</span> Destinatarios</h2>
+            <h2 class="sec-title">Destinatarios</h2>
             <ul class="parents-list">
                 @for (p of parents(); track p.id) {
                 <li>
                     <strong>{{ p.relacion | titlecase }}:</strong>
                     {{ parentFullName(p) }}
-                    @if (p.codigo_acceso) {
-                    <span class="dni"> · {{ p.codigo_acceso }}</span>
-                    }
                 </li>
                 }
             </ul>
         </section>
         }
 
-        @if (inf.derivadoA) {
+        <!-- ══ MOTIVO ═════════════════════════════════════════════ -->
         <section class="doc-section">
-            <h2 class="sec-title"><span class="sec-num">II.</span> Derivado a</h2>
-            <p class="body-text">{{ inf.derivadoA }}</p>
-        </section>
-        }
-
-        <!-- ══ II. MOTIVO ════════════════════════════════════════════ -->
-        <section class="doc-section">
-            <h2 class="sec-title"><span class="sec-num">II.</span> Motivo de consulta</h2>
+            <h2 class="sec-title">Motivo de consulta</h2>
             <p class="body-text multiline">{{ inf.motivo }}</p>
         </section>
 
+        <!-- ══ ANTECEDENTES ═══════════════════════════════════════ -->
         @if (inf.antecedentes) {
         <section class="doc-section">
-            <h2 class="sec-title"><span class="sec-num">III.</span> Antecedentes</h2>
+            <h2 class="sec-title">Antecedentes</h2>
             <p class="body-text multiline">{{ inf.antecedentes }}</p>
         </section>
         }
 
-        <!-- ══ IV. OBSERVACIONES ══════════════════════════════════════ -->
+        <!-- ══ OBSERVACIONES ══════════════════════════════════════ -->
         <section class="doc-section">
-            <h2 class="sec-title"><span class="sec-num">IV.</span> Observaciones y hallazgos</h2>
+            <h2 class="sec-title">Observaciones y hallazgos</h2>
             <p class="body-text multiline">{{ inf.observaciones }}</p>
         </section>
 
+        <!-- ══ RECOMENDACIONES ════════════════════════════════════ -->
         @if (inf.recomendaciones) {
         <section class="doc-section">
-            <h2 class="sec-title"><span class="sec-num">V.</span> Recomendaciones</h2>
+            <h2 class="sec-title">Recomendaciones</h2>
             <p class="body-text multiline">{{ inf.recomendaciones }}</p>
         </section>
         }
 
-        <!-- ══ FIRMA ══════════════════════════════════════════════════ -->
+        <!-- ══ FIRMA ══════════════════════════════════════════════ -->
         <footer class="doc-footer">
-            <p class="footer-legal">
-                El presente documento tiene carácter informativo y forma parte del
-                expediente psicológico del estudiante.
-            </p>
-
             <div class="signature-block">
                 @if (firmaUrl()) {
-                <img class="firma-img" [src]="firmaUrl()!" alt="Firma psicóloga" />
+                <img class="firma-img" [src]="firmaUrl()!" alt="Firma" />
                 } @else {
-                <div class="firma-hint no-print">
-                    <mat-icon>draw</mat-icon>
-                    <span>Sin firma digital — se imprimirá espacio en blanco</span>
-                </div>
                 <div class="firma-blank"></div>
                 }
                 <div class="firma-line"></div>
-                <p class="firma-name">Psicología Educativa</p>
-                <p class="firma-sub">I.E. Juan Pablo Vizcardo y Guzmán — Comas</p>
+                <p class="firma-name">{{ psicologaFullName() }}</p>
+                @if (psicologaColegiatura()) {
+                <p class="firma-cpsp">CPsP {{ psicologaColegiatura() }}</p>
+                }
             </div>
         </footer>
 

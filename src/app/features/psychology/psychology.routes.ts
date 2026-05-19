@@ -52,4 +52,10 @@ export const PSYCHOLOGY_ROUTES: Routes = [
         .then(m => m.InformePrint),
     title: 'Informe psicológico | EduAula',
   },
+  {
+    path: 'mi-firma',
+    loadComponent: () =>
+      import('./mi-firma/mi-firma').then(m => m.MiFirma),
+    data: { title: 'Mi firma' },
+  }
 ];

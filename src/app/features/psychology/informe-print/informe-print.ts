@@ -1,7 +1,7 @@
 // psicologa/informe-print/informe-print.ts
 import {
   ChangeDetectionStrategy, Component, OnInit, OnDestroy,
-  inject, signal,
+  inject, signal, computed,
 } from '@angular/core';
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -17,14 +17,6 @@ import {
   InformePsicologico, INFORME_TIPO_LABELS, AssignedStudent, ParentOfStudent,
 } from '../../../core/models/psychology';
 
-/**
- * Vista previa del informe psicológico + descarga del PDF.
- *
- * El PDF lo genera el backend (`GET /reports/psychology/informes/:id/pdf`)
- * y se descarga directamente como archivo, sin abrir el diálogo de
- * impresión del navegador. La vista en pantalla se mantiene como
- * referencia visual de cómo va a verse el documento final.
- */
 @Component({
   selector: 'app-informe-print',
   standalone: true,
@@ -51,12 +43,39 @@ export class InformePrint implements OnInit, OnDestroy {
   readonly downloading = signal(false);
   readonly error = signal<string | null>(null);
 
+  // Datos de la psicóloga (para el footer)
+  private readonly psicologaData = signal<{
+    nombre: string; apellido_paterno: string;
+    apellido_materno: string | null; colegiatura: string | null;
+  } | null>(null);
+
   readonly tipoLabels = INFORME_TIPO_LABELS;
 
-  // ── Ciclo de vida ────────────────────────────────────────────────
+  // ── Derivados ───────────────────────────────────────────────────
+
+  readonly studentAge = computed(() => {
+    const s = this.student();
+    if (!s?.fecha_nacimiento) return null;
+    const birth = new Date(s.fecha_nacimiento);
+    if (isNaN(birth.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  });
+
+  readonly psicologaFullName = computed(() => {
+    const p = this.psicologaData();
+    if (!p) return '—';
+    return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim();
+  });
+
+  readonly psicologaColegiatura = computed(() => this.psicologaData()?.colegiatura ?? null);
+
+  // ── Ciclo de vida ───────────────────────────────────────────────
 
   ngOnInit(): void {
-    // Marca el body → los @media print globales ocultan el sidebar
     document.body.classList.add('informe-print-mode');
     this.loadData();
   }
@@ -76,7 +95,7 @@ export class InformePrint implements OnInit, OnDestroy {
       const informe = await this.store.getInformeById(id);
       this.informe.set(informe);
 
-      const [stuRes, parentsRes, firmaRes] = await Promise.allSettled([
+      const [stuRes, parentsRes, firmaRes, psicRes] = await Promise.allSettled([
         firstValueFrom(
           this.api.get<AssignedStudent>(
             `psychology/directory/students/${informe.studentId}`,
@@ -86,11 +105,17 @@ export class InformePrint implements OnInit, OnDestroy {
         firstValueFrom(
           this.api.get<{ firmaUrl: string | null }>('psychology/firma'),
         ),
+        firstValueFrom(
+          this.api.get<{ nombre: string; apellido_paterno: string; apellido_materno: string | null; colegiatura: string | null }>(
+            'psychology/me',
+          ),
+        ),
       ]);
 
       if (stuRes.status === 'fulfilled') this.student.set(stuRes.value.data ?? null);
       if (parentsRes.status === 'fulfilled') this.parents.set(parentsRes.value);
       if (firmaRes.status === 'fulfilled') this.firmaUrl.set(firmaRes.value.data?.firmaUrl ?? null);
+      if (psicRes.status === 'fulfilled') this.psicologaData.set(psicRes.value.data ?? null);
     } catch {
       this.error.set('No se pudo cargar el informe');
     } finally {
@@ -98,9 +123,8 @@ export class InformePrint implements OnInit, OnDestroy {
     }
   }
 
-  // ── Acciones ─────────────────────────────────────────────────────
+  // ── Acciones ────────────────────────────────────────────────────
 
-  /** Descarga el PDF generado por el backend, sin diálogo de impresión. */
   async downloadPdf(): Promise<void> {
     const inf = this.informe();
     if (!inf || this.downloading()) return;
@@ -115,7 +139,7 @@ export class InformePrint implements OnInit, OnDestroy {
     }
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────
+  // ── Helpers ─────────────────────────────────────────────────────
 
   studentFullName(s: AssignedStudent | null): string {
     if (!s) return '—';
