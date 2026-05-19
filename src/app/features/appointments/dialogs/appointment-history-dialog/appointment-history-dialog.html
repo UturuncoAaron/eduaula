@@ -1,0 +1,51 @@
+<h2 mat-dialog-title>
+    <mat-icon>history</mat-icon>
+    Historial de la cita
+</h2>
+
+<mat-dialog-content class="hist-body">
+    @if (loading()) {
+    <div class="loading">
+        <mat-spinner diameter="22" />
+        <span>Cargando historial…</span>
+    </div>
+    } @else if (!hasEntries()) {
+    <div class="empty">
+        <mat-icon>info</mat-icon>
+        <span>Esta cita aún no tiene cambios registrados.</span>
+    </div>
+    } @else {
+    <ol class="timeline">
+        @for (e of entries(); track e.id) {
+        <li class="timeline__item" [attr.data-tone]="estadoTone(e.nextStatus)">
+            <span class="timeline__bullet" aria-hidden="true"></span>
+            <div class="timeline__content">
+                <div class="timeline__head">
+                    <strong>
+                        @if (e.previousStatus) {
+                        {{ estadoLabel(e.previousStatus) }} → {{ estadoLabel(e.nextStatus) }}
+                        } @else {
+                        Cita creada como {{ estadoLabel(e.nextStatus) }}
+                        }
+                    </strong>
+                    <span class="timeline__time">
+                        {{ e.changedAt | date:'EEE d MMM y, HH:mm' }}
+                    </span>
+                </div>
+                <div class="timeline__meta">
+                    <mat-icon class="timeline__icon">person</mat-icon>
+                    <span>{{ authorLabel(e) }}</span>
+                </div>
+                @if (e.reason) {
+                <p class="timeline__reason">{{ e.reason }}</p>
+                }
+            </div>
+        </li>
+        }
+    </ol>
+    }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="close()">Cerrar</button>
+</mat-dialog-actions>

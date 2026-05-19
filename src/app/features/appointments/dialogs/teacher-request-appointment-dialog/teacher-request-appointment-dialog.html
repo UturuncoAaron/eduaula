@@ -152,12 +152,35 @@
                         </mat-select>
                     </mat-form-field>
 
+                    @if (myRule().fixedDurationMin != null) {
                     <mat-form-field appearance="outline">
                         <mat-label>Duración</mat-label>
-                        <input matInput type="number" min="15" max="180" formControlName="durationMin"
-                            (change)="onDurationChange()" />
-                        <span matSuffix class="suffix">min</span>
+                        <input matInput readonly
+                            [value]="myRule().fixedDurationMin + ' min (fija)'" />
                     </mat-form-field>
+                    } @else {
+                    <div class="slot-count">
+                        <span class="slot-count__label">
+                            Duración
+                            <small class="muted">
+                                máx {{ myMaxConsecutiveSlots() }}
+                                {{ myMaxConsecutiveSlots() === 1 ? 'slot' : 'slots' }}
+                            </small>
+                        </span>
+                        <mat-button-toggle-group [value]="selectedSlotCount()"
+                            (change)="onSlotCountChange($event.value)"
+                            hideSingleSelectionIndicator>
+                            @for (n of slotCountOptions(); track n) {
+                            <mat-button-toggle [value]="n">
+                                {{ n }} slot{{ n === 1 ? '' : 's' }}
+                                <small class="muted">
+                                    ({{ n * myRule().slotMinutes }} min)
+                                </small>
+                            </mat-button-toggle>
+                            }
+                        </mat-button-toggle-group>
+                    </div>
+                    }
                 </div>
             </section>
 
@@ -187,7 +210,9 @@
                 <div class="calendar-wrap">
                     <app-booking-calendar [availability]="availability()" [slotsTaken]="slotsTaken()"
                         [weekStart]="weekStart()" [loading]="loadingAvailability() || loadingSlots()"
-                        [slotMinutes]="mySlotMinutes()" [allowedDays]="myAllowedDays()" [startHour]="myStartHour()"
+                        [slotMinutes]="mySlotMinutes()"
+                        [pickDurationMin]="form.value.durationMin ?? null"
+                        [allowedDays]="myAllowedDays()" [startHour]="myStartHour()"
                         [endHour]="myEndHour()"
                         emptyMessage="Aún no tienes disponibilidad configurada." [selectedDia]="picked()?.dia ?? null"
                         [selectedHour]="picked()?.hour ?? null" (pick)="onSlotPick($event)"

@@ -288,6 +288,49 @@ mat-form-field {
     padding-right: 4px;
 }
 
+.slot-count {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    &__label {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        font-size: .8rem;
+        font-weight: 500;
+        color: var(--c-text-muted);
+
+        small {
+            font-size: .72rem;
+            font-weight: 400;
+            color: var(--c-text-muted);
+            opacity: .85;
+        }
+    }
+
+    mat-button-toggle-group {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    mat-button-toggle {
+        font-weight: 500;
+        font-size: .85rem;
+
+        small {
+            font-size: .7rem;
+            margin-left: 4px;
+            color: var(--c-text-muted);
+            opacity: .85;
+        }
+    }
+
+    .muted {
+        color: var(--c-text-muted);
+    }
+}
+
 // ── Chip reutilizable ──────────────────────────────────────────
 .chip {
     display: inline-flex;

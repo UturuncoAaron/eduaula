@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -31,7 +32,8 @@ import { AuthService } from '../../../../core/auth/auth';
 import {
   AccountAvailability, AppointmentTipo, DiaSemana, SlotTaken,
   APPOINTMENT_RULES, ruleForRol,
-  ruleToStartHour, ruleToEndHour, ruleToSlotMinutes,
+  ruleToStartHour, ruleToEndHour,
+  ruleToMaxConsecutiveSlots,
 } from '../../../../core/models/appointments';
 import {
   combineDateAndTime, diaLabel, getCurrentMonday,
@@ -57,7 +59,7 @@ interface PickedSlot {
     ReactiveFormsModule,
     MatDialogModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatAutocompleteModule,
-    MatButtonModule, MatIconModule,
+    MatButtonModule, MatButtonToggleModule, MatIconModule,
     MatProgressSpinnerModule, MatTooltipModule,
     BookingCalendar,
   ],
@@ -140,9 +142,9 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     return ruleForRol(me.rol, me.cargo) ?? APPOINTMENT_RULES.docente;
   });
   readonly mySlotMinutes = computed<number>(() => {
-    const dur = this.form?.value?.durationMin;
-    const fallback = typeof dur === 'number' && dur > 0 ? dur : 45;
-    return ruleToSlotMinutes(this.myRule(), fallback);
+    // Granularidad de la grilla: para roles con duración fija = la duración,
+    // para los demás = el step canónico del rol (15 o 30).
+    return this.myRule().slotMinutes;
   });
   readonly myAllowedDays = computed<readonly string[]>(
     () => this.myRule().allowedDays,
@@ -153,6 +155,20 @@ export class TeacherRequestAppointmentDialog implements OnInit {
   readonly myEndHour = computed<number>(
     () => ruleToEndHour(this.myRule()),
   );
+  /** Máx slots consecutivos permitidos según mi rol. */
+  readonly myMaxConsecutiveSlots = computed<number>(
+    () => ruleToMaxConsecutiveSlots(this.myRule()),
+  );
+  readonly slotCountOptions = computed<number[]>(() => {
+    const n = this.myMaxConsecutiveSlots();
+    return Array.from({ length: n }, (_, i) => i + 1);
+  });
+  readonly selectedSlotCount = computed<number>(() => {
+    const r = this.myRule();
+    const dur = Number(this.form?.value?.durationMin) || r.slotMinutes;
+    const step = r.slotMinutes > 0 ? r.slotMinutes : 30;
+    return Math.max(1, Math.round(dur / step));
+  });
 
   // ── Form ────────────────────────────────────────────────────
   form: FormGroup = this.fb.group({
@@ -182,6 +198,15 @@ export class TeacherRequestAppointmentDialog implements OnInit {
 
     // Cargar mi propia disponibilidad y mis slots ocupados.
     await Promise.all([this.refreshAvailability(), this.refreshSlotsTaken()]);
+
+    // Alinear la duración inicial con la regla del rol del usuario.
+    // Por ejemplo el docente arranca con 45 min (su duración fija) en vez
+    // del 30 min hard-codeado en el form.
+    const rule = this.myRule();
+    const initialDur = rule.fixedDurationMin ?? rule.slotMinutes;
+    if (this.form.value.durationMin !== initialDur) {
+      this.form.patchValue({ durationMin: initialDur });
+    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────
@@ -218,6 +243,19 @@ export class TeacherRequestAppointmentDialog implements OnInit {
 
   async onDurationChange(): Promise<void> {
     // Si cambia la duración, lo agendado deja de tener sentido.
+    this.clearPicked();
+    await this.refreshSlotsTaken();
+  }
+
+  async onSlotCountChange(count: number): Promise<void> {
+    const r = this.myRule();
+    if (r.fixedDurationMin != null) return;
+    const step = r.slotMinutes > 0 ? r.slotMinutes : 30;
+    const clamped = Math.min(
+      Math.max(1, Math.round(count)),
+      this.myMaxConsecutiveSlots(),
+    );
+    this.form.patchValue({ durationMin: clamped * step });
     this.clearPicked();
     await this.refreshSlotsTaken();
   }

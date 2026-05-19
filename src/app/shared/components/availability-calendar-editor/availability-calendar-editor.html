@@ -55,4 +55,32 @@
             <span class="legend legend--off"></span> click para marcar
         </span>
     </footer>
+
+    @if (savedSlots().length > 0) {
+        <section class="saved-slots">
+            <header class="saved-slots__header">
+                <mat-icon>delete_sweep</mat-icon>
+                <div>
+                    <h4>Eliminar un bloque puntual</h4>
+                    <small class="muted">
+                        Borra un único bloque ya guardado. Si tiene citas activas se te pedirá confirmar la cancelación en cascada.
+                    </small>
+                </div>
+            </header>
+            <ul class="saved-slots__list">
+                @for (s of savedSlots(); track s.id) {
+                    <li class="saved-slots__item">
+                        <span class="saved-slots__dia">{{ diaLabel(s.diaSemana) }}</span>
+                        <span class="saved-slots__hours">{{ s.horaInicio }} – {{ s.horaFin }}</span>
+                        <button mat-icon-button color="warn" type="button"
+                                [disabled]="saving()"
+                                (click)="emitDeleteSlot(s)"
+                                matTooltip="Eliminar este bloque">
+                            <mat-icon>delete_outline</mat-icon>
+                        </button>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
 </div>

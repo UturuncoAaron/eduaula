@@ -157,6 +157,12 @@
                             <span class="status-dot"></span>
                             {{ estadoLabel(row.estado) }}
                         </span>
+                        @if (row.estado === 'realizada' && row.followUpNotes) {
+                            <div class="follow-up-notes" [matTooltip]="row.followUpNotes">
+                                <mat-icon class="follow-up-notes__icon">sticky_note_2</mat-icon>
+                                <span class="follow-up-notes__text">{{ row.followUpNotes }}</span>
+                            </div>
+                        }
                     </td>
                 </ng-container>
 
@@ -204,6 +210,11 @@
                                 [disabled]="!canMarkNoShow(row)">
                                 <mat-icon>person_off</mat-icon>
                                 <span>Registrar inasistencia</span>
+                            </button>
+                            <mat-divider />
+                            <button mat-menu-item type="button" (click)="openHistory(row)">
+                                <mat-icon>history</mat-icon>
+                                <span>Ver historial</span>
                             </button>
                             <mat-divider />
                             <button mat-menu-item type="button" class="danger" (click)="cancelar(row)"

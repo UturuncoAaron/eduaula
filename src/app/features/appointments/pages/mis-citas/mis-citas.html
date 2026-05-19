@@ -187,6 +187,11 @@
                             <mat-icon>cancel</mat-icon>
                             <span>Cancelar</span>
                         </button>
+                        <button mat-stroked-button type="button" (click)="openHistory(a)"
+                            matTooltip="Ver el historial de cambios de esta cita">
+                            <mat-icon>history</mat-icon>
+                            <span>Historial</span>
+                        </button>
                     </footer>
                 </div>
             </article>
@@ -263,8 +268,24 @@
                                 <span class="meta-value clamp-2">{{ a.motivo }}</span>
                             </div>
                         </li>
+                        @if (a.estado === 'realizada' && a.followUpNotes) {
+                            <li class="follow-up">
+                                <mat-icon class="meta-icon">sticky_note_2</mat-icon>
+                                <div class="meta-text">
+                                    <span class="meta-label">Notas de seguimiento</span>
+                                    <span class="meta-value follow-up__text">{{ a.followUpNotes }}</span>
+                                </div>
+                            </li>
+                        }
                     </ul>
 
+                    <footer class="appt-card__actions">
+                        <button mat-stroked-button type="button" (click)="openHistory(a)"
+                            matTooltip="Ver el historial de cambios de esta cita">
+                            <mat-icon>history</mat-icon>
+                            <span>Historial</span>
+                        </button>
+                    </footer>
                 </div>
             </article>
             }

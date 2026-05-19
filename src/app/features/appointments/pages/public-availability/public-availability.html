@@ -1,0 +1,62 @@
+<section class="public-avail">
+    <header class="public-avail__header">
+        <button mat-icon-button type="button" (click)="goBack()" matTooltip="Volver">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="public-avail__title">
+            <mat-icon class="public-avail__title-icon">event_available</mat-icon>
+            <div>
+                <h2>Disponibilidad semanal</h2>
+                <p class="muted">{{ rolLabel() }} · agenda en lectura</p>
+            </div>
+        </div>
+
+        <div class="public-avail__nav">
+            <button mat-stroked-button type="button" (click)="prevWeek()" [disabled]="loading()">
+                <mat-icon>chevron_left</mat-icon>
+                <span>Anterior</span>
+            </button>
+            <button mat-stroked-button type="button" (click)="resetWeek()" [disabled]="loading()">
+                <mat-icon>today</mat-icon>
+                <span>Hoy</span>
+            </button>
+            <button mat-stroked-button type="button" (click)="nextWeek()" [disabled]="loading()">
+                <span>Siguiente</span>
+                <mat-icon>chevron_right</mat-icon>
+            </button>
+        </div>
+    </header>
+
+    <div class="public-avail__week-label">
+        <mat-icon>date_range</mat-icon>
+        <strong>{{ weekRangeLabel() }}</strong>
+    </div>
+
+    @if (loading()) {
+        <div class="state-center">
+            <mat-spinner diameter="36" />
+            <span>Cargando disponibilidad…</span>
+        </div>
+    } @else if (!hasData()) {
+        <app-empty-state icon="event_busy"
+            title="Sin disponibilidad publicada"
+            message="Esta persona aún no ha configurado su agenda semanal." />
+    } @else {
+        <div class="public-avail__grid">
+            <app-week-grid
+                mode="schedule"
+                [slots]="weekSlots()"
+                [startHour]="bounds().startHour"
+                [endHour]="bounds().endHour"
+                [endHourExtraMin]="0"
+                [tickStepMin]="slotMinutes()"
+                [showDates]="true"
+                [weekStart]="weekStart()" />
+        </div>
+
+        <footer class="public-avail__legend muted">
+            <span><span class="legend legend--available"></span> disponible</span>
+            <span><span class="legend legend--taken"></span> ocupado</span>
+        </footer>
+    }
+</section>

@@ -196,6 +196,24 @@ export const routes: Routes = [
           import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
       },
 
+      // ═══ DISPONIBILIDAD PÚBLICA (read-only) ═══════════════════════
+      // Cualquier usuario autenticado puede ver la agenda semanal de
+      // una psicóloga o un docente para decidir antes de pedir cita.
+      {
+        path: 'psicologas/:id/disponibilidad',
+        loadComponent: () =>
+          import('./features/appointments/pages/public-availability/public-availability')
+            .then(c => c.PublicAvailability),
+        title: 'Disponibilidad de la psicóloga | EduAula',
+      },
+      {
+        path: 'docentes/:id/disponibilidad',
+        loadComponent: () =>
+          import('./features/appointments/pages/public-availability/public-availability')
+            .then(c => c.PublicAvailability),
+        title: 'Disponibilidad del docente | EduAula',
+      },
+
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

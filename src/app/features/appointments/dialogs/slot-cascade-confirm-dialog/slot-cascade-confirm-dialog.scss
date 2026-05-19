@@ -1,0 +1,77 @@
+:host {
+    display: block;
+    max-width: 540px;
+}
+
+.cascade-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+
+    &__icon {
+        color: #b91c1c;
+        font-size: 22px;
+        height: 22px;
+        width: 22px;
+    }
+}
+
+.cascade-content {
+    padding-top: 8px;
+
+    &__lead {
+        color: #334155;
+        line-height: 1.45;
+        margin: 0 0 12px 0;
+    }
+}
+
+.cascade-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+
+    &__item {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        color: #1f2937;
+    }
+
+    &__when,
+    &__who,
+    &__why {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: 13px;
+
+        mat-icon {
+            flex: 0 0 auto;
+            font-size: 16px;
+            height: 16px;
+            width: 16px;
+            margin-top: 1px;
+            color: #b91c1c;
+        }
+    }
+
+    &__motivo {
+        overflow-wrap: anywhere;
+    }
+}
+
+.cascade-actions {
+    padding-top: 12px;
+    gap: 8px;
+}

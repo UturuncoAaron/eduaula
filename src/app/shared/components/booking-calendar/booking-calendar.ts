@@ -45,6 +45,14 @@ export class BookingCalendar {
   readonly startHour = input<number>(8);
   readonly endHour = input<number>(16);
   readonly slotMinutes = input<number>(30);
+  /**
+   * Duración que ocupará la cita al hacer pick. Permite multi-slot: si
+   * `slotMinutes=30` y `pickDurationMin=60`, el click selecciona un bloque
+   * de 60 min (2 slots consecutivos). Si no se pasa, usa `slotMinutes`.
+   * El BookingCalendar valida que el bloque quepa dentro del slot 'available'
+   * y no choque con slots ocupados.
+   */
+  readonly pickDurationMin = input<number | null>(null);
   readonly allowedDays = input<readonly DiaSemana[] | readonly string[] | null>(null);
   readonly emptyMessage = input<string>('No hay disponibilidad configurada en este horario.');
 
@@ -94,17 +102,26 @@ export class BookingCalendar {
     return out;
   });
 
+  /** Duración efectiva al hacer pick — fallback a `slotMinutes` si no se pasa. */
+  private readonly effectivePickDuration = computed<number>(() => {
+    const explicit = this.pickDurationMin();
+    if (explicit != null && explicit > 0) return explicit;
+    return this.slotMinutes();
+  });
+
   readonly weekSlots = computed<WeekSlot[]>(() => {
+    const step = this.slotMinutes();
     const base = buildWeekBookingSlots({
       availability: this.availability(),
       taken: this.slotsTaken(),
       weekStart: this.weekStart(),
       allowedDays: this.allowedDays(),
+      slotMinutes: step,
     });
 
     // Agregar un slot virtual "Tu selección" por cada item seleccionado.
-    // Se renderiza encima del slot 'available' subyacente (mismo dia/hora).
-    const dur = this.slotMinutes();
+    // Se pinta tan largo como la duración real (multi-slot).
+    const dur = this.effectivePickDuration();
     for (const sel of this.effectiveSelection()) {
       const startMin = toMin(sel.hour);
       base.push({
@@ -131,10 +148,13 @@ export class BookingCalendar {
     if (!date) return;
 
     const startMin = toMin(ev.hora);
-    const dur = this.slotMinutes();
+    const dur = this.effectivePickDuration();
 
-    // El click debe caber dentro del slot 'available' base
-    if (startMin + dur > toMin(slot.horaFin)) return;
+    // El click debe caber dentro del slot 'available' base. Para multi-slot
+    // verificamos que TODOS los slots subyacentes hasta startMin+dur estén
+    // marcados como 'available' (no se permite picar a caballo de un slot
+    // ocupado o fuera del bloque de disponibilidad).
+    if (!this.rangeIsAvailable(ev.dia, startMin, dur)) return;
 
     // No colisionar con slots realmente ocupados (ignora los pendientes/selección)
     if (this.collidesWithTaken(ev.dia, startMin, dur)) return;
@@ -160,6 +180,35 @@ export class BookingCalendar {
       if (m >= toMin(s.horaInicio) && m < toMin(s.horaFin)) return s;
     }
     return null;
+  }
+
+  /**
+   * Verifica que el rango [startMin, startMin+dur) esté completamente
+   * cubierto por slots `available` contiguos del mismo día. Esto previene
+   * que un click sobre un slot 'available' termine seleccionando una franja
+   * que se extiende a un slot 'taken' o más allá del bloque de disponibilidad.
+   */
+  private rangeIsAvailable(dia: string, startMin: number, dur: number): boolean {
+    const end = startMin + dur;
+    const step = this.slotMinutes();
+    if (step <= 0) return false;
+    let cursor = startMin;
+    const slots = this.weekSlots();
+    while (cursor < end) {
+      let found = false;
+      for (const s of slots) {
+        if (s.dia !== dia || s.kind !== 'available') continue;
+        const sa = toMin(s.horaInicio);
+        const sb = toMin(s.horaFin);
+        if (cursor >= sa && cursor < sb) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) return false;
+      cursor += step;
+    }
+    return true;
   }
 
   /**

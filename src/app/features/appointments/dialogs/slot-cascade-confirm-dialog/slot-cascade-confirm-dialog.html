@@ -1,0 +1,50 @@
+<h2 mat-dialog-title class="cascade-title">
+    <mat-icon class="cascade-title__icon">warning</mat-icon>
+    Eliminar bloque con citas activas
+</h2>
+
+<div mat-dialog-content class="cascade-content">
+    <p class="cascade-content__lead">
+        Vas a eliminar el bloque
+        <strong>{{ data.slotLabel }}</strong>
+        de tu disponibilidad. Hay
+        <strong>{{ count() }}</strong>
+        cita{{ count() === 1 ? '' : 's' }} activa{{ count() === 1 ? '' : 's' }}
+        en ese horario que se cancelará{{ count() === 1 ? '' : 'n' }} automáticamente.
+        Los participantes serán notificados.
+    </p>
+
+    <ul class="cascade-list">
+        @for (a of data.affected; track a.id) {
+            <li class="cascade-list__item">
+                <div class="cascade-list__when">
+                    <mat-icon>event</mat-icon>
+                    <span>
+                        {{ a.scheduledAt | date: 'EEE d MMM, HH:mm' }} ·
+                        {{ a.durationMin }} min
+                    </span>
+                </div>
+                <div class="cascade-list__who">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ partyLabel(a) }}</span>
+                </div>
+                @if (a.motivo) {
+                    <div class="cascade-list__why">
+                        <mat-icon>subject</mat-icon>
+                        <span class="cascade-list__motivo">{{ a.motivo }}</span>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+</div>
+
+<div mat-dialog-actions align="end" class="cascade-actions">
+    <button mat-stroked-button type="button" (click)="cancel()">
+        Volver
+    </button>
+    <button mat-flat-button color="warn" type="button" (click)="confirm()">
+        <mat-icon>delete_forever</mat-icon>
+        Eliminar y cancelar citas
+    </button>
+</div>

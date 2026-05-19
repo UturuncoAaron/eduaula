@@ -117,6 +117,12 @@ export class AvailabilityCalendarEditor {
   // ── Outputs ────────────────────────────────────────────────
   readonly save = output<SetAvailabilityPayload[]>();
   readonly cancel = output<void>();
+  /**
+   * Emite el AccountAvailability completo (con id real del servidor) cuando
+   * el usuario quiere eliminar un único bloque. El padre debe llamar al
+   * endpoint `DELETE /availability/slot/:id` y gestionar la cascada 409.
+   */
+  readonly deleteSlot = output<AccountAvailability>();
 
   // ── Computed: cotas + días + paso ──────────────────────────
   readonly effectiveStartHour = computed<number>(() => {
@@ -174,6 +180,29 @@ export class AvailabilityCalendarEditor {
   );
 
   readonly cellsCount = computed(() => this._draft().size);
+
+  /**
+   * Bloques guardados en el servidor agrupados por día y ordenados, para
+   * el panel de "Eliminar bloques" (un botón por bloque con cascada).
+   * Excluye días que la regla actual no permite.
+   */
+  readonly savedSlots = computed<AccountAvailability[]>(() => {
+    const visible = new Set(this.visibleDias());
+    return this.initial()
+      .filter(av => av.activo && visible.has(av.diaSemana))
+      .sort((a, b) => {
+        const di = ALL_DIAS.indexOf(a.diaSemana) - ALL_DIAS.indexOf(b.diaSemana);
+        if (di !== 0) return di;
+        return toMin(a.horaInicio) - toMin(b.horaInicio);
+      });
+  });
+
+  diaLabel(d: DiaSemana): string { return DIA_LABEL[d] ?? d; }
+
+  emitDeleteSlot(av: AccountAvailability): void {
+    if (this.saving()) return;
+    this.deleteSlot.emit(av);
+  }
 
   /** Total de horas seleccionadas. */
   readonly hoursCount = computed(
