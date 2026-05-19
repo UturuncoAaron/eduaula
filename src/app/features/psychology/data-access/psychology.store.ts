@@ -291,6 +291,26 @@ export class PsychologyStore {
     return res.data;
   }
 
+  /**
+   * Descarga el PDF del informe (server-side rendered) y dispara la
+   * descarga del navegador sin abrir el diálogo de impresión. El nombre
+   * del archivo viene en el header `Content-Disposition`; si no lo
+   * encuentra, usa el título del informe como fallback.
+   */
+  async downloadInformePdf(informeId: string, fallbackName: string): Promise<void> {
+    const blob = await firstValueFrom(
+      this.api.getBlob(`reports/psychology/informes/${informeId}/pdf`),
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${fallbackName}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   // ════════════════════════════════════════════════════════════
   // ARCHIVOS (fichas y tests subidos a R2)
   // ════════════════════════════════════════════════════════════

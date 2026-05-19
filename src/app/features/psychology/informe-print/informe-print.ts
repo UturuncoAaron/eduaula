@@ -1,7 +1,7 @@
 // psicologa/informe-print/informe-print.ts
 import {
   ChangeDetectionStrategy, Component, OnInit, OnDestroy,
-  inject, signal, ElementRef, ViewChild,
+  inject, signal,
 } from '@angular/core';
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -18,15 +18,12 @@ import {
 } from '../../../core/models/psychology';
 
 /**
- * Vista de impresión del informe psicológico.
+ * Vista previa del informe psicológico + descarga del PDF.
  *
- * Al montar el componente agrega `informe-print-mode` al <body> para que
- * los estilos globales (@media print en styles.scss) puedan ocultar el
- * sidebar/navbar y dejar solo el documento al imprimir.
- *
- * "Subir al expediente": abre un file picker para que la psicóloga suba
- * el PDF que acaba de generar con "Guardar como PDF" del navegador.
- * El archivo se sube a POST /psychology/archivos/student/:id (categoria: ficha).
+ * El PDF lo genera el backend (`GET /reports/psychology/informes/:id/pdf`)
+ * y se descarga directamente como archivo, sin abrir el diálogo de
+ * impresión del navegador. La vista en pantalla se mantiene como
+ * referencia visual de cómo va a verse el documento final.
  */
 @Component({
   selector: 'app-informe-print',
@@ -41,8 +38,6 @@ import {
   styleUrl: './informe-print.scss',
 })
 export class InformePrint implements OnInit, OnDestroy {
-  @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
-
   private route = inject(ActivatedRoute);
   private store = inject(PsychologyStore);
   private api = inject(ApiService);
@@ -53,8 +48,8 @@ export class InformePrint implements OnInit, OnDestroy {
   readonly parents = signal<ParentOfStudent[]>([]);
   readonly firmaUrl = signal<string | null>(null);
   readonly loading = signal(true);
+  readonly downloading = signal(false);
   readonly error = signal<string | null>(null);
-  readonly uploading = signal(false);
 
   readonly tipoLabels = INFORME_TIPO_LABELS;
 
@@ -83,7 +78,9 @@ export class InformePrint implements OnInit, OnDestroy {
 
       const [stuRes, parentsRes, firmaRes] = await Promise.allSettled([
         firstValueFrom(
-          this.api.get<AssignedStudent>(`users/alumnos/${informe.studentId}`),
+          this.api.get<AssignedStudent>(
+            `psychology/directory/students/${informe.studentId}`,
+          ),
         ),
         this.store.getStudentParents(informe.studentId),
         firstValueFrom(
@@ -103,48 +100,18 @@ export class InformePrint implements OnInit, OnDestroy {
 
   // ── Acciones ─────────────────────────────────────────────────────
 
-  print(): void {
-    window.print();
-  }
-
-  /** Abre el file picker para que la psicóloga suba el PDF generado. */
-  openUploadPicker(): void {
-    this.fileInputRef.nativeElement.value = '';
-    this.fileInputRef.nativeElement.click();
-  }
-
-  async onFileSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+  /** Descarga el PDF generado por el backend, sin diálogo de impresión. */
+  async downloadPdf(): Promise<void> {
     const inf = this.informe();
-    const stu = this.student();
-
-    if (!file || !inf || !stu) return;
-    if (file.type !== 'application/pdf') {
-      this.toastr.error('Solo se aceptan archivos PDF', 'Formato inválido');
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      this.toastr.error('El archivo no puede superar 10 MB', 'Archivo muy grande');
-      return;
-    }
-
-    this.uploading.set(true);
+    if (!inf || this.downloading()) return;
+    this.downloading.set(true);
     try {
-      const form = new FormData();
-      form.append('file', file);
-      form.append('categoria', 'ficha');
-      form.append('nombre', `Informe — ${inf.titulo}`);
-      form.append('descripcion', `Generado desde el sistema · ${new Date().toLocaleDateString('es-PE')}`);
-
-      await firstValueFrom(
-        this.api.postForm(`psychology/archivos/student/${inf.studentId}`, form),
-      );
-      this.toastr.success('Informe subido al expediente del alumno');
+      await this.store.downloadInformePdf(inf.id, inf.titulo);
+      this.toastr.success('PDF descargado');
     } catch {
-      this.toastr.error('No se pudo subir el archivo', 'Error');
+      this.toastr.error('No se pudo descargar el PDF', 'Error');
     } finally {
-      this.uploading.set(false);
+      this.downloading.set(false);
     }
   }
 

@@ -1,11 +1,5 @@
 <!-- psicologa/informe-print/informe-print.html -->
 
-<!--
-  Input oculto para subir el PDF al expediente.
-  Se activa desde el botón "Subir al expediente".
--->
-<input #fileInput type="file" accept="application/pdf" style="display:none" (change)="onFileSelected($event)" />
-
 <!-- ── Toolbar FIJO (no-print) ──────────────────────────────────── -->
 <div class="print-toolbar no-print">
 
@@ -34,23 +28,17 @@
         }
 
         <!--
-          Flujo: psicóloga hace clic → guarda el PDF con el diálogo del
-          navegador → vuelve al sistema → hace clic en "Subir al expediente"
-          → elige el PDF que acaba de guardar → se sube a R2.
+          El PDF lo genera el backend y se descarga directo como archivo.
+          No abre la ventana de impresión del navegador.
         -->
-        <button mat-stroked-button (click)="print()" [disabled]="loading() || !informe()">
-            <mat-icon>picture_as_pdf</mat-icon>
-            <span>Guardar como PDF</span>
-        </button>
-
-        <button mat-flat-button color="primary" (click)="openUploadPicker()"
-            [disabled]="loading() || !informe() || uploading()">
-            @if (uploading()) {
+        <button mat-flat-button color="primary" (click)="downloadPdf()"
+            [disabled]="loading() || !informe() || downloading()">
+            @if (downloading()) {
             <mat-spinner diameter="18" />
             } @else {
-            <mat-icon>upload_file</mat-icon>
+            <mat-icon>download</mat-icon>
             }
-            <span>{{ uploading() ? 'Subiendo...' : 'Subir al expediente' }}</span>
+            <span>{{ downloading() ? 'Descargando…' : 'Descargar PDF' }}</span>
         </button>
 
     </div>
