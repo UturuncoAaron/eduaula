@@ -1,118 +1,206 @@
+<!-- psicologa/informe-print/informe-print.html -->
+
+<!--
+  Input oculto para subir el PDF al expediente.
+  Se activa desde el botón "Subir al expediente".
+-->
+<input #fileInput type="file" accept="application/pdf" style="display:none" (change)="onFileSelected($event)" />
+
+<!-- ── Toolbar FIJO (no-print) ──────────────────────────────────── -->
 <div class="print-toolbar no-print">
-    <button mat-stroked-button (click)="print()" [disabled]="loading() || !informe()">
-        <mat-icon>print</mat-icon>
-        Imprimir / Guardar como PDF
-    </button>
-    <a mat-button [routerLink]="['..']" routerLinkActive="active">
-        <mat-icon>arrow_back</mat-icon>
-        Volver
-    </a>
+
+    <div class="toolbar-left">
+        <a mat-icon-button [routerLink]="['..']" class="back-btn">
+            <mat-icon>arrow_back</mat-icon>
+        </a>
+        <div class="toolbar-info">
+            <span class="toolbar-title">Vista previa</span>
+            @if (informe(); as inf) {
+            <span class="toolbar-sub">{{ inf.titulo }}</span>
+            }
+        </div>
+    </div>
+
+    <div class="toolbar-right">
+
+        @if (informe()?.estado === 'borrador') {
+        <span class="badge-toolbar badge-draft">
+            <mat-icon>edit_note</mat-icon> Borrador
+        </span>
+        } @else {
+        <span class="badge-toolbar badge-final">
+            <mat-icon>check_circle</mat-icon> Finalizado
+        </span>
+        }
+
+        <!--
+          Flujo: psicóloga hace clic → guarda el PDF con el diálogo del
+          navegador → vuelve al sistema → hace clic en "Subir al expediente"
+          → elige el PDF que acaba de guardar → se sube a R2.
+        -->
+        <button mat-stroked-button (click)="print()" [disabled]="loading() || !informe()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            <span>Guardar como PDF</span>
+        </button>
+
+        <button mat-flat-button color="primary" (click)="openUploadPicker()"
+            [disabled]="loading() || !informe() || uploading()">
+            @if (uploading()) {
+            <mat-spinner diameter="18" />
+            } @else {
+            <mat-icon>upload_file</mat-icon>
+            }
+            <span>{{ uploading() ? 'Subiendo...' : 'Subir al expediente' }}</span>
+        </button>
+
+    </div>
 </div>
 
+<!-- ── Estados ──────────────────────────────────────────────────── -->
 @if (loading()) {
-<div class="loading-state">
-    <mat-spinner diameter="32" />
+<div class="state-center no-print">
+    <mat-spinner diameter="36" />
     <p>Cargando informe...</p>
 </div>
 }
-
 @else if (error()) {
-<div class="error-state">
+<div class="state-error no-print">
     <mat-icon>error_outline</mat-icon>
     <p>{{ error() }}</p>
+    <a mat-stroked-button [routerLink]="['..']">Volver</a>
 </div>
 }
-
 @else if (informe(); as inf) {
-<article class="informe-doc">
 
-    <header class="doc-header">
-        <h1>EduAula</h1>
-        <p class="subtitle">Servicio de Psicología Educativa</p>
-        <hr />
-    </header>
+<div class="page-wrap">
+    <article class="informe-doc">
 
-    <section class="doc-meta">
-        <h2>{{ tipoLabels[inf.tipo] }}</h2>
-        <p class="doc-title">{{ inf.titulo }}</p>
-        <dl class="meta-grid">
-            <dt>Alumno/a:</dt>
-            <dd>{{ studentFullName(student()) }}</dd>
-            @if (student()?.codigo_estudiante) {
-            <dt>Código:</dt>
-            <dd>{{ student()?.codigo_estudiante }}</dd>
-            }
-            <dt>Estado:</dt>
-            <dd>
-                @if (inf.estado === 'finalizado') {
-                <span class="badge badge-finalizado">Finalizado</span>
+        <!-- ══ ENCABEZADO ════════════════════════════════════════════ -->
+        <header class="doc-header">
+            <div class="header-top">
+                <div class="monogram">IE</div>
+                <div class="header-text">
+                    <p class="ie-name">I.E. JUAN PABLO VIZCARDO Y GUZMÁN</p>
+                    <p class="ie-sub">Ugel 04 · Comas, Lima — Perú</p>
+                </div>
+            </div>
+            <div class="header-rule">
+                <span class="header-rule-label">SERVICIO DE PSICOLOGÍA EDUCATIVA</span>
+            </div>
+            <h1 class="doc-main-title">INFORME PSICOLÓGICO</h1>
+        </header>
+
+        <!-- ══ I. DATOS ══════════════════════════════════════════════ -->
+        <section class="doc-section">
+            <h2 class="sec-title"><span class="sec-num">I.</span> Datos de identificación</h2>
+            <dl class="data-grid">
+                <dt>Apellidos y nombres</dt>
+                <dd class="dd-bold">{{ studentFullName(student()) }}</dd>
+
+                @if (student()?.codigo_estudiante) {
+                <dt>Código</dt>
+                <dd>{{ student()?.codigo_estudiante }}</dd>
+                }
+
+                <dt>Tipo de informe</dt>
+                <dd>{{ tipoLabels[inf.tipo] }}</dd>
+
+                <dt>Fecha</dt>
+                <dd>{{ (inf.finalizadoAt ?? inf.createdAt) | date:'longDate':'':'es-PE' }}</dd>
+
+                <dt>Estado</dt>
+                <dd>
+                    @if (inf.estado === 'finalizado') {
+                    <span class="badge badge-final">Finalizado</span>
+                    } @else {
+                    <span class="badge badge-draft">Borrador</span>
+                    }
+                </dd>
+
+                @if (inf.confidencial) {
+                <dt>Confidencialidad</dt>
+                <dd class="conf-row">
+                    <mat-icon>lock</mat-icon>
+                    <span>Documento confidencial — uso restringido al destinatario</span>
+                </dd>
+                }
+            </dl>
+        </section>
+
+        @if (inf.tipo === 'derivacion_familia' && parents().length) {
+        <section class="doc-section">
+            <h2 class="sec-title"><span class="sec-num">II.</span> Destinatarios</h2>
+            <ul class="parents-list">
+                @for (p of parents(); track p.id) {
+                <li>
+                    <strong>{{ p.relacion | titlecase }}:</strong>
+                    {{ parentFullName(p) }}
+                    @if (p.codigo_acceso) {
+                    <span class="dni"> · {{ p.codigo_acceso }}</span>
+                    }
+                </li>
+                }
+            </ul>
+        </section>
+        }
+
+        @if (inf.derivadoA) {
+        <section class="doc-section">
+            <h2 class="sec-title"><span class="sec-num">II.</span> Derivado a</h2>
+            <p class="body-text">{{ inf.derivadoA }}</p>
+        </section>
+        }
+
+        <!-- ══ II. MOTIVO ════════════════════════════════════════════ -->
+        <section class="doc-section">
+            <h2 class="sec-title"><span class="sec-num">II.</span> Motivo de consulta</h2>
+            <p class="body-text multiline">{{ inf.motivo }}</p>
+        </section>
+
+        @if (inf.antecedentes) {
+        <section class="doc-section">
+            <h2 class="sec-title"><span class="sec-num">III.</span> Antecedentes</h2>
+            <p class="body-text multiline">{{ inf.antecedentes }}</p>
+        </section>
+        }
+
+        <!-- ══ IV. OBSERVACIONES ══════════════════════════════════════ -->
+        <section class="doc-section">
+            <h2 class="sec-title"><span class="sec-num">IV.</span> Observaciones y hallazgos</h2>
+            <p class="body-text multiline">{{ inf.observaciones }}</p>
+        </section>
+
+        @if (inf.recomendaciones) {
+        <section class="doc-section">
+            <h2 class="sec-title"><span class="sec-num">V.</span> Recomendaciones</h2>
+            <p class="body-text multiline">{{ inf.recomendaciones }}</p>
+        </section>
+        }
+
+        <!-- ══ FIRMA ══════════════════════════════════════════════════ -->
+        <footer class="doc-footer">
+            <p class="footer-legal">
+                El presente documento tiene carácter informativo y forma parte del
+                expediente psicológico del estudiante.
+            </p>
+
+            <div class="signature-block">
+                @if (firmaUrl()) {
+                <img class="firma-img" [src]="firmaUrl()!" alt="Firma psicóloga" />
                 } @else {
-                <span class="badge badge-borrador">Borrador</span>
+                <div class="firma-hint no-print">
+                    <mat-icon>draw</mat-icon>
+                    <span>Sin firma digital — se imprimirá espacio en blanco</span>
+                </div>
+                <div class="firma-blank"></div>
                 }
-            </dd>
-            <dt>Fecha:</dt>
-            <dd>{{ (inf.finalizadoAt ?? inf.createdAt) | date:'longDate' }}</dd>
-            @if (inf.confidencial) {
-            <dt>Confidencialidad:</dt>
-            <dd>Documento confidencial — uso restringido al destinatario.</dd>
-            }
-        </dl>
-    </section>
+                <div class="firma-line"></div>
+                <p class="firma-name">Psicología Educativa</p>
+                <p class="firma-sub">I.E. Juan Pablo Vizcardo y Guzmán — Comas</p>
+            </div>
+        </footer>
 
-    @if (inf.tipo === 'derivacion_familia' && parents().length) {
-    <section class="doc-section">
-        <h3>Destinatarios (familia)</h3>
-        <ul class="parents-list">
-            @for (p of parents(); track p.id) {
-            <li>
-                <span class="parent-rel">{{ p.relacion | titlecase }}:</span>
-                {{ parentFullName(p) }}
-                @if (p.codigo_acceso) {
-                <span class="parent-dni">— DNI {{ p.codigo_acceso }}</span>
-                }
-            </li>
-            }
-        </ul>
-    </section>
-    }
+    </article>
+</div>
 
-    @if (inf.derivadoA) {
-    <section class="doc-section">
-        <h3>Derivado a</h3>
-        <p>{{ inf.derivadoA }}</p>
-    </section>
-    }
-
-    <section class="doc-section">
-        <h3>Motivo</h3>
-        <p class="multiline">{{ inf.motivo }}</p>
-    </section>
-
-    @if (inf.antecedentes) {
-    <section class="doc-section">
-        <h3>Antecedentes</h3>
-        <p class="multiline">{{ inf.antecedentes }}</p>
-    </section>
-    }
-
-    <section class="doc-section">
-        <h3>Observaciones y hallazgos</h3>
-        <p class="multiline">{{ inf.observaciones }}</p>
-    </section>
-
-    @if (inf.recomendaciones) {
-    <section class="doc-section">
-        <h3>Recomendaciones</h3>
-        <p class="multiline">{{ inf.recomendaciones }}</p>
-    </section>
-    }
-
-    <footer class="doc-footer">
-        <div class="signature">
-            <hr />
-            <p>Psicología Educativa</p>
-            <p class="sig-note">Firma y sello</p>
-        </div>
-    </footer>
-</article>
 }

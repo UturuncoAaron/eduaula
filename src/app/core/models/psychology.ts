@@ -146,3 +146,30 @@ export const INFORME_TIPO_LABELS: Record<InformeTipo, string> = {
     derivacion_familia: 'Derivación a la familia',
     derivacion_externa: 'Derivación a especialista externo',
 };
+export type ArchivoCategoria = 'ficha' | 'test';
+
+export interface ArchivoPsicologico {
+    id: string;
+    psychologistId: string;
+    studentId: string;
+    categoria: ArchivoCategoria;
+    nombre: string;
+    descripcion: string | null;
+    confidencial: boolean;
+    storageKey: string;
+    nombreOriginal: string | null;
+    mimeType: string | null;
+    sizeBytes: number | null;
+    createdAt: string;
+}
+
+export interface UploadArchivoPayload {
+    studentId: string;
+    categoria: ArchivoCategoria;
+    nombre: string;
+    descripcion?: string;
+    confidencial: boolean;
+    file: File;
+}
+
+export const ARCHIVO_MAX_BYTES = 10 * 1024 * 1024; // 10 MB

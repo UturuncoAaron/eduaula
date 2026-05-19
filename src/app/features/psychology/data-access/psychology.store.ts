@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../../core/services/api';
 import {
@@ -12,6 +12,8 @@ import {
   InformePsicologico,
   CreateInformePayload,
   UpdateInformePayload,
+  ArchivoPsicologico,
+  UploadArchivoPayload,
 } from '../../../core/models/psychology';
 import { AccountAvailability } from '../../../core/models/appointments';
 
@@ -32,17 +34,28 @@ export class PsychologyStore {
   readonly currentStudent = signal<AssignedStudent | null>(null);
   readonly currentStudentRecords = signal<PsychologyRecord[]>([]);
   readonly currentStudentInformes = signal<InformePsicologico[]>([]);
+  readonly currentStudentArchivos = signal<ArchivoPsicologico[]>([]);
 
   readonly loadingStudents = signal(false);
   readonly loadingRecords = signal(false);
   readonly loadingInformes = signal(false);
+  readonly loadingArchivos = signal(false);
   readonly error = signal<string | null>(null);
+
+  // ── Derivados ───────────────────────────────────────────────
+  readonly currentStudentFichas = computed(
+    () => this.currentStudentArchivos().filter(a => a.categoria === 'ficha'),
+  );
+  readonly currentStudentTests = computed(
+    () => this.currentStudentArchivos().filter(a => a.categoria === 'test'),
+  );
 
   reset(): void {
     this.myStudents.set([]);
     this.currentStudent.set(null);
     this.currentStudentRecords.set([]);
     this.currentStudentInformes.set([]);
+    this.currentStudentArchivos.set([]);
     this.error.set(null);
   }
 
@@ -77,7 +90,7 @@ export class PsychologyStore {
   }
 
   // ════════════════════════════════════════════════════════════
-  // FICHAS
+  // FICHAS (notas de texto)
   // ════════════════════════════════════════════════════════════
 
   async loadStudentDetailAndRecords(studentId: string): Promise<void> {
@@ -197,6 +210,7 @@ export class PsychologyStore {
     );
     return unwrapList<Psicologa>(res.data);
   }
+
   async getMyAvailability(): Promise<AccountAvailability[]> {
     const res = await firstValueFrom(
       this.api.get<AccountAvailability[] | { data: AccountAvailability[] }>(
@@ -209,19 +223,6 @@ export class PsychologyStore {
   // ════════════════════════════════════════════════════════════
   // INFORMES PSICOLÓGICOS
   // ════════════════════════════════════════════════════════════
-  //
-  // Los informes son documentos formales (evaluación, seguimiento,
-  // derivación familia/externa) sobre un alumno. El backend ya gestiona:
-  //   POST   /psychology/informes
-  //   GET    /psychology/informes/student/:studentId   (paginado)
-  //   GET    /psychology/informes/:id
-  //   PATCH  /psychology/informes/:id                  (solo borrador)
-  //   POST   /psychology/informes/:id/finalizar        (lo vuelve inmutable)
-  //   DELETE /psychology/informes/:id                  (solo borrador)
-  //
-  // El PDF se genera client-side via `window.print()` desde la vista
-  // `/informes/:id/print` (con `@media print` afinado) — no requiere
-  // librería en backend, evita carga adicional para 600 alumnos/año.
 
   async loadStudentInformes(studentId: string): Promise<void> {
     this.loadingInformes.set(true);
@@ -288,5 +289,69 @@ export class PsychologyStore {
       this.api.get<InformePsicologico>(`psychology/informes/${informeId}`),
     );
     return res.data;
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // ARCHIVOS (fichas y tests subidos a R2)
+  // ════════════════════════════════════════════════════════════
+  //
+  // Endpoints en el backend:
+  //   POST   /psychology/archivos/student/:studentId      (multipart)
+  //   GET    /psychology/archivos/student/:studentId
+  //   GET    /psychology/archivos/:id/url                 (URL firmada 1h)
+  //   DELETE /psychology/archivos/:id
+  //
+  // El estado se separa en derivados (`currentStudentFichas` y
+  // `currentStudentTests`) para que el template no tenga que filtrar.
+
+  async loadStudentArchivos(studentId: string): Promise<void> {
+    this.loadingArchivos.set(true);
+    try {
+      const res = await firstValueFrom(
+        this.api.get<
+          ArchivoPsicologico[] | { data: ArchivoPsicologico[] }
+        >(`psychology/archivos/student/${studentId}`),
+      );
+      this.currentStudentArchivos.set(
+        unwrapList<ArchivoPsicologico>(res.data),
+      );
+    } catch {
+      this.error.set('Error al cargar archivos del alumno');
+    } finally {
+      this.loadingArchivos.set(false);
+    }
+  }
+
+  async uploadArchivo(payload: UploadArchivoPayload): Promise<ArchivoPsicologico> {
+    const fd = new FormData();
+    fd.append('file', payload.file);
+    fd.append('categoria', payload.categoria);
+    fd.append('nombre', payload.nombre);
+    if (payload.descripcion) fd.append('descripcion', payload.descripcion);
+    fd.append('confidencial', String(payload.confidencial));
+
+    const res = await firstValueFrom(
+      this.api.post<ArchivoPsicologico>(
+        `psychology/archivos/student/${payload.studentId}`,
+        fd,
+      ),
+    );
+    // Refresca toda la lista (consistente con record/informe)
+    await this.loadStudentArchivos(payload.studentId);
+    return res.data;
+  }
+
+  async getArchivoDownloadUrl(archivoId: string): Promise<string> {
+    const res = await firstValueFrom(
+      this.api.get<{ url: string }>(`psychology/archivos/${archivoId}/url`),
+    );
+    return res.data.url;
+  }
+
+  async deleteArchivo(archivoId: string, studentId: string): Promise<void> {
+    await firstValueFrom(
+      this.api.delete(`psychology/archivos/${archivoId}`),
+    );
+    await this.loadStudentArchivos(studentId);
   }
 }

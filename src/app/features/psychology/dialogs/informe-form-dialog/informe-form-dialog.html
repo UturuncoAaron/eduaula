@@ -1,93 +1,149 @@
-<h2 mat-dialog-title>
-    <mat-icon>description</mat-icon>
-    {{ isEdit() ? 'Editar informe' : 'Nuevo informe' }}
-</h2>
+<header class="ifd__header" mat-dialog-title>
+    <div class="ifd__title">
+        <mat-icon aria-hidden="true">description</mat-icon>
+        <h2>{{ isEdit() ? 'Editar informe' : 'Nuevo informe' }}</h2>
+    </div>
+    <div class="ifd__student" [attr.aria-label]="'Alumno: ' + data.studentName">
+        <mat-icon aria-hidden="true">person</mat-icon>
+        <span>{{ data.studentName }}</span>
+    </div>
+</header>
 
-<form [formGroup]="form" (ngSubmit)="submit()">
-    <mat-dialog-content class="informe-dialog-body">
-        <p class="student-name">
-            <mat-icon>person</mat-icon>
-            <span>{{ data.studentName }}</span>
-        </p>
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <mat-dialog-content class="ifd__body">
 
         @if (isLocked()) {
-        <p class="locked-msg">
-            <mat-icon>lock</mat-icon>
-            Este informe está finalizado y no puede modificarse.
-        </p>
+        <div class="ifd__locked" role="status" aria-live="polite">
+            <mat-icon aria-hidden="true">lock</mat-icon>
+            <div>
+                <strong>Informe finalizado</strong>
+                <p>Este informe ya fue aprobado y no puede modificarse.</p>
+            </div>
+        </div>
         }
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Tipo</mat-label>
-            <mat-select formControlName="tipo">
-                @for (t of tipos; track t.value) {
-                <mat-option [value]="t.value">{{ t.label }}</mat-option>
-                }
-            </mat-select>
-        </mat-form-field>
+        <!-- Tipo + Confidencial -->
+        <section class="ifd__row ifd__row--2">
+            <mat-form-field appearance="outline" class="ifd__field">
+                <mat-label>Tipo de informe</mat-label>
+                <mat-select formControlName="tipo" required>
+                    @for (t of tipos; track t.value) {
+                    <mat-option [value]="t.value">
+                        <span class="ifd__opt">
+                            <mat-icon aria-hidden="true">{{ t.icon }}</mat-icon>
+                            {{ t.label }}
+                        </span>
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
+            <div class="ifd__toggle">
+                <mat-slide-toggle formControlName="confidencial" color="warn">
+                    <span class="ifd__toggle-title">
+                        <mat-icon aria-hidden="true">visibility_off</mat-icon>
+                        Confidencial
+                    </span>
+                </mat-slide-toggle>
+                <p class="ifd__toggle-hint">
+                    @if (form.get('confidencial')?.value) {
+                    Solo el alumno podrá verlo. El padre/madre <strong>no</strong> tendrá acceso.
+                    } @else {
+                    Al aprobarse será visible para el alumno y sus padres.
+                    }
+                </p>
+            </div>
+        </section>
+
+        <!-- Título -->
+        <mat-form-field appearance="outline" class="ifd__field ifd__field--full">
             <mat-label>Título</mat-label>
-            <input matInput formControlName="titulo"
-                placeholder="Ej. Evaluación psicológica - I Bimestre">
-            @if (form.get('titulo')?.hasError('required') && form.get('titulo')?.touched) {
+            <input matInput formControlName="titulo" [maxlength]="limits.titulo"
+                placeholder="Ej. Evaluación psicológica — I Bimestre" required>
+            <mat-hint align="end">{{ len('titulo') }} / {{ limits.titulo }}</mat-hint>
+            @if (hasError('titulo', 'required')) {
             <mat-error>El título es requerido</mat-error>
             }
+            @if (hasError('titulo', 'minlength')) {
+            <mat-error>Mínimo 3 caracteres</mat-error>
+            }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Motivo</mat-label>
-            <textarea matInput rows="3" formControlName="motivo"
-                placeholder="Por qué se realiza este informe..."></textarea>
-            @if (form.get('motivo')?.hasError('required') && form.get('motivo')?.touched) {
+        <!-- Motivo -->
+        <mat-form-field appearance="outline" class="ifd__field ifd__field--full">
+            <mat-label>Motivo de consulta</mat-label>
+            <textarea matInput formControlName="motivo" rows="3" [maxlength]="limits.motivo"
+                placeholder="¿Por qué se realiza este informe?"></textarea>
+            <mat-hint align="end">{{ len('motivo') }} / {{ limits.motivo }}</mat-hint>
+            @if (hasError('motivo', 'required')) {
             <mat-error>El motivo es requerido</mat-error>
             }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Antecedentes (opcional)</mat-label>
-            <textarea matInput rows="3" formControlName="antecedentes"
-                placeholder="Historia previa, contexto familiar, sesiones anteriores..."></textarea>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Observaciones / hallazgos</mat-label>
-            <textarea matInput rows="6" formControlName="observaciones"
-                placeholder="Observaciones de la evaluación, resultados, conductas..."></textarea>
-            @if (form.get('observaciones')?.hasError('required') && form.get('observaciones')?.touched) {
-            <mat-error>Las observaciones son requeridas</mat-error>
+            @if (hasError('motivo', 'minlength')) {
+            <mat-error>Mínimo 10 caracteres</mat-error>
             }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Recomendaciones (opcional)</mat-label>
-            <textarea matInput rows="3" formControlName="recomendaciones"
-                placeholder="Pautas para la familia, próximos pasos, apoyo educativo..."></textarea>
+        <!-- Antecedentes -->
+        <mat-form-field appearance="outline" class="ifd__field ifd__field--full">
+            <mat-label>Antecedentes (opcional)</mat-label>
+            <textarea matInput formControlName="antecedentes" rows="3" [maxlength]="limits.texto"
+                placeholder="Historia previa, contexto familiar, sesiones anteriores..."></textarea>
+            <mat-hint align="end">{{ len('antecedentes') }} / {{ limits.texto }}</mat-hint>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Derivado a (opcional)</mat-label>
-            <input matInput formControlName="derivadoA"
-                placeholder="Ej. Familia / Neurólogo / Psiquiatra Dr. ...">
+        <!-- Observaciones -->
+        <mat-form-field appearance="outline" class="ifd__field ifd__field--full">
+            <mat-label>Observaciones y hallazgos</mat-label>
+            <textarea matInput formControlName="observaciones" rows="6" [maxlength]="limits.observaciones"
+                placeholder="Resultados, conductas observadas, instrumentos aplicados..."></textarea>
+            <mat-hint align="end">{{ len('observaciones') }} / {{ limits.observaciones }}</mat-hint>
+            @if (hasError('observaciones', 'required')) {
+            <mat-error>Las observaciones son requeridas</mat-error>
+            }
+            @if (hasError('observaciones', 'minlength')) {
+            <mat-error>Mínimo 10 caracteres</mat-error>
+            }
         </mat-form-field>
 
-        <mat-checkbox formControlName="confidencial" class="confidencial-check">
-            Marcar como confidencial
-        </mat-checkbox>
+        <!-- Recomendaciones + Derivado a -->
+        <section class="ifd__row ifd__row--2">
+            <mat-form-field appearance="outline" class="ifd__field">
+                <mat-label>Recomendaciones (opcional)</mat-label>
+                <textarea matInput formControlName="recomendaciones" rows="3" [maxlength]="limits.texto"
+                    placeholder="Pautas para la familia, próximos pasos..."></textarea>
+                <mat-hint align="end">{{ len('recomendaciones') }} / {{ limits.texto }}</mat-hint>
+            </mat-form-field>
 
-        @if (errorMsg()) {
-        <p class="error-msg">{{ errorMsg() }}</p>
+            <mat-form-field appearance="outline" class="ifd__field">
+                <mat-label>Derivado a (opcional)</mat-label>
+                <input matInput formControlName="derivadoA" [maxlength]="limits.titulo"
+                    placeholder="Ej. Familia · Neurólogo · Psiquiatra...">
+                <mat-hint align="end">{{ len('derivadoA') }} / {{ limits.titulo }}</mat-hint>
+            </mat-form-field>
+        </section>
+
+        @if (errorMsg(); as msg) {
+        <div class="ifd__error" role="alert">
+            <mat-icon aria-hidden="true">error</mat-icon>
+            <span>{{ msg }}</span>
+        </div>
         }
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end">
+    <mat-divider />
+
+    <mat-dialog-actions class="ifd__actions" align="end">
         <button mat-button type="button" (click)="cancel()" [disabled]="loading()">
             Cancelar
         </button>
-        <button mat-flat-button color="primary" type="submit"
-            [disabled]="loading() || form.invalid || isLocked()">
-            @if (loading()) { <mat-spinner diameter="18" /> }
-            @else { <ng-container><mat-icon>save</mat-icon><span>Guardar</span></ng-container> }
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading() || form.invalid || isLocked()">
+            @if (loading()) {
+            <mat-spinner diameter="18" />
+            <span>Guardando…</span>
+            } @else {
+            <mat-icon aria-hidden="true">save</mat-icon>
+            <span>{{ isEdit() ? 'Guardar cambios' : 'Crear informe' }}</span>
+            }
         </button>
     </mat-dialog-actions>
 </form>
