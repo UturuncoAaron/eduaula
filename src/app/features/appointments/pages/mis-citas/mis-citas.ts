@@ -27,6 +27,9 @@ import { RequestAppointmentDialog } from '../../dialogs/request-appointment-dial
 import {
     PostponeAppointmentDialog, PostponeDialogData, PostponeDialogResult,
 } from '../../dialogs/postpone-appointment-dialog/postpone-appointment-dialog';
+import {
+    AppointmentHistoryDialog, AppointmentHistoryDialogData,
+} from '../../dialogs/appointment-history-dialog/appointment-history-dialog';
 import { parseApiError } from '../../../../shared/utils/api-errors';
 
 type EstadoFilter = AppointmentEstado | 'all';
@@ -268,6 +271,19 @@ export class MisCitas {
         } catch (err: unknown) {
             this.toastr.error(parseApiError(err, 'No se pudo rechazar la cita'), 'Error', { duration: 4500 });
         }
+    }
+
+    /** Abre el drawer con el historial completo de cambios de estado. */
+    openHistory(row: Appointment): void {
+        this.dialog.open<AppointmentHistoryDialog, AppointmentHistoryDialogData, void>(
+            AppointmentHistoryDialog,
+            {
+                width: '560px',
+                maxWidth: '95vw',
+                autoFocus: 'first-tabbable',
+                data: { appointment: row },
+            },
+        );
     }
 
     async aplazar(row: Appointment): Promise<void> {

@@ -6,6 +6,6 @@
     </div>
     } @else {
     <app-availability-calendar-editor [initial]="availability()" [rule]="myRule()" [saving]="saving()"
-        (save)="onSave($event)" />
+        (save)="onSave($event)" (deleteSlot)="onDeleteSlot($event)" />
     }
 </div>

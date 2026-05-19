@@ -468,3 +468,15 @@
     &__time { margin-top: 0; }
   }
 }
+
+/* Notas de seguimiento dentro de la card en estado 'realizada' */
+.appt-card__meta li.follow-up {
+  align-items: flex-start;
+
+  .follow-up__text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-style: italic;
+    color: #334155;
+  }
+}

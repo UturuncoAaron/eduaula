@@ -38,6 +38,9 @@ import {
 import {
   RealizarAppointmentDialog, RealizarDialogData, RealizarDialogResult,
 } from '../../../features/appointments/dialogs/realizar-appointment-dialog/realizar-appointment-dialog';
+import {
+  AppointmentHistoryDialog, AppointmentHistoryDialogData,
+} from '../../../features/appointments/dialogs/appointment-history-dialog/appointment-history-dialog';
 import { parseApiError } from '../../utils/api-errors';
 
 type EstadoFilter = AppointmentEstado | 'all';
@@ -468,6 +471,19 @@ export class TabCitas {
         'Error', { duration: 4000 },
       );
     }
+  }
+
+  // ── Historial de estados ────────────────────────────────
+  openHistory(row: Appointment): void {
+    this.dialog.open<AppointmentHistoryDialog, AppointmentHistoryDialogData, void>(
+      AppointmentHistoryDialog,
+      {
+        width: '560px',
+        maxWidth: '95vw',
+        autoFocus: 'first-tabbable',
+        data: { appointment: row },
+      },
+    );
   }
 
   // ── Derivar a psicóloga (docente) ──────────────────────────
