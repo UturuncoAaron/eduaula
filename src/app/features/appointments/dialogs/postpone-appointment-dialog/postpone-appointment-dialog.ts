@@ -27,6 +27,7 @@ import {
 import { parseApiError } from '../../../../shared/utils/api-errors';
 
 import { AppointmentsStore } from '../../data-access/appointments.store';
+import { AuthService } from '../../../../core/auth/auth';
 import {
     AccountAvailability, Appointment, DiaSemana, SlotTaken,
     AppointmentRoleRule, APPOINTMENT_RULES,
@@ -50,10 +51,32 @@ interface PickedSlot {
 const MIN_LEAD_MINUTES = 15;
 
 /**
- * Dialog para aplazar (re-proponer) una cita. Padre o alumno escogen
- * nueva fecha y hora **dentro de la disponibilidad del convocado** y
- * dejan un motivo obligatorio. El BE devuelve la cita a `pendiente`
- * con la nueva `scheduledAt` y registra el motivo en `priorNotes`.
+ * Roles cuyo calendario manda en una cita (dueños de disponibilidad).
+ * Si el convocador tiene un rol en este set, la cita "vive" en su
+ * calendario; si no, vive en el del convocado.
+ */
+const CALENDAR_OWNER_ROLES = new Set<string>([
+    'psicologa',
+    'docente',
+    'admin',
+    'director',
+]);
+
+/**
+ * Dialog para aplazar (re-proponer) una cita.
+ *
+ * El nuevo horario SIEMPRE se selecciona dentro de la disponibilidad del
+ * dueño del calendario (psicóloga / docente / admin / director), nunca
+ * del convocado pasivo (padre / alumno).
+ *
+ *   - Si el convocador es quien tiene calendario (caso típico): la cita
+ *     ya estaba en su calendario; el nuevo slot también debe estarlo.
+ *   - Si el convocador es padre/alumno: el dueño del calendario es el
+ *     convocado (psicóloga / docente).
+ *
+ * Motivo obligatorio. El BE devuelve la cita a `pendiente` con la nueva
+ * `scheduledAt` y registra el motivo en `priorNotes` + en
+ * `cita_estado_log.razon`.
  */
 @Component({
     selector: 'app-postpone-appointment-dialog',
@@ -74,6 +97,30 @@ export class PostponeAppointmentDialog implements OnInit {
     private fb = inject(FormBuilder);
     private dialog = inject(MatDialog);
     private store = inject(AppointmentsStore);
+    private auth = inject(AuthService);
+
+    /**
+     * `true` cuando el usuario logueado es el convocador (creó la cita).
+     * Cambia copy y subtítulo del modal: el convocador re-propone su
+     * propio horario; el convocado contra-propone dentro del calendario
+     * del convocador.
+     */
+    readonly esConvocador = computed<boolean>(
+        () => this.data.appointment.createdById === this.auth.currentUser()?.id,
+    );
+
+    readonly headerTitle = computed<string>(
+        () => this.esConvocador() ? 'Reprogramar mi cita' : 'Aplazar cita',
+    );
+
+    readonly headerSubtitle = computed<string>(() => {
+        if (this.esConvocador()) {
+            return 'Propón un nuevo horario dentro de tu disponibilidad. ' +
+                'La cita volverá a quedar pendiente hasta que el convocado la confirme.';
+        }
+        return 'Propón una nueva fecha dentro de la disponibilidad del profesional. ' +
+            'La cita volverá a quedar pendiente hasta que el convocador la confirme.';
+    });
 
     // ── State ──────────────────────────────────────────────────
     loading = signal(false);
@@ -87,14 +134,33 @@ export class PostponeAppointmentDialog implements OnInit {
     picked = signal<PickedSlot | null>(null);
     activeRule = signal<AppointmentRoleRule | null>(null);
 
+    /**
+     * Id de la cuenta que es dueña del calendario sobre el que se hace la
+     * re-propuesta. Si el convocador tiene calendario (psicóloga/docente/
+     * admin/director) → es `createdById`. Si no (padre/alumno) → es
+     * `convocadoAId`.
+     */
+    readonly scheduleOwnerId = computed<string | null>(() => {
+        const appt = this.data.appointment;
+        const convocadorRol = appt.convocadoPor?.rol ?? '';
+        if (CALENDAR_OWNER_ROLES.has(convocadorRol)) return appt.createdById;
+        return appt.convocadoAId;
+    });
+
     // ── Reglas calc ────────────────────────────────────────────
     readonly effectiveRule = computed<AppointmentRoleRule>(() => {
         const remote = this.activeRule();
         if (remote) return remote;
-        // Fallback razonable: si el convocado tiene rol de docente, usar
-        // regla docente (45 min). Caso contrario psicóloga (30 min).
-        const rol = this.data.appointment.convocadoA?.rol ?? '';
-        if (rol === 'docente') return APPOINTMENT_RULES.docente;
+        // Fallback razonable basado en el rol del dueño del calendario.
+        const appt = this.data.appointment;
+        const convocadorRol = appt.convocadoPor?.rol ?? '';
+        const ownerRol = CALENDAR_OWNER_ROLES.has(convocadorRol)
+            ? convocadorRol
+            : (appt.convocadoA?.rol ?? '');
+        if (ownerRol === 'docente') return APPOINTMENT_RULES.docente;
+        if (ownerRol === 'admin' || ownerRol === 'director') {
+            return APPOINTMENT_RULES.admin;
+        }
         return APPOINTMENT_RULES.psicologa;
     });
 
@@ -123,17 +189,19 @@ export class PostponeAppointmentDialog implements OnInit {
 
     // ── Lifecycle ──────────────────────────────────────────────
     async ngOnInit(): Promise<void> {
-        const profId = this.data.appointment.convocadoAId;
-        if (!profId) {
-            this.errorMsg.set('La cita no tiene un convocado asignado, no se puede aplazar.');
+        const ownerId = this.scheduleOwnerId();
+        if (!ownerId) {
+            this.errorMsg.set(
+                'La cita no tiene un calendario asociado, no se puede aplazar.',
+            );
             return;
         }
         await Promise.all([
-            this.refreshAvailability(profId),
-            this.refreshRules(profId),
+            this.refreshAvailability(ownerId),
+            this.refreshRules(ownerId),
             this.refreshSlotsTaken(),
         ]);
-        this.applyRulesToCalendar(profId);
+        this.applyRulesToCalendar(ownerId);
     }
 
     private async refreshAvailability(profId: string): Promise<void> {
@@ -157,11 +225,11 @@ export class PostponeAppointmentDialog implements OnInit {
     }
 
     private async refreshSlotsTaken(): Promise<void> {
-        const profId = this.data.appointment.convocadoAId;
-        if (!profId) { this.slotsTaken.set([]); return; }
+        const ownerId = this.scheduleOwnerId();
+        if (!ownerId) { this.slotsTaken.set([]); return; }
         this.loadingSlots.set(true);
         try {
-            this.slotsTaken.set(await this.store.getSlotsTaken(profId, this.weekStart()));
+            this.slotsTaken.set(await this.store.getSlotsTaken(ownerId, this.weekStart()));
         } catch {
             this.slotsTaken.set([]);
         } finally {

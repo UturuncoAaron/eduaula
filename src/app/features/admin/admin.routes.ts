@@ -14,6 +14,12 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./academic-setup/periodos-tab/periodos-tab').then(c => c.PeriodosTab),
   },
+  {
+    path: 'anios-lectivos',
+    loadComponent: () =>
+      import('./anios-lectivos/anios-lectivos-tab').then(c => c.AniosLectivosTab),
+    title: 'Año Lectivo | EduAula',
+  },
 
   // ─── Usuarios ─────────────────────────────────────────────────────────────
   {
