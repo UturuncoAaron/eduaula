@@ -134,36 +134,45 @@ export class PostponeAppointmentDialog implements OnInit {
     picked = signal<PickedSlot | null>(null);
     activeRule = signal<AppointmentRoleRule | null>(null);
 
-    /**
-     * Id de la cuenta que es dueña del calendario sobre el que se hace la
-     * re-propuesta. Si el convocador tiene calendario (psicóloga/docente/
-     * admin/director) → es `createdById`. Si no (padre/alumno) → es
-     * `convocadoAId`.
-     */
     readonly scheduleOwnerId = computed<string | null>(() => {
         const appt = this.data.appointment;
-        const convocadorRol = appt.convocadoPor?.rol ?? '';
-        if (CALENDAR_OWNER_ROLES.has(convocadorRol)) return appt.createdById;
-        return appt.convocadoAId;
+        const rolConvocador = appt.convocadoPor?.rol ?? '';
+        const rolConvocado = appt.convocadoA?.rol ?? '';
+
+        // Si el que inició la cita es el profesional, devolvemos su ID
+        if (CALENDAR_OWNER_ROLES.has(rolConvocador)) {
+            // ¡Ojo aquí! Usamos el ID de la relación, no createdById, por seguridad.
+            return appt.convocadoPor?.id ?? appt.createdById;
+        }
+
+        // Si el convocado es el profesional (ej. Padre citó a Psicóloga), devolvemos su ID
+        if (CALENDAR_OWNER_ROLES.has(rolConvocado)) {
+            return appt.convocadoAId;
+        }
+
+        // Fallback en caso de datos anómalos
+        return null;
     });
 
-    // ── Reglas calc ────────────────────────────────────────────
+    /**
+     * Calcula la regla de duración y horas basada en el rol del dueño del calendario.
+     */
     readonly effectiveRule = computed<AppointmentRoleRule>(() => {
         const remote = this.activeRule();
         if (remote) return remote;
-        // Fallback razonable basado en el rol del dueño del calendario.
+
         const appt = this.data.appointment;
-        const convocadorRol = appt.convocadoPor?.rol ?? '';
-        const ownerRol = CALENDAR_OWNER_ROLES.has(convocadorRol)
-            ? convocadorRol
-            : (appt.convocadoA?.rol ?? '');
+        const rolConvocador = appt.convocadoPor?.rol ?? '';
+        const rolConvocado = appt.convocadoA?.rol ?? '';
+
+        const ownerRol = CALENDAR_OWNER_ROLES.has(rolConvocador)
+            ? rolConvocador
+            : rolConvocado;
+
         if (ownerRol === 'docente') return APPOINTMENT_RULES.docente;
-        if (ownerRol === 'admin' || ownerRol === 'director') {
-            return APPOINTMENT_RULES.admin;
-        }
+        if (ownerRol === 'admin' || ownerRol === 'director') return APPOINTMENT_RULES.admin;
         return APPOINTMENT_RULES.psicologa;
     });
-
     readonly ruleSlotMinutes = computed<number>(() => {
         const r = this.effectiveRule();
         return ruleToSlotMinutes(r, this.data.appointment.durationMin ?? 30);

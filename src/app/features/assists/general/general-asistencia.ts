@@ -17,7 +17,8 @@ interface AlumnoRow {
     apellido_materno: string;
     codigo_estudiante: string;
     foto_url: string | null;
-    estado: EstadoAsistencia;
+    // null = sin registro aún (alumno no ha sido marcado ni escaneó QR)
+    estado: EstadoAsistencia | null;
 }
 
 const AVATAR_COLORS = [
@@ -50,7 +51,6 @@ export class GeneralAsistencia implements OnInit {
 
     seccionId = '';
 
-    // ── Fecha seleccionada (editable) ──────────────────────────
     readonly todayStr = new Date().toISOString().slice(0, 10);
     selectedDate = signal<string>(this.todayStr);
 
@@ -59,7 +59,6 @@ export class GeneralAsistencia implements OnInit {
         return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
     });
 
-    /** Fecha en formato corto dd/mm/yyyy para el botón del date-picker */
     readonly fechaCorta = computed(() => {
         const [y, m, d] = this.selectedDate().split('-');
         return `${d}/${m}/${y}`;
@@ -68,20 +67,22 @@ export class GeneralAsistencia implements OnInit {
     readonly isToday = computed(() => this.selectedDate() === this.todayStr);
     readonly isFuture = computed(() => this.selectedDate() > this.todayStr);
 
-    // ── Estado ─────────────────────────────────────────────────
     loading = signal(true);
     saving = signal(false);
     error = signal<string | null>(null);
     seccionNombre = signal('');
     gradoNombre = signal('');
     alumnos = signal<AlumnoRow[]>([]);
-
     yaRegistrado = signal(false);
 
+    // ── Contadores ─────────────────────────────────────────────────────────────
+    // Solo cuentan alumnos con registro explícito — los null no suman en ningún lado
     readonly totalPresentes = computed(() => this.alumnos().filter(a => a.estado === 'asistio').length);
     readonly totalFaltas = computed(() => this.alumnos().filter(a => a.estado === 'falta').length);
     readonly totalTardanzas = computed(() => this.alumnos().filter(a => a.estado === 'tardanza').length);
     readonly totalJustificados = computed(() => this.alumnos().filter(a => a.estado === 'justificado').length);
+    readonly sinRegistro = computed(() => this.alumnos().filter(a => a.estado === null).length);
+
     readonly pctAsistencia = computed(() => {
         const t = this.alumnos().length;
         if (!t) return 0;
@@ -103,7 +104,6 @@ export class GeneralAsistencia implements OnInit {
         this.loadData();
     }
 
-    // ── Cambia la fecha y recarga ──────────────────────────────
     onDateChange(value: string) {
         if (!value) return;
         this.selectedDate.set(value);
@@ -152,7 +152,10 @@ export class GeneralAsistencia implements OnInit {
                     apellido_materno: a.apellido_materno ?? '',
                     codigo_estudiante: a.codigo_estudiante,
                     foto_url: a.foto_url ?? null,
-                    estado: map.get(a.id) ?? 'asistio',
+                    // FIX: null si no tiene registro — no asumir 'asistio' por default.
+                    // Los alumnos que escanearon QR ya tienen estado en el map.
+                    // Los que no escanearon quedan en null hasta que el auxiliar los marque.
+                    estado: map.get(a.id) ?? null,
                 })));
 
                 this.loading.set(false);
@@ -195,11 +198,27 @@ export class GeneralAsistencia implements OnInit {
 
     guardar() {
         if (this.saving() || !this.alumnos().length) return;
+
+        // Verificar que todos tengan estado antes de guardar
+        const sinMarcar = this.sinRegistro();
+        if (sinMarcar > 0) {
+            this.toastr.warning(
+                `${sinMarcar} alumno${sinMarcar > 1 ? 's' : ''} sin marcar. ` +
+                `Usa "Marcar todos" o marca cada uno individualmente.`,
+            );
+            return;
+        }
+
         this.saving.set(true);
+
+        // Solo enviar alumnos con estado explícito (por si acaso)
+        const alumnosConEstado = this.alumnos()
+            .filter(a => a.estado !== null)
+            .map(a => ({ alumno_id: a.id, estado: a.estado }));
 
         this.api.post(`asistencias/general/${this.seccionId}/bulk`, {
             fecha: this.selectedDate(),
-            alumnos: this.alumnos().map(a => ({ alumno_id: a.id, estado: a.estado })),
+            alumnos: alumnosConEstado,
         }).subscribe({
             next: () => {
                 const msg = this.isToday()

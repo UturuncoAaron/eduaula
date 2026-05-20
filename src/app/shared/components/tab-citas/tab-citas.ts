@@ -229,12 +229,42 @@ export class TabCitas {
       this.esSoyConvocado(a);
   }
 
-  canConfirm(a: Appointment): boolean {
+canConfirm(a: Appointment): boolean {
+    // Si no está pendiente, ni nos molestamos en evaluar
     if (a.estado !== 'pendiente') return false;
-    if (hasAvailability(this.rol())) return true;
-    return false;
-  }
 
+    const currentUser = this.auth.currentUser();
+    if (!currentUser) return false;
+
+    const miId = String(currentUser.id);
+    const creadorId = String(a.createdById);
+    const convocadoId = String(a.convocadoAId);
+
+    // 🚨 DEBUG: Imprimir en consola la radiografía de la cita
+    console.group(`Evaluando cita ID: ${a.id}`);
+    console.log(`1. Mi ID (Psicóloga):`, miId);
+    console.log(`2. ID del Creador (createdById):`, creadorId);
+    console.log(`3. ID del Convocado (convocadoAId):`, convocadoId);
+    console.groupEnd();
+
+    // El admin puede confirmar todo
+    if (currentUser.rol === 'admin') return true;
+
+    // Si yo soy el creador, se oculta
+    if (creadorId === miId) {
+        console.log(`❌ Cita ${a.id} -> Ocultando botón: Yo creé la cita.`);
+        return false;
+    }
+
+    // Si yo NO soy el convocado, se oculta
+    if (convocadoId !== miId) {
+        console.log(`❌ Cita ${a.id} -> Ocultando botón: No soy el convocado.`);
+        return false;
+    }
+
+    console.log(`✅ Cita ${a.id} -> Mostrando botón Confirmar.`);
+    return new Date(a.scheduledAt).getTime() > Date.now();
+  }
   /** Realizar = marcar la cita como atendida. Sólo psicóloga, sobre citas vivas. */
   canFinish(a: Appointment): boolean {
     return this.esPsicologa() &&
@@ -245,21 +275,10 @@ export class TabCitas {
   canMarkNoShow(a: Appointment): boolean {
     if (!this.esPsicologa()) return false;
     if (a.estado === 'cancelada' || a.estado === 'rechazada' ||
-        a.estado === 'realizada' || a.estado === 'no_asistio') return false;
+      a.estado === 'realizada' || a.estado === 'no_asistio') return false;
     return new Date(a.scheduledAt).getTime() <= Date.now();
   }
 
-  /**
-   * Aplazar: tanto el convocador (psicóloga/docente/admin/director) como el
-   * convocado (padre/alumno) pueden proponer una nueva fecha + motivo,
-   * siempre que la cita siga viva y aún no haya pasado su hora.
-   *
-   * Antes solo lo permitíamos al convocado, lo que dejaba a la psicóloga
-   * sin opción de re-proponer su propio horario y al docente sin opción
-   * de re-proponer al padre. El backend ya valida el flujo.
-   *
-   * Admin sin ser parte de la cita también puede aplazar (uso operativo).
-   */
   canPostpone(a: Appointment): boolean {
     if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
     if (new Date(a.scheduledAt).getTime() <= Date.now()) return false;
@@ -295,7 +314,7 @@ export class TabCitas {
         '../../../features/psychology/dialogs/appointment-form-dialog/appointment-form-dialog'
       );
       const ref = this.dialog.open(AppointmentFormDialog, {
-  
+
 
         panelClass: 'afd-panel',
         autoFocus: 'first-tabbable',
@@ -334,11 +353,6 @@ export class TabCitas {
     }
   }
 
-  /**
-   * @deprecated Usado solo por flujos legacy que cambian estado mediante
-   * PATCH /appointments/:id. Para acciones nuevas usa los wrappers canonicos
-   * (`realizar`, `inasistencia`, `cancelar`, `aplazar`).
-   */
   async setEstado(row: Appointment, estado: AppointmentEstado): Promise<void> {
     if (row.estado === estado) return;
     try {

@@ -1,16 +1,16 @@
 import {
-  Component, inject, signal, OnInit, computed, ChangeDetectionStrategy,
+  Component, inject, signal, OnInit, OnDestroy, computed, ChangeDetectionStrategy,
 } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
 import { WeekGrid } from '../../../shared/components/week-grid/week-grid';
-import {
-  WeekDia,
-  WeekSlot,
-} from '../../../shared/components/week-grid/week-grid.types';
+import { WeekDia, WeekSlot } from '../../../shared/components/week-grid/week-grid.types';
 
 export interface HorarioItem {
   dia: string;
@@ -51,15 +51,25 @@ export interface AlumnoDashboardData {
   styleUrl: './alumno-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AlumnoDashboard implements OnInit {
+export class AlumnoDashboard implements OnInit, OnDestroy {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
+  private http = inject(HttpClient);
+  private sanitizer = inject(DomSanitizer);
 
   dashboardData = signal<AlumnoDashboardData | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
-  // Slots del horario — mostrados como días estáticos (Lun/Mar/Mié/Jue/Vie),
-  // sin fechas, igual look que el editor admin (pixel-perfect).
+
+  // ── QR del alumno ────────────────────────────────────────────────────────
+  // El endpoint /alumnos/me/qr.png requiere JWT, por lo que no se puede usar
+  // <img src="..."> directamente. Se fetchea como blob y se crea un object URL.
+  readonly qrUrl = signal<SafeUrl | null>(null);
+  readonly qrLoading = signal(true);
+  readonly qrError = signal(false);
+  private qrObjectUrl: string | null = null;
+
+  // ── Horario ──────────────────────────────────────────────────────────────
   readonly calendarSlots = computed<WeekSlot[]>(() => {
     const data = this.dashboardData();
     if (!data) return [];
@@ -77,15 +87,9 @@ export class AlumnoDashboard implements OnInit {
       }));
   });
 
-  readonly tareasPendientes = computed(() =>
-    this.dashboardData()?.tareasPendientes ?? [],
-  );
+  readonly tareasPendientes = computed(() => this.dashboardData()?.tareasPendientes ?? []);
+  readonly comunicados = computed(() => this.dashboardData()?.comunicados ?? []);
 
-  readonly comunicados = computed(() =>
-    this.dashboardData()?.comunicados ?? [],
-  );
-
-  // Stats rápidas para los KPIs
   readonly stats = computed(() => {
     const data = this.dashboardData();
     if (!data) return { clases: 0, tareas: 0, comunicados: 0 };
@@ -97,6 +101,7 @@ export class AlumnoDashboard implements OnInit {
   });
 
   ngOnInit(): void {
+    // Dashboard data y QR se cargan en paralelo — uno no bloquea al otro
     this.api.get<AlumnoDashboardData>('dashboard/resumen').subscribe({
       next: res => {
         this.dashboardData.set(res.data);
@@ -107,6 +112,43 @@ export class AlumnoDashboard implements OnInit {
         this.loading.set(false);
       },
     });
+
+    this.loadQr();
+  }
+
+  ngOnDestroy(): void {
+    // Liberar el blob de memoria cuando el componente se destruye
+    if (this.qrObjectUrl) {
+      URL.revokeObjectURL(this.qrObjectUrl);
+    }
+  }
+
+  /**
+   * Carga el QR del alumno como blob autenticado.
+   * Los interceptores de HttpClient agregan el JWT automáticamente.
+   */
+  private loadQr(): void {
+    this.http.get(`${environment.apiUrl}/alumnos/me/qr.png?t=${Date.now()}`, { responseType: 'blob' }).subscribe({
+      next: blob => {
+        this.qrObjectUrl = URL.createObjectURL(blob);
+        this.qrUrl.set(this.sanitizer.bypassSecurityTrustUrl(this.qrObjectUrl));
+        this.qrLoading.set(false);
+      },
+      error: () => {
+        this.qrError.set(true);
+        this.qrLoading.set(false);
+      },
+    });
+  }
+
+  /** Descarga el QR como PNG — crea un <a> temporal y lo clickea. */
+  downloadQr(): void {
+    if (!this.qrObjectUrl) return;
+    const nombre = this.auth.currentUser()?.nombre ?? 'alumno';
+    const a = document.createElement('a');
+    a.href = this.qrObjectUrl;
+    a.download = `qr-${nombre.toLowerCase().replace(/\s+/g, '-')}.png`;
+    a.click();
   }
 
   getUrgencia(fechaLimite: string): 'rojo' | 'ambar' | 'verde' {
@@ -118,12 +160,5 @@ export class AlumnoDashboard implements OnInit {
 }
 
 function isWeekDia(s: string): boolean {
-  return (
-    s === 'lunes' ||
-    s === 'martes' ||
-    s === 'miercoles' ||
-    s === 'jueves' ||
-    s === 'viernes' ||
-    s === 'sabado'
-  );
+  return ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'].includes(s);
 }

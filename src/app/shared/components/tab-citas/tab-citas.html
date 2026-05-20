@@ -74,11 +74,11 @@
             </button>
 
             @if (canDerivar()) {
-                <button mat-stroked-button color="primary" type="button" (click)="openDerivar()"
-                    matTooltip="Derivar a un alumno hacia una psicóloga">
-                    <mat-icon>psychology</mat-icon>
-                    <span>Derivar</span>
-                </button>
+            <button mat-stroked-button color="primary" type="button" (click)="openDerivar()"
+                matTooltip="Derivar a un alumno hacia una psicóloga">
+                <mat-icon>psychology</mat-icon>
+                <span>Derivar</span>
+            </button>
             }
 
             <button mat-flat-button color="primary" type="button" (click)="openCreate()">
@@ -120,9 +120,9 @@
                         <div class="cell-participante">
                             <span class="full-name">{{ participantLabel(row) }}</span>
                             @if (showStudentSubline(row)) {
-                                <small class="cell-participante__sub muted">
-                                    Alumno: {{ studentLabel(row) }}
-                                </small>
+                            <small class="cell-participante__sub muted">
+                                Alumno: {{ studentLabel(row) }}
+                            </small>
                             }
                         </div>
                     </td>
@@ -158,10 +158,10 @@
                             {{ estadoLabel(row.estado) }}
                         </span>
                         @if (row.estado === 'realizada' && row.followUpNotes) {
-                            <div class="follow-up-notes" [matTooltip]="row.followUpNotes">
-                                <mat-icon class="follow-up-notes__icon">sticky_note_2</mat-icon>
-                                <span class="follow-up-notes__text">{{ row.followUpNotes }}</span>
-                            </div>
+                        <div class="follow-up-notes" [matTooltip]="row.followUpNotes">
+                            <mat-icon class="follow-up-notes__icon">sticky_note_2</mat-icon>
+                            <span class="follow-up-notes__text">{{ row.followUpNotes }}</span>
+                        </div>
                         }
                     </td>
                 </ng-container>
@@ -190,19 +190,18 @@
                             <mat-icon>more_vert</mat-icon>
                         </button>
                         <mat-menu #menu="matMenu">
-                            <button mat-menu-item type="button" (click)="aceptar(row)"
-                                [disabled]="!canConfirm(row)">
+                            @if (canConfirm(row)) {
+                            <button mat-menu-item type="button" (click)="aceptar(row)">
                                 <mat-icon>check</mat-icon>
                                 <span>Confirmar</span>
                             </button>
-                            <button mat-menu-item type="button" (click)="aplazar(row)"
-                                [disabled]="!canPostpone(row)">
+                            }
+                            <button mat-menu-item type="button" (click)="aplazar(row)" [disabled]="!canPostpone(row)">
                                 <mat-icon>event_repeat</mat-icon>
                                 <span>Aplazar</span>
                             </button>
                             <mat-divider />
-                            <button mat-menu-item type="button" (click)="realizar(row)"
-                                [disabled]="!canFinish(row)">
+                            <button mat-menu-item type="button" (click)="realizar(row)" [disabled]="!canFinish(row)">
                                 <mat-icon>task_alt</mat-icon>
                                 <span>Marcar como realizada</span>
                             </button>

@@ -1,0 +1,121 @@
+<div class="scan-container">
+
+    <header class="scan-header">
+        <a routerLink="/dashboard" class="back-btn">
+            <mat-icon>arrow_back</mat-icon>
+        </a>
+        <h1>Escanear QR</h1>
+    </header>
+
+    <div class="scan-body">
+
+        <!-- CÁMARA -->
+        <div class="camera-wrap" [class.hidden]="!camaraActiva()">
+            <zxing-scanner [enable]="camaraActiva()" (scanSuccess)="onScanSuccess($event)"
+                (scanError)="onScanError($event)" class="scanner">
+            </zxing-scanner>
+            <div class="scan-frame" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <p class="scan-hint">Apunta al código QR del carnet del alumno</p>
+        </div>
+
+        <!-- PROCESANDO -->
+        @if (resultado().estado === 'procesando') {
+        <div class="result-card procesando">
+            <div class="spinner"></div>
+            <p>Registrando asistencia...</p>
+        </div>
+        }
+
+        <!-- OK -->
+        @if (resultado().estado === 'ok') {
+        <div class="result-card ok">
+            <div class="result-top">
+                <div class="result-icon ok">
+                    <mat-icon>check_circle</mat-icon>
+                </div>
+                <div class="result-texts">
+                    <p class="result-title">¡Asistencia registrada!</p>
+                    <span class="badge" [class]="resultado().asistenciaEstado ?? ''">
+                        {{ estadoLabel(resultado().asistenciaEstado) }}
+                    </span>
+                </div>
+            </div>
+            @if (resultado().alumno; as alumno) {
+            <div class="alumno-info">
+                <div class="alumno-foto">
+                    @if (resultado().fotoUrl) {
+                    <img [src]="resultado().fotoUrl" [alt]="alumno.nombre_completo" />
+                    } @else {
+                    <mat-icon>person</mat-icon>
+                    }
+                </div>
+                <div class="alumno-datos">
+                    <p class="alumno-nombre">{{ alumno.nombre_completo }}</p>
+                    <p class="alumno-meta">{{ alumno.codigo_estudiante }} · {{ alumno.seccion }}</p>
+                </div>
+            </div>
+            }
+            <button class="btn-siguiente" (click)="escanearOtro()">
+                <mat-icon>qr_code_scanner</mat-icon>
+                Siguiente alumno
+            </button>
+        </div>
+        }
+
+        <!-- DUPLICADO -->
+        @if (resultado().estado === 'duplicado') {
+        <div class="result-card duplicado">
+            <div class="result-top">
+                <div class="result-icon duplicado">
+                    <mat-icon>info</mat-icon>
+                </div>
+                <div class="result-texts">
+                    <p class="result-title">Ya registrado hoy</p>
+                    <p class="result-sub">Este alumno ya marcó asistencia</p>
+                </div>
+            </div>
+            @if (resultado().alumno; as alumno) {
+            <div class="alumno-info">
+                <div class="alumno-foto">
+                    @if (resultado().fotoUrl) {
+                    <img [src]="resultado().fotoUrl" [alt]="alumno.nombre_completo" />
+                    } @else {
+                    <mat-icon>person</mat-icon>
+                    }
+                </div>
+                <div class="alumno-datos">
+                    <p class="alumno-nombre">{{ alumno.nombre_completo }}</p>
+                    <p class="alumno-meta">{{ alumno.codigo_estudiante }} · {{ alumno.seccion }}</p>
+                </div>
+            </div>
+            }
+            <button class="btn-siguiente" (click)="escanearOtro()">
+                <mat-icon>qr_code_scanner</mat-icon>
+                Siguiente alumno
+            </button>
+        </div>
+        }
+
+        <!-- ERROR -->
+        @if (resultado().estado === 'error') {
+        <div class="result-card error">
+            <div class="result-top">
+                <div class="result-icon error">
+                    <mat-icon>error_outline</mat-icon>
+                </div>
+                <div class="result-texts">
+                    <p class="result-title">Error al registrar</p>
+                    <p class="result-sub">{{ resultado().mensaje }}</p>
+                </div>
+            </div>
+            <button class="btn-siguiente" (click)="escanearOtro()">
+                <mat-icon>refresh</mat-icon>
+                Reintentar
+            </button>
+        </div>
+        }
+
+    </div>
+</div>

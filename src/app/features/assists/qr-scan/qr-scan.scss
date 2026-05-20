@@ -1,0 +1,356 @@
+$c-teal: #14b8a6;
+$c-green: #10b981;
+$c-amber: #f59e0b;
+$c-red: #ef4444;
+$c-blue: #3b82f6;
+$text-main: #1e293b;
+$text-muted: #64748b;
+$border: #e2e8f0;
+
+.scan-container {
+    min-height: 100dvh;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+}
+
+// ── Header ────────────────────────────────────────────────────────
+.scan-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #fff;
+    border-bottom: 1px solid $border;
+
+    h1 {
+        font-size: 18px;
+        font-weight: 600;
+        color: $text-main;
+        margin: 0;
+    }
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: $text-muted;
+    text-decoration: none;
+    transition: background .15s;
+
+    &:hover {
+        background: #f1f5f9;
+    }
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+// ── Body ──────────────────────────────────────────────────────────
+.scan-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 20px;
+    gap: 20px;
+}
+
+// ── Cámara ────────────────────────────────────────────────────────
+.camera-wrap {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 1;
+
+    &.hidden {
+        display: none;
+    }
+}
+
+.scanner {
+    width: 100%;
+    height: 100%;
+
+    // zxing inserta un <video> — forzamos que ocupe todo el contenedor
+    ::ng-deep video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+    }
+}
+
+// Marco de escaneo (esquinas animadas)
+.scan-frame {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    span {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        border-color: $c-teal;
+        border-style: solid;
+        border-width: 0;
+
+        &:nth-child(1) {
+            top: 20px;
+            left: 20px;
+            border-top-width: 4px;
+            border-left-width: 4px;
+            border-radius: 4px 0 0 0;
+        }
+
+        &:nth-child(2) {
+            top: 20px;
+            right: 20px;
+            border-top-width: 4px;
+            border-right-width: 4px;
+            border-radius: 0 4px 0 0;
+        }
+
+        &:nth-child(3) {
+            bottom: 20px;
+            left: 20px;
+            border-bottom-width: 4px;
+            border-left-width: 4px;
+            border-radius: 0 0 0 4px;
+        }
+
+        &:nth-child(4) {
+            bottom: 20px;
+            right: 20px;
+            border-bottom-width: 4px;
+            border-right-width: 4px;
+            border-radius: 0 0 4px 0;
+        }
+    }
+}
+
+.scan-hint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    color: rgba(#fff, 0.85);
+    background: linear-gradient(transparent, rgba(#000, 0.5));
+    margin: 0;
+}
+
+// ── Resultado ─────────────────────────────────────────────────────
+.result-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid $border;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: slideUp .25s ease;
+
+    &.procesando {
+        align-items: center;
+        gap: 12px;
+        color: $text-muted;
+        font-size: 14px;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid $border;
+    border-top-color: $c-teal;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// ── Top del resultado ─────────────────────────────────────────────
+.result-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.result-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+    }
+
+    &.ok {
+        background: rgba($c-green, .12);
+        color: $c-green;
+    }
+
+    &.duplicado {
+        background: rgba($c-amber, .12);
+        color: $c-amber;
+    }
+
+    &.error {
+        background: rgba($c-red, .12);
+        color: $c-red;
+    }
+}
+
+.result-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-main;
+    margin: 0 0 4px;
+}
+
+.result-sub {
+    font-size: 13px;
+    color: $text-muted;
+    margin: 0;
+}
+
+// Badge de estado
+.badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+
+    &.asistio {
+        background: rgba($c-green, .12);
+        color: darken($c-green, 10%);
+    }
+
+    &.tardanza {
+        background: rgba($c-amber, .12);
+        color: darken($c-amber, 15%);
+    }
+
+    &.falta {
+        background: rgba($c-red, .12);
+        color: darken($c-red, 10%);
+    }
+
+    &.justificado {
+        background: rgba($c-blue, .12);
+        color: darken($c-blue, 10%);
+    }
+}
+
+// ── Info del alumno ───────────────────────────────────────────────
+.alumno-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.alumno-foto {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    mat-icon {
+        font-size: 26px;
+        width: 26px;
+        height: 26px;
+        color: $text-muted;
+    }
+}
+
+.alumno-nombre {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text-main;
+    margin: 0 0 3px;
+}
+
+.alumno-meta {
+    font-size: 12px;
+    color: $text-muted;
+    margin: 0;
+}
+
+// ── Botón ─────────────────────────────────────────────────────────
+.btn-siguiente {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 44px;
+    border-radius: 12px;
+    background: $c-teal;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background .15s;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover {
+        background: darken($c-teal, 6%);
+    }
+}

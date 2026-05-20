@@ -6,18 +6,14 @@ import { WeekGrid } from '../week-grid/week-grid';
 import {
   WeekDia, WeekGridCellClick, WeekSlot, isWeekDia, toHHMM, toMin,
 } from '../week-grid/week-grid.types';
-import { AccountAvailability, DiaSemana, SlotTaken } from '../../../core/models/appointments';
+// IMPORTANTE: Agregamos "Appointment" a la importación
+import { AccountAvailability, DiaSemana, SlotTaken, Appointment } from '../../../core/models/appointments';
 import { buildWeekBookingSlots } from '../../utils/week-booking-slots';
 import { dateFromWeekAndDia } from '../../utils/calendar-week';
 
-/**
- * Slot seleccionado por el usuario en modo booking.
- * El componente puede recibir múltiples para soportar selección de bloques contiguos
- * (ej: una cita de 60 min = 2 slots de 30 min adyacentes).
- */
 export interface BookingSelectedSlot {
   readonly dia: DiaSemana;
-  readonly hour: string; // HH:mm — hora de inicio del bloque
+  readonly hour: string;
 }
 
 export interface BookingPickEvent {
@@ -45,28 +41,16 @@ export class BookingCalendar {
   readonly startHour = input<number>(8);
   readonly endHour = input<number>(16);
   readonly slotMinutes = input<number>(30);
-  /**
-   * Duración que ocupará la cita al hacer pick. Permite multi-slot: si
-   * `slotMinutes=30` y `pickDurationMin=60`, el click selecciona un bloque
-   * de 60 min (2 slots consecutivos). Si no se pasa, usa `slotMinutes`.
-   * El BookingCalendar valida que el bloque quepa dentro del slot 'available'
-   * y no choque con slots ocupados.
-   */
   readonly pickDurationMin = input<number | null>(null);
   readonly allowedDays = input<readonly DiaSemana[] | readonly string[] | null>(null);
   readonly emptyMessage = input<string>('No hay disponibilidad configurada en este horario.');
 
-  /**
-   * Lista de slots seleccionados por el usuario.
-   * Cada slot se pinta como "Tu selección" sobre la grilla.
-   * Para selección simple, pasar un array de un solo elemento.
-   * @since v2
-   */
-  readonly selectedSlots = input<readonly BookingSelectedSlot[]>([]);
+  // 👇 NUEVOS INPUTS PARA EL APLAZAMIENTO 👇
+  readonly picked = input<BookingSelectedSlot | null>(null);
+  readonly originalAppointment = input<Appointment | null>(null);
 
-  /** @deprecated Usar `selectedSlots`. Se mantiene por retrocompatibilidad. */
+  readonly selectedSlots = input<readonly BookingSelectedSlot[]>([]);
   readonly selectedDia = input<DiaSemana | null>(null);
-  /** @deprecated Usar `selectedSlots`. Se mantiene por retrocompatibilidad. */
   readonly selectedHour = input<string | null>(null);
 
   // ── Outputs ───────────────────────────────────────────────────
@@ -74,19 +58,21 @@ export class BookingCalendar {
   readonly weekChange = output<string>();
 
   // ── Selección efectiva ────────────────────────────────────────
-  /**
-   * Normaliza la selección — prioriza `selectedSlots` (nueva API).
-   * Si está vacío y los singulares legados están seteados, los usa como fallback.
-   */
   private readonly effectiveSelection = computed<readonly BookingSelectedSlot[]>(() => {
+    // 1. Si viene del input "picked" (modal de aplazar), lo priorizamos
+    const p = this.picked();
+    if (p) return [p];
+
+    // 2. Si viene de selectedSlots (v2)
     const arr = this.selectedSlots();
     if (arr.length > 0) return arr;
+
+    // 3. Fallback legado
     const dia = this.selectedDia();
     const hour = this.selectedHour();
     return dia && hour ? [{ dia, hour }] : [];
   });
 
-  /** Set de "dia|hour" para lookup O(1) — se usa en colisiones y en filtrado. */
   private readonly selectionKeys = computed<ReadonlySet<string>>(() => {
     const s = new Set<string>();
     for (const sel of this.effectiveSelection()) s.add(`${sel.dia}|${sel.hour}`);
@@ -102,13 +88,13 @@ export class BookingCalendar {
     return out;
   });
 
-  /** Duración efectiva al hacer pick — fallback a `slotMinutes` si no se pasa. */
   private readonly effectivePickDuration = computed<number>(() => {
     const explicit = this.pickDurationMin();
     if (explicit != null && explicit > 0) return explicit;
     return this.slotMinutes();
   });
 
+  // 👇 AQUÍ SUCEDE LA MAGIA VISUAL 👇
   readonly weekSlots = computed<WeekSlot[]>(() => {
     const step = this.slotMinutes();
     const base = buildWeekBookingSlots({
@@ -119,8 +105,35 @@ export class BookingCalendar {
       slotMinutes: step,
     });
 
-    // Agregar un slot virtual "Tu selección" por cada item seleccionado.
-    // Se pinta tan largo como la duración real (multi-slot).
+    // 1. Agregar "Horario Anterior" de la cita original
+    const orig = this.originalAppointment();
+    if (orig) {
+      const d = new Date(orig.scheduledAt);
+
+      // Validamos que la cita original caiga en la semana que estamos mirando actualmente
+      const wsStr = this.weekStart();
+      const wsDate = new Date(wsStr.includes('T') ? wsStr : `${wsStr}T00:00:00`);
+      const nextWsDate = new Date(wsDate);
+      nextWsDate.setDate(nextWsDate.getDate() + 7);
+
+      if (d >= wsDate && d < nextWsDate) {
+        const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'] as DiaSemana[]; const diaOrig = dias[d.getDay()];
+        const startMinOrig = d.getHours() * 60 + d.getMinutes();
+        const durOrig = orig.durationMin ?? step;
+
+        base.push({
+          id: `__orig-${orig.id}`,
+          dia: diaOrig,
+          horaInicio: toHHMM(startMinOrig),
+          horaFin: toHHMM(startMinOrig + durOrig),
+          title: 'Horario anterior',
+          kind: 'taken', // Se pinta como gris para indicar que está "bloqueado"
+          pending: false,
+        });
+      }
+    }
+
+    // 2. Agregar el "Nuevo horario" (La selección actual)
     const dur = this.effectivePickDuration();
     for (const sel of this.effectiveSelection()) {
       const startMin = toMin(sel.hour);
@@ -129,11 +142,12 @@ export class BookingCalendar {
         dia: sel.dia,
         horaInicio: sel.hour,
         horaFin: toHHMM(startMin + dur),
-        title: 'Tu selección',
-        kind: 'appointment',
+        title: orig ? 'Nuevo horario' : 'Tu selección',
+        kind: 'appointment', // Se pinta verde/resaltado
         pending: true,
       });
     }
+
     return base;
   });
 
@@ -150,13 +164,7 @@ export class BookingCalendar {
     const startMin = toMin(ev.hora);
     const dur = this.effectivePickDuration();
 
-    // El click debe caber dentro del slot 'available' base. Para multi-slot
-    // verificamos que TODOS los slots subyacentes hasta startMin+dur estén
-    // marcados como 'available' (no se permite picar a caballo de un slot
-    // ocupado o fuera del bloque de disponibilidad).
     if (!this.rangeIsAvailable(ev.dia, startMin, dur)) return;
-
-    // No colisionar con slots realmente ocupados (ignora los pendientes/selección)
     if (this.collidesWithTaken(ev.dia, startMin, dur)) return;
 
     this.pick.emit({
@@ -182,12 +190,6 @@ export class BookingCalendar {
     return null;
   }
 
-  /**
-   * Verifica que el rango [startMin, startMin+dur) esté completamente
-   * cubierto por slots `available` contiguos del mismo día. Esto previene
-   * que un click sobre un slot 'available' termine seleccionando una franja
-   * que se extiende a un slot 'taken' o más allá del bloque de disponibilidad.
-   */
   private rangeIsAvailable(dia: string, startMin: number, dur: number): boolean {
     const end = startMin + dur;
     const step = this.slotMinutes();
@@ -211,11 +213,6 @@ export class BookingCalendar {
     return true;
   }
 
-  /**
-   * Verifica si un rango [startMin, startMin+dur) colisiona con algún slot 'taken'.
-   * Los slots virtuales de selección (pending) NO cuentan como ocupados — eso permite
-   * re-clickear sobre la propia selección para hacer toggle off.
-   */
   private collidesWithTaken(dia: string, startMin: number, dur: number): boolean {
     const end = startMin + dur;
     const selKeys = this.selectionKeys();
@@ -223,8 +220,6 @@ export class BookingCalendar {
     for (const s of this.weekSlots()) {
       if (s.dia !== dia) continue;
       if (s.kind !== 'taken') continue;
-      // Salvaguarda: si por cualquier razón un slot pending fuera marcado taken,
-      // se ignora si pertenece a la selección actual.
       if (s.pending && selKeys.has(`${s.dia}|${s.horaInicio}`)) continue;
       if (startMin < toMin(s.horaFin) && end > toMin(s.horaInicio)) return true;
     }

@@ -70,6 +70,44 @@
         </div>
     </div>
 
+    <!-- QR DE ASISTENCIA -->
+    <section class="qr-section">
+        <div class="qr-card">
+
+            <div class="qr-info">
+                <div class="qr-info-icon">
+                    <mat-icon>qr_code_2</mat-icon>
+                </div>
+                <div>
+                    <h2 class="qr-title">Mi código QR</h2>
+                    <p class="qr-subtitle">
+                        Muestra este código al auxiliar al entrar al colegio para registrar tu asistencia.
+                    </p>
+                    <button class="qr-download-btn" (click)="downloadQr()" [disabled]="!qrUrl()">
+                        <mat-icon>download</mat-icon>
+                        Descargar PNG
+                    </button>
+                </div>
+            </div>
+
+            <div class="qr-image-wrap">
+                @if (qrLoading()) {
+                <div class="qr-skeleton" aria-label="Cargando código QR...">
+                    <div class="spinner spinner--sm"></div>
+                </div>
+                } @else if (qrError()) {
+                <div class="qr-error">
+                    <mat-icon>qr_code_scanner</mat-icon>
+                    <p>No se pudo cargar el QR</p>
+                </div>
+                } @else {
+                <img [src]="qrUrl()" alt="Código QR de asistencia" class="qr-image" width="160" height="160" />
+                }
+            </div>
+
+        </div>
+    </section>
+
     <!-- HORARIO SEMANAL -->
     <section class="section">
         <div class="section-header">
@@ -79,11 +117,7 @@
             </h2>
         </div>
 
-        <app-week-grid
-            mode="schedule"
-            [slots]="calendarSlots()"
-            [startHour]="7"
-            [endHour]="14"
+        <app-week-grid mode="schedule" [slots]="calendarSlots()" [startHour]="7" [endHour]="14"
             [endHourExtraMin]="30" />
     </section>
 

@@ -21,7 +21,7 @@
                 placeholder="Ej. el alumno está enfermo, necesitamos reagendar"></textarea>
         </mat-form-field>
 
-        <div class="postpone__calendar">
+       <div class="postpone__calendar">
             <app-booking-calendar
                 [availability]="availability()"
                 [slotsTaken]="slotsTaken()"
@@ -31,6 +31,9 @@
                 [endHour]="ruleEndHour()"
                 [slotMinutes]="ruleSlotMinutes()"
                 [allowedDays]="ruleAllowedDays()"
+                
+                [picked]="picked()" 
+                [originalAppointment]="data.appointment"
                 (weekChange)="onWeekChange($event)"
                 (pick)="onSlotPick($event)" />
         </div>
