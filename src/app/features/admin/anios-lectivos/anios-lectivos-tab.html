@@ -1,0 +1,212 @@
+<div class="anios-page">
+
+    <!-- ── Header ──────────────────────────────────────────── -->
+    <div class="page-header">
+        <div class="header-text">
+            <h2 class="page-title">Año Lectivo</h2>
+            <p class="page-subtitle">
+                Ciclo anual del colegio. Crea el siguiente año por adelantado,
+                ciérralo cuando termine y ejecuta la promoción automática.
+            </p>
+        </div>
+    </div>
+
+    <!-- ── Crear nuevo año ─────────────────────────────────── -->
+    <section class="form-card">
+        <header class="form-card__head">
+            <mat-icon>add_circle</mat-icon>
+            <div>
+                <h3>Crear año lectivo</h3>
+                <p class="form-card__hint">Queda en estado "planificado" hasta que lo actives.</p>
+            </div>
+        </header>
+        <div class="form-grid">
+            <label class="field">
+                <span class="field__label">Año</span>
+                <input
+                    type="number"
+                    min="2024"
+                    max="2100"
+                    placeholder="2027"
+                    [ngModel]="nuevoAnio()"
+                    (ngModelChange)="nuevoAnio.set($event)" />
+            </label>
+            <label class="field">
+                <span class="field__label">Fecha de inicio</span>
+                <input
+                    type="date"
+                    [ngModel]="nuevaFechaInicio()"
+                    (ngModelChange)="nuevaFechaInicio.set($event)" />
+            </label>
+            <label class="field">
+                <span class="field__label">Fecha de fin</span>
+                <input
+                    type="date"
+                    [ngModel]="nuevaFechaFin()"
+                    (ngModelChange)="nuevaFechaFin.set($event)" />
+            </label>
+            <button
+                mat-flat-button
+                color="primary"
+                class="form-grid__action"
+                [disabled]="creating()"
+                (click)="createAnio()">
+                @if (creating()) {
+                    <mat-spinner diameter="18"></mat-spinner>
+                } @else {
+                    <mat-icon>save</mat-icon>
+                }
+                Crear año
+            </button>
+        </div>
+    </section>
+
+    <!-- ── Lista ─────────────────────────────────────────────── -->
+    @if (loading()) {
+        <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Cargando años lectivos...</p>
+        </div>
+    } @else if (anios().length === 0) {
+        <div class="empty-state">
+            <mat-icon>event_busy</mat-icon>
+            <p class="empty-title">No hay años lectivos registrados</p>
+            <span class="empty-hint">Crea el primer año lectivo para comenzar.</span>
+        </div>
+    } @else {
+        <section class="anios-grid">
+            @for (a of anios(); track trackById($index, a)) {
+                <article class="anio-card" [attr.data-estado]="a.estado">
+                    <header class="anio-card__head">
+                        <div>
+                            <h3 class="anio-card__title">Año {{ a.anio }}</h3>
+                            <p class="anio-card__dates">
+                                {{ a.fechaInicio | date:'dd MMM yyyy' }} —
+                                {{ a.fechaFin | date:'dd MMM yyyy' }}
+                            </p>
+                        </div>
+                        <span class="estado-chip" [class]="'estado-chip ' + estadoChip(a.estado).classMod">
+                            <mat-icon>{{ estadoChip(a.estado).icon }}</mat-icon>
+                            {{ estadoChip(a.estado).label }}
+                        </span>
+                    </header>
+
+                    <div class="anio-card__meta">
+                        @if (a.promocionEjecutadaAt) {
+                            <div class="meta-row">
+                                <mat-icon>task_alt</mat-icon>
+                                <span>Promoción ejecutada {{ a.promocionEjecutadaAt | date:'dd MMM yyyy HH:mm' }}</span>
+                            </div>
+                        }
+                        @if (a.egresadosDesactivadosAt) {
+                            <div class="meta-row">
+                                <mat-icon>person_off</mat-icon>
+                                <span>Egresados desactivados {{ a.egresadosDesactivadosAt | date:'dd MMM yyyy HH:mm' }}</span>
+                            </div>
+                        }
+                    </div>
+
+                    <footer class="anio-card__actions">
+                        @if (a.estado === 'planificado') {
+                            <button
+                                mat-stroked-button
+                                color="primary"
+                                [disabled]="isBusy(a)"
+                                (click)="activarAnio(a)">
+                                <mat-icon>play_arrow</mat-icon>
+                                Activar
+                            </button>
+                        }
+
+                        @if (a.estado === 'en_curso' || a.estado === 'cerrado') {
+                            <button
+                                mat-stroked-button
+                                [disabled]="isBusy(a)"
+                                (click)="cargarPreview(a)"
+                                matTooltip="Ver qué pasará si se ejecuta la promoción">
+                                <mat-icon>preview</mat-icon>
+                                Vista previa
+                            </button>
+                            <button
+                                mat-flat-button
+                                color="primary"
+                                [disabled]="isBusy(a) || !!a.promocionEjecutadaAt"
+                                (click)="ejecutarPromocion(a)"
+                                [matTooltip]="a.promocionEjecutadaAt ? 'La promoción ya fue ejecutada' : 'Ejecutar promoción anual'">
+                                @if (isBusy(a)) {
+                                    <mat-spinner diameter="18"></mat-spinner>
+                                } @else {
+                                    <mat-icon>upgrade</mat-icon>
+                                }
+                                Ejecutar promoción
+                            </button>
+                        }
+
+                        @if (a.estado === 'cerrado') {
+                            <button
+                                mat-stroked-button
+                                color="warn"
+                                [disabled]="isBusy(a) || !!a.egresadosDesactivadosAt"
+                                (click)="desactivarEgresados(a)"
+                                [matTooltip]="a.egresadosDesactivadosAt ? 'Egresados ya desactivados' : 'Desactivar cuentas de egresados (no elimina)'">
+                                <mat-icon>person_off</mat-icon>
+                                Desactivar egresados
+                            </button>
+                        }
+                    </footer>
+                </article>
+            }
+        </section>
+    }
+
+    <!-- ── Drawer / panel de preview ────────────────────────── -->
+    @if (preview(); as p) {
+        <aside class="preview-panel">
+            <header class="preview-panel__head">
+                <div>
+                    <h3>Vista previa de promoción · Año {{ p.anio }}</h3>
+                    <p>Esto es lo que va a pasar si ejecutas la promoción ahora.</p>
+                </div>
+                <button mat-icon-button (click)="cerrarPreview()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </header>
+
+            <div class="preview-stats">
+                <div class="stat">
+                    <span class="stat__num">{{ p.totalAprobados }}</span>
+                    <span class="stat__label">Aprobados a promover</span>
+                </div>
+                <div class="stat">
+                    <span class="stat__num">{{ p.totalRepetidores }}</span>
+                    <span class="stat__label">Repetidores</span>
+                </div>
+                <div class="stat">
+                    <span class="stat__num">{{ p.totalEgresados }}</span>
+                    <span class="stat__label">Egresados (5to Sec)</span>
+                </div>
+                <div class="stat" [class.is-warn]="p.totalSinDestino > 0">
+                    <span class="stat__num">{{ p.totalSinDestino }}</span>
+                    <span class="stat__label">Sin condición final</span>
+                </div>
+            </div>
+
+            @if (previewLoading()) {
+                <div class="preview-loading">
+                    <mat-spinner diameter="24"></mat-spinner>
+                    <span>Cargando preview…</span>
+                </div>
+            }
+
+            @if (p.totalSinDestino > 0) {
+                <p class="preview-warn">
+                    <mat-icon>warning</mat-icon>
+                    Hay {{ p.totalSinDestino }} alumno(s) sin condición final marcada. La
+                    promoción los va a saltar. Asegúrate de que estén calificados
+                    como aprobado, desaprobado o retirado antes de ejecutar.
+                </p>
+            }
+        </aside>
+    }
+
+</div>

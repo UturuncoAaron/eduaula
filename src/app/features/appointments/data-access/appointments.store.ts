@@ -476,16 +476,35 @@ export class AppointmentsStore {
     // DIRECTORIOS
     // ════════════════════════════════════════════════════════════
 
+    /**
+     * Carga los docentes con los que el usuario actual puede agendar citas.
+     *
+     * Endpoint nuevo `appointments/teachers/bookable` (role-aware):
+     *   - admin / psicologa → todos los docentes activos
+     *   - padre             → solo los docentes que dictan curso a sus
+     *                         hijos o son tutores de su sección
+     *   - resto             → 403
+     *
+     * Reemplaza el viejo `admin/users/docentes/select`, que era admin-only
+     * y devolvía 403 cuando el padre intentaba elegir docente, dejando el
+     * dropdown vacío con "No hay docentes disponibles".
+     */
     async loadDocentes(): Promise<void> {
         if (this.loadingDocentes()) return;
         this.loadingDocentes.set(true);
         try {
             const res = await firstValueFrom(
                 this.api.get<DocenteSelectItem[] | { data: DocenteSelectItem[] }>(
-                    'admin/users/docentes/select',
+                    'appointments/teachers/bookable',
                 ),
             );
-            this.docentes.set(unwrapList<DocenteSelectItem>(res.data));
+            // El nuevo endpoint no devuelve foto_url; el FE lo trata como
+            // opcional así que normalizamos a null para mantener el contrato.
+            const list = unwrapList<DocenteSelectItem>(res.data).map((d) => ({
+                ...d,
+                foto_url: d.foto_url ?? null,
+            }));
+            this.docentes.set(list);
         } catch {
             this.docentes.set([]);
         } finally {

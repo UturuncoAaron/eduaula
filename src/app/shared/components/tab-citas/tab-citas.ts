@@ -250,13 +250,23 @@ export class TabCitas {
   }
 
   /**
-   * Aplazar: el convocado vivo, mientras la cita siga en pie y aún no
-   * pasó su hora. El convocante no aplaza — cancela o reagenda.
+   * Aplazar: tanto el convocador (psicóloga/docente/admin/director) como el
+   * convocado (padre/alumno) pueden proponer una nueva fecha + motivo,
+   * siempre que la cita siga viva y aún no haya pasado su hora.
+   *
+   * Antes solo lo permitíamos al convocado, lo que dejaba a la psicóloga
+   * sin opción de re-proponer su propio horario y al docente sin opción
+   * de re-proponer al padre. El backend ya valida el flujo.
+   *
+   * Admin sin ser parte de la cita también puede aplazar (uso operativo).
    */
   canPostpone(a: Appointment): boolean {
     if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
-    if (!this.esSoyConvocado(a)) return false;
-    return new Date(a.scheduledAt).getTime() > Date.now();
+    if (new Date(a.scheduledAt).getTime() <= Date.now()) return false;
+    const me = this.auth.currentUser()?.id;
+    const isConvocador = a.createdById === me;
+    const isConvocado = a.convocadoAId === me;
+    return isConvocador || isConvocado || this.esAdmin();
   }
 
   /** Derivar: sólo docente, acción top-level (no es por fila). */
@@ -295,7 +305,7 @@ export class TabCitas {
         if (ok) void this.apptStore.loadMyAppointments();
       });
 
-    } else if (this.esDocente() || this.esAdmin() || this.esAuxiliar()) {
+    } else if (this.esDocente() || this.esAdmin()) {
       const { TeacherRequestAppointmentDialog } = await import(
         '../../../features/appointments/dialogs/teacher-request-appointment-dialog/teacher-request-appointment-dialog'
       );
