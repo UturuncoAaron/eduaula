@@ -532,3 +532,20 @@
         max-width: 120px;
     }
 }
+.condicion-chip {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            4px;
+  padding:        3px 10px 3px 6px;
+  border-radius:  12px;
+  font-size:      12px;
+  font-weight:    500;
+  white-space:    nowrap;
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
+  &.chip-pendiente   { background: #fff8e1; color: #f57f17; }
+  &.chip-aprobado    { background: #e8f5e9; color: #2e7d32; }
+  &.chip-desaprobado { background: #ffebee; color: #c62828; }
+  &.chip-retirado    { background: #f3e5f5; color: #6a1b9a; }
+}

@@ -3,12 +3,12 @@
     @if (loading()) {
     <div class="tabla-estado">
         <div class="sk-loader">
-            <div class="sk-bar" style="width: 100%; animation-delay: 0s"></div>
-            <div class="sk-bar" style="width: 92%; animation-delay: 0.08s"></div>
-            <div class="sk-bar" style="width: 96%; animation-delay: 0.16s"></div>
-            <div class="sk-bar" style="width: 88%; animation-delay: 0.24s"></div>
-            <div class="sk-bar" style="width: 94%; animation-delay: 0.32s"></div>
-            <div class="sk-bar" style="width: 90%; animation-delay: 0.40s"></div>
+            <div class="sk-bar" style="width:100%;animation-delay:0s"></div>
+            <div class="sk-bar" style="width:92%;animation-delay:.08s"></div>
+            <div class="sk-bar" style="width:96%;animation-delay:.16s"></div>
+            <div class="sk-bar" style="width:88%;animation-delay:.24s"></div>
+            <div class="sk-bar" style="width:94%;animation-delay:.32s"></div>
+            <div class="sk-bar" style="width:90%;animation-delay:.40s"></div>
         </div>
         <p class="estado-label">Cargando registros históricos...</p>
     </div>
@@ -28,7 +28,7 @@
 
     } @else {
 
-    <!-- ══ TOP BAR ══════════════════════════════════════════════ -->
+    <!-- ══ TOP BAR ════════════════════════════════════════════ -->
     <div class="top-bar">
         <div class="top-bar-left">
             <div class="total-badge">
@@ -43,14 +43,14 @@
         </div>
     </div>
 
-    <!-- ══ TABLA ════════════════════════════════════════════════ -->
+    <!-- ══ TABLA ══════════════════════════════════════════════ -->
     <div class="table-scroll">
         <table mat-table [dataSource]="dataSource" class="h-table">
 
             <!-- Código -->
             <ng-container matColumnDef="codigo">
                 <th mat-header-cell *matHeaderCellDef>Código</th>
-                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                <td mat-cell *matCellDef="let row">
                     <span class="code-tag">{{ row.codigo_estudiante || '—' }}</span>
                 </td>
             </ng-container>
@@ -58,7 +58,7 @@
             <!-- Documento -->
             <ng-container matColumnDef="documento">
                 <th mat-header-cell *matHeaderCellDef>Documento</th>
-                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                <td mat-cell *matCellDef="let row">
                     @if (row.numero_documento) {
                     <div class="doc-row">
                         <span class="doc-type-tag">{{ row.tipo_documento }}</span>
@@ -73,7 +73,7 @@
             <!-- Nombre -->
             <ng-container matColumnDef="nombre">
                 <th mat-header-cell *matHeaderCellDef>Alumno</th>
-                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                <td mat-cell *matCellDef="let row">
                     <div class="alumno-row">
                         <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno" rol="alumno"
                             [fotoUrl]="row.foto_url ?? null" [size]="38" />
@@ -92,10 +92,10 @@
                 </td>
             </ng-container>
 
-            <!-- Grado -->
+            <!-- Grado / Sección -->
             <ng-container matColumnDef="grado">
                 <th mat-header-cell *matHeaderCellDef>Grado / Sección</th>
-                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                <td mat-cell *matCellDef="let row">
                     @if (row.grado) {
                     <div class="grado-stack">
                         <span class="grado-tag">{{ row.grado }}</span>
@@ -107,27 +107,25 @@
                 </td>
             </ng-container>
 
-            <!-- Periodo -->
-            <ng-container matColumnDef="periodo">
-                <th mat-header-cell *matHeaderCellDef>Período</th>
-                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
-                    @if (row.periodo_nombre) {
-                    <div class="periodo-stack">
-                        <span class="periodo-nombre">{{ row.periodo_nombre }}</span>
-                        @if (row.periodo_bimestre) {
-                        <span class="periodo-bim">Bim. {{ row.periodo_bimestre }}</span>
-                        }
-                    </div>
+            <!-- Condición final -->
+            <ng-container matColumnDef="condicion">
+                <th mat-header-cell *matHeaderCellDef>Condición</th>
+                <td mat-cell *matCellDef="let row">
+                    @if (getCondicion(row.condicion_final); as cfg) {
+                    <span class="condicion-chip" [class]="cfg.css">
+                        <mat-icon>{{ cfg.icon }}</mat-icon>
+                        {{ cfg.label }}
+                    </span>
                     } @else {
                     <span class="dash">—</span>
                     }
                 </td>
             </ng-container>
 
-            <!-- Ingreso -->
+            <!-- Año ingreso -->
             <ng-container matColumnDef="ingreso">
                 <th mat-header-cell *matHeaderCellDef>Ingreso</th>
-                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i">
+                <td mat-cell *matCellDef="let row">
                     <span class="year-num">{{ row.anio_ingreso || '—' }}</span>
                 </td>
             </ng-container>
@@ -135,8 +133,8 @@
             <!-- Acciones -->
             <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef class="col-c">Reporte</th>
-                <td mat-cell *matCellDef="let row; let i = index" [attr.data-i]="i" class="col-c">
-                    <button mat-icon-button class="report-btn" matTooltip="Generar reporte general"
+                <td mat-cell *matCellDef="let row" class="col-c">
+                    <button mat-icon-button class="report-btn" matTooltip="Ver reporte del alumno"
                         (click)="verReporte(row)">
                         <mat-icon>print</mat-icon>
                     </button>
@@ -146,6 +144,7 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="h-row" [class.row-incl]="row.inclusivo">
             </tr>
+
         </table>
     </div>
 
@@ -157,4 +156,5 @@
     </div>
 
     }
+
 </div>

@@ -1,5 +1,4 @@
 <div class="modal-container">
-    <!-- Header -->
     <div class="modal-header">
         <div class="header-content">
             <div class="icon-box">
@@ -16,24 +15,23 @@
     </div>
 
     <div class="modal-body">
-        <!-- Paso 1: Descargar plantilla -->
+
+        <!-- Paso 1 -->
         <div class="info-banner">
-            <div class="banner-icon">
-                <mat-icon>lightbulb</mat-icon>
-            </div>
+            <div class="banner-icon"><mat-icon>lightbulb</mat-icon></div>
             <div class="banner-text">
                 <span class="banner-title">Paso 1: Usa la plantilla oficial</span>
-                <span class="banner-desc">Descarga nuestra plantilla para evitar errores de formato en la
-                    importación.</span>
+                <span class="banner-desc">Descarga la plantilla para evitar errores de formato en la importación.</span>
             </div>
             <button mat-stroked-button color="primary" class="download-btn" (click)="descargarPlantilla()">
-                <mat-icon>download</mat-icon> Descargar CSV
+                <mat-icon>download</mat-icon> Descargar plantilla Excel
             </button>
         </div>
 
+        <!-- Paso 2 -->
         <div class="step-title">Paso 2: Configura el destino</div>
         <form [formGroup]="form" novalidate class="form-grid">
-            <!-- Sección -->
+
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Sección destino</mat-label>
                 <mat-select formControlName="seccion_id">
@@ -48,37 +46,31 @@
                 }
             </mat-form-field>
 
-            <!-- Periodo -->
-            <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Periodo</mat-label>
-                <mat-select formControlName="periodo_id">
-                    @for (p of periodos(); track p.id) {
-                    <mat-option [value]="p.id">
-                        {{ p.nombre }} @if(p.activo) { <span class="active-tag">• Activo</span> }
-                    </mat-option>
-                    }
-                </mat-select>
-                @if (form.get('periodo_id')?.hasError('required') && form.get('periodo_id')?.touched) {
-                <mat-error>Selecciona un periodo</mat-error>
-                }
-            </mat-form-field>
+            @if (anioActivo() > 0) {
+            <div class="anio-info">
+                <mat-icon>calendar_today</mat-icon>
+                <span>Año lectivo: <strong>{{ anioActivo() }}</strong></span>
+            </div>
+            } @else {
+            <div class="anio-info warn">
+                <mat-icon>warning</mat-icon>
+                <span>No hay un año lectivo activo. Activa uno antes de importar.</span>
+            </div>
+            }
+
         </form>
 
+        <!-- Paso 3 -->
         <div class="step-title">Paso 3: Sube tu archivo</div>
 
-        <!-- Drag & Drop Area -->
         @if (!archivo() && !resultado()) {
         <div class="upload-dropzone" [class.dragging]="isDragging()" (dragover)="onDragOver($event)"
             (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
-
-            <input type="file" #fileInput hidden accept=".csv, .xls, .xlsx" (change)="pickFile($event)">
-
+            <input type="file" #fileInput hidden accept=".csv,.xls,.xlsx" (change)="pickFile($event)">
             <div class="dropzone-content">
-                <div class="upload-icon">
-                    <mat-icon>cloud_upload</mat-icon>
-                </div>
+                <div class="upload-icon"><mat-icon>cloud_upload</mat-icon></div>
                 <h3>Arrastra y suelta tu archivo aquí</h3>
-                <p>Soporta archivos Excel (.xlsx, .xls) y .CSV</p>
+                <p>Soporta archivos Excel (.xlsx, .xls) y CSV</p>
                 <button mat-flat-button color="primary" class="browse-btn" (click)="fileInput.click()">
                     Explorar archivos
                 </button>
@@ -86,7 +78,6 @@
         </div>
         }
 
-        <!-- Archivo Seleccionado Preview -->
         @if (archivo() && !resultado()) {
         <div class="file-preview-card">
             <div class="file-info">
@@ -103,7 +94,6 @@
         </div>
         }
 
-        <!-- Loader -->
         @if (uploading()) {
         <div class="uploading-row">
             <mat-progress-bar mode="indeterminate"></mat-progress-bar>
@@ -111,29 +101,36 @@
         </div>
         }
 
-        <!-- Resultados -->
         @if (resultado(); as r) {
         <div class="result-panel">
             <div class="result-header" [class.has-errors]="r.errores.length > 0">
                 <mat-icon class="result-icon">{{ r.errores.length === 0 ? 'check_circle' : 'warning' }}</mat-icon>
                 <span>{{ r.errores.length === 0 ? 'Importación exitosa' : 'Importación con observaciones' }}</span>
             </div>
-
             <div class="result-counters">
-                <div class="counter"><span class="counter-val">{{ r.total }}</span><span class="counter-lbl">Total
-                        filas</span></div>
-                <div class="counter ok"><span class="counter-val">{{ r.creados }}</span><span
-                        class="counter-lbl">Nuevos</span></div>
-                <div class="counter ok"><span class="counter-val">{{ r.matriculados }}</span><span
-                        class="counter-lbl">Matriculados</span></div>
-                <div class="counter warn"><span class="counter-val">{{ r.omitidos }}</span><span
-                        class="counter-lbl">Omitidos</span></div>
+                <div class="counter">
+                    <span class="counter-val">{{ r.total }}</span>
+                    <span class="counter-lbl">Total filas</span>
+                </div>
+                <div class="counter ok">
+                    <span class="counter-val">{{ r.creados }}</span>
+                    <span class="counter-lbl">Nuevos</span>
+                </div>
+                <div class="counter ok">
+                    <span class="counter-val">{{ r.matriculados }}</span>
+                    <span class="counter-lbl">Matriculados</span>
+                </div>
+                <div class="counter warn">
+                    <span class="counter-val">{{ r.omitidos }}</span>
+                    <span class="counter-lbl">Omitidos</span>
+                </div>
                 @if (r.errores.length) {
-                <div class="counter danger"><span class="counter-val">{{ r.errores.length }}</span><span
-                        class="counter-lbl">Errores</span></div>
+                <div class="counter danger">
+                    <span class="counter-val">{{ r.errores.length }}</span>
+                    <span class="counter-lbl">Errores</span>
+                </div>
                 }
             </div>
-
             @if (r.errores.length) {
             <div class="error-list">
                 <p class="error-list-title">Revisa las siguientes filas:</p>
@@ -152,13 +149,12 @@
         }
     </div>
 
-    <!-- Footer -->
     <div class="modal-footer">
         <button mat-button (click)="cerrar()" [disabled]="uploading()">
             {{ resultado() ? 'Cerrar' : 'Cancelar' }}
         </button>
         <button mat-flat-button color="primary" class="submit-btn" (click)="importar()"
-            [disabled]="uploading() || !archivo() || (resultado() !== null)">
+            [disabled]="uploading() || !archivo() || resultado() !== null">
             <mat-icon [class.spinner]="uploading()">
                 {{ uploading() ? 'sync' : 'rocket_launch' }}
             </mat-icon>

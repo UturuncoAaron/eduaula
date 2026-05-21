@@ -116,15 +116,14 @@ export class Matriculas implements OnInit {
   });
 
   // Stats generales
-  totalActivas = computed(() => this.matriculas().filter(m => m.activo).length);
-  totalInactivas = computed(() => this.matriculas().filter(m => !m.activo).length);
+  totalActivas = computed(() => this.matriculasParaStats().filter(m => m.activo).length);
+  totalInactivas = computed(() => this.matriculasParaStats().filter(m => !m.activo).length);
 
   // Stats de condición (solo activas)
-  totalPendientes = computed(() => this.matriculas().filter(m => m.activo && m.condicion_final === 'pendiente').length);
-  totalAprobados = computed(() => this.matriculas().filter(m => m.activo && m.condicion_final === 'aprobado').length);
-  totalDesaprobados = computed(() => this.matriculas().filter(m => m.activo && m.condicion_final === 'desaprobado').length);
-  totalRetirados = computed(() => this.matriculas().filter(m => m.activo && m.condicion_final === 'retirado').length);
-
+  totalPendientes = computed(() => this.matriculasParaStats().filter(m => m.activo && m.condicion_final === 'pendiente').length);
+  totalAprobados = computed(() => this.matriculasParaStats().filter(m => m.activo && m.condicion_final === 'aprobado').length);
+  totalDesaprobados = computed(() => this.matriculasParaStats().filter(m => m.activo && m.condicion_final === 'desaprobado').length);
+  totalRetirados = computed(() => this.matriculasParaStats().filter(m => m.activo && m.condicion_final === 'retirado').length);
   hayGradoSeleccionado = computed(() => !!this.gradoFiltro.value);
 
   // ── Init ──────────────────────────────────────────────────────
@@ -325,6 +324,47 @@ export class Matriculas implements OnInit {
     });
   }
 
+  async cambiarSeccion(m: MatriculaRow): Promise<void> {
+    const secciones = this.secciones()
+      .filter(s => s.grado_id === m.grado_id && s.id !== m.seccion_id);
+
+    if (!secciones.length) {
+      this.toastr.error('No hay otras secciones disponibles en este grado');
+      return;
+    }
+
+    const { CambiarSeccionDialog } = await import(
+      '../../../shared/components/cambiar-seccion-dialog/cambiar-seccion-dialog'
+    );
+    const ref = this.dialog.open(CambiarSeccionDialog, {
+      width: '420px',
+      data: {
+        alumno: `${m.nombre} ${m.apellido_paterno}`,
+        gradoNombre: m.grado_nombre,
+        seccionActualNombre: m.seccion_nombre,
+        secciones,
+      },
+    });
+
+    ref.afterClosed().subscribe((seccionId: string | null) => {
+      if (!seccionId) return;
+      this.api
+        .patch(`academic-years/matriculas/${m.id}/seccion`, { seccion_id: seccionId })
+        .subscribe({
+          next: () => {
+            const nueva = secciones.find(s => s.id === seccionId);
+            this.matriculas.update(list =>
+              list.map(x => x.id === m.id
+                ? { ...x, seccion_id: seccionId, seccion_nombre: nueva?.nombre ?? x.seccion_nombre }
+                : x,
+              ),
+            );
+            this.toastr.success('Sección actualizada correctamente');
+          },
+          error: () => this.toastr.error('Error al cambiar sección'),
+        });
+    });
+  }
   // ── Paginación ────────────────────────────────────────────────
   onPageChange(e: PageEvent): void {
     this.page.set(e.pageIndex);
@@ -378,4 +418,13 @@ export class Matriculas implements OnInit {
         });
     });
   }
+  // ── Base filtrada por sección (para stats) ────────────────────
+  private readonly matriculasParaStats = computed(() => {
+    const secId = this.seccionFiltroSig();
+    return secId
+      ? this.matriculas().filter(m => m.seccion_id === secId)
+      : this.matriculas();
+  });
+
+
 }

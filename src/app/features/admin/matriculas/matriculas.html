@@ -220,11 +220,11 @@
                     <!-- Acciones -->
                     <td class="col-acciones">
                         @if (m.activo) {
-                        <button class="action-btn" (click)="retirarAlumno(m)" matTooltip="Retirar alumno de la sección">
-                            <mat-icon>person_remove</mat-icon>
+                        <button class="action-btn" [matMenuTriggerFor]="menuActivo" [matMenuTriggerData]="{ m: m }"
+                            matTooltip="Acciones">
+                            <mat-icon>more_vert</mat-icon>
                         </button>
                         } @else if (m.condicion_final === 'pendiente') {
-                        <!-- Menú rematricualr: elige aprobado o desaprobado -->
                         <button class="action-btn action-btn--rematricualr" [matMenuTriggerFor]="menuRematricualr"
                             [matMenuTriggerData]="{ m: m }" matTooltip="Sin condición final — rematricualr">
                             <mat-icon>assignment_return</mat-icon>
@@ -241,6 +241,18 @@
             class="table-paginator">
         </mat-paginator>
         <!-- Mat-menu rematricualr — se instancia una vez, se comparte con todas las filas -->
+        <mat-menu #menuActivo="matMenu">
+            <ng-template matMenuContent let-m="m">
+                <button mat-menu-item (click)="cambiarSeccion(m)">
+                    <mat-icon>swap_horiz</mat-icon>
+                    <span>Cambiar sección</span>
+                </button>
+                <button mat-menu-item class="menu-item-danger" (click)="retirarAlumno(m)">
+                    <mat-icon>person_remove</mat-icon>
+                    <span>Retirar alumno</span>
+                </button>
+            </ng-template>
+        </mat-menu>
         <mat-menu #menuRematricualr="matMenu">
             <ng-template matMenuContent let-m="m">
                 <button mat-menu-item (click)="confirmarRematricula(m, 'aprobado')">
