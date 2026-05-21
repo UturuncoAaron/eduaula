@@ -1,6 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, computed,
-  HostListener, input, output,
+  HostListener, input, output, signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -57,6 +57,17 @@ export class WeekGrid {
   readonly slotClick = output<WeekSlot>();
   readonly weekChange = output<string>();
 
+  /**
+   * Feedback visual inmediato al clickear un slot disponible. Antes,
+   * el cambio "disponible → seleccionado" sólo se veía cuando el
+   * componente padre actualizaba su estado y re-emitía slots — había
+   * un lag perceptible. Ahora marcamos visualmente la celda apenas
+   * el click sucede; el padre puede luego cofirmar/cancelar y eso
+   * sobreescribirá esta marca sin parpadeo.
+   */
+  private readonly _pendingPick = signal<WeekGridCellClick | null>(null);
+  readonly pendingPick = this._pendingPick.asReadonly();
+
   readonly dayStartMin = computed(() => this.startHour() * 60);
   readonly dayEndMin = computed(() => this.endHour() * 60 + this.endHourExtraMin());
   readonly columnHeightPx = computed(() => (this.dayEndMin() - this.dayStartMin()) * this.pxPerMin());
@@ -99,6 +110,22 @@ export class WeekGrid {
     const dayEnd = this.dayEndMin();
     const px = this.pxPerMin();
 
+    // Reseteo: cuando el slot real "pending" llega vía inputs, ya no
+    // necesitamos la marca preliminar para esa misma celda.
+    const pending = this._pendingPick();
+    let pendingConsumed = false;
+    if (pending) {
+      const pStart = toMin(pending.hora);
+      for (const s of this.slots()) {
+        if (s.dia !== pending.dia) continue;
+        if (!s.pending) continue;
+        if (pStart >= toMin(s.horaInicio) && pStart < toMin(s.horaFin)) {
+          pendingConsumed = true;
+          break;
+        }
+      }
+    }
+
     for (const s of this.slots()) {
       const inicio = toMin(s.horaInicio);
       const fin = toMin(s.horaFin);
@@ -110,6 +137,31 @@ export class WeekGrid {
         topPx: (visStart - dayStart) * px,
         heightPx: (visEnd - visStart) * px,
       });
+    }
+
+    // Inyecta un slot fantasma "pendiente" si el click acaba de
+    // suceder y aún no se reflejó en los inputs.
+    if (pending && !pendingConsumed) {
+      const step = this.tickStepMin();
+      const startMin = toMin(pending.hora);
+      const endMin = startMin + step;
+      const visStart = Math.max(startMin, dayStart);
+      const visEnd = Math.min(endMin, dayEnd);
+      if (visEnd > visStart) {
+        acc[pending.dia].push({
+          slot: {
+            id: `__pending-${pending.dia}-${pending.hora}`,
+            dia: pending.dia,
+            horaInicio: pending.hora,
+            horaFin: toHHMM(endMin),
+            title: 'Seleccionado',
+            kind: 'appointment',
+            pending: true,
+          },
+          topPx: (visStart - dayStart) * px,
+          heightPx: (visEnd - visStart) * px,
+        });
+      }
     }
     return acc;
   });
@@ -125,7 +177,9 @@ export class WeekGrid {
     const minRaw = this.dayStartMin() + y / this.pxPerMin();
     const clamped = Math.max(this.dayStartMin(), Math.min(minRaw, this.dayEndMin() - step));
     const snapped = snapDown(clamped, step);
-    this.cellClick.emit({ dia: header.info.key, hora: toHHMM(snapped) });
+    const click: WeekGridCellClick = { dia: header.info.key, hora: toHHMM(snapped) };
+    this._pendingPick.set(click);
+    this.cellClick.emit(click);
   }
 
   onSlotClick(event: MouseEvent, slot: WeekSlot): void {
@@ -147,7 +201,9 @@ export class WeekGrid {
         const minRaw = this.dayStartMin() + y / this.pxPerMin();
         const clamped = Math.max(this.dayStartMin(), Math.min(minRaw, this.dayEndMin() - step));
         const snapped = snapDown(clamped, step);
-        this.cellClick.emit({ dia: slot.dia, hora: toHHMM(snapped) });
+        const click: WeekGridCellClick = { dia: slot.dia, hora: toHHMM(snapped) };
+        this._pendingPick.set(click);
+        this.cellClick.emit(click);
         return;
       }
     }
@@ -162,6 +218,9 @@ export class WeekGrid {
   prevWeek(): void { const w = this.weekStart(); if (w) this.weekChange.emit(addDays(w, -7)); }
   nextWeek(): void { const w = this.weekStart(); if (w) this.weekChange.emit(addDays(w, 7)); }
   goToday(): void { this.weekChange.emit(getMondayOf(new Date())); }
+
+  /** Limpia el feedback inmediato (uso desde el padre tras confirmar/cancelar). */
+  clearPendingPick(): void { this._pendingPick.set(null); }
 
   private allowsCellClick(): boolean {
     const m = this.mode();

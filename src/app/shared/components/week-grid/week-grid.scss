@@ -199,32 +199,53 @@
       // Igual visual que course pero el padre activa cursor pointer.
     }
 
+    // Paleta opaca y diferenciada por estado.
+    // Spec (Aarón, 2026-05): el slot "Disponible" tenía un fondo verde
+    // semi-transparente sobre texto verde claro que se superponía con la
+    // grilla de fondo y resultaba ilegible. Subimos opacidad y bajamos
+    // luminosidad para contraste AAA con tipografía blanca.
     &--available {
-      background: rgba(76, 175, 80, 0.18);
-      border-color: rgba(76, 175, 80, 0.5);
-      color: #1b5e20;
+      background: #2e7d32; // verde sólido
+      border-color: #1b5e20;
+      color: #ffffff;
+      font-weight: 600;
     }
     &--taken {
-      background: rgba(96, 125, 139, 0.32);
-      border-color: rgba(96, 125, 139, 0.55);
-      color: #263238;
+      background: #607d8b; // gris azulado sólido
+      border-color: #455a64;
+      color: #ffffff;
       cursor: not-allowed;
     }
     &--blocked {
-      background: rgba(0, 0, 0, 0.08);
-      border: 1px dashed rgba(0, 0, 0, 0.25);
-      color: rgba(0, 0, 0, 0.55);
+      background: repeating-linear-gradient(
+        45deg,
+        #cfd8dc,
+        #cfd8dc 6px,
+        #b0bec5 6px,
+        #b0bec5 12px
+      );
+      border: 1px dashed #78909c;
+      color: #37474f;
       cursor: not-allowed;
     }
     &--appointment {
-      background: rgba(124, 77, 255, 0.18);
-      border-color: rgba(124, 77, 255, 0.5);
-      color: #4527a0;
+      // Cita confirmada/agendada (color púrpura distinto del seleccionado)
+      background: #5e35b1;
+      border-color: #4527a0;
+      color: #ffffff;
+      font-weight: 600;
     }
 
+    // Estado "Pendiente / Seleccionado" — slot que el usuario acaba
+    // de elegir o que está en estado pendiente. Naranja vivo para
+    // diferenciarlo de los demás estados de un vistazo.
     &--pending {
-      border-style: dashed;
-      filter: saturate(0.85);
+      background: #ef6c00;
+      border-color: #e65100;
+      color: #ffffff;
+      border-style: solid;
+      box-shadow: 0 0 0 2px rgba(239, 108, 0, 0.25);
+      filter: none;
     }
 
     &--clickable {

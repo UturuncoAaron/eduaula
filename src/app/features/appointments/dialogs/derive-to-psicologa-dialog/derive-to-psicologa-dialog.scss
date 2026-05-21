@@ -6,6 +6,14 @@
     min-width: 360px;
     width: min(900px, 95vw);
     max-width: 95vw;
+    // Limita el alto al viewport para que NO empuje al body y NO
+    // bloquee el scroll detrás del modal. El contenido scrollea
+    // dentro del dialog (overflow-y abajo).
+    max-height: 88vh;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
 
     &__head {
         display: flex;

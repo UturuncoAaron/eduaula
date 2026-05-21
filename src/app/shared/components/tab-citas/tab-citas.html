@@ -124,6 +124,15 @@
                                 Alumno: {{ studentLabel(row) }}
                             </small>
                             }
+                            <!--
+                                Spec Aarón 2026-05: cuando el alumno recibe una
+                                derivación, la fila debe indicar quién lo derivó.
+                            -->
+                            @if (isDerivacionParaAlumno(row)) {
+                            <small class="cell-participante__sub muted">
+                                Derivado por: {{ derivadoPorLabel(row) }}
+                            </small>
+                            }
                         </div>
                     </td>
                 </ng-container>
@@ -170,8 +179,19 @@
                     <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
                     <td mat-cell *matCellDef="let row" class="col-actions">
 
+                        <!--
+                            Spec Aarón 2026-05: si soy el docente que originó
+                            una derivación, la cita es **informativa** — sin
+                            botones de acción. Mostramos un pill discreto.
+                        -->
+                        @if (isDerivacionEmisor(row)) {
+                        <span class="info-pill" matTooltip="Derivación enviada — la psicóloga gestionará esta cita">
+                            <mat-icon>info</mat-icon>
+                            <span>Derivación enviada</span>
+                        </span>
+                        }
                         <!-- Padre/alumno con cita pendiente: aceptar / rechazar inline -->
-                        @if (canRespond(row)) {
+                        @else if (canRespond(row)) {
                         <div class="inline-actions">
                             <button mat-flat-button color="primary" type="button" class="accept-btn"
                                 (click)="aceptar(row)" matTooltip="Aceptar la cita">

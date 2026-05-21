@@ -183,6 +183,16 @@ export class TabCitas {
   // ── Helpers de etiqueta ──────────────────────────────────────
   participantLabel(a: Appointment): string {
     const me = this.auth.currentUser()?.id;
+
+    // Vista del alumno sobre una derivación: la cita la creó el docente,
+    // pero el "profesional a cargo" debe ser la psicóloga (convocadoA),
+    // no el docente que la derivó.
+    if (this.esAlumno() && this.isDerivacionParaAlumno(a)) {
+      const p = a.convocadoA;
+      if (!p) return '—';
+      return `${p.nombre ?? ''} ${p.apellido_paterno ?? ''}`.trim();
+    }
+
     if (a.createdById === me) {
       const p = a.convocadoA;
       if (!p) return '—';
@@ -191,6 +201,19 @@ export class TabCitas {
     const c = a.convocadoPor;
     if (!c) return '—';
     return `${c.nombre ?? ''} ${c.apellido_paterno ?? ''}`.trim();
+  }
+
+  /** True si la cita es una derivación de docente→psicóloga y yo soy el alumno. */
+  isDerivacionParaAlumno(a: Appointment): boolean {
+    if (!this.esAlumno()) return false;
+    return a.tipo === 'psicologico' && !!a.convocadoPor && a.convocadoPor.rol === 'docente';
+  }
+
+  /** Etiqueta del docente que derivó al alumno — para la sublínea "Derivado por: …". */
+  derivadoPorLabel(a: Appointment): string {
+    const d = a.convocadoPor;
+    if (!d) return '';
+    return `${d.nombre ?? ''} ${d.apellido_paterno ?? ''}`.trim();
   }
 
   studentLabel(a: Appointment): string {
@@ -229,8 +252,22 @@ export class TabCitas {
       this.esSoyConvocado(a);
   }
 
-canConfirm(a: Appointment): boolean {
-    // Si no está pendiente, ni nos molestamos en evaluar
+  /**
+   * ¿La cita es una derivación docente→psicóloga emitida por *mí*?
+   * Para el docente que originó la derivación, la cita es **informativa**
+   * (sin estado pendiente, sin botones de acción). Spec Aarón 2026-05.
+   */
+  isDerivacionEmisor(a: Appointment): boolean {
+    const me = this.auth.currentUser();
+    if (!me) return false;
+    return (
+      a.tipo === 'psicologico' &&
+      a.createdById === me.id &&
+      this.esDocente()
+    );
+  }
+
+  canConfirm(a: Appointment): boolean {
     if (a.estado !== 'pendiente') return false;
 
     const currentUser = this.auth.currentUser();
@@ -240,29 +277,15 @@ canConfirm(a: Appointment): boolean {
     const creadorId = String(a.createdById);
     const convocadoId = String(a.convocadoAId);
 
-    // 🚨 DEBUG: Imprimir en consola la radiografía de la cita
-    console.group(`Evaluando cita ID: ${a.id}`);
-    console.log(`1. Mi ID (Psicóloga):`, miId);
-    console.log(`2. ID del Creador (createdById):`, creadorId);
-    console.log(`3. ID del Convocado (convocadoAId):`, convocadoId);
-    console.groupEnd();
+    // Si fui yo quien convocó, espero la respuesta del otro lado;
+    // mi botón "Confirmar" debe estar oculto incluso siendo admin.
+    if (creadorId === miId) return false;
 
-    // El admin puede confirmar todo
-    if (currentUser.rol === 'admin') return true;
+    // Si yo NO soy el convocado, se oculta (salvo admin operativo
+    // que actúa sobre citas en las que no es parte).
+    if (currentUser.rol === 'admin' && convocadoId !== miId) return true;
+    if (convocadoId !== miId) return false;
 
-    // Si yo soy el creador, se oculta
-    if (creadorId === miId) {
-        console.log(`❌ Cita ${a.id} -> Ocultando botón: Yo creé la cita.`);
-        return false;
-    }
-
-    // Si yo NO soy el convocado, se oculta
-    if (convocadoId !== miId) {
-        console.log(`❌ Cita ${a.id} -> Ocultando botón: No soy el convocado.`);
-        return false;
-    }
-
-    console.log(`✅ Cita ${a.id} -> Mostrando botón Confirmar.`);
     return new Date(a.scheduledAt).getTime() > Date.now();
   }
   /** Realizar = marcar la cita como atendida. Sólo psicóloga, sobre citas vivas. */
@@ -522,6 +545,12 @@ canConfirm(a: Appointment): boolean {
       {
         width: '900px',
         maxWidth: '95vw',
+        // Spec (Aarón, 2026-05): el modal de derivación se estaba
+        // estirando hasta ocupar todo el viewport y bloqueaba el
+        // scroll. Forzamos maxHeight y permitimos que el contenido
+        // scrollee dentro del dialog.
+        maxHeight: '90vh',
+        height: 'auto',
         panelClass: 'appointment-dialog-panel',
         autoFocus: 'first-tabbable',
       },
