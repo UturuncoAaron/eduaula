@@ -1,10 +1,12 @@
 <div class="matriculas-page">
 
-    <!-- ══ HEADER ════════════════════════════════════════════════ -->
+    <!-- ══ HEADER ══════════════════════════════════════════════════ -->
     <div class="page-header">
         <div class="header-left">
             <h2 class="page-title">Matrículas</h2>
-            <p class="page-subtitle">Gestiona las matrículas de alumnos por sección y periodo</p>
+            <p class="page-subtitle">
+                Año {{ getAnioLabel(anioActual()) }} · Gestiona matrículas y condición final de alumnos
+            </p>
         </div>
         <div class="header-actions">
             <button mat-stroked-button (click)="abrirCargaMasiva()" matTooltip="Importar alumnos desde CSV">
@@ -18,49 +20,33 @@
         </div>
     </div>
 
-    <!-- ══ FILTROS ═══════════════════════════════════════════════ -->
+    <!-- ══ FILTROS ═════════════════════════════════════════════════ -->
     @if (!loadingFiltros()) {
     <div class="filters-card">
         <div class="filters-row">
-
-            <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Periodo</mat-label>
-                <mat-select [formControl]="anioFiltro">
-                    @for (p of periodos(); track p.id) {
-                    <mat-option [value]="p.id">
-                        {{ p.nombre }}
-                        @if (p.activo) {<span class="opt-active"> · activo</span>}
-                    </mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
-
             <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Grado</mat-label>
                 <mat-select [formControl]="gradoFiltro">
-                    <mat-option [value]="null">Todos los grados</mat-option>
+                    <mat-option [value]="null">— Selecciona un grado —</mat-option>
                     @for (g of grados(); track g.id) {
                     <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="filter-field">
+            @if (seccionesFiltro().length > 1) {
+            <mat-form-field appearance="outline" class="filter-field filter-field-sm">
                 <mat-label>Sección</mat-label>
                 <mat-select [formControl]="seccionFiltro">
-                    <mat-option [value]="null">Todas las secciones</mat-option>
-                    @for (s of seccionesFiltradas(); track s.id) {
-                    <mat-option [value]="s.id">
-                        {{ s.grado?.nombre }} — {{ s.nombre }}
-                    </mat-option>
+                    <mat-option [value]="null">Todas</mat-option>
+                    @for (sec of seccionesFiltro(); track sec.id) {
+                    <mat-option [value]="sec.id">Sección {{ sec.nombre }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
+            }
 
             <div class="filter-btns">
-                <button mat-flat-button color="primary" (click)="aplicarFiltros()">
-                    <mat-icon>search</mat-icon> Buscar
-                </button>
                 @if (hayFiltrosActivos()) {
                 <button mat-icon-button (click)="limpiarFiltros()" matTooltip="Limpiar filtros">
                     <mat-icon>filter_alt_off</mat-icon>
@@ -73,7 +59,7 @@
             <mat-icon>search</mat-icon>
             <input [formControl]="busqueda" placeholder="Buscar por nombre o código de estudiante..." />
             @if (busqueda.value) {
-            <button class="clear-btn" (click)="busqueda.setValue('')" matTooltip="Limpiar búsqueda">
+            <button class="clear-btn" (click)="busqueda.setValue('')" matTooltip="Limpiar">
                 <mat-icon>close</mat-icon>
             </button>
             }
@@ -81,7 +67,7 @@
     </div>
     }
 
-    <!-- ══ STATS ══════════════════════════════════════════════════ -->
+    <!-- ══ STATS ═══════════════════════════════════════════════════ -->
     @if (!loading() && !loadingFiltros() && matriculas().length > 0) {
     <div class="stats-bar">
         <div class="stat">
@@ -90,18 +76,40 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat">
-            <span class="stat-num success">{{ totalActivas() }}</span>
+            <span class="stat-num color-active">{{ totalActivas() }}</span>
             <span class="stat-lbl">activas</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat">
-            <span class="stat-num muted">{{ totalInactivas() }}</span>
+            <span class="stat-num color-muted">{{ totalInactivas() }}</span>
             <span class="stat-lbl">inactivas</span>
         </div>
+        @if (hayGradoSeleccionado()) {
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num color-pendiente">{{ totalPendientes() }}</span>
+            <span class="stat-lbl">pendientes</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num color-aprobado">{{ totalAprobados() }}</span>
+            <span class="stat-lbl">aprobados</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num color-desaprobado">{{ totalDesaprobados() }}</span>
+            <span class="stat-lbl">desaprobados</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num color-retirado">{{ totalRetirados() }}</span>
+            <span class="stat-lbl">retirados</span>
+        </div>
+        }
     </div>
     }
 
-    <!-- ══ ESTADOS ════════════════════════════════════════════════ -->
+    <!-- ══ ESTADOS ══════════════════════════════════════════════════ -->
     @if (loading() || loadingFiltros()) {
     <div class="center-state">
         <mat-spinner diameter="36"></mat-spinner>
@@ -111,10 +119,9 @@
     } @else if (matriculasFiltradas().length === 0) {
     <div class="center-state empty">
         <div class="empty-icon"><mat-icon>how_to_reg</mat-icon></div>
-
-        @if (!seccionFiltro.value) {
-        <p class="empty-title">Selecciona una sección para ver sus matrículas</p>
-        <p class="empty-hint">Usa los filtros de arriba para elegir grado y sección.</p>
+        @if (!gradoFiltro.value) {
+        <p class="empty-title">Selecciona un grado y sección para ver sus matrículas</p>
+        <p class="empty-hint">Usa los filtros de arriba para elegir.</p>
         } @else if (matriculas().length === 0) {
         <p class="empty-title">Sin matrículas para esta sección</p>
         <p class="empty-hint">Usa "Matricular alumno" o "Carga masiva" para agregar estudiantes.</p>
@@ -123,9 +130,10 @@
         <p class="empty-hint">Intenta con otro nombre o código.</p>
         }
     </div>
+
     } @else {
 
-    <!-- ══ TABLA ══════════════════════════════════════════════════ -->
+    <!-- ══ TABLA ════════════════════════════════════════════════════ -->
     <div class="table-card">
         <table class="mat-table">
             <thead>
@@ -133,9 +141,9 @@
                     <th class="col-alumno">Alumno</th>
                     <th class="col-codigo">Código</th>
                     <th class="col-seccion">Grado / Sección</th>
-                    <th class="col-periodo">Periodo</th>
                     <th class="col-fecha">Fecha matrícula</th>
                     <th class="col-estado">Estado</th>
+                    <th class="col-condicion">Condición Final</th>
                     <th class="col-acciones"></th>
                 </tr>
             </thead>
@@ -167,13 +175,10 @@
                         <span class="seccion-sub">Sección {{ m.seccion_nombre }}</span>
                     </td>
 
-                    <!-- Periodo -->
-                    <td class="col-periodo">{{ getAnioLabel(m.anio) }}</td>
-
                     <!-- Fecha -->
                     <td class="col-fecha">{{ m.fecha_matricula | date:'dd/MM/yyyy' }}</td>
 
-                    <!-- Estado -->
+                    <!-- Estado activo/inactivo -->
                     <td class="col-estado">
                         <span class="status-pill" [class.active]="m.activo">
                             <span class="dot"></span>
@@ -181,11 +186,48 @@
                         </span>
                     </td>
 
+                    <!-- Condición final -->
+                    <td class="col-condicion">
+                        @if (m.activo) {
+                        <mat-select class="condicion-select" [value]="m.condicion_final"
+                            [disabled]="savingId() === m.id" (selectionChange)="setCondicionFinal(m, $event.value)"
+                            panelClass="condicion-panel" disableOptionCentering>
+                            <mat-select-trigger>
+                                <span class="condicion-chip" [class]="getCondicion(m.condicion_final).class">
+                                    @if (savingId() === m.id) {
+                                    <mat-spinner diameter="12"></mat-spinner>
+                                    } @else {
+                                    <mat-icon>{{ getCondicion(m.condicion_final).icon }}</mat-icon>
+                                    }
+                                    {{ getCondicion(m.condicion_final).label }}
+                                </span>
+                            </mat-select-trigger>
+                            @for (c of condiciones; track c.value) {
+                            <mat-option [value]="c.value">
+                                <mat-icon [class]="c.class">{{ c.icon }}</mat-icon>
+                                {{ c.label }}
+                            </mat-option>
+                            }
+                        </mat-select>
+                        } @else {
+                        <span class="condicion-chip" [class]="getCondicion(m.condicion_final).class">
+                            <mat-icon>{{ getCondicion(m.condicion_final).icon }}</mat-icon>
+                            {{ getCondicion(m.condicion_final).label }}
+                        </span>
+                        }
+                    </td>
+
                     <!-- Acciones -->
                     <td class="col-acciones">
                         @if (m.activo) {
                         <button class="action-btn" (click)="retirarAlumno(m)" matTooltip="Retirar alumno de la sección">
                             <mat-icon>person_remove</mat-icon>
+                        </button>
+                        } @else if (m.condicion_final === 'pendiente') {
+                        <!-- Menú rematricualr: elige aprobado o desaprobado -->
+                        <button class="action-btn action-btn--rematricualr" [matMenuTriggerFor]="menuRematricualr"
+                            [matMenuTriggerData]="{ m: m }" matTooltip="Sin condición final — rematricualr">
+                            <mat-icon>assignment_return</mat-icon>
                         </button>
                         }
                     </td>
@@ -198,6 +240,19 @@
             [pageSizeOptions]="[10, 15, 25, 50]" [pageIndex]="page()" (page)="onPageChange($event)"
             class="table-paginator">
         </mat-paginator>
+        <!-- Mat-menu rematricualr — se instancia una vez, se comparte con todas las filas -->
+        <mat-menu #menuRematricualr="matMenu">
+            <ng-template matMenuContent let-m="m">
+                <button mat-menu-item (click)="confirmarRematricula(m, 'aprobado')">
+                    <mat-icon style="color: #2e7d32">check_circle</mat-icon>
+                    <span>Aprobado → promover a grado siguiente</span>
+                </button>
+                <button mat-menu-item (click)="confirmarRematricula(m, 'desaprobado')">
+                    <mat-icon style="color: #c62828">cancel</mat-icon>
+                    <span>Desaprobado → repetir mismo grado</span>
+                </button>
+            </ng-template>
+        </mat-menu>
     </div>
     }
 

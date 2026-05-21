@@ -74,12 +74,12 @@
         Cancelar
     </button>
     <button mat-flat-button color="primary" type="button" (click)="submit()" [disabled]="form.invalid || saving()">
-        @if (saving()) {
+        @if (saving()) { <ng-container>
         <mat-icon class="spinning">sync</mat-icon>
         Guardando...
-        } @else {
+        </ng-container>} @else { <ng-container>
         <mat-icon>add</mat-icon>
         Agregar curso
-        }
+        </ng-container>}
     </button>
 </mat-dialog-actions>

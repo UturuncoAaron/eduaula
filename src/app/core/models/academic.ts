@@ -1,14 +1,15 @@
 export interface GradeLevel {
-    id: number;
+    id: string;
     nombre: string;
     orden: number;
 }
+
 
 export interface Section {
     id: string;
     nombre: string;
     capacidad: number;
-    grado_id: number;
+    grado_id: string;
     tutor_id: string | null;
     grado?: GradeLevel;
     tutor?: {

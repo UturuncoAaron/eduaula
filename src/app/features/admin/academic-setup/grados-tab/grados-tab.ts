@@ -65,7 +65,7 @@ export class GradosTab implements OnInit {
     );
 
     seccionesPorGrado = computed(() => {
-        const map = new Map<number, number>();
+        const map = new Map<string, number>();
         this.secciones().forEach(s => map.set(s.grado_id, (map.get(s.grado_id) ?? 0) + 1));
         return map;
     });
@@ -222,7 +222,7 @@ export class GradosTab implements OnInit {
     }
 
     // ── Helpers ───────────────────────────────────────────────────
-    getSeccionCount(gradoId: number): number { return this.seccionesPorGrado().get(gradoId) ?? 0; }
+    getSeccionCount(gradoId: string): number { return this.seccionesPorGrado().get(gradoId) ?? 0; }
     getInitials(n: string, a: string): string { return `${n[0] ?? ''}${a[0] ?? ''}`.toUpperCase(); }
     onAlumnoPageChange(e: PageEvent): void { this.alumnoPage.set(e.pageIndex); this.alumnoPageSize.set(e.pageSize); }
 

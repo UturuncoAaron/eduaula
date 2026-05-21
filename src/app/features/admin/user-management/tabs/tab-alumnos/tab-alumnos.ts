@@ -68,8 +68,8 @@ export class TabAlumnos implements OnInit {
   secciones = signal<Section[]>([]);
   loadingFiltros = signal(true);
 
-  gradoFiltro = new FormControl<number | null>(null);
-  seccionFiltro = new FormControl<string | null>(null);
+  gradoFiltro = new FormControl<string | null>(null);
+   seccionFiltro = new FormControl<string | null>(null);
   busqueda = new FormControl('');
 
   seccionesFiltradas = computed(() => {

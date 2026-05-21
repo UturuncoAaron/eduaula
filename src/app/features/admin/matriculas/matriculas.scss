@@ -1,3 +1,7 @@
+// ══════════════════════════════════════════════════════════════
+// MATRÍCULAS
+// ══════════════════════════════════════════════════════════════
+
 .matriculas-page {
     padding: 24px;
     max-width: 1200px;
@@ -6,7 +10,7 @@
     gap: 16px;
 }
 
-// ══ HEADER ════════════════════════════════════════════════════
+// ── Header ────────────────────────────────────────────────────
 .page-header {
     display: flex;
     align-items: flex-start;
@@ -38,7 +42,7 @@
     flex-wrap: wrap;
 }
 
-// ══ FILTROS ═══════════════════════════════════════════════════
+// ── Filtros ───────────────────────────────────────────────────
 .filters-card {
     background: #fff;
     border: 1px solid #e8eaf6;
@@ -60,16 +64,9 @@
     min-width: 170px;
     flex: 1;
 
-    // reducir altura del mat-form-field
     ::ng-deep .mat-mdc-form-field-subscript-wrapper {
         display: none;
     }
-}
-
-.opt-active {
-    font-size: 11px;
-    color: #2e7d32;
-    font-weight: 500;
 }
 
 .filter-btns {
@@ -137,7 +134,7 @@
     }
 }
 
-// ══ STATS BAR ═════════════════════════════════════════════════
+// ── Stats bar ─────────────────────────────────────────────────
 .stats-bar {
     display: flex;
     align-items: center;
@@ -158,14 +155,6 @@
         font-size: 18px;
         font-weight: 600;
         color: #212121;
-
-        &.success {
-            color: #2e7d32;
-        }
-
-        &.muted {
-            color: #9e9e9e;
-        }
     }
 
     .stat-lbl {
@@ -180,7 +169,32 @@
     background: #e0e0e0;
 }
 
-// ══ ESTADOS ═══════════════════════════════════════════════════
+// Colores semánticos reutilizables
+.color-active {
+    color: #2e7d32 !important;
+}
+
+.color-muted {
+    color: #9e9e9e !important;
+}
+
+.color-pendiente {
+    color: #6b7280 !important;
+}
+
+.color-aprobado {
+    color: #2e7d32 !important;
+}
+
+.color-desaprobado {
+    color: #c62828 !important;
+}
+
+.color-retirado {
+    color: #e65100 !important;
+}
+
+// ── Estados vacíos / carga ────────────────────────────────────
 .center-state {
     display: flex;
     flex-direction: column;
@@ -233,7 +247,7 @@
     max-width: 360px;
 }
 
-// ══ TABLA ═════════════════════════════════════════════════════
+// ── Tabla ─────────────────────────────────────────────────────
 .table-card {
     background: #fff;
     border: 1px solid #e8eaf6;
@@ -246,7 +260,6 @@
     width: 100%;
     border-collapse: collapse;
 
-    // Header
     thead tr {
         background: #fafafa;
         border-bottom: 1px solid #eeeeee;
@@ -263,7 +276,6 @@
         white-space: nowrap;
     }
 
-    // Rows
     td {
         padding: 11px 14px;
         font-size: 13px;
@@ -297,11 +309,6 @@
     min-width: 160px;
 }
 
-.col-periodo {
-    min-width: 140px;
-    color: #616161;
-}
-
 .col-fecha {
     min-width: 120px;
     color: #9e9e9e;
@@ -310,6 +317,10 @@
 
 .col-estado {
     min-width: 90px;
+}
+
+.col-condicion {
+    min-width: 160px;
 }
 
 .col-acciones {
@@ -353,7 +364,6 @@
     max-width: 220px;
 }
 
-// ── Badges ────────────────────────────────────────────────────
 code.code-badge {
     font-family: 'Courier New', monospace;
     font-size: 11px;
@@ -379,7 +389,7 @@ code.code-badge {
     margin-top: 1px;
 }
 
-// ── Status pill ───────────────────────────────────────────────
+// ── Status pill (activa / inactiva) ───────────────────────────
 .status-pill {
     display: inline-flex;
     align-items: center;
@@ -405,6 +415,117 @@ code.code-badge {
         .dot {
             background: #4caf50;
         }
+    }
+}
+
+// ── Condición final ───────────────────────────────────────────
+
+// mat-select sin decoración visual propia —
+// todo el look lo da el .condicion-chip interior
+.condicion-select {
+    ::ng-deep {
+
+        // Quitar underline / ripple
+        .mdc-line-ripple,
+        .mat-mdc-form-field-subscript-wrapper {
+            display: none;
+        }
+
+        // El trigger ocupa solo lo que necesita el chip
+        .mat-mdc-select-trigger {
+            height: auto;
+            padding: 0;
+        }
+
+        // ← ESTO resuelve la flecha separada:
+        // la integramos dentro del chip en lugar de mostrarla suelta
+        .mat-mdc-select-arrow-wrapper {
+            display: none;
+        }
+    }
+}
+
+// Chip compartido: trigger del select Y badge de solo lectura
+.condicion-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px 4px 7px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter 0.15s;
+    user-select: none;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+    mat-spinner {
+        opacity: 0.7;
+    }
+
+    // Pequeña flecha integrada al final del chip
+    &::after {
+        content: '▾';
+        font-size: 10px;
+        margin-left: 2px;
+        opacity: 0.6;
+    }
+
+    &:hover {
+        filter: brightness(0.95);
+    }
+
+    // Variantes de color
+    &.condicion-pendiente {
+        background: #f3f4f6;
+        color: #6b7280;
+
+        mat-icon {
+            color: #6b7280;
+        }
+    }
+
+    &.condicion-aprobado {
+        background: #e8f5e9;
+        color: #2e7d32;
+
+        mat-icon {
+            color: #388e3c;
+        }
+    }
+
+    &.condicion-desaprobado {
+        background: #fce4ec;
+        color: #c62828;
+
+        mat-icon {
+            color: #c62828;
+        }
+    }
+
+    &.condicion-retirado {
+        background: #fff3e0;
+        color: #e65100;
+
+        mat-icon {
+            color: #e65100;
+        }
+    }
+}
+
+// Badge solo lectura (filas inactivas) — sin cursor ni flecha
+.condicion-chip-readonly {
+    @extend .condicion-chip;
+    cursor: default;
+
+    &::after {
+        display: none;
     }
 }
 
@@ -441,8 +562,6 @@ code.code-badge {
 
 // ══ RESPONSIVE ════════════════════════════════════════════════
 @media (max-width: 900px) {
-
-    .col-periodo,
     .col-fecha {
         display: none;
     }
@@ -470,4 +589,46 @@ code.code-badge {
     .col-codigo {
         display: none;
     }
+}
+
+// Panel del select de condición final — ancho mínimo para que no se recorte
+.condicion-panel {
+    min-width: 180px !important;
+
+    .mat-mdc-option {
+        font-size: 13px;
+        font-weight: 500;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            vertical-align: middle;
+
+            &.condicion-pendiente {
+                color: #6b7280;
+            }
+
+            &.condicion-aprobado {
+                color: #388e3c;
+            }
+
+            &.condicion-desaprobado {
+                color: #c62828;
+            }
+
+            &.condicion-retirado {
+                color: #e65100;
+            }
+        }
+    }
+}
+.action-btn--rematricualr {
+  color: #1565c0;
+
+  &:hover {
+    opacity: 1;
+    background: #e3f2fd;
+  }
 }

@@ -8,8 +8,8 @@
         <h1 class="ann-header__title">Comunicados</h1>
         <p class="ann-header__sub">
           @if (!loading()) {
-            {{ items().length }} publicado{{ items().length !== 1 ? 's' : '' }}
-            @if (totalNoLeidos() > 0) { · {{ totalNoLeidos() }} sin leer }
+          {{ items().length }} publicado{{ items().length !== 1 ? 's' : '' }}
+          @if (totalNoLeidos() > 0) { · {{ totalNoLeidos() }} sin leer }
           } @else { Cargando... }
         </p>
       </div>
@@ -18,12 +18,14 @@
 
   <!-- TABS -->
   <div class="tab-bar">
-    <button type="button" class="tab" [class.tab--active]="activeTab() === 'comunicados'" (click)="switchTab('comunicados')">
+    <button type="button" class="tab" [class.tab--active]="activeTab() === 'comunicados'"
+      (click)="switchTab('comunicados')">
       <mat-icon>campaign</mat-icon>
       Comunicados
       @if (totalNoLeidos() > 0) { <span class="tab__badge">{{ totalNoLeidos() }}</span> }
     </button>
-    <button type="button" class="tab" [class.tab--active]="activeTab() === 'notificaciones'" (click)="switchTab('notificaciones')">
+    <button type="button" class="tab" [class.tab--active]="activeTab() === 'notificaciones'"
+      (click)="switchTab('notificaciones')">
       <mat-icon>notifications</mat-icon>
       Notificaciones
       @if (notifUnreadCount() > 0) { <span class="tab__badge">{{ notifUnreadCount() }}</span> }
@@ -39,7 +41,8 @@
     <aside class="compose-card">
       <div class="compose-card__top">
         <p class="compose-card__title">Nuevo comunicado</p>
-        <button mat-icon-button (click)="showForm.update(v => !v)" [matTooltip]="showForm() ? 'Cerrar' : 'Abrir formulario'">
+        <button mat-icon-button (click)="showForm.update(v => !v)"
+          [matTooltip]="showForm() ? 'Cerrar' : 'Abrir formulario'">
           <mat-icon>{{ showForm() ? 'expand_less' : 'expand_more' }}</mat-icon>
         </button>
       </div>
@@ -53,13 +56,15 @@
         </div>
         <div class="field">
           <label class="field__label">Contenido</label>
-          <textarea class="field__input field__ta" formControlName="contenido" rows="4" placeholder="Escribe el cuerpo del comunicado..."></textarea>
+          <textarea class="field__input field__ta" formControlName="contenido" rows="4"
+            placeholder="Escribe el cuerpo del comunicado..."></textarea>
         </div>
         <div class="field">
           <label class="field__label">Destinatarios</label>
           <div class="dest-grid">
             @for (opt of destOptions; track opt.value) {
-            <button type="button" class="dest-btn" [class.dest-btn--active]="isDestSelected(opt.value)" (click)="toggleDest(opt.value)">
+            <button type="button" class="dest-btn" [class.dest-btn--active]="isDestSelected(opt.value)"
+              (click)="toggleDest(opt.value)">
               <mat-icon class="dest-btn__icon">{{ opt.icon }}</mat-icon>
               <span class="dest-btn__label">{{ opt.label }}</span>
               @if (isDestSelected(opt.value)) { <mat-icon class="dest-btn__check">check_circle</mat-icon> }
@@ -72,7 +77,8 @@
         </div>
         <div class="field">
           <label class="field__label">Adjuntos (opcional)</label>
-          <app-staged-attachments-picker label="Arrastra archivos o haz clic" [maxBytes]="maxFileBytes" [maxFiles]="maxFiles" [files]="stagedFiles()" (filesChange)="stagedFiles.set($event)" />
+          <app-staged-attachments-picker label="Arrastra archivos o haz clic" [maxBytes]="maxFileBytes"
+            [maxFiles]="maxFiles" [files]="stagedFiles()" (filesChange)="stagedFiles.set($event)" />
         </div>
         <button class="btn-publish" type="submit" [disabled]="saving() || form.invalid">
           @if (saving()) { <span class="btn-publish__spinner"></span> Publicando... }
@@ -92,14 +98,16 @@
             <mat-select [formControl]="periodoFiltro" placeholder="Bimestre" (selectionChange)="onPeriodoChange()">
               <mat-option [value]="null">Todos los bimestres</mat-option>
               @for (p of periodos(); track p.id) {
-                <mat-option [value]="p.id">{{ p.nombre }} ({{ p.anio }})</mat-option>
+              <mat-option [value]="p.id">{{ p.nombre }} ({{ p.anio }})</mat-option>
               }
             </mat-select>
           </mat-form-field>
-          <button type="button" class="filter-chip" [class.filter-chip--warn]="soloImportantes()" (click)="toggleImportantes()">
+          <button type="button" class="filter-chip" [class.filter-chip--warn]="soloImportantes()"
+            (click)="toggleImportantes()">
             <mat-icon>priority_high</mat-icon> Importantes
           </button>
-          <button type="button" class="filter-chip" [class.filter-chip--active]="soloNoLeidos()" (click)="toggleNoLeidos()">
+          <button type="button" class="filter-chip" [class.filter-chip--active]="soloNoLeidos()"
+            (click)="toggleNoLeidos()">
             <mat-icon>mark_email_unread</mat-icon> No leidos
           </button>
         </div>
@@ -114,7 +122,11 @@
       @if (loading()) {
       <div class="feed__body">
         @for (i of [1,2,3]; track i) {
-        <div class="sk-card"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:88%"></div><div class="sk-line" style="width:72%"></div></div>
+        <div class="sk-card">
+          <div class="sk-line" style="width:60%"></div>
+          <div class="sk-line" style="width:88%"></div>
+          <div class="sk-line" style="width:72%"></div>
+        </div>
         }
       </div>
       } @else if (items().length === 0) {
@@ -126,24 +138,36 @@
       } @else {
       <div class="feed__body">
         @for (a of items(); track a.id; let i = $index) {
-        <article class="ann-card" [class.ann-card--fijado]="a.fijado" [class.ann-card--importante]="a.importante" [class.ann-card--no-leido]="a.leido_por_mi === false" [attr.data-i]="i">
+        <article class="ann-card" [class.ann-card--fijado]="a.fijado" [class.ann-card--importante]="a.importante"
+          [class.ann-card--no-leido]="a.leido_por_mi === false" [attr.data-i]="i">
 
           <div class="ann-card__badges">
-            @if (a.fijado) { <span class="badge-icon badge-icon--fijado" matTooltip="Fijado" matTooltipPosition="left"><mat-icon>push_pin</mat-icon></span> }
-            @if (a.importante) { <span class="badge-icon badge-icon--importante" matTooltip="Importante" matTooltipPosition="left"><mat-icon>priority_high</mat-icon></span> }
+            @if (a.fijado) {
+            <span class="badge-icon badge-icon--fijado" matTooltip="Fijado"
+              matTooltipPosition="left"><mat-icon>push_pin</mat-icon></span>
+            }
+            @if (a.importante) {
+            <span class="badge-icon badge-icon--importante" matTooltip="Importante"
+              matTooltipPosition="left"><mat-icon>priority_high</mat-icon></span>
+            }
           </div>
 
           <div class="ann-card__content">
             <div class="ann-card__top">
               <div class="ann-card__chips">
-                @for (d of a.destinatarios; track d) { <span class="chip chip--custom">{{ labelDest(d) }}</span> }
+                @for (d of a.destinatarios; track d) {
+                <span class="chip chip--custom">{{ labelDest(d) }}</span>
+                }
               </div>
               <div class="ann-card__meta">
-                @if (a.bimestre_label) { <span class="ann-card__bimestre">{{ a.bimestre_label }}</span> }
+                @if (a.bimestre_label) {
+                <span class="ann-card__bimestre">{{ a.bimestre_label }}</span>
+                }
                 <span class="ann-card__time">{{ a.created_at | date:'d MMM · HH:mm' }}</span>
                 <div class="ann-card__actions">
-                  @if (canDelete() || a.creado_por?.id === userId()) {
-                  <button type="button" class="ann-card__del" (click)="archivar(a)" matTooltip="Archivar"><mat-icon>archive</mat-icon></button>
+                  @if (canDelete() || a.creado_por.id === userId()) {
+                  <button type="button" class="ann-card__del" (click)="archivar(a)"
+                    matTooltip="Archivar"><mat-icon>archive</mat-icon></button>
                   }
                 </div>
               </div>
@@ -168,8 +192,8 @@
           </div>
 
           <div class="ann-card__footer">
-            <div class="ann-card__avatar">{{ a.creado_por?.nombre_completo?.charAt(0) || '?' }}</div>
-            <span class="ann-card__author">{{ a.creado_por?.nombre_completo || 'Desconocido' }}</span>
+            <div class="ann-card__avatar">{{ a.creado_por.nombre_completo.charAt(0) }}</div>
+            <span class="ann-card__author">{{ a.creado_por.nombre_completo }}</span>
             <span class="ann-card__stats">
               <mat-icon>visibility</mat-icon> {{ a.vistas }}
               @if (a.total_archivos > 0) { · <mat-icon>attach_file</mat-icon> {{ a.total_archivos }} }
@@ -199,8 +223,10 @@
     <!-- Notif toolbar -->
     <div class="notif-toolbar">
       <div class="notif-toolbar__filters">
-        <button type="button" class="filter-chip" [class.filter-chip--active]="notifFilter() === 'todas'" (click)="toggleNotifFilter('todas')">Todas</button>
-        <button type="button" class="filter-chip" [class.filter-chip--active]="notifFilter() === 'no_leidas'" (click)="toggleNotifFilter('no_leidas')">No leídas</button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="notifFilter() === 'todas'"
+          (click)="toggleNotifFilter('todas')">Todas</button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="notifFilter() === 'no_leidas'"
+          (click)="toggleNotifFilter('no_leidas')">No leídas</button>
       </div>
       @if (notifUnreadCount() > 0) {
       <button type="button" class="btn-mark-all" (click)="markAllNotifAsRead()">
@@ -214,7 +240,9 @@
     <div class="feed__empty">
       <mat-icon class="feed__empty-icon">notifications_none</mat-icon>
       <p class="feed__empty-title">Sin notificaciones</p>
-      <p class="feed__empty-desc">No tienes notificaciones{{ notifFilter() === 'no_leidas' ? ' sin leer' : '' }}.</p>
+      <p class="feed__empty-desc">
+        No tienes notificaciones{{ notifFilter() === 'no_leidas' ? ' sin leer' : '' }}.
+      </p>
     </div>
     } @else {
     <div class="notif-list">
@@ -230,7 +258,8 @@
         </div>
         <div class="notif-card__actions">
           @if (!n.read) {
-          <button type="button" class="notif-card__read-btn" (click)="markNotifAsRead(n.id, $event)" matTooltip="Marcar como leída">
+          <button type="button" class="notif-card__read-btn" (click)="markNotifAsRead(n.id, $event)"
+            matTooltip="Marcar como leída">
             <mat-icon>check_circle</mat-icon>
           </button>
           }

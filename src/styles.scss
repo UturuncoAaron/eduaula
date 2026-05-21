@@ -684,6 +684,7 @@ td.mat-mdc-cell {
     }
   }
 }
+
 // styles.scss
 .afd-panel {
   .mat-mdc-dialog-container {
@@ -697,23 +698,57 @@ td.mat-mdc-cell {
     padding: 0 !important;
     overflow: hidden;
 
-  // ════════════════════════════════════════════════════════════════
-  // AGREGA ESTO EN TU styles.scss GLOBAL
-  // Quita el padding por defecto de MatDialog para los dos modales
-  // ════════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    // AGREGA ESTO EN TU styles.scss GLOBAL
+    // Quita el padding por defecto de MatDialog para los dos modales
+    // ════════════════════════════════════════════════════════════════
 
-  .seccion-detail-panel,
-  .alumno-notas-panel {
-    .mat-mdc-dialog-container {
-      padding: 0 !important;
-      overflow: hidden;
-      border-radius: 20px !important;
-
-      .mdc-dialog__surface {
-        border-radius: 20px !important;
+    .seccion-detail-panel,
+    .alumno-notas-panel {
+      .mat-mdc-dialog-container {
+        padding: 0 !important;
         overflow: hidden;
+        border-radius: 20px !important;
+
+        .mdc-dialog__surface {
+          border-radius: 20px !important;
+          overflow: hidden;
+        }
       }
     }
   }
 }
+
+// ── Condición final — panel del select (overlay fuera del componente) ─────
+.condicion-panel {
+  min-width: 180px !important;
+
+  .mat-mdc-option {
+    font-size: 13px;
+    font-weight: 500;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      vertical-align: middle;
+
+      &.condicion-pendiente {
+        color: #6b7280;
+      }
+
+      &.condicion-aprobado {
+        color: #388e3c;
+      }
+
+      &.condicion-desaprobado {
+        color: #c62828;
+      }
+
+      &.condicion-retirado {
+        color: #e65100;
+      }
+    }
+  }
 }

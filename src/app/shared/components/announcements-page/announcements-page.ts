@@ -4,7 +4,6 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -95,7 +94,7 @@ const LABELS: Record<string, string> = {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ReactiveFormsModule, DatePipe, RouterLink,
+    ReactiveFormsModule, DatePipe,
     MatIconModule, MatButtonModule, MatDialogModule, MatTooltipModule,
     MatFormFieldModule, MatSelectModule, MatSlideToggleModule,
     MatChipsModule, MatDatepickerModule, MatProgressSpinnerModule,
@@ -114,6 +113,8 @@ export class AnnouncementsPage implements OnInit {
   private notifStore = inject(NotificationsStore);
   private router = inject(Router);
 
+
+
   activeTab = signal<'comunicados' | 'notificaciones'>('comunicados');
   notifFilter = signal<'todas' | 'no_leidas'>('todas');
 
@@ -128,9 +129,8 @@ export class AnnouncementsPage implements OnInit {
     return list;
   });
 
-  iconFor = iconForType;
-  colorFor = colorForType;
-
+  iconFor = (tipo: string) => iconForType(tipo as any);
+  colorFor = (tipo: string) => colorForType(tipo as any);
   items = signal<ComunicadoItem[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
@@ -236,7 +236,7 @@ export class AnnouncementsPage implements OnInit {
   private cargarPeriodos() {
     this.api.get<PeriodoItem[]>('academic/periodos').subscribe({
       next: r => this.periodos.set((r as any).data ?? []),
-      error: () => {},
+      error: () => { },
     });
   }
 
