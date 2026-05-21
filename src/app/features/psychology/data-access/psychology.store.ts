@@ -19,9 +19,8 @@ import { AccountAvailability } from '../../../core/models/appointments';
 
 function unwrapList<T>(payload: T[] | { data?: T[] } | null | undefined): T[] {
   if (Array.isArray(payload)) return payload;
-  if (payload && Array.isArray((payload as { data?: T[] }).data)) {
+  if (payload && Array.isArray((payload as { data?: T[] }).data))
     return (payload as { data: T[] }).data;
-  }
   return [];
 }
 
@@ -70,9 +69,7 @@ export class PsychologyStore {
     this.error.set(null);
     try {
       const res = await firstValueFrom(
-        this.api.get<AssignedStudent[] | { data: AssignedStudent[] }>(
-          'psychology/my-students',
-        ),
+        this.api.get<AssignedStudent[] | { data: AssignedStudent[] }>('psychology/my-students'),
       );
       this.myStudents.set(unwrapList<AssignedStudent>(res.data));
     } catch {
@@ -101,13 +98,7 @@ export class PsychologyStore {
     try {
       const [studentRes, recordsRes] = await Promise.all([
         firstValueFrom(
-          // Usamos el endpoint del directorio de psicología (accesible para
-          // psicóloga / docente / auxiliar / admin). El endpoint antiguo
-          // `users/alumnos/:id` vivía bajo el controller admin y devolvía
-          // 404 para todos los demás roles.
-          this.api.get<AssignedStudent>(
-            `psychology/directory/students/${studentId}`,
-          ),
+          this.api.get<AssignedStudent>(`psychology/directory/students/${studentId}`),
         ),
         firstValueFrom(
           this.api.get<PsychologyRecord[] | { data: PsychologyRecord[] }>(
@@ -116,9 +107,7 @@ export class PsychologyStore {
         ),
       ]);
       this.currentStudent.set(studentRes.data ?? null);
-      this.currentStudentRecords.set(
-        unwrapList<PsychologyRecord>(recordsRes.data),
-      );
+      this.currentStudentRecords.set(unwrapList<PsychologyRecord>(recordsRes.data));
     } catch {
       this.error.set('Error al cargar la ficha del alumno');
     } finally {
@@ -140,19 +129,14 @@ export class PsychologyStore {
     payload: UpdateRecordPayload,
   ): Promise<PsychologyRecord> {
     const res = await firstValueFrom(
-      this.api.patch<PsychologyRecord>(
-        `psychology/records/${recordId}`,
-        payload,
-      ),
+      this.api.patch<PsychologyRecord>(`psychology/records/${recordId}`, payload),
     );
     await this.loadStudentDetailAndRecords(studentId);
     return res.data;
   }
 
   async deleteRecord(recordId: string, studentId: string): Promise<void> {
-    await firstValueFrom(
-      this.api.delete(`psychology/records/${recordId}`),
-    );
+    await firstValueFrom(this.api.delete(`psychology/records/${recordId}`));
     await this.loadStudentDetailAndRecords(studentId);
   }
 
@@ -165,8 +149,7 @@ export class PsychologyStore {
     if (!term) return [];
     const res = await firstValueFrom(
       this.api.get<SearchableParent[] | { data: SearchableParent[] }>(
-        'psychology/directory/parents/search',
-        { q: term },
+        'psychology/directory/parents/search', { q: term },
       ),
     );
     return unwrapList<SearchableParent>(res.data);
@@ -177,26 +160,20 @@ export class PsychologyStore {
     if (!term) return [];
     const res = await firstValueFrom(
       this.api.get<AssignedStudent[] | { data: AssignedStudent[] }>(
-        'psychology/directory/students/search',
-        { q: term },
+        'psychology/directory/students/search', { q: term },
       ),
     );
     return unwrapList<AssignedStudent>(res.data);
   }
 
-  async listStudents(q?: {
-    search?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<{ data: AssignedStudent[]; total: number }> {
+  async listStudents(q?: { search?: string; page?: number; limit?: number }) {
     const params: Record<string, string> = {};
     if (q?.search) params['q'] = q.search;
     if (q?.page) params['page'] = String(q.page);
     if (q?.limit) params['limit'] = String(q.limit);
     const res = await firstValueFrom(
       this.api.get<{ data: AssignedStudent[]; total: number }>(
-        'psychology/directory/students',
-        params,
+        'psychology/directory/students', params,
       ),
     );
     return res.data;
@@ -205,10 +182,7 @@ export class PsychologyStore {
   async listActivePsicologas(query?: string): Promise<Psicologa[]> {
     const params = query ? { q: query } : undefined;
     const res = await firstValueFrom(
-      this.api.get<Psicologa[] | { data: Psicologa[] }>(
-        'psychology/psicologas',
-        params,
-      ),
+      this.api.get<Psicologa[] | { data: Psicologa[] }>('psychology/psicologas', params),
     );
     return unwrapList<Psicologa>(res.data);
   }
@@ -230,9 +204,9 @@ export class PsychologyStore {
     this.loadingInformes.set(true);
     try {
       const res = await firstValueFrom(
-        this.api.get<
-          InformePsicologico[] | { data: InformePsicologico[] }
-        >(`psychology/informes/student/${studentId}`),
+        this.api.get<InformePsicologico[] | { data: InformePsicologico[] }>(
+          `psychology/informes/student/${studentId}`,
+        ),
       );
       this.currentStudentInformes.set(unwrapList<InformePsicologico>(res.data));
     } catch {
@@ -256,33 +230,22 @@ export class PsychologyStore {
     payload: UpdateInformePayload,
   ): Promise<InformePsicologico> {
     const res = await firstValueFrom(
-      this.api.patch<InformePsicologico>(
-        `psychology/informes/${informeId}`,
-        payload,
-      ),
+      this.api.patch<InformePsicologico>(`psychology/informes/${informeId}`, payload),
     );
     await this.loadStudentInformes(studentId);
     return res.data;
   }
 
-  async finalizeInforme(
-    informeId: string,
-    studentId: string,
-  ): Promise<InformePsicologico> {
+  async finalizeInforme(informeId: string, studentId: string): Promise<InformePsicologico> {
     const res = await firstValueFrom(
-      this.api.post<InformePsicologico>(
-        `psychology/informes/${informeId}/finalizar`,
-        {},
-      ),
+      this.api.post<InformePsicologico>(`psychology/informes/${informeId}/finalizar`, {}),
     );
     await this.loadStudentInformes(studentId);
     return res.data;
   }
 
   async deleteInforme(informeId: string, studentId: string): Promise<void> {
-    await firstValueFrom(
-      this.api.delete(`psychology/informes/${informeId}`),
-    );
+    await firstValueFrom(this.api.delete(`psychology/informes/${informeId}`));
     await this.loadStudentInformes(studentId);
   }
 
@@ -292,6 +255,11 @@ export class PsychologyStore {
     );
     return res.data;
   }
+
+  // ════════════════════════════════════════════════════════════
+  // FIRMA
+  // ════════════════════════════════════════════════════════════
+
   async loadMyFirma(): Promise<void> {
     this.loadingFirma.set(true);
     try {
@@ -329,12 +297,6 @@ export class PsychologyStore {
     }
   }
 
-  /**
-   * Descarga el PDF del informe (server-side rendered) y dispara la
-   * descarga del navegador sin abrir el diálogo de impresión. El nombre
-   * del archivo viene en el header `Content-Disposition`; si no lo
-   * encuentra, usa el título del informe como fallback.
-   */
   async downloadInformePdf(informeId: string, fallbackName: string): Promise<void> {
     const blob = await firstValueFrom(
       this.api.getBlob(`reports/psychology/informes/${informeId}/pdf`),
@@ -352,27 +314,16 @@ export class PsychologyStore {
   // ════════════════════════════════════════════════════════════
   // ARCHIVOS (fichas y tests subidos a R2)
   // ════════════════════════════════════════════════════════════
-  //
-  // Endpoints en el backend:
-  //   POST   /psychology/archivos/student/:studentId      (multipart)
-  //   GET    /psychology/archivos/student/:studentId
-  //   GET    /psychology/archivos/:id/url                 (URL firmada 1h)
-  //   DELETE /psychology/archivos/:id
-  //
-  // El estado se separa en derivados (`currentStudentFichas` y
-  // `currentStudentTests`) para que el template no tenga que filtrar.
 
   async loadStudentArchivos(studentId: string): Promise<void> {
     this.loadingArchivos.set(true);
     try {
       const res = await firstValueFrom(
-        this.api.get<
-          ArchivoPsicologico[] | { data: ArchivoPsicologico[] }
-        >(`psychology/archivos/student/${studentId}`),
+        this.api.get<ArchivoPsicologico[] | { data: ArchivoPsicologico[] }>(
+          `psychology/archivos/student/${studentId}`,
+        ),
       );
-      this.currentStudentArchivos.set(
-        unwrapList<ArchivoPsicologico>(res.data),
-      );
+      this.currentStudentArchivos.set(unwrapList<ArchivoPsicologico>(res.data));
     } catch {
       this.error.set('Error al cargar archivos del alumno');
     } finally {
@@ -385,8 +336,10 @@ export class PsychologyStore {
     fd.append('file', payload.file);
     fd.append('categoria', payload.categoria);
     fd.append('nombre', payload.nombre);
-    if (payload.descripcion) fd.append('descripcion', payload.descripcion);
     fd.append('confidencial', String(payload.confidencial));
+    if (payload.descripcion) fd.append('descripcion', payload.descripcion);
+    // citaId: presente si el upload viene desde un sub-tab de cita
+    if ((payload as any).citaId) fd.append('citaId', (payload as any).citaId);
 
     const res = await firstValueFrom(
       this.api.post<ArchivoPsicologico>(
@@ -394,7 +347,6 @@ export class PsychologyStore {
         fd,
       ),
     );
-    // Refresca toda la lista (consistente con record/informe)
     await this.loadStudentArchivos(payload.studentId);
     return res.data;
   }
@@ -407,9 +359,7 @@ export class PsychologyStore {
   }
 
   async deleteArchivo(archivoId: string, studentId: string): Promise<void> {
-    await firstValueFrom(
-      this.api.delete(`psychology/archivos/${archivoId}`),
-    );
+    await firstValueFrom(this.api.delete(`psychology/archivos/${archivoId}`));
     await this.loadStudentArchivos(studentId);
   }
 }

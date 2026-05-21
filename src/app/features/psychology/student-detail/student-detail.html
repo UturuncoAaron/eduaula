@@ -1,362 +1,670 @@
-<div class="student-detail">
+<div class="sd-layout fade-in">
 
-    <app-page-header title="Ficha del alumno" subtitle="Historial psicológico y anotaciones"
-        backRoute="/dashboard/psicologa/alumnos">
-    </app-page-header>
-
-    @if (store.loadingRecords()) {
-    <div class="sd-state">
-        <mat-spinner diameter="36" />
-        <span>Cargando información clínica...</span>
+    <!-- ── Volver ────────────────────────────────────────────────── -->
+    <div class="sd-back">
+        <button mat-button routerLink="/dashboard/psicologa/alumnos">
+            <mat-icon>arrow_back</mat-icon>
+            Mis Alumnos
+        </button>
     </div>
-    } @else if (store.currentStudent(); as s) {
 
-    <!-- ═══ Hero ═════════════════════════════════════════════ -->
-    <section class="sd-hero" aria-label="Perfil del alumno">
-        <div class="sd-hero__identity">
-            <div class="sd-hero__avatar" [attr.aria-label]="fullName(s)">
-                {{ initials(s) }}
+    <!-- ── Cargando perfil ──────────────────────────────────────── -->
+    @if (loadingProfile()) {
+    <div class="sd-fullstate">
+        <mat-spinner diameter="44" />
+        <p>Cargando ficha del alumno...</p>
+    </div>
+    }
+
+    <!-- ── Perfil cargado ───────────────────────────────────────── -->
+    @else if (profile(); as p) {
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CABECERA FIJA
+    ════════════════════════════════════════════════════════════ -->
+    <header class="sd-header">
+
+        <div class="sd-header__identity">
+            @if (p.fotoUrl) {
+            <img class="sd-header__avatar sd-header__avatar--img" [src]="p.fotoUrl" [alt]="fullName(p)"
+                loading="lazy" />
+            } @else {
+            <div class="sd-header__avatar sd-header__avatar--initials" aria-hidden="true">
+                {{ initials(p) }}
             </div>
-            <div class="sd-hero__info">
-                <h2 class="sd-hero__name">{{ fullName(s) }}</h2>
-                <div class="sd-hero__meta">
-                    <span class="sd-chip sd-chip--code">{{ s.codigo_estudiante }}</span>
-                    @if (s.email) {
-                    <span class="sd-hero__contact">
-                        <mat-icon aria-hidden="true">mail</mat-icon>
-                        <a [href]="'mailto:' + s.email">{{ s.email }}</a>
+            }
+
+            <div class="sd-header__info">
+                <h1 class="sd-header__name">{{ fullName(p) }}</h1>
+                <div class="sd-header__meta">
+                    <span class="sd-badge sd-badge--code">
+                        <mat-icon>badge</mat-icon>
+                        {{ p.codigoEstudiante }}
+                    </span>
+                    @if (p.grado) {
+                    <span class="sd-badge sd-badge--grado">
+                        <mat-icon>school</mat-icon>
+                        {{ gradoLabel(p) }}
                     </span>
                     }
-                    @if (s.telefono) {
-                    <span class="sd-hero__contact">
-                        <mat-icon aria-hidden="true">call</mat-icon>
-                        <a [href]="'tel:' + s.telefono">{{ s.telefono }}</a>
+                    @if (p.enSeguimiento) {
+                    <span class="sd-badge sd-badge--seguimiento">
+                        <mat-icon>psychology</mat-icon>
+                        En seguimiento desde {{ p.desde | date:'mediumDate' }}
+                    </span>
+                    } @else {
+                    <span class="sd-badge sd-badge--nuevo">
+                        <mat-icon>person_add</mat-icon>
+                        Sin seguimiento activo
                     </span>
                     }
                 </div>
             </div>
         </div>
 
-        <div class="sd-hero__actions">
-            <button mat-stroked-button (click)="openUploadArchivo('ficha')"
-                matTooltip="Subir archivo de ficha (PDF, imagen, etc.)">
-                <mat-icon>folder_special</mat-icon>
-                <span>Agregar ficha</span>
-            </button>
-            <button mat-stroked-button (click)="openUploadArchivo('test')" matTooltip="Subir resultado de un test">
-                <mat-icon>science</mat-icon>
-                <span>Agregar test</span>
-            </button>
-            <button mat-flat-button color="primary" (click)="openCreateInforme()"
-                matTooltip="Crear un informe psicológico">
-                <mat-icon>description</mat-icon>
-                <span>Nuevo informe</span>
+        <div class="sd-header__actions">
+            <button mat-flat-button color="primary" (click)="openNuevaCita()">
+                <mat-icon>event_available</mat-icon>
+                Nueva cita
             </button>
         </div>
-    </section>
+    </header>
 
-    <!-- ═══ KPI stats ═══════════════════════════════════════ -->
-    <section class="sd-stats" aria-label="Resumen del alumno">
-        <article class="sd-stat">
-            <mat-icon class="sd-stat__icon sd-stat__icon--fichas" aria-hidden="true">edit_note</mat-icon>
-            <div>
-                <div class="sd-stat__value">{{ fichasCount() }}</div>
-                <div class="sd-stat__label">Nota{{ fichasCount() === 1 ? '' : 's' }}</div>
-            </div>
-        </article>
-        <article class="sd-stat">
-            <mat-icon class="sd-stat__icon sd-stat__icon--archivos" aria-hidden="true">folder_special</mat-icon>
-            <div>
-                <div class="sd-stat__value">{{ fichasArchivosCount() }}</div>
-                <div class="sd-stat__label">Ficha{{ fichasArchivosCount() === 1 ? '' : 's' }}</div>
-            </div>
-        </article>
-        <article class="sd-stat">
-            <mat-icon class="sd-stat__icon sd-stat__icon--tests" aria-hidden="true">science</mat-icon>
-            <div>
-                <div class="sd-stat__value">{{ testsArchivosCount() }}</div>
-                <div class="sd-stat__label">Test{{ testsArchivosCount() === 1 ? '' : 's' }}</div>
-            </div>
-        </article>
-        <article class="sd-stat">
-            <mat-icon class="sd-stat__icon sd-stat__icon--informes" aria-hidden="true">description</mat-icon>
-            <div>
-                <div class="sd-stat__value">{{ informesCount() }}</div>
-                <div class="sd-stat__label">Informe{{ informesCount() === 1 ? '' : 's' }}</div>
-            </div>
-        </article>
-        <article class="sd-stat">
-            <mat-icon class="sd-stat__icon sd-stat__icon--final" aria-hidden="true">verified</mat-icon>
-            <div>
-                <div class="sd-stat__value">{{ informesFinalizadosCount() }}</div>
-                <div class="sd-stat__label">Finalizado{{ informesFinalizadosCount() === 1 ? '' : 's' }}</div>
-            </div>
-        </article>
-    </section>
+    <!-- ═══════════════════════════════════════════════════════════
+         TABS PRINCIPALES
+    ════════════════════════════════════════════════════════════ -->
+    <mat-tab-group class="sd-tabs" animationDuration="150ms" [disableRipple]="false"
+        (selectedIndexChange)="onTabChange($event)">
 
-    <!-- ═══ Notas (fichas de texto) ═════════════════════════ -->
-    <section class="sd-section" aria-labelledby="sd-fichas-title">
-        <header class="sd-section__header">
-            <div>
-                <h3 id="sd-fichas-title" class="sd-section__title">Notas registradas</h3>
-                <p class="sd-section__subtitle">Anotaciones rápidas y observaciones clínicas.</p>
-            </div>
-            <button mat-stroked-button (click)="openCreate()" class="sd-section__cta">
-                <mat-icon>add</mat-icon>
-                <span>Añadir</span>
-            </button>
-        </header>
+        <!-- ══════════════════════════════════════════════════════
+           TAB 0 — FICHAS (notas de texto generales)
+      ══════════════════════════════════════════════════════ -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon class="sd-tab-icon">edit_note</mat-icon>
+                Fichas
+                @if (fichasCount() > 0) {
+                <span class="sd-tab-badge">{{ fichasCount() }}</span>
+                }
+            </ng-template>
 
-        @if (fichasCount() === 0) {
-        <app-empty-state icon="edit_note" title="Sin notas"
-            message="Aún no se han registrado notas para este alumno." />
-        } @else {
-        <ul class="sd-cards">
-            @for (r of store.currentStudentRecords(); track r.id) {
-            <li class="sd-card sd-card--ficha" [attr.data-cat]="r.categoria">
-                <div class="sd-card__body">
-                    <div class="sd-card__chips">
-                        <span class="sd-chip sd-chip--cat" [attr.data-cat]="r.categoria">
-                            {{ r.categoria }}
-                        </span>
+            @if (tabVisited()[0]) {
+            <div class="sd-tab-content">
+
+                <div class="sd-tab-header">
+                    <div>
+                        <h3 class="sd-tab-title">Notas y observaciones</h3>
+                        <p class="sd-tab-subtitle">
+                            Anotaciones clínicas generales, sin asociar a una sesión específica.
+                        </p>
                     </div>
-                    <p class="sd-card__text">{{ r.contenido }}</p>
-                    <p class="sd-card__meta">
-                        <span>
+                    <button mat-flat-button color="primary" (click)="openCreateRecord()">
+                        <mat-icon>add</mat-icon>
+                        Nueva ficha
+                    </button>
+                </div>
+
+                @if (loadingFichas()) {
+                <div class="sd-inline-state">
+                    <mat-spinner diameter="28" />
+                    <span>Cargando fichas...</span>
+                </div>
+                } @else if (fichasCount() === 0) {
+                <app-empty-state icon="edit_note" title="Sin fichas registradas"
+                    message="Agrega la primera nota clínica para este alumno." />
+                } @else {
+                <ul class="sd-timeline" role="list" aria-label="Fichas del alumno">
+                    @for (r of fichas(); track r.id) {
+                    <li class="sd-timeline__item">
+                        <span class="sd-timeline__dot" [attr.data-cat]="r.categoria" aria-hidden="true"></span>
+                        <article class="sd-ficha-card" [attr.data-cat]="r.categoria">
+                            <header class="sd-ficha-card__header">
+                                <span class="sd-chip sd-chip--cat" [attr.data-cat]="r.categoria">
+                                    {{ r.categoria }}
+                                </span>
+                                <time class="sd-ficha-card__date" [attr.datetime]="r.createdAt">
+                                    {{ r.createdAt | date:'d MMM yyyy, HH:mm' }}
+                                </time>
+                                <div class="sd-ficha-card__actions">
+                                    <button mat-icon-button (click)="openEditRecord(r)" matTooltip="Editar ficha"
+                                        aria-label="Editar">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button mat-icon-button (click)="deleteRecord(r)" matTooltip="Eliminar ficha"
+                                        class="btn-danger" aria-label="Eliminar">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </header>
+                            <p class="sd-ficha-card__content">{{ r.contenido }}</p>
+                        </article>
+                    </li>
+                    }
+                </ul>
+                }
+
+            </div>
+            }
+        </mat-tab>
+
+        <!-- ══════════════════════════════════════════════════════
+           TAB 1 — INFORMES (documentos formales generales)
+      ══════════════════════════════════════════════════════ -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon class="sd-tab-icon">description</mat-icon>
+                Informes
+                @if (informesCount() > 0) {
+                <span class="sd-tab-badge">{{ informesCount() }}</span>
+                }
+            </ng-template>
+
+            @if (tabVisited()[1]) {
+            <div class="sd-tab-content">
+
+                <div class="sd-tab-header">
+                    <div>
+                        <h3 class="sd-tab-title">Informes psicológicos</h3>
+                        <p class="sd-tab-subtitle">
+                            Documentos formales independientes de una sesión.
+                            Los borradores son editables; los finalizados son solo lectura.
+                        </p>
+                    </div>
+                    <button mat-flat-button color="primary" (click)="openCreateInforme()">
+                        <mat-icon>add</mat-icon>
+                        Nuevo informe
+                    </button>
+                </div>
+
+                @if (loadingInformes()) {
+                <div class="sd-inline-state">
+                    <mat-spinner diameter="28" />
+                    <span>Cargando informes...</span>
+                </div>
+                } @else if (informesCount() === 0) {
+                <app-empty-state icon="description" title="Sin informes"
+                    message="No hay informes redactados para este alumno." />
+                } @else {
+                <ul class="sd-card-list" role="list">
+                    @for (i of informes(); track i.id) {
+                    <li class="sd-informe-card" [class.is-final]="i.estado === 'finalizado'"
+                        [class.is-conf]="i.confidencial">
+
+                        <div class="sd-informe-card__chips">
+                            <span class="sd-chip sd-chip--tipo" [attr.data-tipo]="i.tipo">
+                                {{ tipoLabels[i.tipo] }}
+                            </span>
+                            <span class="sd-chip" [class.sd-chip--final]="i.estado === 'finalizado'"
+                                [class.sd-chip--draft]="i.estado === 'borrador'">
+                                {{ i.estado === 'finalizado' ? 'Finalizado' : 'Borrador' }}
+                            </span>
+                            @if (i.confidencial) {
+                            <span class="sd-chip sd-chip--conf">
+                                <mat-icon>lock</mat-icon>
+                                Confidencial
+                            </span>
+                            }
+                        </div>
+
+                        <h4 class="sd-informe-card__title">{{ i.titulo }}</h4>
+
+                        <p class="sd-informe-card__meta">
                             <mat-icon aria-hidden="true">schedule</mat-icon>
-                            {{ r.createdAt | date:'medium' }}
-                        </span>
-                    </p>
-                </div>
-                <div class="sd-card__actions">
-                    <button mat-icon-button (click)="openEdit(r)" aria-label="Editar nota" matTooltip="Editar">
-                        <mat-icon>edit</mat-icon>
-                    </button>
-                    <button mat-icon-button (click)="delete(r)" class="sd-danger" aria-label="Eliminar nota"
-                        matTooltip="Eliminar">
-                        <mat-icon>delete</mat-icon>
-                    </button>
-                </div>
-            </li>
-            }
-        </ul>
-        }
-    </section>
+                            {{ (i.finalizadoAt || i.createdAt) | date:'mediumDate' }}
+                            @if (i.derivadoA) {
+                            <span class="sd-informe-card__derivado">
+                                <mat-icon aria-hidden="true">forward</mat-icon>
+                                Derivado a: <strong>{{ i.derivadoA }}</strong>
+                            </span>
+                            }
+                        </p>
 
-    <!-- ═══ Fichas (archivos subidos) ═══════════════════════ -->
-    <section class="sd-section" aria-labelledby="sd-archivos-fichas-title">
-        <header class="sd-section__header">
-            <div>
-                <h3 id="sd-archivos-fichas-title" class="sd-section__title">Fichas (archivos)</h3>
-                <p class="sd-section__subtitle">
-                    Documentos cargados: anamnesis, fichas externas, derivaciones, etc.
-                </p>
-            </div>
-            <button mat-stroked-button (click)="openUploadArchivo('ficha')" class="sd-section__cta">
-                <mat-icon>upload</mat-icon>
-                <span>Subir</span>
-            </button>
-        </header>
-
-        @if (store.loadingArchivos()) {
-        <div class="sd-state sd-state--inline">
-            <mat-spinner diameter="24" />
-            <span>Cargando archivos…</span>
-        </div>
-        } @else if (fichasArchivosCount() === 0) {
-        <app-empty-state icon="folder_special" title="Sin fichas cargadas"
-            message="Aún no se han subido fichas para este alumno." />
-        } @else {
-        <ul class="sd-files">
-            @for (a of store.currentStudentFichas(); track a.id) {
-            <li class="sd-file" [class.is-confidential]="a.confidencial">
-                <mat-icon class="sd-file__icon" aria-hidden="true">{{ archivoIcon(a) }}</mat-icon>
-                <div class="sd-file__body">
-                    <div class="sd-file__title">
-                        <span class="sd-file__name">{{ a.nombre }}</span>
-                        @if (a.confidencial) {
-                        <span class="sd-chip sd-chip--conf" matTooltip="Solo el alumno lo verá">
-                            <mat-icon aria-hidden="true">lock</mat-icon>
-                            Confidencial
-                        </span>
-                        }
-                    </div>
-                    @if (a.descripcion) {
-                    <p class="sd-file__desc">{{ a.descripcion }}</p>
+                        <div class="sd-informe-card__actions">
+                            <a mat-icon-button [routerLink]="['/psicologa/informes', i.id, 'print']" target="_blank"
+                                rel="noopener" matTooltip="Ver / Imprimir">
+                                <mat-icon>print</mat-icon>
+                            </a>
+                            @if (i.estado === 'borrador') {
+                            <button mat-icon-button (click)="openEditInforme(i)" matTooltip="Editar">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button (click)="finalizeInforme(i)" matTooltip="Finalizar"
+                                class="btn-success">
+                                <mat-icon>check_circle</mat-icon>
+                            </button>
+                            <button mat-icon-button (click)="deleteInforme(i)" matTooltip="Eliminar" class="btn-danger">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                            }
+                        </div>
+                    </li>
                     }
-                    <p class="sd-file__meta">
-                        <span>{{ archivoSize(a) }}</span>
-                        <span>·</span>
-                        <span>{{ a.createdAt | date:'mediumDate' }}</span>
-                        @if (a.nombreOriginal && a.nombreOriginal !== a.nombre) {
-                        <span>·</span>
-                        <span class="sd-file__orig">{{ a.nombreOriginal }}</span>
-                        }
-                    </p>
-                </div>
-                <div class="sd-file__actions">
-                    <button mat-icon-button (click)="downloadArchivo(a)" aria-label="Descargar" matTooltip="Descargar">
-                        <mat-icon>download</mat-icon>
-                    </button>
-                    <button mat-icon-button (click)="deleteArchivo(a)" class="sd-danger" aria-label="Eliminar"
-                        matTooltip="Eliminar">
-                        <mat-icon>delete</mat-icon>
-                    </button>
-                </div>
-            </li>
-            }
-        </ul>
-        }
-    </section>
+                </ul>
+                }
 
-    <!-- ═══ Tests (archivos subidos) ════════════════════════ -->
-    <section class="sd-section" aria-labelledby="sd-archivos-tests-title">
-        <header class="sd-section__header">
-            <div>
-                <h3 id="sd-archivos-tests-title" class="sd-section__title">Tests aplicados</h3>
-                <p class="sd-section__subtitle">
-                    Resultados de pruebas estandarizadas (WISC, Raven, MMPI, escalas, etc.).
-                </p>
             </div>
-            <button mat-stroked-button (click)="openUploadArchivo('test')" class="sd-section__cta">
-                <mat-icon>upload</mat-icon>
-                <span>Subir</span>
-            </button>
-        </header>
-
-        @if (testsArchivosCount() === 0) {
-        <app-empty-state icon="science" title="Sin tests cargados"
-            message="Aún no se han subido resultados de tests para este alumno." />
-        } @else {
-        <ul class="sd-files">
-            @for (a of store.currentStudentTests(); track a.id) {
-            <li class="sd-file" [class.is-confidential]="a.confidencial">
-                <mat-icon class="sd-file__icon" aria-hidden="true">{{ archivoIcon(a) }}</mat-icon>
-                <div class="sd-file__body">
-                    <div class="sd-file__title">
-                        <span class="sd-file__name">{{ a.nombre }}</span>
-                        @if (a.confidencial) {
-                        <span class="sd-chip sd-chip--conf" matTooltip="Solo el alumno lo verá">
-                            <mat-icon aria-hidden="true">lock</mat-icon>
-                            Confidencial
-                        </span>
-                        }
-                    </div>
-                    @if (a.descripcion) {
-                    <p class="sd-file__desc">{{ a.descripcion }}</p>
-                    }
-                    <p class="sd-file__meta">
-                        <span>{{ archivoSize(a) }}</span>
-                        <span>·</span>
-                        <span>{{ a.createdAt | date:'mediumDate' }}</span>
-                    </p>
-                </div>
-                <div class="sd-file__actions">
-                    <button mat-icon-button (click)="downloadArchivo(a)" aria-label="Descargar" matTooltip="Descargar">
-                        <mat-icon>download</mat-icon>
-                    </button>
-                    <button mat-icon-button (click)="deleteArchivo(a)" class="sd-danger" aria-label="Eliminar"
-                        matTooltip="Eliminar">
-                        <mat-icon>delete</mat-icon>
-                    </button>
-                </div>
-            </li>
             }
-        </ul>
-        }
-    </section>
+        </mat-tab>
 
-    <!-- ═══ Informes ════════════════════════════════════════ -->
-    <section class="sd-section" aria-labelledby="sd-informes-title">
-        <header class="sd-section__header">
-            <div>
-                <h3 id="sd-informes-title" class="sd-section__title">Informes</h3>
-                <p class="sd-section__subtitle">
-                    Documentos formales. Los borradores se pueden editar y finalizar;
-                    los finalizados son solo lectura.
-                </p>
-            </div>
-            <button mat-stroked-button (click)="openCreateInforme()" class="sd-section__cta">
-                <mat-icon>description</mat-icon>
-                <span>Nuevo</span>
-            </button>
-        </header>
+        <!-- ══════════════════════════════════════════════════════
+           TAB 2 — ARCHIVOS (fichas y tests subidos, generales)
+      ══════════════════════════════════════════════════════ -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon class="sd-tab-icon">folder_open</mat-icon>
+                Archivos
+                @if (totalArchivos() > 0) {
+                <span class="sd-tab-badge">{{ totalArchivos() }}</span>
+                }
+            </ng-template>
 
-        @if (store.loadingInformes()) {
-        <div class="sd-state sd-state--inline">
-            <mat-spinner diameter="24" />
-            <span>Cargando informes…</span>
-        </div>
-        } @else if (informesCount() === 0) {
-        <app-empty-state icon="description" title="Sin informes"
-            message="Aún no se han elaborado informes para este alumno." />
-        } @else {
-        <ul class="sd-cards">
-            @for (i of store.currentStudentInformes(); track i.id) {
-            <li class="sd-card sd-card--informe" [class.is-final]="i.estado === 'finalizado'"
-                [class.is-confidential]="i.confidencial">
-                <div class="sd-card__body">
-                    <div class="sd-card__chips">
-                        <span class="sd-chip sd-chip--tipo" [attr.data-tipo]="i.tipo">
-                            {{ tipoLabels[i.tipo] }}
-                        </span>
-                        <span class="sd-chip sd-chip--estado" [class.sd-chip--estado-final]="i.estado === 'finalizado'"
-                            [class.sd-chip--estado-draft]="i.estado === 'borrador'">
-                            {{ i.estado === 'finalizado' ? 'Finalizado' : 'Borrador' }}
-                        </span>
-                        @if (i.confidencial) {
-                        <span class="sd-chip sd-chip--conf" matTooltip="Solo visible para la psicóloga y el alumno">
-                            <mat-icon aria-hidden="true">lock</mat-icon>
-                            Confidencial
-                        </span>
-                        }
+            @if (tabVisited()[2]) {
+            <div class="sd-tab-content">
+
+                <!-- Fichas (documentos) -->
+                <section class="sd-archivos-group">
+                    <div class="sd-tab-header">
+                        <div>
+                            <h3 class="sd-tab-title">Fichas (documentos)</h3>
+                            <p class="sd-tab-subtitle">
+                                Anamnesis, fichas externas, derivaciones, etc.
+                            </p>
+                        </div>
+                        <button mat-stroked-button (click)="openUploadArchivo('ficha')">
+                            <mat-icon>upload</mat-icon>
+                            Subir ficha
+                        </button>
                     </div>
 
-                    <h4 class="sd-card__title">{{ i.titulo }}</h4>
-
-                    <p class="sd-card__meta">
-                        <span>
-                            <mat-icon aria-hidden="true">schedule</mat-icon>
-                            {{ (i.finalizadoAt ?? i.createdAt) | date:'mediumDate' }}
-                        </span>
-                        @if (i.derivadoA) {
-                        <span class="sd-card__meta-derivado">
-                            <mat-icon aria-hidden="true">forward</mat-icon>
-                            Derivado a: <strong>{{ i.derivadoA }}</strong>
-                        </span>
+                    @if (loadingArchivos()) {
+                    <div class="sd-inline-state">
+                        <mat-spinner diameter="24" />
+                    </div>
+                    } @else if (fichasArchivosCount() === 0) {
+                    <app-empty-state icon="folder_special" title="Sin fichas"
+                        message="No se han subido fichas para este alumno." />
+                    } @else {
+                    <ul class="sd-file-list" role="list">
+                        @for (a of fichaArchivos(); track a.id) {
+                        <ng-container *ngTemplateOutlet="archivoItem; context: { $implicit: a }" />
                         }
-                    </p>
-                </div>
-
-                <div class="sd-card__actions">
-                    <a mat-icon-button [routerLink]="['/psicologa/informes', i.id, 'print']" target="_blank"
-                        rel="noopener" aria-label="Imprimir / Guardar como PDF"
-                        matTooltip="Imprimir / Guardar como PDF">
-                        <mat-icon>print</mat-icon>
-                    </a>
-                    @if (i.estado === 'borrador') {
-                    <button mat-icon-button (click)="openEditInforme(i)" aria-label="Editar" matTooltip="Editar">
-                        <mat-icon>edit</mat-icon>
-                    </button>
-                    <button mat-icon-button (click)="finalizeInforme(i)" aria-label="Finalizar" matTooltip="Finalizar"
-                        class="sd-success">
-                        <mat-icon>check_circle</mat-icon>
-                    </button>
-                    <button mat-icon-button (click)="deleteInforme(i)" aria-label="Eliminar" matTooltip="Eliminar"
-                        class="sd-danger">
-                        <mat-icon>delete</mat-icon>
-                    </button>
+                    </ul>
                     }
-                </div>
-            </li>
-            }
-        </ul>
-        }
-    </section>
+                </section>
 
-    } @else {
-    <app-empty-state icon="error_outline" title="No se pudo cargar la ficha"
-        message="Verifica que el alumno esté asignado a tu cargo." />
+                <!-- Tests -->
+                <section class="sd-archivos-group">
+                    <div class="sd-tab-header">
+                        <div>
+                            <h3 class="sd-tab-title">Tests aplicados</h3>
+                            <p class="sd-tab-subtitle">
+                                WISC, Raven, MMPI, escalas y pruebas estandarizadas.
+                            </p>
+                        </div>
+                        <button mat-stroked-button (click)="openUploadArchivo('test')">
+                            <mat-icon>upload</mat-icon>
+                            Subir test
+                        </button>
+                    </div>
+
+                    @if (testsArchivosCount() === 0) {
+                    <app-empty-state icon="science" title="Sin tests"
+                        message="No se han subido tests para este alumno." />
+                    } @else {
+                    <ul class="sd-file-list" role="list">
+                        @for (a of testArchivos(); track a.id) {
+                        <ng-container *ngTemplateOutlet="archivoItem; context: { $implicit: a }" />
+                        }
+                    </ul>
+                    }
+                </section>
+
+            </div>
+            }
+        </mat-tab>
+
+        <!-- ══════════════════════════════════════════════════════
+           TAB 3 — CITAS (historial con acordeón)
+      ══════════════════════════════════════════════════════ -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon class="sd-tab-icon">calendar_month</mat-icon>
+                Citas
+                @if (totalCitas() > 0) {
+                <span class="sd-tab-badge">{{ totalCitas() }}</span>
+                }
+            </ng-template>
+
+            @if (tabVisited()[3]) {
+            <div class="sd-tab-content">
+
+                <div class="sd-tab-header">
+                    <div>
+                        <h3 class="sd-tab-title">Historial de citas</h3>
+                        <p class="sd-tab-subtitle">
+                            Las citas realizadas incluyen fichas, archivos e informe de sesión.
+                        </p>
+                    </div>
+                    <button mat-flat-button color="primary" (click)="openNuevaCita()">
+                        <mat-icon>event_available</mat-icon>
+                        Nueva cita
+                    </button>
+                </div>
+
+                @if (loadingCitas()) {
+                <div class="sd-inline-state">
+                    <mat-spinner diameter="28" />
+                    <span>Cargando citas...</span>
+                </div>
+                } @else if (citas().length === 0) {
+                <app-empty-state icon="calendar_month" title="Sin citas registradas"
+                    message="No hay citas en el historial de este alumno." />
+                } @else {
+                <mat-accordion class="sd-accordion" [multi]="false">
+
+                    @for (cita of citas(); track cita.id) {
+                    <mat-expansion-panel class="sd-cita-panel" [class.is-realizada]="cita.estado === 'realizada'"
+                        [class.is-activa]="esFuturaOPendiente(cita)" [class.is-cancelada]="esCancelada(cita)"
+                        (opened)="onCitaExpand(cita)">
+
+                        <!-- ── Cabecera del acordeón ─── -->
+                        <mat-expansion-panel-header collapsedHeight="72px" expandedHeight="72px">
+                            <mat-panel-title class="sd-cita-header__title">
+                                <span class="sd-cita-header__date">
+                                    <mat-icon aria-hidden="true">schedule</mat-icon>
+                                    {{ cita.scheduledAt | date:'d MMM yyyy, HH:mm' }}
+                                </span>
+                                <span class="sd-cita-header__motivo">{{ cita.motivo }}</span>
+                            </mat-panel-title>
+                            <mat-panel-description class="sd-cita-header__desc">
+                                <span class="sd-chip sd-chip--tipo-cita" [attr.data-tipo]="cita.tipo">
+                                    {{ citaTipoLabels[cita.tipo] ?? cita.tipo }}
+                                </span>
+                                <span class="sd-chip sd-chip--estado-cita" [attr.data-estado]="cita.estado">
+                                    {{ citaEstadoLabels[cita.estado] ?? cita.estado }}
+                                </span>
+                            </mat-panel-description>
+                        </mat-expansion-panel-header>
+
+                        <!-- ── Cuerpo del acordeón ─── -->
+
+                        <!-- Pendiente / Confirmada (futura) -->
+                        @if (esFuturaOPendiente(cita)) {
+                        <div class="sd-cita-body sd-cita-body--pending">
+                            <div class="sd-cita-notice">
+                                <mat-icon aria-hidden="true">info</mat-icon>
+                                <p>
+                                    El contenido de sesión se habilita tras marcar la cita
+                                    como <strong>realizada</strong>.
+                                </p>
+                            </div>
+                            <div class="sd-cita-meta">
+                                <span><mat-icon>timer</mat-icon> {{ cita.durationMin }} min</span>
+                                <span><mat-icon>place</mat-icon> {{ cita.modalidad }}</span>
+                            </div>
+                            @if (cita.priorNotes) {
+                            <p class="sd-cita-notes">
+                                <strong>Notas previas:</strong> {{ cita.priorNotes }}
+                            </p>
+                            }
+                            <div class="sd-cita-body__actions">
+                                <button mat-stroked-button (click)="marcarRealizada(cita)">
+                                    <mat-icon>check_circle</mat-icon>
+                                    Marcar como realizada
+                                </button>
+                            </div>
+                        </div>
+                        }
+
+                        <!-- Cancelada / No asistió / Rechazada -->
+                        @else if (esCancelada(cita)) {
+                        <div class="sd-cita-body sd-cita-body--cancelled">
+                            <div class="sd-cita-meta">
+                                <span><mat-icon>timer</mat-icon> {{ cita.durationMin }} min</span>
+                                <span><mat-icon>place</mat-icon> {{ cita.modalidad }}</span>
+                            </div>
+                            @if (cita.priorNotes) {
+                            <p class="sd-cita-notes">
+                                <strong>Notas:</strong> {{ cita.priorNotes }}
+                            </p>
+                            }
+                        </div>
+                        }
+
+                        <!-- Realizada: 3 sub-tabs con contenido de sesión -->
+                        @else if (cita.estado === 'realizada') {
+                        @let detail = getCitaDetail(cita.id);
+
+                        @if (detail.loading) {
+                        <div class="sd-inline-state sd-inline-state--sm">
+                            <mat-spinner diameter="22" />
+                            <span>Cargando sesión...</span>
+                        </div>
+                        } @else {
+                        <mat-tab-group class="sd-cita-tabs" animationDuration="100ms" [disableRipple]="true">
+
+                            <!-- Sub-tab Fichas -->
+                            <mat-tab>
+                                <ng-template mat-tab-label>
+                                    <mat-icon class="sd-subtab-icon">edit_note</mat-icon>
+                                    Fichas
+                                    @if (detail.fichas.length > 0) {
+                                    <span class="sd-tab-badge sd-tab-badge--sm">
+                                        {{ detail.fichas.length }}
+                                    </span>
+                                    }
+                                </ng-template>
+                                <div class="sd-cita-tab-body">
+                                    @if (detail.fichas.length === 0) {
+                                    <div class="sd-cita-empty">
+                                        <mat-icon aria-hidden="true">edit_note</mat-icon>
+                                        <p>Sin fichas para esta sesión</p>
+                                        <button mat-stroked-button (click)="openCreateRecord(cita.id)">
+                                            <mat-icon>add</mat-icon>
+                                            Agregar ficha
+                                        </button>
+                                    </div>
+                                    } @else {
+                                    <div class="sd-cita-tab-toolbar">
+                                        <button mat-stroked-button (click)="openCreateRecord(cita.id)">
+                                            <mat-icon>add</mat-icon>
+                                            Agregar ficha
+                                        </button>
+                                    </div>
+                                    <ul class="sd-timeline sd-timeline--compact" role="list">
+                                        @for (r of detail.fichas; track r.id) {
+                                        <li class="sd-timeline__item">
+                                            <span class="sd-timeline__dot" [attr.data-cat]="r.categoria"
+                                                aria-hidden="true"></span>
+                                            <article class="sd-ficha-card sd-ficha-card--compact"
+                                                [attr.data-cat]="r.categoria">
+                                                <header class="sd-ficha-card__header">
+                                                    <span class="sd-chip sd-chip--cat" [attr.data-cat]="r.categoria">
+                                                        {{ r.categoria }}
+                                                    </span>
+                                                    <time class="sd-ficha-card__date">
+                                                        {{ r.createdAt | date:'d MMM, HH:mm' }}
+                                                    </time>
+                                                    <div class="sd-ficha-card__actions">
+                                                        <button mat-icon-button (click)="openEditRecord(r)"
+                                                            matTooltip="Editar">
+                                                            <mat-icon>edit</mat-icon>
+                                                        </button>
+                                                        <button mat-icon-button (click)="deleteRecord(r)"
+                                                            matTooltip="Eliminar" class="btn-danger">
+                                                            <mat-icon>delete</mat-icon>
+                                                        </button>
+                                                    </div>
+                                                </header>
+                                                <p class="sd-ficha-card__content">{{ r.contenido }}</p>
+                                            </article>
+                                        </li>
+                                        }
+                                    </ul>
+                                    }
+                                </div>
+                            </mat-tab>
+
+                            <!-- Sub-tab Archivos -->
+                            <mat-tab>
+                                <ng-template mat-tab-label>
+                                    <mat-icon class="sd-subtab-icon">folder_open</mat-icon>
+                                    Archivos
+                                    @if (detail.archivos.length > 0) {
+                                    <span class="sd-tab-badge sd-tab-badge--sm">
+                                        {{ detail.archivos.length }}
+                                    </span>
+                                    }
+                                </ng-template>
+                                <div class="sd-cita-tab-body">
+                                    @if (detail.archivos.length === 0) {
+                                    <div class="sd-cita-empty">
+                                        <mat-icon aria-hidden="true">folder_open</mat-icon>
+                                        <p>Sin archivos para esta sesión</p>
+                                        <button mat-stroked-button (click)="openUploadArchivo('ficha', cita.id)">
+                                            <mat-icon>upload</mat-icon>
+                                            Subir archivo
+                                        </button>
+                                    </div>
+                                    } @else {
+                                    <div class="sd-cita-tab-toolbar">
+                                        <button mat-stroked-button (click)="openUploadArchivo('ficha', cita.id)">
+                                            <mat-icon>upload</mat-icon>
+                                            Subir archivo
+                                        </button>
+                                    </div>
+                                    <ul class="sd-file-list sd-file-list--compact" role="list">
+                                        @for (a of detail.archivos; track a.id) {
+                                        <ng-container *ngTemplateOutlet="archivoItem; context: { $implicit: a }" />
+                                        }
+                                    </ul>
+                                    }
+                                </div>
+                            </mat-tab>
+
+                            <!-- Sub-tab Informe -->
+                            <mat-tab>
+                                <ng-template mat-tab-label>
+                                    <mat-icon class="sd-subtab-icon">description</mat-icon>
+                                    Informe
+                                </ng-template>
+                                <div class="sd-cita-tab-body">
+                                    @if (!detail.informe) {
+                                    <div class="sd-cita-empty">
+                                        <mat-icon aria-hidden="true">description</mat-icon>
+                                        <p>Sin informe formal para esta sesión</p>
+                                        <button mat-flat-button color="primary" (click)="openCreateInforme(cita.id)">
+                                            <mat-icon>add</mat-icon>
+                                            Generar informe
+                                        </button>
+                                    </div>
+                                    } @else {
+                                    <div class="sd-session-informe">
+                                        <div class="sd-session-informe__chips">
+                                            <span class="sd-chip sd-chip--tipo" [attr.data-tipo]="detail.informe.tipo">
+                                                {{ tipoLabels[detail.informe.tipo] }}
+                                            </span>
+                                            <span class="sd-chip"
+                                                [class.sd-chip--final]="detail.informe.estado === 'finalizado'"
+                                                [class.sd-chip--draft]="detail.informe.estado === 'borrador'">
+                                                {{ detail.informe.estado === 'finalizado' ? 'Finalizado' : 'Borrador' }}
+                                            </span>
+                                            @if (detail.informe.confidencial) {
+                                            <span class="sd-chip sd-chip--conf">
+                                                <mat-icon>lock</mat-icon> Confidencial
+                                            </span>
+                                            }
+                                        </div>
+                                        <h4 class="sd-session-informe__title">
+                                            {{ detail.informe.titulo }}
+                                        </h4>
+                                        <p class="sd-session-informe__meta">
+                                            <mat-icon aria-hidden="true">schedule</mat-icon>
+                                            {{ detail.informe.createdAt | date:'mediumDate' }}
+                                        </p>
+                                        <div class="sd-session-informe__actions">
+                                            <a mat-stroked-button
+                                                [routerLink]="['/psicologa/informes', detail.informe.id, 'print']"
+                                                target="_blank" rel="noopener">
+                                                <mat-icon>print</mat-icon>
+                                                Ver / Imprimir
+                                            </a>
+                                            @if (detail.informe.estado === 'borrador') {
+                                            <button mat-stroked-button (click)="openEditInforme(detail.informe)">
+                                                <mat-icon>edit</mat-icon>
+                                                Editar
+                                            </button>
+                                            <button mat-flat-button color="primary"
+                                                (click)="finalizeInforme(detail.informe)">
+                                                <mat-icon>check_circle</mat-icon>
+                                                Finalizar
+                                            </button>
+                                            }
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                            </mat-tab>
+
+                        </mat-tab-group>
+                        }
+                        }
+
+                    </mat-expansion-panel>
+                    }
+
+                </mat-accordion>
+                }
+
+            </div>
+            }
+        </mat-tab>
+
+    </mat-tab-group>
+    }
+
+    <!-- ── Perfil no encontrado ─────────────────────────────────── -->
+    @else if (!loadingProfile()) {
+    <app-empty-state icon="error_outline" title="Alumno no encontrado"
+        message="Verifica que el alumno esté disponible en el sistema." />
     }
 
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TEMPLATE REUTILIZABLE — fila de archivo
+════════════════════════════════════════════════════════════════ -->
+<ng-template #archivoItem let-a>
+    <li class="sd-file-item" [class.is-conf]="a.confidencial">
+        <mat-icon class="sd-file-item__icon" aria-hidden="true">{{ archivoIcon(a) }}</mat-icon>
+        <div class="sd-file-item__body">
+            <div class="sd-file-item__name">
+                {{ a.nombre }}
+                @if (a.confidencial) {
+                <span class="sd-chip sd-chip--conf">
+                    <mat-icon>lock</mat-icon>
+                    Confidencial
+                </span>
+                }
+            </div>
+            @if (a.descripcion) {
+            <p class="sd-file-item__desc">{{ a.descripcion }}</p>
+            }
+            <p class="sd-file-item__meta">
+                {{ archivoSize(a) }}
+                @if (a.nombreOriginal && a.nombreOriginal !== a.nombre) {
+                · <span class="sd-file-item__orig">{{ a.nombreOriginal }}</span>
+                }
+                · {{ a.createdAt | date:'d MMM yyyy' }}
+            </p>
+        </div>
+        <div class="sd-file-item__actions">
+            <button mat-icon-button (click)="downloadArchivo(a)" matTooltip="Descargar">
+                <mat-icon>download</mat-icon>
+            </button>
+            <button mat-icon-button (click)="deleteArchivo(a)" matTooltip="Eliminar" class="btn-danger">
+                <mat-icon>delete</mat-icon>
+            </button>
+        </div>
+    </li>
+</ng-template>
