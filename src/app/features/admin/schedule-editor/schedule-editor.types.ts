@@ -32,8 +32,8 @@ export interface EditableSlot extends ServerSlot {
   curso_id: string;
   curso_nombre: string;
   color: string;
-  /** True si el usuario lo creó/editó en esta sesión y aún no se guardó. */
   pending: boolean;
+  editing?: boolean;
 }
 
 // Genera "07:00" → "17:00" en pasos de 30 min.

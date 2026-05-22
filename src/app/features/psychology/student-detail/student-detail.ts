@@ -24,27 +24,21 @@ import {
   type ArchivoUploadDialogData,
 } from '../dialogs/archivo-upload-dialog/archivo-upload-dialog';
 import {
-  type PsychologyRecord as _PsychologyRecord,
-  type InformePsicologico as _InformePsicologico,
-  type ArchivoPsicologico as _ArchivoPsicologico,
+  type PsychologyRecord,
+  type InformePsicologico,
+  type ArchivoPsicologico,
   type ArchivoCategoria,
 } from '../../../core/models/psychology';
 
-// ─── Extensiones locales (citaId llegó con migración v7) ─────────
-// Agregar citaId a core/models/psychology.ts elimina estos aliases.
-export type PsychologyRecord = _PsychologyRecord & { citaId?: string | null };
-export type InformePsicologico = _InformePsicologico & { citaId?: string | null };
-export type ArchivoPsicologico = _ArchivoPsicologico & { citaId?: string | null };
-
-// Record<string,string> para que el template pueda indexar con tipo dinámico
+// Labels con Record<string,string> para indexar con tipo dinámico en el template
 const INFORME_TIPO_LABELS: Record<string, string> = {
-  evaluacion: 'Evaluación',
-  seguimiento: 'Seguimiento',
-  derivacion_familia: 'Derivación familia',
-  derivacion_externa: 'Derivación externa',
+  evaluacion: 'Evaluación psicológica',
+  seguimiento: 'Reporte de seguimiento',
+  derivacion_familia: 'Derivación a la familia',
+  derivacion_externa: 'Derivación a especialista externo',
 };
 
-// ─── Interfaces ──────────────────────────────────────────────────
+// ─── Interfaces locales ──────────────────────────────────────────
 
 interface StudentProfile {
   id: string;
@@ -72,8 +66,8 @@ interface CitaRow {
 }
 
 interface CitaDetail {
-  fichas: PsychologyRecord[];
-  archivos: ArchivoPsicologico[];
+  anotaciones: PsychologyRecord[];      // notas de texto de la sesión
+  archivos: ArchivoPsicologico[];    // archivos subidos en la sesión
   informe: InformePsicologico | null;
   loading: boolean;
   loaded: boolean;
@@ -81,6 +75,8 @@ interface CitaDetail {
 
 // ─── Constantes ──────────────────────────────────────────────────
 
+const TAB_TESTS = 1;
+const TAB_INFORMES = 2;
 const TAB_CITAS = 3;
 
 const CITA_TIPO_LABELS: Record<string, string | undefined> = {
@@ -120,41 +116,43 @@ export class StudentDetail implements OnInit {
   readonly profile = signal<StudentProfile | null>(null);
   readonly loadingProfile = signal(true);
 
-  // ── Tabs — tab 0 carga en ngOnInit ───────────────────────────
+  // ── Tabs lazy — tab 0 carga en ngOnInit ──────────────────────
   readonly tabVisited = signal([true, false, false, false]);
 
-  // ── Datos por sección (todos con sinCita=true) ────────────────
-  readonly fichas = signal<PsychologyRecord[]>([]);
-  readonly loadingFichas = signal(false);
-  readonly informes = signal<InformePsicologico[]>([]);
-  readonly loadingInformes = signal(false);
+  // ── Tab 0: Fichas (archivos subidos, categoria='ficha') ───────
   readonly fichaArchivos = signal<ArchivoPsicologico[]>([]);
-  readonly testArchivos = signal<ArchivoPsicologico[]>([]);
-  readonly loadingArchivos = signal(false);
+  readonly loadingFichas = signal(false);
 
-  // ── Citas ─────────────────────────────────────────────────────
+  // ── Tab 1: Tests (archivos subidos, categoria='test') ─────────
+  readonly testArchivos = signal<ArchivoPsicologico[]>([]);
+  readonly loadingTests = signal(false);
+
+  // ── Tab 2: Informes (generados + subidos categoria='informe') ─
+  readonly informesGenerados = signal<InformePsicologico[]>([]);
+  readonly informesSubidos = signal<ArchivoPsicologico[]>([]);
+  readonly loadingInformes = signal(false);
+
+  // ── Tab 3: Citas ──────────────────────────────────────────────
   readonly citas = signal<CitaRow[]>([]);
   readonly loadingCitas = signal(false);
   readonly totalCitas = signal(0);
 
-  // ── Detalle por cita (lazy al abrir el acordeón) ──────────────
+  // ── Detalle por cita (lazy al abrir acordeón) ─────────────────
   readonly citaDetails = signal<Map<string, CitaDetail>>(new Map());
 
-  // ── Labels expuestos al template ─────────────────────────────
+  // ── Labels ───────────────────────────────────────────────────
   readonly tipoLabels = INFORME_TIPO_LABELS;
   readonly citaTipoLabels = CITA_TIPO_LABELS;
   readonly citaEstadoLabels = CITA_ESTADO_LABELS;
 
-  // ── Counts ───────────────────────────────────────────────────
-  readonly fichasCount = computed(() => this.fichas().length);
-  readonly informesCount = computed(() => this.informes().length);
-  readonly informesFinalizadosCount = computed(
-    () => this.informes().filter(i => i.estado === 'finalizado').length,
+  // ── Counts derivados ─────────────────────────────────────────
+  readonly fichasCount = computed(() => this.fichaArchivos().length);
+  readonly testsCount = computed(() => this.testArchivos().length);
+  readonly informesCount = computed(
+    () => this.informesGenerados().length + this.informesSubidos().length,
   );
-  readonly fichasArchivosCount = computed(() => this.fichaArchivos().length);
-  readonly testsArchivosCount = computed(() => this.testArchivos().length);
-  readonly totalArchivos = computed(
-    () => this.fichasArchivosCount() + this.testsArchivosCount(),
+  readonly informesFinalizadosCount = computed(
+    () => this.informesGenerados().filter(i => i.estado === 'finalizado').length,
   );
 
   // ════════════════════════════════════════════════════════════
@@ -165,7 +163,7 @@ export class StudentDetail implements OnInit {
     const id = this.studentId();
     if (!id) return;
     void this.loadProfile(id);
-    void this.loadFichas(id);
+    void this.loadFichas(id);  // tab 0 carga inmediato
   }
 
   // ════════════════════════════════════════════════════════════
@@ -188,9 +186,9 @@ export class StudentDetail implements OnInit {
     this.loadingFichas.set(true);
     try {
       const res = await firstValueFrom(
-        this.api.get<any>(`psychology/records/student/${id}?sinCita=true&limit=100`),
+        this.api.get<any>(`psychology/archivos/student/${id}?sinCita=true&categoria=ficha&limit=100`),
       );
-      this.fichas.set(this.toArr(res));
+      this.fichaArchivos.set(this.toArr(res));
     } catch {
       this.toastr.error('Error al cargar fichas', 'Error');
     } finally {
@@ -198,33 +196,33 @@ export class StudentDetail implements OnInit {
     }
   }
 
+  private async loadTests(id: string): Promise<void> {
+    this.loadingTests.set(true);
+    try {
+      const res = await firstValueFrom(
+        this.api.get<any>(`psychology/archivos/student/${id}?sinCita=true&categoria=test&limit=100`),
+      );
+      this.testArchivos.set(this.toArr(res));
+    } catch {
+      this.toastr.error('Error al cargar tests', 'Error');
+    } finally {
+      this.loadingTests.set(false);
+    }
+  }
+
   private async loadInformes(id: string): Promise<void> {
     this.loadingInformes.set(true);
     try {
-      const res = await firstValueFrom(
-        this.api.get<any>(`psychology/informes/student/${id}?sinCita=true&limit=100`),
-      );
-      this.informes.set(this.toArr(res));
+      const [generadosRes, subidosRes] = await Promise.all([
+        firstValueFrom(this.api.get<any>(`psychology/informes/student/${id}?sinCita=true&limit=100`)),
+        firstValueFrom(this.api.get<any>(`psychology/archivos/student/${id}?sinCita=true&categoria=informe&limit=100`)),
+      ]);
+      this.informesGenerados.set(this.toArr(generadosRes));
+      this.informesSubidos.set(this.toArr(subidosRes));
     } catch {
       this.toastr.error('Error al cargar informes', 'Error');
     } finally {
       this.loadingInformes.set(false);
-    }
-  }
-
-  private async loadArchivos(id: string): Promise<void> {
-    this.loadingArchivos.set(true);
-    try {
-      const [fichasRes, testsRes] = await Promise.all([
-        firstValueFrom(this.api.get<any>(`psychology/archivos/student/${id}?sinCita=true&categoria=ficha&limit=100`)),
-        firstValueFrom(this.api.get<any>(`psychology/archivos/student/${id}?sinCita=true&categoria=test&limit=100`)),
-      ]);
-      this.fichaArchivos.set(this.toArr(fichasRes));
-      this.testArchivos.set(this.toArr(testsRes));
-    } catch {
-      this.toastr.error('Error al cargar archivos', 'Error');
-    } finally {
-      this.loadingArchivos.set(false);
     }
   }
 
@@ -255,16 +253,16 @@ export class StudentDetail implements OnInit {
       this.tabVisited.set(visited);
     }
     const id = this.studentId();
-    if (index === 1 && !this.loadingInformes() && this.informes().length === 0)
+    if (index === TAB_TESTS && !this.loadingTests() && !this.testArchivos().length)
+      void this.loadTests(id);
+    if (index === TAB_INFORMES && !this.loadingInformes() && !this.informesCount())
       void this.loadInformes(id);
-    if (index === 2 && !this.loadingArchivos() && this.totalArchivos() === 0)
-      void this.loadArchivos(id);
-    if (index === TAB_CITAS && !this.loadingCitas() && this.citas().length === 0)
+    if (index === TAB_CITAS && !this.loadingCitas() && !this.citas().length)
       void this.loadCitas(id);
   }
 
   // ════════════════════════════════════════════════════════════
-  // ACORDEÓN — detalle por cita
+  // ACORDEÓN — detalle por cita (lazy)
   // ════════════════════════════════════════════════════════════
 
   async onCitaExpand(cita: CitaRow): Promise<void> {
@@ -272,27 +270,27 @@ export class StudentDetail implements OnInit {
     if (this.citaDetails().get(cita.id)?.loaded) return;
 
     const m1 = new Map(this.citaDetails());
-    m1.set(cita.id, { fichas: [], archivos: [], informe: null, loading: true, loaded: false });
+    m1.set(cita.id, { anotaciones: [], archivos: [], informe: null, loading: true, loaded: false });
     this.citaDetails.set(m1);
 
     const id = this.studentId();
     try {
-      const [fRes, aRes, iRes] = await Promise.all([
+      const [anotRes, archRes, infRes] = await Promise.all([
         firstValueFrom(this.api.get<any>(`psychology/records/student/${id}?citaId=${cita.id}&limit=50`)),
         firstValueFrom(this.api.get<any>(`psychology/archivos/student/${id}?citaId=${cita.id}&limit=50`)),
         firstValueFrom(this.api.get<any>(`psychology/informes/student/${id}?citaId=${cita.id}&limit=1`)),
       ]);
       const m2 = new Map(this.citaDetails());
       m2.set(cita.id, {
-        fichas: this.toArr(fRes),
-        archivos: this.toArr(aRes),
-        informe: (this.toArr(iRes)[0] as InformePsicologico | undefined) ?? null,
+        anotaciones: this.toArr<PsychologyRecord>(anotRes),
+        archivos: this.toArr<ArchivoPsicologico>(archRes),
+        informe: (this.toArr<InformePsicologico>(infRes)[0]) ?? null,
         loading: false, loaded: true,
       });
       this.citaDetails.set(m2);
     } catch {
       const m2 = new Map(this.citaDetails());
-      m2.set(cita.id, { fichas: [], archivos: [], informe: null, loading: false, loaded: true });
+      m2.set(cita.id, { anotaciones: [], archivos: [], informe: null, loading: false, loaded: true });
       this.citaDetails.set(m2);
       this.toastr.error('Error al cargar el contenido de la sesión', 'Error');
     }
@@ -300,7 +298,7 @@ export class StudentDetail implements OnInit {
 
   getCitaDetail(citaId: string): CitaDetail {
     return this.citaDetails().get(citaId) ??
-    { fichas: [], archivos: [], informe: null, loading: false, loaded: false };
+    { anotaciones: [], archivos: [], informe: null, loading: false, loaded: false };
   }
 
   // ════════════════════════════════════════════════════════════
@@ -350,49 +348,66 @@ export class StudentDetail implements OnInit {
   }
 
   // ════════════════════════════════════════════════════════════
-  // FICHAS
+  // ARCHIVOS (fichas, tests, informes subidos)
   // ════════════════════════════════════════════════════════════
 
-  openCreateRecord(citaId?: string): void {
+  openUploadArchivo(categoria: ArchivoCategoria, citaId?: string): void {
     const p = this.profile();
     if (!p) return;
-    this.dialog.open(RecordFormDialog, {
-      width: '560px', maxWidth: '95vw',
-      data: { studentId: p.id, studentName: this.fullName(p), citaId },
+    this.dialog.open(ArchivoUploadDialog, {
+      width: '600px', maxWidth: '95vw', autoFocus: false,
+      data: { studentId: p.id, studentName: this.fullName(p), categoria, citaId } as ArchivoUploadDialogData & { citaId?: string },
     }).afterClosed().subscribe((ok) => {
       if (!ok) return;
-      citaId ? this.reloadCitaDetail(citaId) : void this.loadFichas(p.id);
+      if (citaId) { this.reloadCitaDetail(citaId); return; }
+      if (categoria === 'ficha') void this.loadFichas(p.id);
+      if (categoria === 'test') void this.loadTests(p.id);
+      if (categoria === 'informe') void this.loadInformes(p.id);
     });
   }
 
-  openEditRecord(record: PsychologyRecord): void {
-    const p = this.profile();
-    if (!p) return;
-    this.dialog.open(RecordFormDialog, {
-      width: '560px', maxWidth: '95vw',
-      data: { studentId: p.id, studentName: this.fullName(p), record },
-    }).afterClosed().subscribe((ok) => {
-      if (!ok) return;
-      record.citaId ? this.reloadCitaDetail(record.citaId) : void this.loadFichas(p.id);
-    });
+  async downloadArchivo(a: ArchivoPsicologico): Promise<void> {
+    try {
+      const res = await firstValueFrom(
+        this.api.get<{ url: string }>(`psychology/archivos/${a.id}/url`),
+      );
+      window.open(res.data.url, '_blank', 'noopener');
+    } catch { this.toastr.error('No se pudo generar el enlace de descarga', 'Error'); }
   }
 
-  deleteRecord(record: PsychologyRecord): void {
+  deleteArchivo(a: ArchivoPsicologico, reloadTab: 'fichas' | 'tests' | 'informes'): void {
     this.dialog.open(ConfirmDialog, {
-      width: '420px',
-      data: { title: 'Eliminar ficha', message: '¿Seguro que deseas eliminar esta ficha?', confirm: 'Eliminar', cancel: 'Cancelar', danger: true },
+      width: '440px',
+      data: { title: 'Eliminar archivo', message: `¿Seguro que deseas eliminar "${a.nombre}"?`, confirm: 'Eliminar', cancel: 'Cancelar', danger: true },
     }).afterClosed().subscribe(async (ok) => {
       if (!ok) return;
       try {
-        await firstValueFrom(this.api.delete<any>(`psychology/records/${record.id}`));
-        this.toastr.success('Ficha eliminada');
-        record.citaId ? this.reloadCitaDetail(record.citaId) : void this.loadFichas(this.studentId());
-      } catch { this.toastr.error('No se pudo eliminar la ficha', 'Error'); }
+        await firstValueFrom(this.api.delete<any>(`psychology/archivos/${a.id}`));
+        this.toastr.success('Archivo eliminado');
+        const id = this.studentId();
+        if (reloadTab === 'fichas') void this.loadFichas(id);
+        if (reloadTab === 'tests') void this.loadTests(id);
+        if (reloadTab === 'informes') void this.loadInformes(id);
+      } catch { this.toastr.error('No se pudo eliminar el archivo', 'Error'); }
+    });
+  }
+
+  deleteArchivoFromCita(a: ArchivoPsicologico, citaId: string): void {
+    this.dialog.open(ConfirmDialog, {
+      width: '440px',
+      data: { title: 'Eliminar archivo', message: `¿Seguro que deseas eliminar "${a.nombre}"?`, confirm: 'Eliminar', cancel: 'Cancelar', danger: true },
+    }).afterClosed().subscribe(async (ok) => {
+      if (!ok) return;
+      try {
+        await firstValueFrom(this.api.delete<any>(`psychology/archivos/${a.id}`));
+        this.toastr.success('Archivo eliminado');
+        this.reloadCitaDetail(citaId);
+      } catch { this.toastr.error('No se pudo eliminar el archivo', 'Error'); }
     });
   }
 
   // ════════════════════════════════════════════════════════════
-  // INFORMES
+  // INFORMES GENERADOS
   // ════════════════════════════════════════════════════════════
 
   openCreateInforme(citaId?: string): void {
@@ -415,11 +430,13 @@ export class StudentDetail implements OnInit {
       data: { studentId: p.id, studentName: this.fullName(p), informe },
     }).afterClosed().subscribe((ok) => {
       if (!ok) return;
-      informe.citaId ? this.reloadCitaDetail(informe.citaId) : void this.loadInformes(p.id);
+      (informe as any).citaId
+        ? this.reloadCitaDetail((informe as any).citaId)
+        : void this.loadInformes(p.id);
     });
   }
 
-  finalizeInforme(informe: InformePsicologico): void {
+  finalizeInforme(informe: InformePsicologico, citaId?: string): void {
     this.dialog.open(ConfirmDialog, {
       width: '460px',
       data: { title: 'Finalizar informe', message: 'Al finalizar no podrás editar el informe. ¿Continuar?', confirm: 'Finalizar', cancel: 'Cancelar' },
@@ -428,12 +445,12 @@ export class StudentDetail implements OnInit {
       try {
         await firstValueFrom(this.api.post<any>(`psychology/informes/${informe.id}/finalizar`, {}));
         this.toastr.success('Informe finalizado');
-        informe.citaId ? this.reloadCitaDetail(informe.citaId) : void this.loadInformes(this.studentId());
+        citaId ? this.reloadCitaDetail(citaId) : void this.loadInformes(this.studentId());
       } catch { this.toastr.error('No se pudo finalizar el informe', 'Error'); }
     });
   }
 
-  deleteInforme(informe: InformePsicologico): void {
+  deleteInforme(informe: InformePsicologico, citaId?: string): void {
     this.dialog.open(ConfirmDialog, {
       width: '420px',
       data: { title: 'Eliminar informe', message: '¿Seguro que deseas eliminar este informe?', confirm: 'Eliminar', cancel: 'Cancelar', danger: true },
@@ -442,53 +459,53 @@ export class StudentDetail implements OnInit {
       try {
         await firstValueFrom(this.api.delete<any>(`psychology/informes/${informe.id}`));
         this.toastr.success('Informe eliminado');
-        informe.citaId ? this.reloadCitaDetail(informe.citaId) : void this.loadInformes(this.studentId());
+        citaId ? this.reloadCitaDetail(citaId) : void this.loadInformes(this.studentId());
       } catch { this.toastr.error('No se pudo eliminar el informe', 'Error'); }
     });
   }
 
   // ════════════════════════════════════════════════════════════
-  // ARCHIVOS
+  // ANOTACIONES DE SESIÓN (PsychologyRecord dentro de cita)
   // ════════════════════════════════════════════════════════════
 
-  openUploadArchivo(categoria: ArchivoCategoria, citaId?: string): void {
+  openCreateAnotacion(citaId: string): void {
     const p = this.profile();
     if (!p) return;
-    this.dialog.open(ArchivoUploadDialog, {
-      width: '600px', maxWidth: '95vw', autoFocus: false,
-      data: { studentId: p.id, studentName: this.fullName(p), categoria, citaId } as ArchivoUploadDialogData & { citaId?: string },
+    this.dialog.open(RecordFormDialog, {
+      width: '560px', maxWidth: '95vw',
+      data: { studentId: p.id, studentName: this.fullName(p), citaId },
     }).afterClosed().subscribe((ok) => {
-      if (!ok) return;
-      citaId ? this.reloadCitaDetail(citaId) : void this.loadArchivos(p.id);
+      if (ok) this.reloadCitaDetail(citaId);
     });
   }
 
-  async downloadArchivo(a: ArchivoPsicologico): Promise<void> {
-    try {
-      const res = await firstValueFrom(
-        this.api.get<{ url: string }>(`psychology/archivos/${a.id}/url`),
-      );
-      window.open(res.data.url, '_blank', 'noopener');
-    } catch { this.toastr.error('No se pudo generar el enlace de descarga', 'Error'); }
+  openEditAnotacion(record: PsychologyRecord, citaId: string): void {
+    const p = this.profile();
+    if (!p) return;
+    this.dialog.open(RecordFormDialog, {
+      width: '560px', maxWidth: '95vw',
+      data: { studentId: p.id, studentName: this.fullName(p), record },
+    }).afterClosed().subscribe((ok) => {
+      if (ok) this.reloadCitaDetail(citaId);
+    });
   }
 
-  deleteArchivo(a: ArchivoPsicologico): void {
-    const label = a.categoria === 'ficha' ? 'ficha' : 'test';
+  deleteAnotacion(record: PsychologyRecord, citaId: string): void {
     this.dialog.open(ConfirmDialog, {
-      width: '440px',
-      data: { title: `Eliminar ${label}`, message: `¿Seguro que deseas eliminar "${a.nombre}"?`, confirm: 'Eliminar', cancel: 'Cancelar', danger: true },
+      width: '420px',
+      data: { title: 'Eliminar anotación', message: '¿Seguro que deseas eliminar esta anotación?', confirm: 'Eliminar', cancel: 'Cancelar', danger: true },
     }).afterClosed().subscribe(async (ok) => {
       if (!ok) return;
       try {
-        await firstValueFrom(this.api.delete<any>(`psychology/archivos/${a.id}`));
-        this.toastr.success(`${label.charAt(0).toUpperCase() + label.slice(1)} eliminada`);
-        a.citaId ? this.reloadCitaDetail(a.citaId) : void this.loadArchivos(this.studentId());
-      } catch { this.toastr.error(`No se pudo eliminar el ${label}`, 'Error'); }
+        await firstValueFrom(this.api.delete<any>(`psychology/records/${record.id}`));
+        this.toastr.success('Anotación eliminada');
+        this.reloadCitaDetail(citaId);
+      } catch { this.toastr.error('No se pudo eliminar la anotación', 'Error'); }
     });
   }
 
   // ════════════════════════════════════════════════════════════
-  // NUEVA CITA — AppointmentFormDialog (dialog de psicóloga)
+  // NUEVA CITA
   // ════════════════════════════════════════════════════════════
 
   async openNuevaCita(): Promise<void> {
@@ -497,15 +514,10 @@ export class StudentDetail implements OnInit {
     const { AppointmentFormDialog } = await import(
       '../dialogs/appointment-form-dialog/appointment-form-dialog'
     );
-    // Usar `as any` hasta que AppointmentFormDialogData incluya alumnoFijo/alumnoId
     this.dialog.open(AppointmentFormDialog, {
       panelClass: 'afd-panel',
       autoFocus: 'first-tabbable',
-      data: {
-        alumnoId: p.id,
-        alumnoNombre: this.fullName(p),
-        alumnoFijo: true,
-      } as any,
+      data: { alumnoId: p.id, alumnoNombre: this.fullName(p), alumnoFijo: true } as any,
     }).afterClosed().subscribe((ok: boolean) => {
       if (ok && this.tabVisited()[TAB_CITAS]) void this.loadCitas(this.studentId());
     });
@@ -536,13 +548,11 @@ export class StudentDetail implements OnInit {
   // HELPERS PRIVADOS
   // ════════════════════════════════════════════════════════════
 
-  /** Extrae array de cualquier shape de respuesta de la API. */
-  private toArr<T>(res: any): T[] {
+  private toArr<T = any>(res: any): T[] {
     const b = res?.data ?? res;
     return Array.isArray(b) ? b : (b?.data ?? []);
   }
 
-  /** Invalida el detalle de una cita y lo recarga. */
   private reloadCitaDetail(citaId: string): void {
     const m = new Map(this.citaDetails());
     m.delete(citaId);

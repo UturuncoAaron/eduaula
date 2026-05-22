@@ -1,8 +1,6 @@
 <div class="form-panel">
-
     <div class="form-panel__inner">
 
-        <!-- Header -->
         <div class="form-panel__header">
             <div class="form-panel__welcome">Bienvenido</div>
             <h2 class="form-panel__title">Inicia sesión</h2>
@@ -11,10 +9,8 @@
             </p>
         </div>
 
-        <!-- Formulario -->
         <form [formGroup]="form" (ngSubmit)="submit()" class="form-panel__form">
 
-            <!-- Código de acceso -->
             <mat-form-field appearance="outline" class="form-panel__field">
                 <mat-label>Código de acceso</mat-label>
                 <mat-icon matPrefix class="form-panel__field-icon">badge</mat-icon>
@@ -28,7 +24,6 @@
                 }
             </mat-form-field>
 
-            <!-- Contraseña -->
             <mat-form-field appearance="outline" class="form-panel__field">
                 <mat-label>Contraseña</mat-label>
                 <mat-icon matPrefix class="form-panel__field-icon">lock</mat-icon>
@@ -42,9 +37,6 @@
                 }
             </mat-form-field>
 
-            <!-- Hint formatos: prefijos válidos para todos los roles.
-                 EST=alumno, DOC=docente, PAD=padre, ADM=admin,
-                 PSI=psicóloga, AUX=auxiliar. -->
             <div class="form-panel__hints">
                 <span class="form-panel__hint-chip">EST-DNI</span>
                 <span class="form-panel__hint-chip">DOC-DNI</span>
@@ -54,7 +46,6 @@
                 <span class="form-panel__hint-chip">AUX-DNI</span>
             </div>
 
-            <!-- Error -->
             @if (error()) {
             <div class="form-panel__error" role="alert">
                 <mat-icon>error_outline</mat-icon>
@@ -62,29 +53,24 @@
             </div>
             }
 
-            <!-- Botón -->
             <button mat-flat-button type="submit" class="form-panel__btn" [disabled]="form.invalid || loading()">
-                @if (loading()) {
-                <ng-container>
-                    <mat-spinner diameter="20" />
+                <span class="form-panel__btn-content">
+                    @if (loading()) {
+                    <mat-spinner diameter="20" class="form-panel__btn-spinner"></mat-spinner>
                     <span>Verificando...</span>
-                </ng-container>
-                } @else {
-                <ng-container>
-                    <mat-icon>login</mat-icon>
+                    } @else {
+                    <mat-icon class="form-panel__btn-icon">login</mat-icon>
                     <span>Ingresar</span>
-                </ng-container>
-                }
+                    }
+                </span>
             </button>
 
         </form>
 
-        <!-- Footer -->
         <p class="form-panel__footer-note">
             <mat-icon>info_outline</mat-icon>
             Tu contraseña por defecto es tu número de documento
         </p>
 
     </div>
-
 </div>

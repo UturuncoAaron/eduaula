@@ -65,21 +65,24 @@ export class ScheduleEditor implements OnInit {
   private readonly toastr = inject(ToastService);
   private readonly dialog = inject(MatDialog);
 
+
   // Params + query
   readonly seccionId = this.route.snapshot.paramMap.get('seccionId')!;
   readonly periodoId = this.route.snapshot.paramMap.get('periodoId')!;
   readonly seccionNombre = this.route.snapshot.queryParamMap.get('seccion') ?? '';
   readonly gradoNombre = this.route.snapshot.queryParamMap.get('grado') ?? '';
 
+
   // Estado base
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly courses = signal<CourseSchedule[]>([]);
 
+
   // Estado editable
   readonly workingCourses = signal<CourseSchedule[]>([]);
-  /** curso_ids cuyos slots cambiaron y deben guardarse al "Save". */
   readonly dirtyCourses = signal<Set<string>>(new Set());
+  readonly editingSlotId = signal<number | string | null>(null);
 
   // Constantes UI
   readonly dias = DIAS;
@@ -104,8 +107,8 @@ export class ScheduleEditor implements OnInit {
           curso_id: c.curso_id,
           curso_nombre: c.curso_nombre,
           color: c.color,
-          // El "pending" lo decidimos por presencia del curso en dirtyCourses.
           pending: this.dirtyCourses().has(c.curso_id),
+          editing: this.editingSlotId() === s.id,
         });
       }
     }
@@ -176,6 +179,7 @@ export class ScheduleEditor implements OnInit {
   }
 
   private openEditDialog(slot: EditableSlot): void {
+    this.editingSlotId.set(slot.id);   // ← resalta el slot en la grilla
     const courses = this.workingCourses();
     const ref = this.dialog.open<SlotAssignDialog, SlotAssignData, SlotAssignResult | null>(
       SlotAssignDialog,
@@ -197,7 +201,10 @@ export class ScheduleEditor implements OnInit {
         },
       },
     );
-    ref.afterClosed().subscribe(res => this.applyDialogResult(res));
+    ref.afterClosed().subscribe(res => {
+      this.editingSlotId.set(null);
+      this.applyDialogResult(res);
+    });
   }
 
   private applyDialogResult(res: SlotAssignResult | null | undefined): void {
@@ -217,8 +224,8 @@ export class ScheduleEditor implements OnInit {
       aula: res.aula,
     };
 
-    if (this.hasOverlapInCourse(newSlot, res.originalSlotId ?? null)) {
-      this.toastr.error('Ese bloque se solapa con otro slot del mismo curso.');
+    if (this.hasOverlapAnyCourse(newSlot, res.originalSlotId ?? null)) {
+      this.toastr.error('Ese bloque se solapa con otro curso en el mismo horario.');
       return;
     }
 
@@ -229,16 +236,21 @@ export class ScheduleEditor implements OnInit {
     this.addSlot(newSlot);
   }
 
-  private hasOverlapInCourse(slot: PendingPayloadSlot, ignoreSlotId: number | string | null): boolean {
-    const course = this.courseLookup().get(slot.curso_id);
-    if (!course) return false;
+  private hasOverlapAnyCourse(slot: PendingPayloadSlot, ignoreSlotId: number | string | null): boolean {
     const a = toMinutes(slot.hora_inicio);
     const b = toMinutes(slot.hora_fin);
-    return course.slots.some(s => {
-      if (s.id === ignoreSlotId) return false;
-      if (s.dia_semana !== slot.dia_semana) return false;
-      return toMinutes(s.hora_inicio) < b && toMinutes(s.hora_fin) > a;
-    });
+
+    for (const course of this.workingCourses()) {
+      for (const s of course.slots) {
+        // Ignorar el slot que estamos editando
+        if (s.id === ignoreSlotId && course.curso_id === slot.curso_id) continue;
+        if (s.dia_semana !== slot.dia_semana) continue;
+        if (toMinutes(s.hora_inicio) < b && toMinutes(s.hora_fin) > a) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private addSlot(slot: PendingPayloadSlot): void {
@@ -327,11 +339,6 @@ export class ScheduleEditor implements OnInit {
   }
 
   // ─── Crear cursos sin salir del editor ───────────────────────
-  /**
-   * Cuando la sección no tiene cursos (o el admin quiere agregar uno
-   * más) lanzamos el plantillado CNEB para que el editor de horario sea
-   * usable de inmediato sin tener que viajar a otra pantalla.
-   */
   generateCoursesFromTemplate(): void {
     if (this.saving()) return;
     const ref = this.dialog.open(ConfirmDialog, {

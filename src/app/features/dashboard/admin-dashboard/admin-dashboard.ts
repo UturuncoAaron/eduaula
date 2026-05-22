@@ -3,7 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
-import {  NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { ApiService } from '../../../core/services/api';
 
 interface Contadores {
@@ -26,7 +26,8 @@ interface AdminDashboardData {
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [MatCardModule, MatIconModule, MatButtonModule, RouterLink, NgClass, ],
+  standalone: true,
+  imports: [MatCardModule, MatIconModule, MatButtonModule, RouterLink, NgClass],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,11 +40,41 @@ export class AdminDashboard implements OnInit {
   data = signal<AdminDashboardData | null>(null);
 
   readonly quickAccess = [
-    { label: 'Gestionar usuarios', desc: 'Altas, bajas y roles', icon: 'people', route: '/admin/users', color: 'blue' },
-    { label: 'Estructura académica', desc: 'Grados, secciones y cursos', icon: 'account_tree', route: '/admin/academic', color: 'purple' },
-    { label: 'Vincular familias', desc: 'Relación padre-hijo', icon: 'family_restroom', route: '/admin/parent-child-link', color: 'green' },
-    { label: 'Matrículas', desc: 'Gestión de matrículas', icon: 'how_to_reg', route: '/admin/matriculas', color: 'teal' },
-    { label: 'Exportar reportes', desc: 'Métricas y excel', icon: 'analytics', route: '/admin/reports', color: 'orange' },
+    {
+      label: 'Gestionar usuarios',
+      desc: 'Altas, bajas y roles',
+      icon: 'people',
+      route: '/admin/usuarios/alumnos',
+      color: 'blue'
+    },
+    {
+      label: 'Estructura académica',
+      desc: 'Grados, secciones y cursos',
+      icon: 'account_tree',
+      route: '/admin/academico',
+      color: 'purple'
+    },
+    {
+      label: 'Vincular familias',
+      desc: 'Relación padre-hijo',
+      icon: 'family_restroom',
+      route: '/admin/padre-hijo',
+      color: 'green'
+    },
+    {
+      label: 'Matrículas',
+      desc: 'Gestión de matrículas',
+      icon: 'how_to_reg',
+      route: '/admin/matriculas',
+      color: 'teal'
+    },
+    {
+      label: 'Exportar reportes',
+      desc: 'Métricas y excel',
+      icon: 'analytics',
+      route: '/admin/reportes',
+      color: 'orange'
+    },
   ];
 
   readonly alertaConfig: Record<AlertaOperativa['tipo'], { icon: string; color: string }> = {

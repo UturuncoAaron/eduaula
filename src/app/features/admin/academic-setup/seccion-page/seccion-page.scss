@@ -1,0 +1,600 @@
+.sp-page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding-bottom: 48px;
+}
+
+// ── Loader ────────────────────────────────────────────────────
+.sp-loader {
+    display: flex;
+    justify-content: center;
+    padding: 80px 0;
+}
+
+// ── Header ────────────────────────────────────────────────────
+.sp-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.btn-back {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--c-text-3) !important;
+
+    &:hover {
+        color: var(--c-primary) !important;
+    }
+}
+
+.sp-header-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.sp-eyebrow {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--c-text-3);
+    margin-bottom: 3px;
+}
+
+.sp-title {
+    margin: 0 0 10px;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--c-text-1);
+    letter-spacing: -0.3px;
+
+    @media (max-width: 480px) {
+        font-size: 20px;
+    }
+}
+
+.sp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--c-bg);
+    color: var(--c-text-2);
+    border: 1px solid var(--c-border);
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+    &.ok {
+        background: var(--c-success-bg);
+        color: #166534;
+        border-color: transparent;
+    }
+
+    &.warn {
+        background: var(--c-warn-bg);
+        color: var(--c-warn);
+        border-color: transparent;
+        cursor: pointer;
+    }
+}
+
+.sp-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: auto;
+
+    @media (max-width: 600px) {
+        width: 100%;
+
+        button:first-child {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+}
+
+.btn-label {
+    @media (max-width: 480px) {
+        display: none;
+    }
+}
+
+// ── Capacidad bar ─────────────────────────────────────────────
+.sp-cap-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 0 4px;
+}
+
+.sp-cap-track {
+    flex: 1;
+    height: 5px;
+    background: var(--c-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.sp-cap-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--c-primary), var(--c-primary-light));
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(.4, 0, .2, 1);
+
+    &.warn {
+        background: linear-gradient(90deg, var(--c-warn), #fbbf24);
+    }
+
+    &.full {
+        background: linear-gradient(90deg, var(--c-danger), #f87171);
+    }
+}
+
+.sp-cap-label {
+    font-size: 12px;
+    color: var(--c-text-3);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+// ── Tabs nav ──────────────────────────────────────────────────
+.sp-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--c-border);
+    margin-bottom: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sp-tab {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    color: var(--c-text-3);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 12px;
+        right: 12px;
+        height: 3px;
+        border-radius: 3px 3px 0 0;
+        background: transparent;
+        transition: background 0.2s ease;
+    }
+
+    &:hover {
+        color: var(--c-text-1);
+    }
+
+    &.active {
+        color: var(--c-primary);
+
+        &::after {
+            background: var(--c-primary);
+        }
+
+        .sp-tab-pill {
+            background: var(--c-info-bg);
+            color: var(--c-primary);
+        }
+    }
+
+    @media (max-width: 400px) {
+        padding: 10px 14px;
+        font-size: 12px;
+
+        span:not(.sp-tab-pill) {
+            display: none;
+        }
+    }
+}
+
+.sp-tab-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--c-bg);
+    color: var(--c-text-3);
+    font-size: 11px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+// ── Tab body ──────────────────────────────────────────────────
+.sp-body {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-top: none;
+    border-radius: 0 0 var(--r-xl) var(--r-xl);
+}
+
+.sp-tab-content {
+    padding: 24px;
+
+    @media (max-width: 480px) {
+        padding: 16px;
+    }
+}
+
+// ── Toolbar ───────────────────────────────────────────────────
+.sp-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+
+    button {
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 480px) {
+        button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+}
+
+.sp-toolbar-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--c-text-2);
+}
+
+// ── Search ────────────────────────────────────────────────────
+.sp-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--c-bg);
+    border: 2px solid transparent;
+    border-radius: var(--r-md);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+
+    &:focus-within {
+        border-color: var(--c-primary);
+        background: var(--c-surface);
+        box-shadow: 0 0 0 4px rgba(26, 58, 107, 0.06);
+    }
+
+    mat-icon {
+        color: var(--c-text-3);
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--c-text-1);
+        font-family: inherit;
+
+        &::placeholder {
+            color: var(--c-text-3);
+            font-weight: 400;
+        }
+    }
+}
+
+.sp-search-clear {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: var(--c-text-3);
+    border-radius: 50%;
+    padding: 2px;
+    transition: all 0.15s;
+
+    &:hover {
+        color: var(--c-text-1);
+        background: var(--c-border);
+    }
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+// ── Empty ─────────────────────────────────────────────────────
+.sp-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--c-text-3);
+
+    mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        opacity: 0.4;
+    }
+
+    p {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 500;
+    }
+}
+
+.sp-inline-loader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 0;
+    color: var(--c-text-3);
+    font-size: 13px;
+}
+
+// ── Alumnos list ──────────────────────────────────────────────
+.sp-alumnos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sp-alumno-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-sm);
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: var(--c-bg);
+        border-color: var(--c-primary-light);
+        transform: translateX(2px);
+    }
+}
+
+.sp-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.sp-alumno-info {
+    flex: 1;
+    min-width: 0;
+
+    .sp-alumno-name {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--c-text-1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sp-alumno-code {
+        display: block;
+        font-size: 11px;
+        color: var(--c-text-3);
+        font-family: 'Courier New', monospace;
+        margin-top: 1px;
+    }
+}
+
+.sp-alumno-actions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+
+    button {
+        opacity: 0.4;
+        transition: opacity 0.15s;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    .btn-danger:hover {
+        color: var(--c-danger) !important;
+    }
+}
+
+// ── Cursos list ───────────────────────────────────────────────
+.sp-cursos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sp-curso-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--r-sm);
+    transition: background 0.15s ease;
+
+    &:hover {
+        background: var(--c-bg);
+    }
+
+    &.inactive {
+        opacity: 0.45;
+    }
+}
+
+.sp-curso-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.sp-curso-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--c-text-1);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.muted {
+        color: var(--c-text-3);
+        text-decoration: line-through;
+    }
+}
+
+.sp-curso-docente {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    @media (max-width: 500px) {
+        display: none;
+    }
+}
+
+.sp-docente-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-primary-light));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.sp-docente-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--c-text-2);
+}
+
+.sp-docente-empty {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--c-warn);
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+}
+
+// ── Horario CTA ───────────────────────────────────────────────
+.sp-horario-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.sp-horario-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--c-bg), var(--c-border));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: var(--c-text-3);
+    }
+}
+
+.sp-horario-cta h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--c-text-1);
+}
+
+.sp-horario-cta p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--c-text-2);
+    max-width: 320px;
+}

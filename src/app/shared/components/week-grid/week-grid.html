@@ -11,52 +11,54 @@
   </div>
   }
 
-  <div class="wg__board">
-    <div class="wg__corner" aria-hidden="true"></div>
+  <div class="wg__wrapper">
+    <div class="wg__board">
+      <div class="wg__corner" aria-hidden="true"></div>
 
-    @for (h of headers(); track trackHeader($index, h)) {
-    <div class="wg__header" [class.wg__header--today]="h.isToday" [class.wg__header--blocked]="!h.allowed">
-      <span class="wg__day-short">{{ h.info.short }}</span>
-      @if (showDates() && h.dateLabel !== null) {
-      <span class="wg__day-date" [class.wg__day-date--today]="h.isToday">{{ h.dateLabel }}</span>
-      } @else {
-      <span class="wg__day-long">{{ h.info.long }}</span>
+      @for (h of headers(); track trackHeader($index, h)) {
+      <div class="wg__header" [class.wg__header--today]="h.isToday" [class.wg__header--blocked]="!h.allowed">
+        <span class="wg__day-short">{{ h.info.short }}</span>
+        @if (showDates() && h.dateLabel !== null) {
+        <span class="wg__day-date" [class.wg__day-date--today]="h.isToday">{{ h.dateLabel }}</span>
+        } @else {
+        <span class="wg__day-long">{{ h.info.long }}</span>
+        }
+      </div>
       }
-    </div>
-    }
 
-    <div class="wg__hours" [style.height.px]="columnHeightPx()">
-      @for (r of rows(); track trackRow($index, r)) {
-      <div class="wg__hour-row" [style.height.px]="pxPerMin() * tickStepMin()">
-        <span class="wg__hour-label">{{ r.rangeLabel }}</span>
+      <div class="wg__hours" [style.height.px]="columnHeightPx()">
+        @for (r of rows(); track trackRow($index, r)) {
+        <div class="wg__hour-row" [style.height.px]="pxPerMin() * tickStepMin()">
+          <span class="wg__hour-label">{{ r.rangeLabel }}</span>
+        </div>
+        }
+      </div>
+
+      @for (h of headers(); track trackHeader($index, h)) {
+      <div class="wg__col" [class.wg__col--blocked]="!h.allowed"
+        [class.wg__col--clickable]="(mode() === 'editor' || mode() === 'availability' || mode() === 'booking') && h.allowed"
+        [style.height.px]="columnHeightPx()" (click)="onColumnClick($event, h)">
+
+        @for (r of rows(); track trackRow($index, r)) {
+        <div class="wg__tick" [style.top.px]="(r.startMin - dayStartMin()) * pxPerMin()"
+          [style.height.px]="pxPerMin() * tickStepMin()" aria-hidden="true"></div>
+        }
+
+        @for (rs of slotsByDay()[h.info.key]; track trackSlot($index, rs)) {
+        <button type="button" class="wg__slot" [class]="'wg__slot--' + rs.slot.kind"
+          [class.wg__slot--pending]="rs.slot.pending"
+          [class.wg__slot--clickable]="mode() !== 'schedule' && rs.slot.kind !== 'taken' && rs.slot.kind !== 'blocked'"
+          [style.top.px]="rs.topPx" [style.height.px]="rs.heightPx" [style.background-color]="rs.slot.color || null"
+          (click)="onSlotClick($event, rs.slot)">
+          <span class="wg__slot-title">{{ rs.slot.title }}</span>
+          @if (rs.slot.subtitle) {
+          <span class="wg__slot-sub">{{ rs.slot.subtitle }}</span>
+          }
+        </button>
+        }
       </div>
       }
     </div>
-
-    @for (h of headers(); track trackHeader($index, h)) {
-    <div class="wg__col" [class.wg__col--blocked]="!h.allowed"
-      [class.wg__col--clickable]="(mode() === 'editor' || mode() === 'availability' || mode() === 'booking') && h.allowed"
-      [style.height.px]="columnHeightPx()" (click)="onColumnClick($event, h)">
-
-      @for (r of rows(); track trackRow($index, r)) {
-      <div class="wg__tick" [style.top.px]="(r.startMin - dayStartMin()) * pxPerMin()"
-        [style.height.px]="pxPerMin() * tickStepMin()" aria-hidden="true"></div>
-      }
-
-      @for (rs of slotsByDay()[h.info.key]; track trackSlot($index, rs)) {
-      <button type="button" class="wg__slot" [class]="'wg__slot--' + rs.slot.kind"
-        [class.wg__slot--pending]="rs.slot.pending"
-        [class.wg__slot--clickable]="mode() !== 'schedule' && rs.slot.kind !== 'taken' && rs.slot.kind !== 'blocked'"
-        [style.top.px]="rs.topPx" [style.height.px]="rs.heightPx" [style.background-color]="rs.slot.color || null"
-        (click)="onSlotClick($event, rs.slot)">
-        <span class="wg__slot-title">{{ rs.slot.title }}</span>
-        @if (rs.slot.subtitle) {
-        <span class="wg__slot-sub">{{ rs.slot.subtitle }}</span>
-        }
-      </button>
-      }
-    </div>
-    }
   </div>
 
   @if (emptyLabel() && isEmpty()) {

@@ -8,6 +8,19 @@ export const ADMIN_ROUTES: Routes = [
     path: 'academico',
     loadComponent: () =>
       import('./academic-setup/grados-tab/grados-tab').then(c => c.GradosTab),
+    title: 'Grados y Secciones | EduAula',
+  },
+  {
+    path: 'academico/cursos',
+    loadComponent: () =>
+      import('./academic-setup/course-catalog/course-catalog').then(c => c.CourseCatalog),
+    title: 'Catálogo de Cursos | EduAula',
+  },
+  {
+    path: 'secciones/:seccionId',
+    loadComponent: () =>
+      import('./academic-setup/seccion-page/seccion-page').then(c => c.SeccionPage),
+    title: 'Sección | EduAula',
   },
   {
     path: 'periodos',
@@ -72,9 +85,9 @@ export const ADMIN_ROUTES: Routes = [
       import('./reporte-alumno/reporte-alumno').then(c => c.ReporteAlumno),
   },
 
-  // ─── Editor de horario por sección ────────────────────────────────────────
+  // ─── Editor de horario ────────────────────────────────────────────────────
   {
-    path: 'secciones/:seccionId/periodo/:periodoId/horario',
+    path: 'secciones/:seccionId/horario',
     loadComponent: () =>
       import('./schedule-editor/schedule-editor').then(c => c.ScheduleEditor),
     title: 'Editor de horario | EduAula',
@@ -101,5 +114,4 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./reports/reports').then(c => c.Reports),
   },
-
 ];

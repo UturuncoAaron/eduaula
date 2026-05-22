@@ -1,54 +1,60 @@
-// ─── Variables ────────────────────────────────────────────────
-$radius-card : 20px;
-$radius-sm : 10px;
-$shadow-card : 0 1px 3px rgba(0, 0, 0, .06),
-0 4px 16px rgba(0, 0, 0, .05);
-$transition : .18s ease;
+// ─── Variables de Diseño Estables ────────────────────────────
+$radius-card: 16px;
+$radius-sm: 12px;
+$shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.04);
+$transition: .2s ease-in-out;
 
-// ─── Layout ───────────────────────────────────────────────────
+// ─── Layout General ───────────────────────────────────────────
 .page-perfil {
     max-width: 860px;
     margin: 0 auto;
-    padding: 32px 24px 48px;
+    padding: 16px 16px 32px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    box-sizing: border-box;
+
+    @media (min-width: 768px) {
+        padding: 32px 24px 48px;
+    }
 }
 
-// ─── HERO ─────────────────────────────────────────────────────
+// ─── HERO COMPONENTE ──────────────────────────────────────────
 .perfil-hero {
     position: relative;
     border-radius: $radius-card;
     overflow: hidden;
-    background: #fff;
-    border: 1px solid #e8edf4;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     box-shadow: $shadow-card;
 }
 
 .hero-bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 55%, #7c3aed 100%);
-    opacity: .07;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #6d28d9 100%);
+    opacity: .05;
     pointer-events: none;
 }
 
 .hero-body {
     position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 28px;
-    padding: 32px 36px;
-    flex-wrap: wrap;
+    text-align: center;
+    gap: 24px;
+    padding: 24px 16px;
 
-    @media (max-width: 600px) {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 24px 20px;
+    @media (min-width: 640px) {
+        flex-direction: row;
+        text-align: left;
+        padding: 32px 36px;
+        gap: 28px;
     }
 }
 
-// Avatar
+// Avatar e Isotipo
 .avatar-wrap {
     position: relative;
     flex-shrink: 0;
@@ -57,21 +63,21 @@ $transition : .18s ease;
 .avatar-ring {
     padding: 3px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
 }
 
 .avatar-circle {
-    width: 84px;
-    height: 84px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 30px;
+    font-size: 32px;
     font-weight: 800;
-    color: #fff;
+    color: #ffffff;
     overflow: hidden;
-    border: 3px solid #fff;
+    border: 3px solid #ffffff;
 
     img {
         width: 100%;
@@ -80,48 +86,44 @@ $transition : .18s ease;
     }
 }
 
-.avatar-initials {
-    letter-spacing: -.5px;
-}
-
 .role-badge {
     position: absolute;
-    bottom: -2px;
+    bottom: -4px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 10px;
     font-weight: 700;
-    color: #fff;
-    padding: 3px 10px;
+    color: #ffffff;
+    padding: 3px 12px;
     border-radius: 99px;
     white-space: nowrap;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
 }
 
-// Hero info
+// Datos de Identidad Rápidos
 .hero-info {
     flex: 1;
-    min-width: 200px;
+    width: 100%;
 }
 
 .hero-name {
-    margin: 0 0 4px;
+    margin: 0 0 6px;
     font-size: 22px;
     font-weight: 800;
     color: #0f172a;
-    letter-spacing: -.3px;
+    letter-spacing: -.02em;
     line-height: 1.2;
 }
 
 .hero-code {
     margin: 0 0 6px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     color: #94a3b8;
-    letter-spacing: .8px;
+    letter-spacing: .08em;
     text-transform: uppercase;
-    font-family: 'Courier New', monospace;
+    font-family: monospace;
 }
 
 .hero-email {
@@ -130,54 +132,74 @@ $transition : .18s ease;
     color: #64748b;
     display: flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 6px;
+
+    @media (min-width: 640px) {
+        justify-content: flex-start;
+    }
 }
 
 .hero-icon {
-    font-size: 15px !important;
-    height: 15px !important;
-    width: 15px !important;
+    font-size: 16px !important;
+    height: 16px !important;
+    width: 16px !important;
     color: #94a3b8;
 }
 
-// Hero meta strip
+// CORREGIDO: Tira de metadatos ultra responsiva
 .hero-meta {
     display: flex;
-    align-items: center;
-    gap: 0;
+    flex-direction: column; // Lista apilada en móviles para evitar cortes
+    width: 100%;
     background: #f8fafc;
-    border: 1px solid #e8edf4;
+    border: 1px solid #e2e8f0;
     border-radius: $radius-sm;
     overflow: hidden;
-    margin-left: auto;
-    flex-shrink: 0;
 
-    @media (max-width: 600px) {
-        margin-left: 0;
-        width: 100%;
+    @media (min-width: 640px) {
+        flex-direction: row; // Fila estricta en pantallas de escritorio
+        width: auto;
     }
 }
 
 .hero-meta-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    padding: 12px 20px;
-    gap: 3px;
+    padding: 12px 16px;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 8px;
+
+    @media (min-width: 640px) {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 20px;
+        width: auto;
+        min-width: 100px;
+    }
 }
 
 .hero-meta-divider {
-    width: 1px;
-    height: 32px;
+    height: 1px;
+    width: 100%;
     background: #e2e8f0;
+
+    @media (min-width: 640px) {
+        width: 1px;
+        height: 32px;
+    }
 }
 
 .hero-meta-label {
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: .6px;
+    letter-spacing: .05em;
 }
 
 .hero-meta-value {
@@ -186,24 +208,30 @@ $transition : .18s ease;
     color: #0f172a;
     white-space: nowrap;
 
+    &--long {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis; // Añade puntos suspensivos elegantes si el nombre es tosco
+    }
+
     &.status-active {
         color: #10b981;
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
     }
 }
 
 .status-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: #10b981;
     flex-shrink: 0;
-    animation: pulse 2s ease infinite;
+    animation: statusPulse 2s ease infinite;
 }
 
-@keyframes pulse {
+@keyframes statusPulse {
 
     0%,
     100% {
@@ -215,28 +243,33 @@ $transition : .18s ease;
     }
 }
 
-// ─── GRID ─────────────────────────────────────────────────────
+// ─── GRID COMPONENTE ──────────────────────────────────────────
 .perfil-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 20px;
 
-    @media (max-width: 640px) {
-        grid-template-columns: 1fr;
+    @media (min-width: 680px) {
+        grid-template-columns: 1fr 1fr;
     }
 }
 
-// ─── CARDS ────────────────────────────────────────────────────
+// ─── INFO CARDS ───────────────────────────────────────────────
 .info-card {
-    background: #fff;
-    border: 1px solid #e8edf4;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: $radius-card;
-    padding: 24px;
+    padding: 20px;
     box-shadow: $shadow-card;
-    transition: box-shadow $transition;
+    transition: box-shadow $transition, transform $transition;
+
+    @media (min-width: 768px) {
+        padding: 24px;
+    }
 
     &:hover {
-        box-shadow: 0 2px 6px rgba(0, 0, 0, .07), 0 8px 24px rgba(0, 0, 0, .07);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -8px rgba(0, 0, 0, 0.05);
+        transform: translateY(-1px);
     }
 }
 
@@ -244,8 +277,8 @@ $transition : .18s ease;
     display: flex;
     align-items: center;
     gap: 14px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
     border-bottom: 1px solid #f1f5f9;
 }
 
@@ -253,7 +286,7 @@ $transition : .18s ease;
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: color-mix(in srgb, var(--icon-color) 12%, transparent);
+    background: color-mix(in srgb, var(--icon-color) 10%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -269,7 +302,7 @@ $transition : .18s ease;
 
 .card-title {
     margin: 0 0 2px;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 700;
     color: #0f172a;
 }
@@ -280,44 +313,38 @@ $transition : .18s ease;
     color: #94a3b8;
 }
 
-// ─── INFO LIST ────────────────────────────────────────────────
+// ─── LISTAS INTERNAS DE DATOS ─────────────────────────────────
 .info-list {
     display: flex;
     flex-direction: column;
-    gap: 0;
 }
 
 .info-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
+    padding: 11px 0;
     border-bottom: 1px solid #f8fafc;
-    gap: 12px;
+    gap: 16px;
 
     &:last-child {
         border-bottom: none;
-    }
-
-    &:hover .info-label {
-        color: #475569;
     }
 }
 
 .info-label {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     font-size: 12.5px;
     color: #94a3b8;
-    font-weight: 500;
+    font-weight: 600;
     flex-shrink: 0;
-    transition: color $transition;
 
     mat-icon {
-        font-size: 15px !important;
-        height: 15px !important;
-        width: 15px !important;
+        font-size: 16px !important;
+        height: 16px !important;
+        width: 16px !important;
         color: #cbd5e1;
     }
 }
@@ -327,14 +354,17 @@ $transition : .18s ease;
     color: #1e293b;
     font-weight: 600;
     text-align: right;
-    word-break: break-word;
+
+    &--wrap {
+        word-break: break-word; // Evita desbordes horizontales de nombres largos
+        font-size: 12.5px;
+    }
 
     &.mono {
-        font-family: 'Courier New', monospace;
-        font-size: 12.5px;
-        letter-spacing: .3px;
-        color: #3b82f6;
-        background: #eff6ff;
+        font-family: monospace;
+        font-size: 12px;
+        color: #2563eb;
+        background: #f0f6ff;
         padding: 2px 8px;
         border-radius: 6px;
         font-weight: 700;
@@ -344,28 +374,30 @@ $transition : .18s ease;
 .role-chip {
     padding: 4px 12px;
     border-radius: 99px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
-    letter-spacing: .2px;
 }
 
-// ─── FOOTER ───────────────────────────────────────────────────
+// ─── FOOTER ACCIONES ──────────────────────────────────────────
 .perfil-footer {
     display: flex;
     justify-content: flex-end;
+    margin-top: 8px;
 }
 
 .btn-settings {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 24px !important;
+    padding: 0 24px !important;
+    height: 46px !important;
     border-radius: 10px !important;
     font-size: 14px !important;
     font-weight: 600 !important;
     background: #1e293b !important;
-    color: #fff !important;
-    transition: background $transition, transform $transition;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.15) !important;
+    transition: background $transition, transform $transition !important;
 
     mat-icon {
         font-size: 18px !important;
@@ -376,9 +408,5 @@ $transition : .18s ease;
     &:hover {
         background: #0f172a !important;
         transform: translateY(-1px);
-    }
-
-    &:active {
-        transform: translateY(0);
     }
 }

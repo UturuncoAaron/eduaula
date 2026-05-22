@@ -1,29 +1,28 @@
 :host {
     display: block;
     height: 100%;
-    background: #f8f9fc;
+    width: 100%;
 }
 
 .form-panel {
     height: 100%;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 32px 24px;
+    padding: 40px 24px;
     overflow-y: auto;
+    background-color: #f8f9fc;
 
     &__inner {
         width: 100%;
-        max-width: 380px;
+        max-width: 360px;
         display: flex;
         flex-direction: column;
         gap: 28px;
-        animation: slideIn 0.5s ease both;
-        animation-delay: 0.15s;
-        opacity: 0;
+        animation: fadeInForm 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    // Header
     &__header {
         display: flex;
         flex-direction: column;
@@ -31,20 +30,19 @@
     }
 
     &__welcome {
-        font-size: 0.78rem;
-        font-weight: 600;
+        font-size: 0.75rem;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.12em;
         color: #1565c0;
     }
 
     &__title {
-        font-size: 1.9rem;
+        font-size: 1.75rem;
         font-weight: 700;
         color: #0d1b3e;
         margin: 0;
         letter-spacing: -0.02em;
-        line-height: 1.2;
     }
 
     &__subtitle {
@@ -54,19 +52,14 @@
         line-height: 1.5;
     }
 
-    // Form
     &__form {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
     }
 
     &__field {
         width: 100%;
-
-        .mat-mdc-form-field-icon-prefix {
-            padding-right: 8px;
-        }
     }
 
     &__field-icon {
@@ -76,27 +69,24 @@
         height: 20px;
     }
 
-    // Hint chips de formato
     &__hints {
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
-        margin-top: -4px;
-        margin-bottom: 4px;
+        margin-top: -2px;
+        margin-bottom: 6px;
     }
 
     &__hint-chip {
-        padding: 3px 10px;
-        border-radius: 20px;
+        padding: 3px 8px;
+        border-radius: 6px;
         background: #e8f0fe;
         color: #1565c0;
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         font-weight: 600;
-        letter-spacing: 0.04em;
-        font-family: 'Courier New', monospace;
+        font-family: monospace;
     }
 
-    // Error
     &__error {
         display: flex;
         align-items: center;
@@ -105,7 +95,7 @@
         background: #fdecea;
         border: 1px solid #f5c6c6;
         color: #c62828;
-        border-radius: 10px;
+        border-radius: 8px;
         font-size: 0.85rem;
 
         mat-icon {
@@ -116,28 +106,20 @@
         }
     }
 
-    // Botón principal
     &__btn {
         width: 100%;
-        height: 52px !important;
-        border-radius: 12px !important;
-        font-size: 1rem !important;
-        font-weight: 600 !important;
-        letter-spacing: 0.02em;
+        height: 50px !important;
+        border-radius: 10px !important;
         margin-top: 8px;
-        background: #1565c0 !important;
+        background-color: #1565c0 !important;
         color: #fff !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: background 0.2s, transform 0.15s, box-shadow 0.2s !important;
-        box-shadow: 0 4px 16px rgba(21, 101, 192, 0.35) !important;
+        box-shadow: 0 4px 14px rgba(21, 101, 192, 0.3) !important;
+        transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s !important;
 
         &:hover:not(:disabled) {
-            background: #0d47a1 !important;
+            background-color: #0d47a1 !important;
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(21, 101, 192, 0.45) !important;
+            box-shadow: 0 6px 18px rgba(21, 101, 192, 0.4) !important;
         }
 
         &:active:not(:disabled) {
@@ -148,13 +130,31 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
-
-        mat-spinner {
-            --mdc-circular-progress-active-indicator-color: #fff;
-        }
     }
 
-    // Footer note
+    &__btn-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 100%;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    &__btn-icon {
+        margin: 0 !important;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+
+    &__btn-spinner {
+        margin: 0 !important;
+        --mdc-circular-progress-active-indicator-color: #fff;
+    }
+
     &__footer-note {
         display: flex;
         align-items: center;
@@ -162,25 +162,24 @@
         font-size: 0.78rem;
         color: #94a3b8;
         margin: 0;
-        text-align: center;
         justify-content: center;
 
         mat-icon {
-            font-size: 15px;
-            width: 15px;
-            height: 15px;
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
         }
     }
 }
 
-@keyframes slideIn {
+@keyframes fadeInForm {
     from {
         opacity: 0;
-        transform: translateX(20px);
+        transform: translateY(16px);
     }
 
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
     }
 }

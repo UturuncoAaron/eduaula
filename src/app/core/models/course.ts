@@ -1,3 +1,11 @@
+export interface CourseCatalog {
+    id: string;
+    nombre: string;
+    area?: string | null;
+    color: string;
+    activo: boolean;
+}
+
 export interface CourseDocente {
     id?: string;
     nombre: string;
@@ -14,11 +22,14 @@ export interface Course {
     id: string;
     nombre: string;
     descripcion?: string;
-    docente_id: string;
+    catalogo_id: string;
+    catalogo?: CourseCatalog | null;
+    docente_id: string | null;
     docente?: CourseDocente | null;
-    seccion_id: number;
+    seccion_id: string;
     seccion?: { nombre: string };
-    periodo_id: number;
+    anio: number;
+    color: string;
     activo: boolean;
 }
 

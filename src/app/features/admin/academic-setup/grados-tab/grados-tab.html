@@ -1,151 +1,99 @@
-<div class="grados-page">
+<div class="page">
 
-    @if (loadingGrados()) {
-    <div class="loading-hero">
-        <div class="loading-ring">
-            <mat-spinner diameter="40"></mat-spinner>
-        </div>
-        <p class="loading-text">Cargando estructura académica...</p>
+    @if (loading()) {
+    <div class="loader-wrap">
+        <mat-spinner diameter="36"></mat-spinner>
     </div>
-
     } @else {
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- HEADER                                                    -->
-    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- HEADER -->
     <div class="page-header">
         <div class="header-left">
-            <div class="header-icon-wrap">
-                <mat-icon>school</mat-icon>
-            </div>
-            <div class="header-text">
-                <h2 class="page-title">Grados y Cursos</h2>
-                <p class="page-subtitle">Gestiona secciones, cursos y alumnos por grado</p>
-            </div>
+            <h1 class="page-title">Grados y Secciones</h1>
+            <p class="page-sub">Selecciona un grado para ver sus secciones</p>
         </div>
-        @if (!periodoActivo()) {
-        <div class="periodo-warning">
-            <mat-icon>warning_amber</mat-icon>
-            <span>Sin periodo activo</span>
-        </div>
-        }
+        <button mat-stroked-button class="btn-catalogo" (click)="goToCatalogo()">
+            <mat-icon>menu_book</mat-icon>
+            Catálogo de cursos
+        </button>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRID DE GRADOS                                            -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="grades-grid">
+    <!-- GRADOS -->
+    <div class="grados-grid">
         @for (g of grados(); track g.id; let i = $index) {
-        <div class="grade-card" (click)="selectGrado(g)" [class.selected]="selectedGrado()?.id === g.id"
-            [attr.data-index]="i">
-            <div class="grade-stripe"></div>
-            <div class="gc-top">
-                <div class="grade-icon-box">
-                    <mat-icon>school</mat-icon>
-                </div>
-                <span class="grade-badge">{{ i + 1 }}°</span>
-            </div>
-            <div class="gc-body">
-                <span class="grade-name">{{ g.nombre }}</span>
-                <div class="grade-meta">
-                    <div class="grade-count">
-                        <mat-icon class="count-icon">meeting_room</mat-icon>
-                        {{ getSeccionCount(g.id) }} {{ getSeccionCount(g.id) === 1 ? 'sección' : 'secciones' }}
-                    </div>
-                    <mat-icon class="grade-chevron">
-                        {{ selectedGrado()?.id === g.id ? 'keyboard_arrow_down' : 'arrow_forward' }}
-                    </mat-icon>
-                </div>
-            </div>
-        </div>
+        <button class="grado-card" [class.active]="selectedGrado()?.id === g.id" (click)="selectGrado(g)">
+            <span class="grado-num">{{ g.orden }}°</span>
+            <span class="grado-nombre">{{ g.nombre }}</span>
+            <span class="grado-count">
+                <mat-icon>meeting_room</mat-icon>
+                {{ getCount(g.id) }}
+            </span>
+        </button>
         }
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- PANEL DE SECCIONES                                        -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    @if (selectedGrado()) {
-    <div class="sections-panel">
+    <!-- SECCIONES -->
+    @if (selectedGrado(); as g) {
+    <div class="secciones-panel">
 
-        <!-- ── Panel header ────────────────────────────────────── -->
-        <div class="panel-top">
-            <nav class="breadcrumb">
-                <mat-icon class="bc-icon">school</mat-icon>
-                <span class="bc-text">{{ selectedGrado()!.nombre }}</span>
-            </nav>
-            <button mat-flat-button color="primary" class="btn-nueva-seccion" (click)="openCreateSeccion()">
+        <div class="panel-header">
+            <div class="panel-title-wrap">
+                <span class="panel-eyebrow">Grado seleccionado</span>
+                <h2 class="panel-title">{{ g.nombre }}</h2>
+            </div>
+            <button mat-flat-button color="primary" (click)="openCreateSeccion()">
                 <mat-icon>add</mat-icon>
-                <span class="btn-text">Nueva sección</span>
+                Nueva sección
             </button>
         </div>
 
-        @if (loadingSecciones()) {
-        <div class="inline-loader">
-            <mat-spinner diameter="22"></mat-spinner>
-            <span>Cargando secciones...</span>
+        @if (seccionesDelGrado().length === 0) {
+        <div class="empty">
+            <mat-icon>meeting_room</mat-icon>
+            <p>Sin secciones — crea la primera</p>
         </div>
         } @else {
-
-        <!-- ── Secciones lista ─────────────────────────────────── -->
-        <div class="sections-list">
+        <div class="secciones-list">
             @for (s of seccionesDelGrado(); track s.id) {
-            <div class="section-card" (click)="openSeccionModal(s)">
-                <div class="section-avatar" [class.has-tutor]="!!s.tutor">
+            <div class="seccion-row" (click)="openSeccion(s)">
+
+                <div class="seccion-avatar" [class.has-tutor]="!!s.tutor">
                     {{ s.nombre }}
                 </div>
-                <div class="section-body">
-                    <span class="section-name">Sección {{ s.nombre }}</span>
-                    <span class="section-meta">
-                        <mat-icon class="meta-icon">meeting_room</mat-icon>
-                        Cap. {{ s.capacidad }}
-                    </span>
-                </div>
-                @if (s.tutor) {
-                <span class="tutor-tag ok">
-                    <mat-icon>verified</mat-icon>
-                    <span class="tutor-tag-text">{{ s.tutor.apellido_paterno }}</span>
-                </span>
-                } @else {
-                <span class="tutor-tag warn" matTooltip="Sin tutor asignado">
-                    <mat-icon>person_off</mat-icon>
-                    <span class="tutor-tag-text">Sin tutor</span>
-                </span>
-                }
 
-                <!-- BOTÓN EDITAR SECCIÓN -->
-                <button mat-icon-button class="btn-edit-section" matTooltip="Editar sección"
-                    (click)="openEditSeccion(s); $event.stopPropagation()">
+                <div class="seccion-info">
+                    <span class="seccion-nombre">Sección {{ s.nombre }}</span>
+                    <span class="seccion-meta">Cap. {{ s.capacidad }}</span>
+                </div>
+
+                <div class="seccion-tutor">
+                    @if (s.tutor; as t) {
+                    <span class="tutor-chip ok">
+                        <mat-icon>verified</mat-icon>
+                        {{ t.apellido_paterno }}
+                    </span>
+                    } @else {
+                    <span class="tutor-chip warn">
+                        <mat-icon>person_off</mat-icon>
+                        Sin tutor
+                    </span>
+                    }
+                </div>
+
+                <button mat-icon-button class="btn-edit" matTooltip="Editar sección"
+                    (click)="openEditSeccion(s, $event)">
                     <mat-icon>edit</mat-icon>
                 </button>
 
-                <mat-icon class="section-chevron">chevron_right</mat-icon>
-            </div>
-            } @empty {
-            <div class="empty-hero">
-                <div class="empty-ring">
-                    <mat-icon>folder_open</mat-icon>
-                </div>
-                <p class="empty-title">Sin secciones</p>
-                <span class="empty-hint">Crea la primera sección para comenzar a organizar cursos y alumnos.</span>
+                <mat-icon class="row-chevron">chevron_right</mat-icon>
             </div>
             }
         </div>
         }
+
     </div>
     }
-    }
+
+    } <!-- /loading -->
 
 </div>
-
-<!-- ── Context menu for courses ─────────────────────────────── -->
-<mat-menu #courseMenu="matMenu">
-    <ng-template matMenuContent let-course="course">
-        <button mat-menu-item (click)="openAssignDocente(course)">
-            <mat-icon>person_add</mat-icon> Asignar docente
-        </button>
-        <button mat-menu-item (click)="toggleCurso(course)">
-            <mat-icon>{{ course.activo ? 'visibility_off' : 'visibility' }}</mat-icon>
-            {{ course.activo ? 'Desactivar' : 'Activar' }}
-        </button>
-    </ng-template>
-</mat-menu>

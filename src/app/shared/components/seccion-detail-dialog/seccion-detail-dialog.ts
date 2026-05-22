@@ -21,7 +21,7 @@ type SeccionTab = 'cursos' | 'alumnos' | 'horario';
 export interface SeccionDetailDialogData {
     seccion: Section;
     gradoNombre: string;
-    periodoId: number | null;
+    anio: number;
 }
 
 @Component({
@@ -75,15 +75,12 @@ export class SeccionDetailDialog implements OnInit {
     ocupacion = computed(() => this.alumnos().length);
     porcentaje = computed(() => Math.round((this.ocupacion() / this.capacidad()) * 100));
 
-    // ── Init ──────────────────────────────────────────────────────
+
     ngOnInit(): void {
-        const pid = this.data.periodoId;
-        const cursosUrl = pid
-            ? `courses?seccion_id=${this.data.seccion.id}&periodo_id=${pid}`
-            : `courses?seccion_id=${this.data.seccion.id}`;
         forkJoin({
-            cursos: this.api.get<Course[]>(cursosUrl),
-            // Comparte el cache con tab-asistencia, participantes, etc.
+            cursos: this.api.get<Course[]>(
+                `courses?seccion_id=${this.data.seccion.id}&anio=${this.data.anio}`
+            ),
             alumnos: this.store.rosterRaw$<any>(String(this.data.seccion.id)),
         }).subscribe({
             next: ({ cursos, alumnos }) => {
@@ -122,16 +119,13 @@ export class SeccionDetailDialog implements OnInit {
 
     private reloadCursos(): void {
         this.loadingCursos.set(true);
-        const pid = this.data.periodoId;
-        const cursosUrl = pid
-            ? `courses?seccion_id=${this.data.seccion.id}&periodo_id=${pid}`
-            : `courses?seccion_id=${this.data.seccion.id}`;
-        this.api.get<Course[]>(cursosUrl).subscribe({
+        this.api.get<Course[]>(
+            `courses?seccion_id=${this.data.seccion.id}&anio=${this.data.anio}`
+        ).subscribe({
             next: r => { this.cursos.set((r as any).data ?? []); this.loadingCursos.set(false); },
             error: () => this.loadingCursos.set(false),
         });
     }
-
     private reloadAlumnos(): void {
         this.loadingAlumnos.set(true);
         this.alumnoSearch.setValue('', { emitEvent: false });
@@ -186,19 +180,6 @@ export class SeccionDetailDialog implements OnInit {
         });
         r.afterClosed().subscribe(result => { if (result !== undefined) this.ref.close('reload'); });
     }
-
-    // ── Agregar curso ─────────────────────────────────────────────
-    async agregarCurso(): Promise<void> {
-        const pid = this.data.periodoId;
-        if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
-        const { AddCourseDialog } = await import('../add-course-dialog/add-course-dialog');
-        const r = this.dialog.open(AddCourseDialog, {
-            width: '500px',
-            data: { seccionId: this.data.seccion.id, periodoId: pid, seccionNombre: this.data.seccion.nombre, gradoNombre: this.data.gradoNombre },
-        });
-        r.afterClosed().subscribe((c: any) => { if (c) this.reloadCursos(); });
-    }
-
     // ── Asignar docente ───────────────────────────────────────────
     async asignarDocente(curso: Course): Promise<void> {
         const { AssignDocenteDialog } = await import('../assign-docente-dialog/assign-docente-dialog');
@@ -239,12 +220,15 @@ export class SeccionDetailDialog implements OnInit {
 
     // ── Matricular alumno ─────────────────────────────────────────
     async matricularAlumno(): Promise<void> {
-        const pid = this.data.periodoId;
-        if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
         const { EnrollAlumnoDialog } = await import('../enroll-alumno-dialog/enroll-alumno-dialog');
         const r = this.dialog.open(EnrollAlumnoDialog, {
             width: '500px',
-            data: { seccionId: this.data.seccion.id, periodoId: pid, seccionNombre: this.data.seccion.nombre, gradoNombre: this.data.gradoNombre, alumnosMatriculadosIds: this.alumnosIds() },
+            data: {
+                seccionId: this.data.seccion.id,
+                anio: this.data.anio,
+                seccionNombre: this.data.seccion.nombre,
+                gradoNombre: this.data.gradoNombre,
+            },
         });
         r.afterClosed().subscribe((enrolled: any) => { if (enrolled) this.reloadAlumnos(); });
     }
@@ -291,17 +275,13 @@ export class SeccionDetailDialog implements OnInit {
         });
     }
 
-    // ── Gestionar horario ─────────────────────────────────────────
-    // Navegamos al editor visual (página dedicada con grilla + modal de slot)
-    // en vez del modal-en-modal anterior, que era más limitado.
     gestionarHorario(): void {
-        const pid = this.data.periodoId;
-        if (!pid) { this.toastr.error('Sin periodo activo', 'Error'); return; }
         this.ref.close();
         this.router.navigate(
-            ['/admin/secciones', this.data.seccion.id, 'periodo', pid, 'horario'],
+            ['/admin/secciones', this.data.seccion.id, 'horario'],
             {
                 queryParams: {
+                    anio: this.data.anio,
                     seccion: this.data.seccion.nombre,
                     grado: this.data.gradoNombre,
                 },

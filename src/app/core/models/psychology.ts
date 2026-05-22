@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════════════
-// Modelos del módulo de psicología
+// core/models/psychology.ts
 // ═══════════════════════════════════════════════════════════════
 
 export type RecordCategoria =
     | 'conductual' | 'academico' | 'familiar' | 'emocional' | 'otro';
 
-// ── Alumno mínimo (vista del psicólogo) ─────────────────────────
+// ── Alumno mínimo ─────────────────────────────────────────────
 export interface AssignedStudent {
     id: string;
     codigo_estudiante: string;
@@ -26,7 +26,7 @@ export interface PsychologistStudentAssignment {
     student: AssignedStudent;
 }
 
-// ── Padre vinculado a un alumno ─────────────────────────────────
+// ── Padre ─────────────────────────────────────────────────────
 export interface ParentOfStudent {
     id: string;
     nombre: string;
@@ -46,7 +46,7 @@ export interface SearchableParent {
     relacion?: string | null;
 }
 
-// ── Ficha psicológica ───────────────────────────────────────────
+// ── Ficha de texto (anotación clínica) ───────────────────────
 export interface PsychologyRecord {
     id: string;
     psychologistId: string;
@@ -62,6 +62,7 @@ export interface CreateRecordPayload {
     studentId: string;
     categoria: RecordCategoria;
     contenido: string;
+    citaId?: string;
 }
 
 export interface UpdateRecordPayload {
@@ -69,7 +70,7 @@ export interface UpdateRecordPayload {
     contenido?: string;
 }
 
-// ── Directorio público de psicólogas ────────────────────────────
+// ── Psicólogas / Docentes ─────────────────────────────────────
 export interface Psicologa {
     id: string;
     nombre: string;
@@ -80,7 +81,7 @@ export interface Psicologa {
     telefono: string | null;
     foto_storage_key: string | null;
 }
-// Si ya tienes `Psicologa`, agrega `Docente` con la misma forma.
+
 export interface Docente {
     id: string;
     nombre: string;
@@ -88,18 +89,10 @@ export interface Docente {
     apellido_materno: string | null;
     especialidad: string | null;
     foto_url: string | null;
-    tutoria_actual?: {
-        seccion_id: string;
-        seccion_label: string;
-    } | null;
+    tutoria_actual?: { seccion_id: string; seccion_label: string } | null;
 }
 
-// ── Informes psicológicos ──────────────────────────────────────────
-// Documentos formales que la psicóloga emite sobre un alumno. Pueden
-// derivarse a la familia o a un especialista externo. Una vez
-// "finalizado" queda inmutable y se imprime/guarda como PDF desde el
-// navegador (no requiere lib backend de PDF — usamos `window.print()`
-// sobre una vista con `@media print` afinado).
+// ── Informes psicológicos ─────────────────────────────────────
 export type InformeTipo =
     | 'evaluacion'
     | 'seguimiento'
@@ -136,6 +129,7 @@ export interface CreateInformePayload {
     recomendaciones?: string | null;
     derivadoA?: string | null;
     confidencial?: boolean;
+    citaId?: string;
 }
 
 export type UpdateInformePayload = Partial<Omit<CreateInformePayload, 'studentId'>>;
@@ -146,7 +140,12 @@ export const INFORME_TIPO_LABELS: Record<InformeTipo, string> = {
     derivacion_familia: 'Derivación a la familia',
     derivacion_externa: 'Derivación a especialista externo',
 };
-export type ArchivoCategoria = 'ficha' | 'test';
+
+// ── Archivos subidos (fichas, tests, informes externos) ───────
+// 'ficha'   → documentos externos (anamnesis, derivaciones, etc.)
+// 'test'    → resultados de pruebas estandarizadas
+// 'informe' → informes externos subidos (no generados en el sistema)
+export type ArchivoCategoria = 'ficha' | 'test' | 'informe';
 
 export interface ArchivoPsicologico {
     id: string;
@@ -160,6 +159,7 @@ export interface ArchivoPsicologico {
     nombreOriginal: string | null;
     mimeType: string | null;
     sizeBytes: number | null;
+    citaId?: string | null;
     createdAt: string;
 }
 
@@ -170,6 +170,7 @@ export interface UploadArchivoPayload {
     descripcion?: string;
     confidencial: boolean;
     file: File;
+    citaId?: string;
 }
 
 export const ARCHIVO_MAX_BYTES = 10 * 1024 * 1024; // 10 MB

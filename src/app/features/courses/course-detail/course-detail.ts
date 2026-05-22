@@ -44,23 +44,13 @@ export class CourseDetail implements OnInit {
   semanasCount = signal(0);
   bimestresCount = signal(0);
 
-  // Etiqueta legible del período del curso (ej. "Bim 1 · 2025"). Se resuelve
-  // contra PeriodoService.all() — si la lista no está cargada todavía, devuelve
-  // null y el chip simplemente no se muestra hasta que llegue la data.
   readonly periodoLabel = computed<string | null>(() => {
     const c = this.course();
     if (!c) return null;
-    const id = String(c.periodo_id);
-    const p = this.periodoSvc.all().find(x => String(x.id) === id);
-    if (!p) return null;
-    return p.nombre?.trim() || `Bim ${p.bimestre} · ${p.anio}`;
-  });
-
-  /**
-   * Tabs visibles dentro del curso. La pestaña `asistencia` solo aplica al
-   * docente (es quien toma lista). El alumno ve sus notas vía el link a
-   * `/notas?cursoId=...` que se renderiza al final del nav.
-   */
+    const p = this.periodoSvc.all().find(x => x.anio === c.anio && x.activo);
+    if (p) return p.nombre?.trim() || `Bim ${p.bimestre} · ${p.anio}`;
+    return `Año ${c.anio}`;
+});
   readonly tabs = computed<CourseTab[]>(() => {
     const base: CourseTab[] = [
       { path: 'contenido',   label: 'Contenido',    icon: 'school' },
@@ -75,17 +65,17 @@ export class CourseDetail implements OnInit {
   });
 
   /** Params para el link "Calificaciones" del docente — abre el grid de registro. */
-  readonly calificacionesQueryParams = computed(() => {
+readonly calificacionesQueryParams = computed(() => {
     const c = this.course();
     if (!c) return null;
+    const p = this.periodoSvc.all().find(x => x.anio === c.anio && x.activo);
     return {
-      cursoId: c.id,
-      cursoNombre: c.nombre,
-      bimestre: 1,
-      periodoId: c.periodo_id,
+        cursoId: c.id,
+        cursoNombre: c.nombre,
+        bimestre: p?.bimestre ?? 1,
+        periodoId: p?.id ?? null,
     };
-  });
-
+});
   /** Params para el link "Mis notas" del alumno — abre /notas filtrado por curso. */
   readonly misNotasQueryParams = computed(() => {
     const c = this.course();

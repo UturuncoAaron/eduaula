@@ -7,7 +7,7 @@
 
 $col-min: 140px;
 $hour-col-width: 100px;
-$row-tick: 48px;     // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_MIN)
+$row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_MIN)
 
 .sg-wrap {
   width: 100%;
@@ -23,29 +23,47 @@ $row-tick: 48px;     // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_P
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
 
-  > div {
+  >div {
     padding: 10px 12px;
     border-right: 1px solid #e5e7eb;
     font-weight: 600;
     color: #374151;
     text-align: center;
 
-    &:last-child { border-right: none; }
+    &:last-child {
+      border-right: none;
+    }
   }
 
-  .sg-cell-hour { background: #f3f4f6; }
+  .sg-cell-hour {
+    background: #f3f4f6;
+  }
 
   .sg-day-head {
-    display: flex; flex-direction: column; gap: 2px;
-    .sg-day-long { font-size: 0.95rem; }
-    .sg-day-short { display: none; }
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .sg-day-long {
+      font-size: 0.95rem;
+    }
+
+    .sg-day-short {
+      display: none;
+    }
   }
 }
 
 @media (max-width: 760px) {
   .sg-header .sg-day-head {
-    .sg-day-long { display: none; }
-    .sg-day-short { display: inline; font-size: 0.85rem; }
+    .sg-day-long {
+      display: none;
+    }
+
+    .sg-day-short {
+      display: inline;
+      font-size: 0.85rem;
+    }
   }
 }
 
@@ -58,14 +76,16 @@ $row-tick: 48px;     // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_P
 .sg-hours-col {
   background: #fafafa;
   border-right: 1px solid #e5e7eb;
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
   .sg-hour-row {
     height: $row-tick;
     box-sizing: border-box;
     border-bottom: 1px solid #f1f5f9;
     padding: 4px 8px;
-    display: flex; align-items: flex-start;
+    display: flex;
+    align-items: flex-start;
     color: #6b7280;
     font-size: 0.72rem;
     font-variant-numeric: tabular-nums;
@@ -82,10 +102,14 @@ $row-tick: 48px;     // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_P
   cursor: crosshair;
   text-align: left;
 
-  &:last-child { border-right: none; }
+  &:last-child {
+    border-right: none;
+  }
 
   // Hover sutil para mostrar la zona clickable
-  &:hover { background: #fcfcfd; }
+  &:hover {
+    background: #fcfcfd;
+  }
 
   // Guías horarias (cada 30 min)
   .sg-grid-line {
@@ -95,7 +119,10 @@ $row-tick: 48px;     // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_P
     pointer-events: none;
 
     // Cada segunda línea (cada hora) más oscura
-    &:nth-child(odd) { border-bottom-color: #e5e7eb; border-bottom-style: solid; }
+    &:nth-child(odd) {
+      border-bottom-color: #e5e7eb;
+      border-bottom-style: solid;
+    }
   }
 }
 
@@ -132,8 +159,10 @@ $row-tick: 48px;     // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_P
   &.is-pending::after {
     content: '';
     position: absolute;
-    top: 4px; right: 4px;
-    width: 8px; height: 8px;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: #fbbf24;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
@@ -162,10 +191,18 @@ $row-tick: 48px;     // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_P
     display: inline-flex;
     align-items: center;
     gap: 2px;
+
     mat-icon {
       font-size: 0.85rem;
       width: 0.85rem;
       height: 0.85rem;
     }
   }
+}
+
+.sg-slot.is-editing {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.5), 0 3px 8px rgba(0, 0, 0, .2);
+  z-index: 4;
 }

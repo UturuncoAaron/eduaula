@@ -1,0 +1,124 @@
+.dlg-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.dlg-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1976d2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+    }
+}
+
+.dlg-header-text {
+    h2 {
+        margin: 0 !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        color: #0f172a;
+    }
+}
+
+.dlg-sub {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.dlg-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 16px;
+}
+
+.full {
+    width: 100%;
+}
+
+// ── Color picker ──────────────────────────────────────────────
+.color-field {
+    margin-top: 4px;
+}
+
+.color-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 10px;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+.color-btn {
+    height: 36px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: all 0.15s ease;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        transform: scale(1.06);
+        filter: brightness(0.95);
+    }
+
+    &.selected {
+        border-color: #0f172a;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7) inset;
+    }
+}
+
+// ── Actions ───────────────────────────────────────────────────
+.dlg-actions {
+    padding: 16px 0 0 !important;
+    border-top: 1px solid #e2e8f0;
+    gap: 8px;
+
+    button[mat-flat-button] {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

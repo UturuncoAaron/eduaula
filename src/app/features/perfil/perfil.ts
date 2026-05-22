@@ -1,6 +1,3 @@
-// 📁 PATH: src/app/features/perfil/perfil.ts
-// (Reemplaza el actual)
-
 import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';

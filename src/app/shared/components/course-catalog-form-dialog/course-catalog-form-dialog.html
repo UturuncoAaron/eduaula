@@ -1,0 +1,68 @@
+<div class="dlg-header">
+    <div class="dlg-icon-wrap">
+        <mat-icon>menu_book</mat-icon>
+    </div>
+    <div class="dlg-header-text">
+        <h2 mat-dialog-title>
+            {{ data.mode === 'create' ? 'Nuevo curso' : 'Editar curso' }}
+        </h2>
+        <p class="dlg-sub">
+            {{ data.mode === 'create'
+            ? 'Se agregará al catálogo general del colegio'
+            : 'Los cambios aplican a todos los cursos vinculados' }}
+        </p>
+    </div>
+</div>
+
+<mat-dialog-content>
+    <form [formGroup]="form" class="dlg-form">
+
+        <mat-form-field appearance="outline" class="full">
+            <mat-label>Nombre del curso *</mat-label>
+            <input matInput formControlName="nombre" placeholder="Ej. Matemática, Comunicación..." />
+            @if (form.controls.nombre.hasError('required') && form.controls.nombre.touched) {
+            <mat-error>El nombre es requerido</mat-error>
+            }
+            @if (form.controls.nombre.hasError('maxlength')) {
+            <mat-error>Máximo 150 caracteres</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+            <mat-label>Área curricular</mat-label>
+            <mat-select formControlName="area">
+                <mat-option [value]="null">Sin área</mat-option>
+                @for (a of areas; track a) {
+                <mat-option [value]="a">{{ a }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <div class="color-field">
+            <label class="color-label">Color identificador</label>
+            <div class="color-grid">
+                @for (c of colores; track c) {
+                <button type="button" class="color-btn" [style.background]="c" [class.selected]="form.value.color === c"
+                    (click)="form.patchValue({ color: c })">
+                    @if (form.value.color === c) {
+                    <mat-icon>check</mat-icon>
+                    }
+                </button>
+                }
+            </div>
+        </div>
+
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dlg-actions">
+    <button mat-button (click)="cancel()" [disabled]="saving()">
+        Cancelar
+    </button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="form.invalid || saving()">
+        @if (saving()) {
+        <mat-icon class="spin">sync</mat-icon>
+        }
+        {{ data.mode === 'create' ? 'Crear curso' : 'Guardar cambios' }}
+    </button>
+</mat-dialog-actions>

@@ -1,0 +1,103 @@
+<div class="cc-page">
+
+    <!-- HEADER -->
+    <div class="cc-header">
+        <div class="cc-header-left">
+            <button mat-icon-button class="btn-back" (click)="goBack()" matTooltip="Volver">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div>
+                <h1 class="cc-title">Catálogo de Cursos</h1>
+                <p class="cc-sub">
+                    {{ catalogo().length }} cursos registrados
+                </p>
+            </div>
+        </div>
+        <button mat-flat-button color="primary" (click)="openCreate()">
+            <mat-icon>add</mat-icon>
+            Nuevo curso
+        </button>
+    </div>
+
+    @if (loading()) {
+    <div class="cc-loader"><mat-spinner diameter="36"></mat-spinner></div>
+    } @else {
+
+    <!-- FILTROS POR ÁREA -->
+    @if (porArea().size > 0) {
+    <div class="cc-areas">
+        <button class="cc-area-chip" [class.active]="areaFiltro() === null" (click)="setArea(null)">
+            Todos
+            <span class="cc-area-count">{{ catalogo().length }}</span>
+        </button>
+        @for (entry of porArea() | keyvalue; track entry.key) {
+        <button class="cc-area-chip" [class.active]="areaFiltro() === entry.key" (click)="setArea(entry.key)">
+            {{ entry.key }}
+            <span class="cc-area-count">{{ entry.value }}</span>
+        </button>
+        }
+    </div>
+    }
+
+    <!-- SEARCH -->
+    <div class="cc-search">
+        <mat-icon>search</mat-icon>
+        <input [formControl]="search" placeholder="Buscar por nombre..." />
+        @if (search.value) {
+        <button class="cc-search-clear" (click)="search.setValue('')">
+            <mat-icon>close</mat-icon>
+        </button>
+        }
+    </div>
+
+    <!-- LISTA -->
+    @if (filtrado().length === 0) {
+    <div class="cc-empty">
+        <mat-icon>menu_book</mat-icon>
+        <p>{{ catalogo().length === 0 ? 'Sin cursos — crea el primero' : 'Sin resultados' }}</p>
+        @if (catalogo().length === 0) {
+        <button mat-flat-button color="primary" (click)="openCreate()">
+            <mat-icon>add</mat-icon> Crear primer curso
+        </button>
+        }
+    </div>
+    } @else {
+    <div class="cc-list">
+        @for (item of filtrado(); track item.id) {
+        <div class="cc-row" [class.inactive]="!item.activo">
+            <span class="cc-dot" [style.background]="item.color"></span>
+            <div class="cc-info">
+                <span class="cc-nombre" [class.muted]="!item.activo">
+                    {{ item.nombre }}
+                </span>
+                @if (item.area) {
+                <span class="cc-area">{{ item.area }}</span>
+                }
+            </div>
+            @if (!item.activo) {
+            <span class="cc-badge-inactivo">Inactivo</span>
+            }
+            <button mat-icon-button [matMenuTriggerFor]="itemMenu" [matMenuTriggerData]="{ item }"
+                (click)="$event.stopPropagation()">
+                <mat-icon>more_vert</mat-icon>
+            </button>
+        </div>
+        }
+    </div>
+    }
+
+    } <!-- /loading -->
+
+</div>
+
+<mat-menu #itemMenu="matMenu">
+    <ng-template matMenuContent let-item="item">
+        <button mat-menu-item (click)="openEdit(item)">
+            <mat-icon>edit</mat-icon> Editar
+        </button>
+        <button mat-menu-item (click)="toggleActivo(item)">
+            <mat-icon>{{ item.activo ? 'visibility_off' : 'visibility' }}</mat-icon>
+            {{ item.activo ? 'Desactivar' : 'Activar' }}
+        </button>
+    </ng-template>
+</mat-menu>

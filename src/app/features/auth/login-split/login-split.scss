@@ -1,20 +1,34 @@
 :host {
-    display: block;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
+  display: block;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #f8f9fc;
 }
 
 .split-layout {
-    display: grid;
-    grid-template-columns: 55% 45%;
+  display: grid;
+  grid-template-columns: 1fr;
+  height: 100%;
+  width: 100%;
+
+  &__brand {
+    display: none;
+    width: 100%;
     height: 100%;
+  }
 
-    @media (max-width: 900px) {
-        grid-template-columns: 1fr;
+  &__form {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 
-        .split-layout__brand {
-            display: none;
-        }
+  @media (min-width: 960px) {
+    grid-template-columns: 1.2fr 1fr;
+
+    &__brand {
+      display: block;
     }
+  }
 }

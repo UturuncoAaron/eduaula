@@ -1,14 +1,14 @@
 <div class="page-perfil">
 
-    <!-- HERO -->
     <div class="perfil-hero">
         <div class="hero-bg"></div>
         <div class="hero-body">
+
             <div class="avatar-wrap">
                 <div class="avatar-ring">
                     <div class="avatar-circle" [style.background]="roleColor()">
                         @if (user()?.foto_url) {
-                        <img [src]="user()!.foto_url" alt="foto de perfil" />
+                        <img [src]="user()!.foto_url" alt="Foto de perfil" />
                         } @else {
                         <span class="avatar-initials">{{ initials() }}</span>
                         }
@@ -35,7 +35,9 @@
             <div class="hero-meta">
                 <div class="hero-meta-item">
                     <span class="hero-meta-label">Institución</span>
-                    <span class="hero-meta-value">IE Amauta</span>
+                    <span class="hero-meta-value hero-meta-value--long" title="IE Juan Pablo Vizcardo y Guzmán">
+                        IE Juan Pablo V.G.
+                    </span>
                 </div>
                 <div class="hero-meta-divider"></div>
                 <div class="hero-meta-item">
@@ -50,19 +52,18 @@
                     </span>
                 </div>
             </div>
+
         </div>
     </div>
 
-    <!-- GRID DE CARDS -->
     <div class="perfil-grid">
 
-        <!-- Card: Datos personales -->
         <div class="info-card">
             <div class="card-header">
                 <div class="card-icon-wrap" style="--icon-color: #3b82f6">
                     <mat-icon>person_outline</mat-icon>
                 </div>
-                <div>
+                <div class="card-header-text">
                     <h2 class="card-title">Información personal</h2>
                     <p class="card-subtitle">Datos de identificación</p>
                 </div>
@@ -70,51 +71,38 @@
 
             <div class="info-list">
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>badge</mat-icon>Nombres
-                    </span>
+                    <span class="info-label"><mat-icon>badge</mat-icon>Nombres</span>
                     <span class="info-value">{{ user()?.nombre || '—' }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>family_restroom</mat-icon>Ap. paterno
-                    </span>
+                    <span class="info-label"><mat-icon>family_restroom</mat-icon>Ap. paterno</span>
                     <span class="info-value">{{ user()?.apellido_paterno || '—' }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>family_restroom</mat-icon>Ap. materno
-                    </span>
+                    <span class="info-label"><mat-icon>family_restroom</mat-icon>Ap. materno</span>
                     <span class="info-value">{{ user()?.apellido_materno || '—' }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>fingerprint</mat-icon>DNI
-                    </span>
+                    <span class="info-label"><mat-icon>fingerprint</mat-icon>DNI</span>
                     <span class="info-value mono">{{ user()?.numero_documento || '—' }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>phone</mat-icon>Teléfono
-                    </span>
+                    <span class="info-label"><mat-icon>phone</mat-icon>Teléfono</span>
                     <span class="info-value">{{ user()?.telefono || '—' }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>mail_outline</mat-icon>Correo
-                    </span>
+                    <span class="info-label"><mat-icon>mail_outline</mat-icon>Correo</span>
                     <span class="info-value">{{ user()?.email || '—' }}</span>
                 </div>
             </div>
         </div>
 
-        <!-- Card: Información académica -->
         <div class="info-card">
             <div class="card-header">
                 <div class="card-icon-wrap" style="--icon-color: #8b5cf6">
                     <mat-icon>school</mat-icon>
                 </div>
-                <div>
+                <div class="card-header-text">
                     <h2 class="card-title">Información académica</h2>
                     <p class="card-subtitle">Rol y datos institucionales</p>
                 </div>
@@ -122,9 +110,7 @@
 
             <div class="info-list">
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>verified_user</mat-icon>Rol
-                    </span>
+                    <span class="info-label"><mat-icon>verified_user</mat-icon>Rol</span>
                     <span class="info-value">
                         <span class="role-chip" [style.background]="roleColor() + '18'" [style.color]="roleColor()"
                             [style.border]="'1px solid ' + roleColor() + '30'">
@@ -135,63 +121,41 @@
 
                 @if (user()?.rol === 'alumno') {
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>class</mat-icon>Grado y sección
-                    </span>
-                    <span class="info-value">
-                        {{ user()?.grado || '—' }} {{ user()?.seccion || '' }}
-                    </span>
+                    <span class="info-label"><mat-icon>class</mat-icon>Grado y sección</span>
+                    <span class="info-value">{{ user()?.grado || '—' }} {{ user()?.seccion || '' }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>tag</mat-icon>Código
-                    </span>
+                    <span class="info-label"><mat-icon>tag</mat-icon>Código</span>
                     <span class="info-value mono">{{ user()?.codigo_estudiante || '—' }}</span>
                 </div>
                 }
 
-                @if (user()?.rol === 'docente') {
+                @if (user()?.rol === 'docente' || user()?.rol === 'psicologa') {
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>psychology</mat-icon>Especialidad
-                    </span>
+                    <span class="info-label"><mat-icon>psychology</mat-icon>Especialidad</span>
                     <span class="info-value">{{ user()?.especialidad || '—' }}</span>
                 </div>
                 }
 
                 @if (user()?.rol === 'psicologa') {
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>psychology</mat-icon>Especialidad
-                    </span>
-                    <span class="info-value">{{ user()?.especialidad || '—' }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>workspace_premium</mat-icon>Colegiatura
-                    </span>
+                    <span class="info-label"><mat-icon>workspace_premium</mat-icon>Colegiatura</span>
                     <span class="info-value mono">{{ user()?.colegiatura || '—' }}</span>
                 </div>
                 }
 
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>account_balance</mat-icon>Colegio
-                    </span>
-                    <span class="info-value">IE Amauta · Comas</span>
+                    <span class="info-label"><mat-icon>account_balance</mat-icon>Colegio</span>
+                    <span class="info-value info-value--wrap">IE Juan Pablo Vizcardo y Guzmán</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>calendar_today</mat-icon>Miembro desde
-                    </span>
+                    <span class="info-label"><mat-icon>calendar_today</mat-icon>Miembro desde</span>
                     <span class="info-value">
                         {{ user()?.created_at | date:'MMMM yyyy' : '' : 'es' }}
                     </span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">
-                        <mat-icon>key</mat-icon>Código acceso
-                    </span>
+                    <span class="info-label"><mat-icon>key</mat-icon>Código acceso</span>
                     <span class="info-value mono">{{ user()?.codigo_acceso || '—' }}</span>
                 </div>
             </div>
@@ -199,7 +163,6 @@
 
     </div>
 
-    <!-- Acción -->
     <div class="perfil-footer">
         <button mat-flat-button (click)="openEditProfileDialog()" class="btn-settings">
             <mat-icon>tune</mat-icon>

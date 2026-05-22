@@ -91,7 +91,8 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.GRADOS_SECCIONES, MODULO.PERIODOS, MODULO.MATRICULAS, MODULO.PADRE_HIJO_ADMIN],
     dividerBefore: true,
     children: [
-      { label: 'Grados y Cursos', icon: 'class', route: '/admin/academico', modulos: [MODULO.GRADOS_SECCIONES], exactMatch: true },
+      { label: 'Grados y Secciones', icon: 'class', route: '/admin/academico', modulos: [MODULO.GRADOS_SECCIONES], exactMatch: true },
+      { label: 'Catálogo de Cursos', icon: 'menu_book', route: '/admin/academico/cursos', modulos: [MODULO.GRADOS_SECCIONES], exactMatch: true },
       { label: 'Año Lectivo', icon: 'event_available', route: '/admin/anios-lectivos', modulos: [MODULO.MATRICULAS], exactMatch: true },
       { label: 'Periodos', icon: 'calendar_month', route: '/admin/periodos', modulos: [MODULO.PERIODOS], exactMatch: true },
       { label: 'Matrículas', icon: 'how_to_reg', route: '/admin/matriculas', modulos: [MODULO.MATRICULAS], exactMatch: true },

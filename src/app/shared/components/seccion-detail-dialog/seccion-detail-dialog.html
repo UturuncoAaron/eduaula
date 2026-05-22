@@ -86,9 +86,6 @@
         <div class="tab-content">
             <div class="tab-toolbar">
                 <span class="toolbar-title">Cursos de la sección</span>
-                <button mat-flat-button color="primary" class="btn-action" (click)="agregarCurso()">
-                    <mat-icon>add</mat-icon> Agregar curso
-                </button>
             </div>
             @if (loadingCursos()) {
             <div class="inline-loader">
@@ -97,7 +94,7 @@
             } @else if (cursos().length === 0) {
             <div class="empty-mini">
                 <mat-icon>menu_book</mat-icon>
-                <p>{{ data.periodoId ? 'Sin cursos aún. Agrega el primero.' : 'Sin periodo activo.' }}</p>
+                <p>Sin cursos asignados aún.</p>
             </div>
             } @else {
             <div class="courses-list">

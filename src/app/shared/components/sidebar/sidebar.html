@@ -1,19 +1,11 @@
 <aside class="sidebar" [class.collapsed]="collapsed()">
 
-    <!-- ─── Brand ───────────────────────────────────────────────── -->
     <div class="sidebar-brand">
         <div class="brand-logo-container">
-            <img ngSrc="logo.png" width="120" height="120" alt="Logo IE" class="brand-logo" priority />
+            <img ngSrc="logo.png" fill alt="Escudo de la IE" class="brand-logo" priority />
         </div>
-        @if (!collapsed()) {
-        <div class="brand-text">
-            <span class="brand-name">EduAula</span>
-            <span class="brand-sub">IE Juan Pablo V.G.</span>
-        </div>
-        }
     </div>
 
-    <!-- ─── Navegación ──────────────────────────────────────────── -->
     <nav class="sidebar-nav">
         @if (!collapsed()) {
         <div class="nav-section-title">Menú Principal</div>
@@ -21,12 +13,7 @@
 
         @for (item of visibleItems(); track item.label) {
 
-        <!-- Separador visual opcional -->
-        @if (item.dividerBefore) {
-        <div class="nav-divider"></div>
-        }
 
-        <!-- ═══ GRUPO ACORDEÓN ═══════════════════════════════ -->
         @if (item.children && item.children.length) {
         <div class="nav-group" [class.group-active]="isGroupActive(item)">
 
@@ -55,7 +42,6 @@
             }
         </div>
 
-        <!-- ═══ ITEM SIMPLE ══════════════════════════════════ -->
         } @else if (item.route) {
         <a [routerLink]="item.route" class="nav-item" [class.active]="isItemActive(item)" matRipple
             [matTooltip]="collapsed() ? item.label : ''" matTooltipPosition="right">
@@ -67,7 +53,4 @@
         }
         }
     </nav>
-
-
-
 </aside>
