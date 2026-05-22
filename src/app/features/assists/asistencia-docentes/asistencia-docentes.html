@@ -1,10 +1,11 @@
-<div class="asistencia-container fade-in">
+<div class="ad-container fade-in">
 
-  <!-- ── HEADER ──────────────────────────────────────────── -->
-  <div class="page-header">
+  <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+  <div class="ad-header">
     <button class="btn-back" (click)="volver()">
       <mat-icon>arrow_back_ios_new</mat-icon>
     </button>
+
     <div class="header-info">
       <h1>Asistencia de Docentes</h1>
       <p class="header-meta">
@@ -13,54 +14,45 @@
       </p>
     </div>
 
-    <!-- Selector de fecha — showPicker() fix -->
     <div class="date-picker-wrap" (click)="datePicker.showPicker()">
       <mat-icon class="dp-icon">edit_calendar</mat-icon>
       <span class="dp-label">{{ fechaCorta() }}</span>
       <mat-icon class="dp-chevron">expand_more</mat-icon>
-      <input #datePicker type="date" class="date-input-overlay" [value]="fecha()" [max]="todayStr"
-        (change)="onFechaChange($any($event.target).value)" title="Seleccionar fecha" />
+      <input #datePicker type="date" class="date-overlay" [value]="fecha()" [max]="todayStr"
+        (change)="onFechaChange($any($event.target).value)" />
     </div>
 
-    @if (yaRegistrado() && !loading()) {
-    <div class="badge-registrado">
-      <mat-icon>check_circle</mat-icon>
-      Ya registrado
+    @if (!isToday() && !loading()) {
+    <div class="badge-retroactivo">
+      <mat-icon>history</mat-icon> Editando fecha pasada
     </div>
     }
 
-    @if (!loading() && bloques().length) {
-    <button class="btn-save" (click)="guardar()" [disabled]="saving()">
+    @if (!loading() && docentes().length) {
+    <button class="btn-guardar" (click)="guardar()" [disabled]="saving()">
       <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
-      {{ saving() ? 'Guardando...' : (isToday() ? 'Guardar asistencia' : 'Actualizar registro') }}
+      {{ saving() ? 'Guardando...' : 'Guardar asistencia' }}
     </button>
     }
   </div>
 
-  <!-- Aviso edición de fecha pasada -->
-  @if (!isToday() && !loading()) {
-  <div class="edit-notice">
-    <mat-icon>history</mat-icon>
-    Editando el registro del <strong>{{ fechaLabel() }}</strong>. Los cambios sobreescribirán el registro existente.
-  </div>
-  }
-
-  <!-- ── LOADING ──────────────────────────────────────────── -->
+  <!-- ══ LOADING ══════════════════════════════════════════════════════════ -->
   @if (loading()) {
   <div class="state-center">
     <div class="spinner-ring"></div>
-    <p>Cargando horarios del día...</p>
+    <p>Cargando docentes del día...</p>
   </div>
 
-  } @else if (!bloques().length) {
+  } @else if (!docentes().length) {
   <div class="state-center">
     <mat-icon class="empty-icon">event_busy</mat-icon>
-    <p>No hay bloques programados para este día.</p>
+    <p>No hay docentes con clases programadas para este día.</p>
+    <span class="empty-hint">Verifica que los horarios estén registrados en el sistema.</span>
   </div>
 
   } @else {
 
-  <!-- Stats -->
+  <!-- ══ STATS ════════════════════════════════════════════════════════════ -->
   <div class="stats-row">
     <div class="stat-card green">
       <div class="stat-icon"><mat-icon>how_to_reg</mat-icon></div>
@@ -83,18 +75,18 @@
         <span class="lbl">Ausentes</span>
       </div>
     </div>
-    <div class="stat-card blue">
+    <div class="stat-card teal">
       <div class="stat-icon"><mat-icon>groups</mat-icon></div>
       <div class="stat-data">
-        <span class="num">{{ bloques().length }}</span>
-        <span class="lbl">Clases hoy</span>
+        <span class="num">{{ docentes().length }}</span>
+        <span class="lbl">Docentes</span>
       </div>
     </div>
   </div>
 
-  <!-- Quick actions -->
+  <!-- ══ ACCIONES RÁPIDAS ═════════════════════════════════════════════════ -->
   <div class="quick-actions">
-    <span class="qa-label">Marcar todos como:</span>
+    <span class="qa-label">Marcar todos:</span>
     <button class="qa-btn green" (click)="marcarTodos('presente')">
       <mat-icon>check_circle</mat-icon> Presentes
     </button>
@@ -102,82 +94,158 @@
       <mat-icon>schedule</mat-icon> Tardanza
     </button>
     <button class="qa-btn red" (click)="marcarTodos('ausente')">
-      <mat-icon>cancel</mat-icon> Ausente
+      <mat-icon>person_off</mat-icon> Ausente
     </button>
   </div>
 
-  <!-- Lista de docentes -->
-  <div class="students-card">
-    <div class="list-header">
-      <span class="col-num">#</span>
-      <span class="col-alumno">Docente</span>
-      <span class="col-clase">Clase / Horario</span>
-      <span class="col-estado">Estado</span>
-    </div>
+  <!-- ══ LISTA DE DOCENTES ═════════════════════════════════════════════════ -->
+  <div class="docentes-list">
 
-    @for (b of bloques(); track b.horario_id; let i = $index) {
-    <div class="student-row" [class]="'borde-' + estadoActual(b)">
-      <span class="col-num muted">{{ i + 1 }}</span>
+    @for (d of docentes(); track d.docente_id) {
+    @let ed = getEdicion(d.docente_id);
+    @let expandido = docenteExpandido() === d.docente_id;
 
-      <div class="col-alumno">
-        <div class="avatar avatar-initials" [style.background]="getAvatarColor(b.apellido_paterno)">
-          {{ initials(b) }}
+    <div class="docente-card" [class]="'borde-' + ed.estado" [class.ya-registrado]="d.ya_registrado">
+
+      <!-- Fila principal -->
+      <div class="docente-main">
+
+        <!-- Avatar + info -->
+        <div class="docente-info">
+          <div class="avatar" [style.background]="getAvatarColor(d.apellido_paterno)">
+            {{ getInitials(d) }}
+          </div>
+          <div class="docente-texto">
+            <span class="docente-nombre">
+              {{ d.apellido_paterno }}{{ d.apellido_materno ? ' ' + d.apellido_materno : '' }},
+              {{ d.docente_nombre }}
+            </span>
+            <span class="docente-meta">
+              <mat-icon>schedule</mat-icon>
+              {{ formatHora(d.primera_clase) }} – {{ formatHora(d.ultima_clase) }}
+              <span class="sep">·</span>
+              {{ d.total_bloques }} {{ d.total_bloques === 1 ? 'clase' : 'clases' }}
+              @if (d.ya_registrado) {
+              <span class="badge-ok">
+                <mat-icon>check</mat-icon> Registrado
+              </span>
+              }
+            </span>
+          </div>
         </div>
-        <div class="alumno-info">
-          <span class="nombre">{{ b.apellido_paterno }}, {{ b.docente_nombre }}</span>
-          <span class="codigo">{{ b.seccion_nombre }}</span>
+
+        <!-- Chips de estado — solo 3 -->
+        <div class="estado-chips">
+          <button class="chip chip-green" [class.active]="ed.estado === 'presente'"
+            (click)="setEstado(d.docente_id, 'presente')">
+            <mat-icon>check_circle</mat-icon>
+            <span>Presente</span>
+          </button>
+          <button class="chip chip-orange" [class.active]="ed.estado === 'tardanza'"
+            (click)="setEstado(d.docente_id, 'tardanza')">
+            <mat-icon>schedule</mat-icon>
+            <span>Tardanza</span>
+          </button>
+          <button class="chip chip-red" [class.active]="ed.estado === 'ausente'"
+            (click)="setEstado(d.docente_id, 'ausente')">
+            <mat-icon>person_off</mat-icon>
+            <span>Ausente</span>
+          </button>
+        </div>
+
+        <!-- Botón ver bloques -->
+        <button class="btn-expand" (click)="toggleExpandir(d.docente_id)"
+          [title]="expandido ? 'Ocultar bloques' : 'Ver bloques del día'">
+          <mat-icon>{{ expandido ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+      </div>
+
+      <!-- Campos extra: hora llegada (tardanza) o motivo (ausente) -->
+      @if (ed.estado === 'tardanza' || ed.estado === 'ausente') {
+      <div class="campos-extra">
+
+        @if (ed.estado === 'tardanza') {
+        <div class="campo">
+          <label>
+            <mat-icon>login</mat-icon>
+            Hora de llegada
+          </label>
+          <input type="time" [value]="ed.hora_llegada ?? ''"
+            (change)="setHoraLlegada(d.docente_id, $any($event.target).value)" placeholder="HH:MM" />
+        </div>
+        }
+
+        @if (ed.estado === 'ausente') {
+        <div class="campo campo-motivo">
+          <label>
+            <mat-icon>comment</mat-icon>
+            Motivo de la ausencia
+          </label>
+          <input type="text" [value]="ed.motivo ?? ''" (input)="setMotivo(d.docente_id, $any($event.target).value)"
+            placeholder="Ej: Enfermedad, diligencia personal..." maxlength="500" />
+        </div>
+        }
+
+      </div>
+      }
+
+      <!-- Panel bloques expandido -->
+      @if (expandido) {
+      <div class="bloques-panel">
+        <div class="bloques-titulo">
+          <mat-icon>view_list</mat-icon>
+          Bloques del día
+        </div>
+        <div class="bloques-grid">
+          @for (b of d.bloques_json; track b.horario_id; let i = $index) {
+          @let estadoBloque = ed.estado === 'tardanza' && i === 0
+          ? 'tardanza' : ed.estado;
+
+          <div class="bloque-item" [class]="'bloque-' + estadoBloque">
+            <div class="bloque-hora">
+              {{ formatHora(b.hora_inicio) }} – {{ formatHora(b.hora_fin) }}
+            </div>
+            <div class="bloque-info">
+              <span class="bloque-curso">{{ b.curso_nombre }}</span>
+              <span class="bloque-seccion">{{ b.seccion_nombre }}</span>
+              @if (b.aula) {
+              <span class="bloque-aula">Aula {{ b.aula }}</span>
+              }
+            </div>
+            <div class="bloque-estado" [class]="'est-' + estadoBloque">
+              {{ estadoBloque === 'presente' ? 'Presente'
+              : estadoBloque === 'tardanza' ? 'Tardanza'
+              : 'Ausente' }}
+            </div>
+          </div>
+          }
         </div>
       </div>
+      }
 
-      <div class="col-clase">
-        <span class="curso-badge">{{ b.curso_nombre }}</span>
-        <span class="horario-meta">
-          <mat-icon>schedule</mat-icon>
-          {{ b.hora_inicio }} – {{ b.hora_fin }}
-          @if (b.aula) { · Aula {{ b.aula }} }
-        </span>
-      </div>
-
-      <div class="col-estado">
-        <button class="est-btn presente" [class.active]="estadoActual(b) === 'presente'"
-          (click)="pickEstado(b.horario_id, 'presente')">
-          <mat-icon>check</mat-icon><span>Presente</span>
-        </button>
-        <button class="est-btn tardanza" [class.active]="estadoActual(b) === 'tardanza'"
-          (click)="pickEstado(b.horario_id, 'tardanza')">
-          <mat-icon>schedule</mat-icon><span>Tardanza</span>
-        </button>
-        <button class="est-btn ausente" [class.active]="estadoActual(b) === 'ausente'"
-          (click)="pickEstado(b.horario_id, 'ausente')">
-          <mat-icon>close</mat-icon><span>Ausente</span>
-        </button>
-        <button class="est-btn permiso" [class.active]="estadoActual(b) === 'permiso'"
-          (click)="pickEstado(b.horario_id, 'permiso')">
-          <mat-icon>assignment_ind</mat-icon><span>Permiso</span>
-        </button>
-        <button class="est-btn licencia" [class.active]="estadoActual(b) === 'licencia'"
-          (click)="pickEstado(b.horario_id, 'licencia')">
-          <mat-icon>beach_access</mat-icon><span>Licencia</span>
-        </button>
-      </div>
     </div>
     }
+
   </div>
   }
+
 </div>
 
-<!-- ── BOTTOM BAR ──────────────────────────────────────── -->
-@if (!loading() && bloques().length) {
+<!-- ══ BOTTOM BAR ════════════════════════════════════════════════════════ -->
+@if (!loading() && docentes().length) {
 <div class="bottom-bar">
   <div class="bottom-stats">
-    <mat-icon>person</mat-icon>
-    <span>{{ bloques().length }} bloques</span>
-    <span class="pct-badge teal">{{ totalPresentes() }} presentes</span>
+    <mat-icon>people</mat-icon>
+    <span>{{ docentes().length }} docentes</span>
+    <span class="badge teal">{{ totalPresentes() }} presentes</span>
     @if (totalAusentes()) {
-    <span class="pct-badge red">{{ totalAusentes() }} ausentes</span>
+    <span class="badge red">{{ totalAusentes() }} ausentes</span>
+    }
+    @if (totalTardanzas()) {
+    <span class="badge orange">{{ totalTardanzas() }} tardanzas</span>
     }
   </div>
-  <button class="btn-save-bottom" (click)="guardar()" [disabled]="saving()">
+  <button class="btn-guardar-bottom" (click)="guardar()" [disabled]="saving()">
     <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
     {{ saving() ? 'Guardando...' : (isToday() ? 'Guardar asistencia' : 'Actualizar registro') }}
   </button>

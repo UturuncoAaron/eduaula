@@ -1,40 +1,72 @@
 import {
-  Component,
-  ChangeDetectionStrategy,
-  inject,
-  signal,
-  computed,
-  OnInit,
+  Component, ChangeDetectionStrategy, inject,
+  signal, computed, OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 
-type EstadoAsistencia = 'presente' | 'tardanza' | 'ausente' | 'permiso' | 'licencia';
+// ── Tipos ─────────────────────────────────────────────────────────────────────
 
-interface HorarioBloque {
+type EstadoDocente = 'presente' | 'tardanza' | 'ausente';
+
+interface BloqueInfo {
   horario_id: string;
+  hora_inicio: string;
+  hora_fin: string;
+  aula: string | null;
+  curso_nombre: string;
+  seccion_nombre: string;
+  estado_bloque: string | null;
+}
+
+interface DocenteDelDia {
   docente_id: string;
   docente_nombre: string;
   apellido_paterno: string;
-  curso_nombre: string;
-  seccion_nombre: string;
-  hora_inicio: string;
-  hora_fin: string;
-  aula?: string;
-  estado_actual?: EstadoAsistencia | null;
+  apellido_materno: string | null;
+  primera_clase: string;
+  ultima_clase: string;
+  total_bloques: number;
+  estado_actual: EstadoDocente | null;
+  hora_llegada: string | null;
+  motivo: string | null;
+  ya_registrado: boolean;
+  bloques_json: BloqueInfo[];
 }
 
-const AVATAR_COLORS = ['#14b8a6', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981'];
-const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+interface EstadoEdicion {
+  estado: EstadoDocente;
+  hora_llegada?: string;
+  motivo?: string;
+}
+
+// ── Constantes ────────────────────────────────────────────────────────────────
+
+const AVATAR_COLORS = [
+  '#14b8a6', '#3b82f6', '#8b5cf6',
+  '#f59e0b', '#ef4444', '#10b981',
+];
+
+const MESES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+
+const DIAS = [
+  'domingo', 'lunes', 'martes', 'miércoles',
+  'jueves', 'viernes', 'sábado',
+];
+
+// ── Componente ────────────────────────────────────────────────────────────────
 
 @Component({
   selector: 'app-asistencia-docentes',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './asistencia-docentes.html',
   styleUrl: './asistencia-docentes.scss',
@@ -46,6 +78,13 @@ export class AsistenciaDocentes implements OnInit {
 
   readonly todayStr = new Date().toISOString().slice(0, 10);
   readonly fecha = signal<string>(this.todayStr);
+  readonly loading = signal(false);
+  readonly saving = signal(false);
+  readonly docentes = signal<DocenteDelDia[]>([]);
+  readonly edicion = signal<Map<string, EstadoEdicion>>(new Map());
+  readonly docenteExpandido = signal<string | null>(null);
+
+  // ── Computed ───────────────────────────────────────────────────────────────
 
   readonly fechaLabel = computed(() => {
     const d = new Date(this.fecha() + 'T00:00:00');
@@ -59,27 +98,47 @@ export class AsistenciaDocentes implements OnInit {
 
   readonly isToday = computed(() => this.fecha() === this.todayStr);
 
-  readonly loading = signal(false);
-  readonly saving = signal(false);
-  readonly bloques = signal<HorarioBloque[]>([]);
+  readonly totalPresentes = computed(() =>
+    [...this.edicion().values()].filter(e => e.estado === 'presente').length);
+  readonly totalTardanzas = computed(() =>
+    [...this.edicion().values()].filter(e => e.estado === 'tardanza').length);
+  readonly totalAusentes = computed(() =>
+    [...this.edicion().values()].filter(e => e.estado === 'ausente').length);
 
-  readonly estados = signal<Map<string, EstadoAsistencia>>(new Map());
+  // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-  readonly totalPresentes = computed(() => [...this.estados().values()].filter(e => e === 'presente').length);
-  readonly totalTardanzas = computed(() => [...this.estados().values()].filter(e => e === 'tardanza').length);
-  readonly totalAusentes = computed(() => [...this.estados().values()].filter(e => e === 'ausente').length);
-  readonly totalPermisos = computed(() => [...this.estados().values()].filter(e => e === 'permiso' || e === 'licencia').length);
+  ngOnInit() { this.cargarDocentes(); }
 
-  readonly yaRegistrado = computed(() =>
-    this.bloques().length > 0 && this.bloques().some(b => b.estado_actual !== null)
-  );
+  // ── Carga ──────────────────────────────────────────────────────────────────
 
-  readonly esFindeSemana = computed(() => {
-    const d = new Date(this.fecha() + 'T00:00:00');
-    return d.getDay() === 0 || d.getDay() === 6;
-  });
+  cargarDocentes() {
+    this.loading.set(true);
+    this.api.get<any>(`reports/docentes/docentes-dia?fecha=${this.fecha()}`).subscribe({
+      next: r => {
+        const data: DocenteDelDia[] = Array.isArray(r)
+          ? r : Array.isArray(r?.data) ? r.data : [];
 
-  ngOnInit() { this.loadHorarios(); }
+        this.docentes.set(data);
+
+        const m = new Map<string, EstadoEdicion>();
+        for (const d of data) {
+          m.set(d.docente_id, {
+            estado: (d.estado_actual as EstadoDocente) ?? 'presente',
+            hora_llegada: d.hora_llegada ?? undefined,
+            motivo: d.motivo ?? undefined,
+          });
+        }
+        this.edicion.set(m);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.docentes.set([]);
+        this.edicion.set(new Map());
+        this.loading.set(false);
+        this.toastr.error('No se pudo cargar la lista de docentes');
+      },
+    });
+  }
 
   onFechaChange(value: string) {
     if (!value || value > this.todayStr) {
@@ -87,98 +146,106 @@ export class AsistenciaDocentes implements OnInit {
       return;
     }
     this.fecha.set(value);
-    this.loadHorarios();
+    this.cargarDocentes();
   }
 
-  loadHorarios() {
-    this.loading.set(true);
-    this.api.get<any>(`asistencias/docente/horarios-dia?fecha=${this.fecha()}`).subscribe({
-      next: r => {
-        // ── DEBUG ── quitar después de identificar el problema
-        console.log('=== DEBUG loadHorarios ===');
-        console.log('fecha consultada:', this.fecha());
-        console.log('RAW response:', r);
-        console.log('typeof r:', typeof r);
-        console.log('Array.isArray(r):', Array.isArray(r));
-        console.log('r?.data:', r?.data);
-        console.log('Array.isArray(r?.data):', Array.isArray(r?.data));
-        console.log('r?.data?.data:', r?.data?.data);
-        console.log('=========================');
-        // ── FIN DEBUG ──
+  // ── Edición ────────────────────────────────────────────────────────────────
 
-        const data: HorarioBloque[] = Array.isArray(r) ? r : (Array.isArray(r?.data) ? r.data : []);
-        console.log('data final parseada (length):', data.length, data);
+  getEdicion(docenteId: string): EstadoEdicion {
+    return this.edicion().get(docenteId) ?? { estado: 'presente' };
+  }
 
-        this.bloques.set(data);
-
-        const m = new Map<string, EstadoAsistencia>();
-        for (const b of data) {
-          m.set(b.horario_id, (b.estado_actual as EstadoAsistencia) ?? 'presente');
-        }
-        this.estados.set(m);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('ERROR loadHorarios:', err);
-        this.bloques.set([]);
-        this.estados.set(new Map());
-        this.loading.set(false);
-        this.toastr.error('No se pudo cargar el horario del día');
-      },
+  setEstado(docenteId: string, estado: EstadoDocente) {
+    const m = new Map(this.edicion());
+    const prev = m.get(docenteId) ?? { estado: 'presente' as EstadoDocente };
+    m.set(docenteId, {
+      ...prev,
+      estado,
+      // Limpiar campos que no aplican
+      hora_llegada: estado === 'tardanza' ? prev.hora_llegada : undefined,
+      motivo: estado === 'ausente' ? prev.motivo : undefined,
     });
+    this.edicion.set(m);
   }
 
-  pickEstado(horarioId: string, estado: EstadoAsistencia) {
-    const m = new Map(this.estados());
-    m.set(horarioId, estado);
-    this.estados.set(m);
+  setHoraLlegada(docenteId: string, valor: string) {
+    const m = new Map(this.edicion());
+    const prev = m.get(docenteId) ?? { estado: 'presente' as EstadoDocente };
+    m.set(docenteId, { ...prev, hora_llegada: valor || undefined });
+    this.edicion.set(m);
   }
 
-  estadoActual(b: HorarioBloque): EstadoAsistencia {
-    return this.estados().get(b.horario_id) ?? 'presente';
+  setMotivo(docenteId: string, valor: string) {
+    const m = new Map(this.edicion());
+    const prev = m.get(docenteId) ?? { estado: 'presente' as EstadoDocente };
+    m.set(docenteId, { ...prev, motivo: valor || undefined });
+    this.edicion.set(m);
   }
 
-  marcarTodos(estado: EstadoAsistencia) {
-    const m = new Map<string, EstadoAsistencia>();
-    for (const b of this.bloques()) m.set(b.horario_id, estado);
-    this.estados.set(m);
+  marcarTodos(estado: EstadoDocente) {
+    const m = new Map<string, EstadoEdicion>();
+    for (const d of this.docentes()) {
+      m.set(d.docente_id, { estado });
+    }
+    this.edicion.set(m);
   }
 
-  getAvatarColor(nombre: string): string {
-    let h = 0;
-    for (const c of nombre) h = ((h << 5) - h + c.charCodeAt(0)) | 0;
-    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+  toggleExpandir(docenteId: string) {
+    this.docenteExpandido.set(
+      this.docenteExpandido() === docenteId ? null : docenteId,
+    );
   }
 
-  initials(b: HorarioBloque): string {
-    return `${b.docente_nombre.charAt(0)}${b.apellido_paterno.charAt(0)}`.toUpperCase();
-  }
+  // ── Guardar ────────────────────────────────────────────────────────────────
 
   guardar() {
-    if (this.saving() || !this.bloques().length) return;
+    if (this.saving() || !this.docentes().length) return;
     this.saving.set(true);
 
-    const registros = this.bloques().map(b => ({
-      horario_id: b.horario_id,
-      docente_id: b.docente_id,
-      estado: this.estadoActual(b),
-    }));
+    const payload = {
+      fecha: this.fecha(),
+      docentes: this.docentes().map(d => {
+        const ed = this.edicion().get(d.docente_id) ?? { estado: 'presente' as EstadoDocente };
+        return {
+          docente_id: d.docente_id,
+          estado: ed.estado,
+          hora_llegada: ed.hora_llegada || undefined,
+          motivo: ed.motivo || undefined,
+        };
+      }),
+    };
 
-    this.api.post('asistencias/docente/bulk', { fecha: this.fecha(), registros }).subscribe({
-      next: () => {
+    this.api.post('reports/docentes/registrar-diario', payload).subscribe({
+      next: (res: any) => {
         this.saving.set(false);
-        const msg = this.isToday() ? 'Asistencia de docentes guardada ✓' : `Registro del ${this.fecha()} actualizado ✓`;
-        this.toastr.success(msg);
-        this.router.navigate(['/dashboard']);
+        const bloques = res?.data?.bloques_registrados ?? res?.bloques_registrados ?? '?';
+        this.toastr.success(`Asistencia guardada — ${bloques} bloques registrados`);
+        this.cargarDocentes();
       },
       error: (err: any) => {
         this.saving.set(false);
         const msg = Array.isArray(err?.error?.message)
           ? err.error.message.join(', ')
-          : (err?.error?.message ?? 'No se pudo guardar el registro');
+          : err?.error?.message ?? 'No se pudo guardar';
         this.toastr.error(msg);
       },
     });
+  }
+
+  // ── Helpers UI ────────────────────────────────────────────────────────────
+
+  getAvatarColor(apellido: string): string {
+    let h = 0;
+    for (const c of apellido) h = ((h << 5) - h + c.charCodeAt(0)) | 0;
+    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+  }
+
+  getInitials(d: DocenteDelDia): string {
+    return `${d.docente_nombre.charAt(0)}${d.apellido_paterno.charAt(0)}`.toUpperCase();
+  }
+
+  formatHora(hora: string): string {
+    return hora?.slice(0, 5) ?? '';
   }
 
   volver() { this.router.navigate(['/dashboard']); }
