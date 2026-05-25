@@ -191,18 +191,22 @@ mat-dialog-actions {
         grid-template-columns: 1fr;
     }
 }
+/* Spec Aarón 2026-05 — Segmented control moderno para "1 slot / 2 slots"
+ * (sólo visible cuando aplica a Psicóloga). Sustituye el selector clásico
+ * por una pastilla redondeada con feedback inmediato al hover.
+ */
 .slot-count {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 
     &__label {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
         font-size: .8rem;
-        font-weight: 500;
-        color: #475569;
+        font-weight: 600;
+        color: #334155;
 
         small {
             font-size: .72rem;
@@ -212,18 +216,47 @@ mat-dialog-actions {
     }
 
     mat-button-toggle-group {
-        border-radius: 10px;
+        border-radius: 999px !important;
         overflow: hidden;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        padding: 3px;
+        gap: 2px;
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+
+        .mat-button-toggle {
+            border: none !important;
+            border-radius: 999px !important;
+            background: transparent;
+            transition: all .2s ease;
+
+            &:hover { background: #eef2ff; }
+
+            &.mat-button-toggle-checked {
+                background: #4f46e5 !important;
+                color: #fff !important;
+                box-shadow: 0 1px 4px rgba(79, 70, 229, 0.35);
+
+                small { color: rgba(255, 255, 255, .8) !important; }
+            }
+        }
+
+        .mat-button-toggle-label-content {
+            line-height: 32px;
+            padding: 0 14px;
+        }
     }
 
     mat-button-toggle {
-        font-weight: 500;
+        font-weight: 600;
         font-size: .85rem;
+        color: #334155;
 
         small {
             font-size: .7rem;
             margin-left: 4px;
             color: #64748b;
+            font-weight: 400;
         }
     }
 }

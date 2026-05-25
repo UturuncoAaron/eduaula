@@ -172,6 +172,17 @@
                             <span class="follow-up-notes__text">{{ row.followUpNotes }}</span>
                         </div>
                         }
+                        <!--
+                            Spec Aarón 2026-05: motivo de cancelación visible para
+                            que ambas partes sepan por qué se canceló la cita.
+                        -->
+                        @if ((row.estado === 'cancelada' || row.estado === 'rechazada')
+                              && row.cancelReason) {
+                        <div class="cancel-reason" [matTooltip]="row.cancelReason">
+                            <mat-icon class="cancel-reason__icon">info</mat-icon>
+                            <span class="cancel-reason__text">{{ row.cancelReason }}</span>
+                        </div>
+                        }
                     </td>
                 </ng-container>
 
@@ -216,10 +227,17 @@
                                 <span>Confirmar</span>
                             </button>
                             }
+                            <!--
+                                Spec Aarón 2026-05: el alumno no ve la opción de
+                                aplazar. canPostpone() retorna false para él pero
+                                ocultamos el item completo para una UI limpia.
+                            -->
+                            @if (!esAlumno()) {
                             <button mat-menu-item type="button" (click)="aplazar(row)" [disabled]="!canPostpone(row)">
                                 <mat-icon>event_repeat</mat-icon>
                                 <span>Aplazar</span>
                             </button>
+                            }
                             <mat-divider />
                             <button mat-menu-item type="button" (click)="realizar(row)" [disabled]="!canFinish(row)">
                                 <mat-icon>task_alt</mat-icon>
