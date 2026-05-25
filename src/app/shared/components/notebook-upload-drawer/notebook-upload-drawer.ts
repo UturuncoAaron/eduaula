@@ -44,7 +44,7 @@ export class NotebookUploadDrawer {
 
   target = input<NotebookUploadTarget | null>(null);
 
-  close = output<void>();
+  cancelled = output<void>();
   uploaded = output<void>();
 
   file = signal<File | null>(null);
@@ -122,7 +122,7 @@ export class NotebookUploadDrawer {
   onClose() {
     if (this.uploading()) return;
     this.reset();
-    this.close.emit();
+    this.cancelled.emit();
   }
 
   private reset() {

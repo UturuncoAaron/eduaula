@@ -49,7 +49,12 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   // ─── Solo Padre ───────────────────────────────────────────────────────────
-  { label: 'Portal Padres', icon: 'family_restroom', route: '/portal-padres', modulos: [MODULO.HIJOS] },
+  // Acepta HIJOS (padre base) o MIS_LIBRETAS_PADRE para que padres con JWT
+  // antiguo (anterior a esta feature) también vean la entrada.
+  {
+    label: 'Mi libreta', icon: 'folder_shared', route: '/mis-libretas-padre',
+    modulos: [MODULO.MIS_LIBRETAS_PADRE, MODULO.HIJOS],
+  },
   {
     label: 'Mis Citas', icon: 'event_available', route: '/padre/citas',
     modulos: [MODULO.CITAS_PADRE, MODULO.CITAS_AGENDADAS],

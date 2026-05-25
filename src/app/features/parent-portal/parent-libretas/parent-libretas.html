@@ -1,0 +1,130 @@
+<app-page-header
+    title="Mi libreta"
+    subtitle="Documentos oficiales firmados por la institución, dirigidos a usted como padre o apoderado" />
+
+@if (loading()) {
+<div class="pl-state">
+    <div class="pl-spinner"></div>
+    <p>Cargando tus libretas…</p>
+</div>
+
+} @else if (error()) {
+<div class="pl-state pl-state--error">
+    <mat-icon>error_outline</mat-icon>
+    <h3>Algo salió mal</h3>
+    <p>No se pudieron cargar tus libretas. Intenta recargar la página.</p>
+</div>
+
+} @else if (libretas().length === 0) {
+<div class="pl-state pl-state--empty">
+    <div class="pl-empty-icon">
+        <mat-icon>folder_shared</mat-icon>
+    </div>
+    <h3>Aún no tienes libretas</h3>
+    <p>El administrador del colegio aún no ha publicado ningún documento dirigido a ti. Cuando suban una libreta, aparecerá aquí.</p>
+</div>
+
+} @else {
+
+<!-- Hero stats -->
+<section class="pl-hero">
+    <div class="pl-hero-orb pl-hero-orb--1"></div>
+    <div class="pl-hero-orb pl-hero-orb--2"></div>
+
+    <div class="pl-stats">
+        <div class="pl-stat">
+            <div class="pl-stat-icon pl-stat-icon--cyan"><mat-icon>auto_stories</mat-icon></div>
+            <div>
+                <span class="pl-stat-num">{{ total() }}</span>
+                <span class="pl-stat-lbl">{{ total() === 1 ? 'Libreta' : 'Libretas' }}</span>
+            </div>
+        </div>
+
+        @if (nuevas() > 0) {
+        <div class="pl-stat">
+            <div class="pl-stat-icon pl-stat-icon--amber"><mat-icon>mark_email_unread</mat-icon></div>
+            <div>
+                <span class="pl-stat-num">{{ nuevas() }}</span>
+                <span class="pl-stat-lbl">Sin leer</span>
+            </div>
+        </div>
+        }
+
+        @if (ultima(); as last) {
+        <div class="pl-stat pl-stat--wide">
+            <div class="pl-stat-icon pl-stat-icon--violet"><mat-icon>schedule</mat-icon></div>
+            <div>
+                <span class="pl-stat-num pl-stat-num--sm">
+                    @if (last.periodo) { {{ last.periodo.nombre }} } @else { Última libreta }
+                </span>
+                <span class="pl-stat-lbl">Más reciente · {{ last.created_at | date:'dd MMM yyyy':'':'es' }}</span>
+            </div>
+        </div>
+        }
+    </div>
+</section>
+
+<!-- Grupos por año -->
+@for (g of grupos(); track g.anio) {
+<section class="pl-year">
+    <header class="pl-year-head">
+        <h2><mat-icon>calendar_month</mat-icon> Año {{ g.anio }}</h2>
+        <span class="pl-year-count">{{ g.items.length }} {{ g.items.length === 1 ? 'libreta' : 'libretas' }}</span>
+    </header>
+
+    <div class="pl-grid">
+        @for (lb of g.items; track lb.id; let i = $index) {
+        <article class="pl-card" [class.pl-card--unread]="lb.leida === false"
+                 [style.animation-delay]="(i * 50) + 'ms'">
+
+            @if (lb.leida === false) {
+            <span class="pl-new-badge" matTooltip="No has abierto esta libreta">Nueva</span>
+            }
+
+            <div class="pl-card-top">
+                <div class="pl-pdf">
+                    <mat-icon>picture_as_pdf</mat-icon>
+                    @if (lb.periodo) {
+                    <span class="pl-pdf-bim">B{{ lb.periodo.bimestre }}</span>
+                    }
+                </div>
+
+                <div class="pl-card-info">
+                    <h3>
+                        @if (lb.periodo) { {{ lb.periodo.nombre }} } @else { Libreta }
+                    </h3>
+                    @if (lb.periodo) {
+                    <p class="pl-card-sub">Bimestre {{ lb.periodo.bimestre }} · {{ lb.periodo.anio }}</p>
+                    }
+                    @if (lb.nombre_archivo) {
+                    <p class="pl-filename" [matTooltip]="lb.nombre_archivo">
+                        <mat-icon>insert_drive_file</mat-icon>{{ lb.nombre_archivo }}
+                    </p>
+                    }
+                </div>
+            </div>
+
+            @if (lb.observaciones) {
+            <p class="pl-obs">
+                <mat-icon>chat_bubble</mat-icon>{{ lb.observaciones }}
+            </p>
+            }
+
+            <div class="pl-card-foot">
+                <span class="pl-date">
+                    <mat-icon>event</mat-icon>{{ lb.created_at | date:'dd/MM/yyyy' }}
+                </span>
+                <button mat-flat-button class="pl-open-btn"
+                        [disabled]="!lb.url"
+                        (click)="open(lb)">
+                    <mat-icon>open_in_new</mat-icon>
+                    Ver libreta
+                </button>
+            </div>
+        </article>
+        }
+    </div>
+</section>
+}
+
+}

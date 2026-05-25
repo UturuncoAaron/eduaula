@@ -116,7 +116,11 @@ export class ParentChildLink implements OnInit {
       debounceTime(300),
       distinctUntilChanged(),
       switchMap(query =>
-        this.api.get<any>(`admin/users/alumnos/search?q=${encodeURIComponent(query as string)}`).pipe(
+        // incluir_matriculados=true: aquí buscamos alumnos ya matriculados
+        // para vincularlos con un padre/tutor (no es flujo de matrícula nueva).
+        this.api.get<any>(
+          `admin/users/alumnos/search?q=${encodeURIComponent(query as string)}&incluir_matriculados=true`,
+        ).pipe(
           map(res => extractArray(res).map(normalizeUser)),
           catchError(() => of([])),
         )

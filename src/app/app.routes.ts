@@ -184,10 +184,12 @@ export const routes: Routes = [
           import('./features/tutoring/tutoring.routes').then(r => r.TUTORING_ROUTES),
       },
       {
-        path: 'portal-padres',
-        canActivate: [permissionGuard([MODULO.HIJOS])],
-        loadChildren: () =>
-          import('./features/parent-portal/parent.routes').then(r => r.PARENT_ROUTES),
+        // Acepta HIJOS (padre base) o MIS_LIBRETAS_PADRE: cubre JWT antiguos.
+        path: 'mis-libretas-padre',
+        canActivate: [permissionGuard([MODULO.MIS_LIBRETAS_PADRE, MODULO.HIJOS])],
+        loadComponent: () =>
+          import('./features/parent-portal/parent-libretas/parent-libretas').then(c => c.ParentLibretas),
+        title: 'Mi libreta | EduAula',
       },
       {
         path: 'admin',

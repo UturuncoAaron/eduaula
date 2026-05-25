@@ -86,11 +86,24 @@ mat-sidenav-content {
         }
     }
 
+    &__search {
+        flex: 2 1 280px;
+    }
+
     &__pills {
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
     }
+}
+
+// ── Paginator ─────────────────────────────────────────────────
+.lp-paginator {
+    background: $bg;
+    border: 1px solid $border;
+    border-radius: $radius;
+    box-shadow: $shadow-sm;
+    margin-top: 8px;
 }
 
 .pill {

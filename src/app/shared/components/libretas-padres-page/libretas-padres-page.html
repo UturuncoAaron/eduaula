@@ -15,6 +15,22 @@
     <!-- ── Filtros ──────────────────────────────────────────── -->
     <section class="lp-filters">
 
+      <!-- Búsqueda libre (sólo admin) -->
+      @if (isAdmin()) {
+        <mat-form-field appearance="outline" class="lp-filters__field lp-filters__search">
+          <mat-label>Buscar padre</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput type="text" [formControl]="busqueda"
+                 placeholder="Nombre o apellido" autocomplete="off">
+          @if (busqueda.value) {
+            <button matSuffix mat-icon-button aria-label="Limpiar"
+                    (click)="limpiarBusqueda()">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+      }
+
       <!-- Selector de sección -->
       <mat-form-field appearance="outline" class="lp-filters__field">
         <mat-label>Sección</mat-label>
@@ -22,6 +38,9 @@
           [ngModel]="seccionId()"
           (ngModelChange)="onSeccionChange($event)"
           [disabled]="loadingSecciones()">
+          @if (isAdmin()) {
+            <mat-option [value]="null">Todas las secciones</mat-option>
+          }
           @for (s of secciones(); track s.id) {
             <mat-option [value]="s.id">
               {{ s.grado_nombre }} — Sección {{ s.nombre }}
@@ -47,7 +66,7 @@
     </section>
 
     <!-- ── Progreso ─────────────────────────────────────────── -->
-    @if (seccionId() && periodoId()) {
+    @if (periodoId() && (isAdmin() || seccionId())) {
       <section class="lp-progress">
         <div class="lp-progress__info">
           <span class="lp-progress__label">Progreso del bimestre</span>
@@ -80,10 +99,16 @@
         <span>Cargando padres...</span>
       </div>
 
-    } @else if (!seccionId() || !periodoId()) {
+    } @else if (!periodoId() || (!isAdmin() && !seccionId())) {
       <div class="lp-state lp-state--empty">
         <mat-icon>filter_list</mat-icon>
-        <h3>Selecciona una sección y un bimestre</h3>
+        <h3>
+          @if (!isAdmin()) {
+            Selecciona una sección y un bimestre
+          } @else {
+            Selecciona un bimestre
+          }
+        </h3>
         <p>Luego verás aquí la lista de padres para cargar sus libretas.</p>
       </div>
 
@@ -91,7 +116,13 @@
       <div class="lp-state lp-state--empty">
         <mat-icon>folder_off</mat-icon>
         <h3>Sin padres registrados</h3>
-        <p>Esta sección no tiene padres vinculados aún.</p>
+        @if (busqueda.value) {
+          <p>Ningún padre coincide con “{{ busqueda.value }}”. Prueba con otros términos.</p>
+        } @else if (seccionId()) {
+          <p>Esta sección no tiene padres vinculados aún.</p>
+        } @else {
+          <p>Aún no hay padres vinculados al sistema.</p>
+        }
       </div>
 
     } @else {
@@ -147,6 +178,17 @@
           </article>
         }
       </section>
+
+      @if (isAdmin()) {
+        <mat-paginator
+          class="lp-paginator"
+          [length]="total()"
+          [pageSize]="pageSize()"
+          [pageIndex]="page() - 1"
+          [pageSizeOptions]="[10, 20, 50]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons />
+      }
     }
 
   </mat-sidenav-content>

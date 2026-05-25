@@ -40,8 +40,10 @@ interface LibretaItem {
   id: string;
   periodoNombre: string;
   storageKey: string;
+  url: string | null;
   creadaEn: string;
   alumnoNombre: string;
+  tipo: 'alumno' | 'padre';
 }
 
 interface ComunicadoItem {
@@ -105,6 +107,11 @@ export class PadreDashboard implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  openLibreta(lib: LibretaItem) {
+    if (!lib.url) return;
+    window.open(lib.url, '_blank', 'noopener');
   }
 
   getFullName(hijo: HijoItem): string {

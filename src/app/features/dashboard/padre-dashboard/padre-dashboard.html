@@ -7,7 +7,7 @@
         <div class="hero-orb hero-orb--3"></div>
         <div class="hero-body">
             <div class="hero-text">
-                <p class="hero-badge">EduAula · Portal de Padres</p>
+                <p class="hero-badge">EduAula · Familia</p>
                 <h1>¡Hola, {{ auth.currentUser()?.nombre ?? 'Familia' }}!</h1>
                 <p class="hero-sub">Aquí tienes un resumen del progreso académico de tus hijos.</p>
             </div>
@@ -15,10 +15,6 @@
         </div>
 
         <div class="hero-shortcuts">
-            <a class="hsc" routerLink="/portal-padres">
-                <div class="hsc-icon hsc-icon--blue"><mat-icon>school</mat-icon></div>
-                <span class="hsc-label">Portal Padres</span>
-            </a>
             <a class="hsc" routerLink="/padre/citas">
                 <div class="hsc-icon hsc-icon--amber"><mat-icon>event</mat-icon></div>
                 <span class="hsc-label">Mis Citas</span>
@@ -30,9 +26,9 @@
                 <div class="hsc-icon hsc-icon--violet"><mat-icon>campaign</mat-icon></div>
                 <span class="hsc-label">Comunicados</span>
             </a>
-            <a class="hsc" routerLink="/portal-padres">
+            <a class="hsc" routerLink="/mis-libretas-padre">
                 <div class="hsc-icon hsc-icon--teal"><mat-icon>auto_stories</mat-icon></div>
-                <span class="hsc-label">Libretas</span>
+                <span class="hsc-label">Mi libreta</span>
             </a>
         </div>
     </header>
@@ -115,21 +111,6 @@
                         }
                     </div>
 
-                    <!-- Action grid -->
-                    <div class="stu-actions">
-                        <a [routerLink]="['/portal-padres', hijo.alumnoId, 'notas']" class="sact sact--primary">
-                            <mat-icon>grade</mat-icon><span>Notas</span><small>Calificaciones</small>
-                        </a>
-                        <a [routerLink]="['/portal-padres', hijo.alumnoId, 'asistencia']" class="sact">
-                            <mat-icon>how_to_reg</mat-icon><span>Asistencia</span><small>General y diaria</small>
-                        </a>
-                        <a [routerLink]="['/portal-padres', hijo.alumnoId, 'horario']" class="sact">
-                            <mat-icon>calendar_month</mat-icon><span>Horario</span><small>Semanal</small>
-                        </a>
-                        <a [routerLink]="['/portal-padres', hijo.alumnoId, 'libreta']" class="sact">
-                            <mat-icon>auto_stories</mat-icon><span>Libretas</span><small>Boletines PDF</small>
-                        </a>
-                    </div>
                 </div>
                 } @empty {
                 <div class="empty-block"><mat-icon>escalator_warning</mat-icon><p>Sin hijos vinculados.</p></div>
@@ -164,10 +145,19 @@
                     <div class="wdg-head"><h2><mat-icon>auto_stories</mat-icon> Libretas</h2></div>
                     <div class="wdg-body">
                         @for (lib of data.libretas; track lib.id) {
-                        <div class="lb-row">
+                        <button type="button" class="lb-row"
+                                [class.lb-row--disabled]="!lib.url"
+                                [disabled]="!lib.url"
+                                (click)="openLibreta(lib)">
                             <mat-icon class="lb-pdf">picture_as_pdf</mat-icon>
-                            <div class="lb-info"><strong>{{ lib.periodoNombre }}</strong><small>{{ lib.alumnoNombre }}</small></div>
-                        </div>
+                            <div class="lb-info">
+                                <strong>{{ lib.periodoNombre }}</strong>
+                                <small>{{ lib.alumnoNombre }}</small>
+                            </div>
+                            @if (lib.url) {
+                                <mat-icon class="lb-open">open_in_new</mat-icon>
+                            }
+                        </button>
                         } @empty {
                         <div class="wdg-empty"><mat-icon>auto_stories</mat-icon><p>Sin libretas</p></div>
                         }
@@ -197,7 +187,7 @@
                     <mat-icon>lightbulb</mat-icon>
                     <div>
                         <strong>¿Sabías que…?</strong>
-                        <p>Puedes revisar las notas por bimestre, consultar el horario semanal y gestionar tus citas desde el Portal de Padres.</p>
+                        <p>Puedes consultar las libretas de tus hijos, gestionar tus citas y leer los comunicados desde el menú lateral.</p>
                     </div>
                 </div>
             </aside>

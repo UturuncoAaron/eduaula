@@ -9,9 +9,12 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
-import { FormsModule } from '@angular/forms';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../core/services/api';
@@ -53,10 +56,10 @@ interface PadreLibretaItem {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    TitleCasePipe, FormsModule,
+    TitleCasePipe, FormsModule, ReactiveFormsModule,
     MatButtonModule, MatIconModule, MatProgressBarModule,
     MatProgressSpinnerModule, MatSelectModule, MatFormFieldModule,
-    MatTooltipModule, MatSidenavModule,
+    MatInputModule, MatTooltipModule, MatSidenavModule, MatPaginatorModule,
     NotebookUploadDrawer,
   ],
   templateUrl: './libretas-padres-page.html',
@@ -77,6 +80,13 @@ export class LibretasPadresPage implements OnInit {
   readonly padres = signal<PadreLibretaItem[]>([]);
   readonly seccionId = signal<string | null>(null);
   readonly periodoId = signal<number | null>(null);
+
+  /** Vista admin: lista paginada de TODOS los padres del periodo. */
+  readonly isAdmin = signal(false);
+  readonly busqueda = new FormControl('');
+  readonly page = signal(1);
+  readonly pageSize = signal(20);
+  readonly total = signal(0);
 
   readonly progreso = computed(() => {
     const lista = this.padres();
@@ -102,11 +112,22 @@ export class LibretasPadresPage implements OnInit {
   );
 
   ngOnInit(): void {
+    this.isAdmin.set(this.auth.isAdmin());
     this.cargarDatosIniciales();
+
+    // Búsqueda con debounce (sólo admin)
+    this.busqueda.valueChanges.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+    ).subscribe(() => {
+      if (!this.isAdmin()) return;
+      this.page.set(1);
+      this.cargarPadres();
+    });
   }
 
   private cargarDatosIniciales(): void {
-    const isAdmin = this.auth.isAdmin();
+    const isAdmin = this.isAdmin();
 
     // Admin → todas las secciones  |  Docente → solo sus secciones
     const seccionesEndpoint = isAdmin
@@ -135,6 +156,11 @@ export class LibretasPadresPage implements OnInit {
       const activo = pers.find((p: PeriodoItem) => p.activo);
       if (activo) this.periodoId.set(activo.id);
 
+      // Admin → cargar TODOS los padres del periodo activo (paginado, sin filtros)
+      if (isAdmin && this.periodoId()) {
+        this.cargarPadres();
+      }
+
       // Docente con una sola sección → auto-seleccionar
       if (!isAdmin && secs.length === 1) {
         this.seccionId.set(secs[0].id);
@@ -148,29 +174,80 @@ export class LibretasPadresPage implements OnInit {
     });
   }
 
-  onSeccionChange(id: string): void {
+  onSeccionChange(id: string | null): void {
     this.seccionId.set(id);
     this.padres.set([]);
-    if (id && this.periodoId()) this.cargarPadres();
+    this.page.set(1);
+    if (this.isAdmin()) {
+      if (this.periodoId()) this.cargarPadres();
+    } else {
+      if (id && this.periodoId()) this.cargarPadres();
+    }
   }
 
   onPeriodoChange(id: number): void {
     this.periodoId.set(id);
     this.padres.set([]);
-    if (this.seccionId() && id) this.cargarPadres();
+    this.page.set(1);
+    if (this.isAdmin()) {
+      if (id) this.cargarPadres();
+    } else {
+      if (this.seccionId() && id) this.cargarPadres();
+    }
+  }
+
+  onPageChange(e: PageEvent): void {
+    this.page.set(e.pageIndex + 1);
+    this.pageSize.set(e.pageSize);
+    this.cargarPadres();
+  }
+
+  limpiarBusqueda(): void {
+    this.busqueda.setValue('');
   }
 
   private cargarPadres(): void {
-    const sid = this.seccionId();
     const pid = this.periodoId();
-    if (!sid || !pid) return;
+    if (!pid) return;
 
+    // Admin → endpoint paginado, sin requerir sección
+    if (this.isAdmin()) {
+      this.loadingPadres.set(true);
+      const params = new URLSearchParams();
+      params.set('periodo_id', String(pid));
+      params.set('page', String(this.page()));
+      params.set('limit', String(this.pageSize()));
+      const sid = this.seccionId();
+      if (sid) params.set('seccion_id', sid);
+      const q = this.busqueda.value?.trim();
+      if (q) params.set('search', q);
+
+      this.api.get<any>(`libretas/padre/admin/listado?${params.toString()}`).subscribe({
+        next: (r: any) => {
+          const body = r?.data ?? r ?? {};
+          this.padres.set(body.items ?? []);
+          this.total.set(body.total ?? 0);
+          this.loadingPadres.set(false);
+        },
+        error: () => {
+          this.loadingPadres.set(false);
+          this.toastr.error('No se pudieron cargar los padres', 'Error');
+        },
+      });
+      return;
+    }
+
+    // Docente → endpoint legacy, requiere sección
+    const sid = this.seccionId();
+    if (!sid) return;
     this.loadingPadres.set(true);
     this.api
       .get<PadreLibretaItem[]>(`libretas/padre/seccion/${sid}?periodo_id=${pid}`)
       .subscribe({
         next: (r: any) => {
-          this.padres.set(r?.data ?? []);
+          const list = r?.data ?? [];
+          this.padres.set(list);
+          this.total.set(list.length);
           this.loadingPadres.set(false);
         },
         error: () => {

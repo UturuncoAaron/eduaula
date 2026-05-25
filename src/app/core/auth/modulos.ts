@@ -31,10 +31,11 @@ export const MODULO = {
   ASIST_GENERAL: 'asist_general',
 
   // ── Padre
-  HIJOS:           'hijos',
-  LIBRETAS_HIJOS:  'libretas_hijos',
-  CITAS_AGENDADAS: 'citas_agendadas',
-  CITAS_PADRE:     'citas_padre',
+  HIJOS:              'hijos',
+  LIBRETAS_HIJOS:     'libretas_hijos',
+  MIS_LIBRETAS_PADRE: 'mis_libretas_padre',
+  CITAS_AGENDADAS:    'citas_agendadas',
+  CITAS_PADRE:        'citas_padre',
 
   // ── Psicóloga
   CASOS:         'casos',
