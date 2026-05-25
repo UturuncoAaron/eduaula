@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy, Component, computed,
   inject, OnInit, signal, viewChild,
 } from '@angular/core';
-import { TitleCasePipe } from '@angular/common';
+import { DatePipe, TitleCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -17,12 +17,16 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ToastService } from 'ngx-toastr-notifier';
 
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatBadgeModule } from '@angular/material/badge';
+
 import { ApiService } from '../../../core/services/api';
 import { AuthService } from '../../../core/auth/auth';
 import {
   NotebookUploadDrawer,
   type NotebookUploadTarget,
 } from '../notebook-upload-drawer/notebook-upload-drawer';
+import { LibretaAuditoriaDialog } from '../libreta-auditoria-dialog/libreta-auditoria-dialog';
 
 interface SeccionItem {
   id: string;
@@ -38,17 +42,44 @@ interface PeriodoItem {
   activo: boolean;
 }
 
+export interface LecturaInfo {
+  vista_en: string;
+  ultima_apertura_en: string;
+  veces_vista: number;
+}
+
+export interface LibretaConLectura {
+  id: string;
+  url: string;
+  nombre_archivo: string | null;
+  lectura: LecturaInfo | null;
+}
+
+export interface HijoConLibreta {
+  alumno_id: string;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string | null;
+  grado: string | null;
+  seccion: string | null;
+  libreta: LibretaConLectura | null;
+}
+
 interface PadreLibretaItem {
   id: string;
   nombre: string;
   apellido_paterno: string;
   apellido_materno: string | null;
   relacion: string;
-  libreta: {
-    id: string;
-    url: string;
-    nombre_archivo: string | null;
-  } | null;
+  libreta: LibretaConLectura | null;
+  hijos: HijoConLibreta[];
+  resumen_lectura: {
+    propia_cargada: boolean;
+    propia_leida: boolean;
+    hijos_total: number;
+    hijos_cargados: number;
+    hijos_leidos: number;
+  };
 }
 
 @Component({
@@ -56,10 +87,11 @@ interface PadreLibretaItem {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    TitleCasePipe, FormsModule, ReactiveFormsModule,
+    DatePipe, TitleCasePipe, FormsModule, ReactiveFormsModule,
     MatButtonModule, MatIconModule, MatProgressBarModule,
     MatProgressSpinnerModule, MatSelectModule, MatFormFieldModule,
     MatInputModule, MatTooltipModule, MatSidenavModule, MatPaginatorModule,
+    MatDialogModule, MatBadgeModule,
     NotebookUploadDrawer,
   ],
   templateUrl: './libretas-padres-page.html',
@@ -69,6 +101,7 @@ export class LibretasPadresPage implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private toastr = inject(ToastService);
+  private dialog = inject(MatDialog);
 
   readonly drawerRef = viewChild<MatSidenav>('drawer');
   readonly uploadTarget = signal<NotebookUploadTarget | null>(null);
@@ -289,4 +322,27 @@ export class LibretasPadresPage implements OnInit {
   }
 
   trackById = (_: number, p: PadreLibretaItem): string => p.id;
+
+  trackHijo = (_: number, h: HijoConLibreta): string => h.alumno_id;
+
+  // ── Auditoría ─────────────────────────────────────────────────────────
+  /** Abre el dialog con el historial de lecturas de una libreta. */
+  verAuditoria(libretaId: string, label: string): void {
+    this.dialog.open(LibretaAuditoriaDialog, {
+      data: { libretaId, label },
+      width: '520px',
+      maxWidth: '94vw',
+      autoFocus: false,
+    });
+  }
+
+  hijoNombre(h: HijoConLibreta): string {
+    const mat = h.apellido_materno ? ` ${h.apellido_materno}` : '';
+    return `${h.nombre} ${h.apellido_paterno}${mat}`;
+  }
+
+  padreNombre(p: PadreLibretaItem): string {
+    const mat = p.apellido_materno ? ` ${p.apellido_materno}` : '';
+    return `${p.nombre} ${p.apellido_paterno}${mat}`;
+  }
 }

@@ -130,50 +130,143 @@
         @for (p of padres(); track trackById($index, p)) {
           <article class="lp-row" [class.lp-row--ok]="p.libreta !== null">
 
-            <div class="lp-row__info">
-              <div class="lp-row__avatar">{{ initials(p) }}</div>
-              <div class="lp-row__text">
-                <span class="lp-row__name">
-                  {{ p.nombre }} {{ p.apellido_paterno }}
-                  @if (p.apellido_materno) { {{ p.apellido_materno }} }
-                </span>
-                <span class="lp-row__sub">{{ p.relacion | titlecase }}</span>
+            <!-- ── Cabecera padre ───────────────────────────────────── -->
+            <div class="lp-row__head">
+              <div class="lp-row__info">
+                <div class="lp-row__avatar">{{ initials(p) }}</div>
+                <div class="lp-row__text">
+                  <span class="lp-row__name">{{ padreNombre(p) }}</span>
+                  <span class="lp-row__sub">{{ p.relacion | titlecase }}</span>
+                </div>
+              </div>
+
+              <!-- Estados rápidos del padre -->
+              <div class="lp-row__status">
+                @if (p.libreta) {
+                  @if (p.libreta.lectura) {
+                    <span class="badge badge--read"
+                          [matTooltip]="'Abierta ' + p.libreta.lectura.veces_vista + ' veces · última ' + (p.libreta.lectura.ultima_apertura_en | date:'dd/MM HH:mm')">
+                      <mat-icon>mark_email_read</mat-icon>
+                      Leída
+                    </span>
+                  } @else {
+                    <span class="badge badge--unread"
+                          matTooltip="El padre aún no abre su libreta">
+                      <mat-icon>mark_email_unread</mat-icon>
+                      Sin leer
+                    </span>
+                  }
+                } @else {
+                  <span class="badge badge--pending">
+                    <mat-icon>schedule</mat-icon>
+                    Sin cargar
+                  </span>
+                }
+              </div>
+
+              <div class="lp-row__actions">
+                @if (p.libreta) {
+                  <a mat-stroked-button color="primary"
+                     [href]="p.libreta.url" target="_blank" rel="noopener"
+                     matTooltip="Ver libreta del padre">
+                    <mat-icon>visibility</mat-icon>
+                    <span class="btn-label">Ver</span>
+                  </a>
+                  <button mat-stroked-button
+                          (click)="verAuditoria(p.libreta.id, 'Libreta del padre · ' + padreNombre(p))"
+                          matTooltip="Ver auditoría de lectura">
+                    <mat-icon>history</mat-icon>
+                  </button>
+                  <button mat-stroked-button
+                          (click)="openUpload(p)"
+                          matTooltip="Reemplazar libreta">
+                    <mat-icon>refresh</mat-icon>
+                  </button>
+                } @else {
+                  <button mat-flat-button color="primary" (click)="openUpload(p)">
+                    <mat-icon>upload</mat-icon>
+                    <span class="btn-label">Subir</span>
+                  </button>
+                }
               </div>
             </div>
 
-            <div class="lp-row__status">
-              @if (p.libreta) {
-                <span class="badge badge--ok">
-                  <mat-icon>check_circle</mat-icon>
-                  Cargada
-                </span>
-              } @else {
-                <span class="badge badge--pending">
-                  <mat-icon>schedule</mat-icon>
-                  Pendiente
-                </span>
-              }
-            </div>
+            <!-- ── Resumen de hijos del padre ───────────────────────── -->
+            @if (p.hijos.length > 0) {
+              <div class="lp-row__hijos">
+                <div class="lp-row__hijos-head">
+                  <mat-icon>family_restroom</mat-icon>
+                  <span class="lp-row__hijos-title">
+                    {{ p.hijos.length }} {{ p.hijos.length === 1 ? 'hijo vinculado' : 'hijos vinculados' }}
+                  </span>
+                  <div class="lp-row__hijos-meta">
+                    <span class="mini-badge mini-badge--ok"
+                          matTooltip="Libretas del hijo cargadas">
+                      <mat-icon>folder</mat-icon>
+                      {{ p.resumen_lectura.hijos_cargados }}/{{ p.resumen_lectura.hijos_total }}
+                    </span>
+                    <span class="mini-badge mini-badge--read"
+                          [matTooltip]="'El padre leyó ' + p.resumen_lectura.hijos_leidos + ' de ' + p.resumen_lectura.hijos_cargados + ' libreta(s) del hijo'">
+                      <mat-icon>visibility</mat-icon>
+                      {{ p.resumen_lectura.hijos_leidos }}/{{ p.resumen_lectura.hijos_cargados }} leídas
+                    </span>
+                  </div>
+                </div>
 
-            <div class="lp-row__actions">
-              @if (p.libreta) {
-                <a mat-stroked-button color="primary"
-                   [href]="p.libreta.url" target="_blank" rel="noopener">
-                  <mat-icon>visibility</mat-icon>
-                  <span class="btn-label">Ver</span>
-                </a>
-                <button mat-stroked-button
-                        (click)="openUpload(p)"
-                        matTooltip="Reemplazar libreta">
-                  <mat-icon>refresh</mat-icon>
-                </button>
-              } @else {
-                <button mat-flat-button color="primary" (click)="openUpload(p)">
-                  <mat-icon>upload</mat-icon>
-                  <span class="btn-label">Subir</span>
-                </button>
-              }
-            </div>
+                <ul class="lp-hijo-list">
+                  @for (h of p.hijos; track trackHijo($index, h)) {
+                    <li class="lp-hijo-item">
+                      <span class="lp-hijo-name">
+                        <mat-icon>school</mat-icon>
+                        {{ hijoNombre(h) }}
+                        @if (h.grado || h.seccion) {
+                          <span class="lp-hijo-grado">
+                            ({{ h.grado }}@if (h.seccion) { · {{ h.seccion }} })
+                          </span>
+                        }
+                      </span>
+
+                      <span class="lp-hijo-state">
+                        @if (h.libreta) {
+                          @if (h.libreta.lectura) {
+                            <span class="badge badge--read"
+                                  [matTooltip]="'Padre abrió ' + h.libreta.lectura.veces_vista + ' vez(es) · última ' + (h.libreta.lectura.ultima_apertura_en | date:'dd/MM HH:mm')">
+                              <mat-icon>mark_email_read</mat-icon>
+                              Leída
+                            </span>
+                          } @else {
+                            <span class="badge badge--unread" matTooltip="El padre aún no abre la libreta del hijo">
+                              <mat-icon>mark_email_unread</mat-icon>
+                              Sin leer
+                            </span>
+                          }
+                        } @else {
+                          <span class="badge badge--pending">
+                            <mat-icon>schedule</mat-icon>
+                            Sin cargar
+                          </span>
+                        }
+                      </span>
+
+                      <span class="lp-hijo-actions">
+                        @if (h.libreta) {
+                          <a mat-icon-button color="primary"
+                             [href]="h.libreta.url" target="_blank" rel="noopener"
+                             matTooltip="Ver libreta del hijo">
+                            <mat-icon>visibility</mat-icon>
+                          </a>
+                          <button mat-icon-button
+                                  (click)="verAuditoria(h.libreta.id, 'Libreta de ' + hijoNombre(h))"
+                                  matTooltip="Ver auditoría">
+                            <mat-icon>history</mat-icon>
+                          </button>
+                        }
+                      </span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
 
           </article>
         }

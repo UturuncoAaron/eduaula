@@ -1,0 +1,75 @@
+<header class="aud-header">
+    <div class="aud-header-text">
+        <span class="aud-eyebrow">Auditoría de lectura</span>
+        <h2>{{ data.label }}</h2>
+    </div>
+    <button mat-icon-button type="button" (click)="close()" aria-label="Cerrar">
+        <mat-icon>close</mat-icon>
+    </button>
+</header>
+
+<div class="aud-body">
+
+    @if (loading()) {
+    <div class="aud-state">
+        <div class="aud-spinner"></div>
+        <p>Cargando historial…</p>
+    </div>
+
+    } @else if (error()) {
+    <div class="aud-state aud-state--error">
+        <mat-icon>error_outline</mat-icon>
+        <p>No se pudo cargar el historial.</p>
+    </div>
+
+    } @else if (lecturas().length === 0) {
+    <div class="aud-state aud-state--empty">
+        <mat-icon>visibility_off</mat-icon>
+        <h3>Nadie la ha abierto</h3>
+        <p>La libreta aún no ha sido visualizada por el padre o el alumno.</p>
+    </div>
+
+    } @else {
+
+    <p class="aud-summary">
+        <mat-icon>verified</mat-icon>
+        {{ lecturas().length }} {{ lecturas().length === 1 ? 'persona' : 'personas' }}
+        {{ lecturas().length === 1 ? 'la ha abierto' : 'la han abierto' }}.
+    </p>
+
+    <ul class="aud-list">
+        @for (l of lecturas(); track l.lector_id) {
+        <li class="aud-row">
+            <div class="aud-row-left">
+                <div class="aud-avatar" [class.aud-avatar--padre]="l.rol === 'padre'">
+                    <mat-icon>{{ l.rol === 'padre' ? 'family_restroom' : 'school' }}</mat-icon>
+                </div>
+                <div class="aud-row-info">
+                    <strong>{{ l.nombre }} {{ l.apellidos }}</strong>
+                    <span class="aud-row-rol">{{ l.rol | titlecase }}</span>
+                </div>
+            </div>
+
+            <div class="aud-row-meta">
+                <span class="aud-veces" [matTooltip]="'Total de aperturas'">
+                    <mat-icon>visibility</mat-icon>
+                    {{ l.veces_vista }} {{ l.veces_vista === 1 ? 'apertura' : 'aperturas' }}
+                </span>
+                <span class="aud-tstamp">
+                    <mat-icon>schedule</mat-icon>
+                    Última: {{ l.ultima_apertura_en | date:'dd/MM/yy HH:mm' }}
+                </span>
+                <span class="aud-tstamp aud-tstamp--first">
+                    <mat-icon>flag</mat-icon>
+                    Primera: {{ l.vista_en | date:'dd/MM/yy HH:mm' }}
+                </span>
+            </div>
+        </li>
+        }
+    </ul>
+    }
+</div>
+
+<footer class="aud-footer">
+    <button mat-stroked-button (click)="close()">Cerrar</button>
+</footer>

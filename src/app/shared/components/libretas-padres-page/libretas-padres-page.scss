@@ -287,21 +287,16 @@ mat-sidenav-content {
 }
 
 .lp-row {
-    display: grid;
-    grid-template-columns: minmax(200px, 1fr) auto auto;
-    gap: 16px;
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     padding: 14px 18px;
     border-bottom: 1px solid #f1f5f9;
     transition: background .15s;
 
-    &:last-child {
-        border-bottom: 0;
-    }
+    &:last-child { border-bottom: 0; }
 
-    &:hover {
-        background: #f8fafc;
-    }
+    &:hover { background: #f8fafc; }
 
     &--ok {
         background: linear-gradient(90deg, #f0fdf4 0%, transparent 60%);
@@ -309,6 +304,13 @@ mat-sidenav-content {
         &:hover {
             background: linear-gradient(90deg, #dcfce7 0%, transparent 60%);
         }
+    }
+
+    &__head {
+        display: grid;
+        grid-template-columns: minmax(200px, 1fr) auto auto;
+        gap: 14px;
+        align-items: center;
     }
 
     &__info {
@@ -383,6 +385,133 @@ mat-sidenav-content {
         background: #fef3c7;
         color: #92400e;
     }
+
+    &--read {
+        background: #DCFCE7;
+        color: #166534;
+        border: 1px solid #BBF7D0;
+    }
+
+    &--unread {
+        background: #FEF3C7;
+        color: #92400E;
+        border: 1px solid #FCD34D;
+    }
+}
+
+// ── Bloque de hijos del padre ─────────────────────────────────
+.lp-row__hijos {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px 14px;
+
+    &-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #E2E8F0;
+
+        > mat-icon {
+            color: #0E7490;
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    &-title {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #334155;
+        flex: 1;
+    }
+
+    &-meta {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+}
+
+.mini-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+
+    mat-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+    }
+
+    &--ok {
+        background: #ECFEFF;
+        color: #0E7490;
+    }
+    &--read {
+        background: #DCFCE7;
+        color: #166534;
+    }
+}
+
+.lp-hijo-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.lp-hijo-item {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    transition: border-color .15s;
+
+    &:hover { border-color: #A5F3FC; }
+}
+
+.lp-hijo-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0F172A;
+    min-width: 0;
+
+    > mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #6366F1;
+        flex-shrink: 0;
+    }
+}
+
+.lp-hijo-grado {
+    font-size: 11.5px;
+    color: #64748B;
+    font-weight: 500;
+}
+
+.lp-hijo-actions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
 }
 
 // ── Drawer ────────────────────────────────────────────────────
@@ -392,17 +521,26 @@ mat-sidenav {
 
 // ── Responsive ───────────────────────────────────────────────
 @media (max-width: 768px) {
-    .lp-row {
+    .lp-row__head {
         grid-template-columns: 1fr;
         gap: 10px;
+    }
 
-        &__actions {
-            justify-content: flex-end;
-        }
+    .lp-row__actions {
+        justify-content: flex-end;
+    }
 
-        &__status {
-            justify-self: flex-start;
-        }
+    .lp-row__status {
+        justify-self: flex-start;
+    }
+
+    .lp-hijo-item {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .lp-hijo-actions {
+        justify-self: flex-end;
     }
 
     .lp-filters__field {
