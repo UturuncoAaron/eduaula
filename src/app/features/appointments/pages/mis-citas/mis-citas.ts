@@ -189,8 +189,12 @@ export class MisCitas {
     /**
      * Puede aplazar (proponer nueva fecha + motivo): el convocado, mientras
      * la cita siga viva.
+     *
+     * Spec (Aarón, 2026-05): el ALUMNO no puede aplazar nunca. Si necesita
+     * mover una cita debe cancelarla (con motivo) y volver a solicitarla.
      */
     canPostpone(a: Appointment): boolean {
+        if (this.mode() === 'alumno') return false;
         if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
         const me = this.auth.currentUser()?.id;
         if (a.convocadoAId !== me) return false;

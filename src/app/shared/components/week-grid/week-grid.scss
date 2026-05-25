@@ -19,13 +19,14 @@
     margin-left: 4px;
   }
 
-  // NUEVO: Contenedor elástico para scroll horizontal en móviles
+  // Spec Aarón 2026-05 — wrapper limpio con bordes slate sutiles
   &__wrapper {
     width: 100%;
     overflow-x: auto;
-    border: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
-    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
     background: var(--mat-sys-surface, #fff);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 
     // Suavizado de scroll en iOS
     -webkit-overflow-scrolling: touch;
@@ -208,14 +209,23 @@
     pointer-events: none;
   }
 
+  /* Spec Aarón 2026-05 — slots con paleta semántica moderna:
+   *   disponible   → emerald-50 / emerald-700 (verde esmeralda)
+   *   ocupado/taken → slate-100 / slate-500 + line-through
+   *   appointment  → indigo-50 / indigo-700 (confirmada)
+   *   pending      → amber-50 / amber-700
+   *   cancelada    → rose-50 / rose-700
+   *   blocked      → patrón diagonal slate
+   * Transición suave en hover, esquinas redondeadas (rounded-xl).
+   */
   &__slot {
     position: absolute;
     left: 4px;
     right: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 6px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    padding: 6px 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    padding: 6px 8px;
     text-align: left;
     overflow: hidden;
     display: flex;
@@ -223,9 +233,9 @@
     justify-content: flex-start;
     font: inherit;
     cursor: default;
-    background: var(--mat-sys-primary-container, #c5cae9);
-    color: var(--mat-sys-on-primary-container, #1a237e);
-    transition: filter 0.15s ease, transform 0.15s ease;
+    background: #eef2ff;
+    color: #4338ca;
+    transition: all 0.2s ease;
 
     &-title {
       font-size: 11px;
@@ -251,48 +261,65 @@
     }
 
     &--available {
-      background-color: #e8f5e9 !important;
-      border-color: #a5d6a7 !important;
-      color: #1b5e20 !important;
+      background-color: #ecfdf5 !important;
+      border-color: #a7f3d0 !important;
+      color: #047857 !important;
     }
 
     &--taken {
-      background-color: #eceff1 !important;
-      border-color: #cfd8dc !important;
-      color: #37474f !important;
+      background-color: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+      color: #64748b !important;
       cursor: not-allowed;
+
+      .wg__slot-title {
+        text-decoration: line-through;
+        opacity: 0.85;
+      }
     }
 
     &--blocked {
       background: repeating-linear-gradient(45deg,
-          #f5f5f5,
-          #f5f5f5 6px,
-          #e0e0e0 6px,
-          #e0e0e0 12px) !important;
-      border: 1px dashed #9e9e9e !important;
-      color: #616161 !important;
+          #f8fafc,
+          #f8fafc 6px,
+          #e2e8f0 6px,
+          #e2e8f0 12px) !important;
+      border: 1px dashed #cbd5e1 !important;
+      color: #64748b !important;
       cursor: not-allowed;
     }
 
     &--appointment {
-      background-color: #f3e5f5 !important;
-      border-color: #e1bee7 !important;
-      color: #4a148c !important;
+      background-color: #eef2ff !important;
+      border-color: #c7d2fe !important;
+      color: #4338ca !important;
     }
 
     &--pending {
-      background-color: #fff3e0 !important;
-      border-color: #ffe0b2 !important;
-      color: #e65100 !important;
-      box-shadow: 0 0 0 2px rgba(230, 81, 0, 0.2);
+      background-color: #fffbeb !important;
+      border-color: #fde68a !important;
+      color: #b45309 !important;
+      box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.12);
+    }
+
+    &--cancelada {
+      background-color: #fff1f2 !important;
+      border-color: #fecdd3 !important;
+      color: #be123c !important;
     }
 
     &--clickable {
       cursor: pointer;
 
       &:hover {
-        filter: brightness(0.97);
-        transform: translateY(-0.5px);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        filter: brightness(0.985);
+      }
+
+      &:focus-visible {
+        outline: 2px solid #6366f1;
+        outline-offset: 2px;
       }
     }
   }

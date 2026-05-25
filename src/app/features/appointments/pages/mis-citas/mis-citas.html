@@ -166,11 +166,13 @@
                                 <span>Confirmar</span>
                             </button>
                         }
+                        @if (mode() !== 'alumno') {
                         <button mat-stroked-button color="primary" [disabled]="!canPostpone(a)" (click)="aplazar(a)"
                             matTooltip="Proponer una nueva fecha (queda pendiente)">
                             <mat-icon>event_repeat</mat-icon>
                             <span>Aplazar</span>
                         </button>
+                        }
                         <button mat-stroked-button [disabled]="!canReschedule(a)" (click)="reagendar(a)"
                             matTooltip="Mueve esta cita a otro horario disponible">
                             <mat-icon>edit_calendar</mat-icon>
@@ -274,6 +276,16 @@
                                 <div class="meta-text">
                                     <span class="meta-label">Notas de seguimiento</span>
                                     <span class="meta-value follow-up__text">{{ a.followUpNotes }}</span>
+                                </div>
+                            </li>
+                        }
+                        @if ((a.estado === 'cancelada' || a.estado === 'rechazada') && a.cancelReason) {
+                            <li class="cancel-reason">
+                                <mat-icon class="meta-icon cancel-reason__icon">info</mat-icon>
+                                <div class="meta-text">
+                                    <span class="meta-label">Motivo de cancelación</span>
+                                    <span class="meta-value cancel-reason__text"
+                                        [matTooltip]="a.cancelReason">{{ a.cancelReason }}</span>
                                 </div>
                             </li>
                         }

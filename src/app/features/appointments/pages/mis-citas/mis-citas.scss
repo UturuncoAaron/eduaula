@@ -362,18 +362,21 @@
     button { gap: 4px; }
   }
 
-  /* Variantes del lateral según estado de la cita */
+  /* Variantes del lateral según estado de la cita — paleta semántica
+   * (spec Aarón 2026-05): emerald=realizada, indigo=confirmada,
+   * amber=pendiente, rose=cancelada/rechazada, slate=no_asistio. */
   &[data-estado="confirmada"] .appt-card__date {
-    background: linear-gradient(160deg, #059669 0%, #10b981 100%);
+    background: linear-gradient(160deg, #4338ca 0%, #6366f1 100%);
   }
   &[data-estado="pendiente"] .appt-card__date {
-    background: linear-gradient(160deg, #d97706 0%, #f59e0b 100%);
+    background: linear-gradient(160deg, #b45309 0%, #f59e0b 100%);
   }
   &[data-estado="realizada"] .appt-card__date {
-    background: linear-gradient(160deg, #1e40af 0%, #3b82f6 100%);
+    background: linear-gradient(160deg, #047857 0%, #10b981 100%);
   }
-  &[data-estado="cancelada"] .appt-card__date {
-    background: linear-gradient(160deg, #b91c1c 0%, #ef4444 100%);
+  &[data-estado="cancelada"] .appt-card__date,
+  &[data-estado="rechazada"] .appt-card__date {
+    background: linear-gradient(160deg, #be123c 0%, #f43f5e 100%);
   }
   &[data-estado="no_asistio"] .appt-card__date {
     background: linear-gradient(160deg, #475569 0%, #94a3b8 100%);
@@ -399,7 +402,18 @@
   white-space: nowrap;
 }
 
+/* Spec Aarón 2026-05 — pastillas semánticas modernas (Tailwind palette):
+ *   pendiente   → amber-50 / amber-700  (ámbar pastel)
+ *   confirmada  → indigo-50 / indigo-700 (azul/violeta moderno)
+ *   realizada   → emerald-50 / emerald-700 (verde esmeralda)
+ *   cancelada   → rose-50 / rose-700 (rojo sutil)
+ *   rechazada   → rose-50 / rose-700 (rojo sutil)
+ *   no_asistio  → slate-100 / slate-500 (gris/azul tenue)
+ */
 .status-chip {
+  border: 1px solid transparent;
+  transition: all .2s ease;
+
   .status-dot {
     width: 6px;
     height: 6px;
@@ -407,11 +421,29 @@
     display: inline-block;
   }
 
-  &[data-estado="pendiente"]   { background: #fef3c7; color: #92400e; .status-dot { background: #f59e0b; } }
-  &[data-estado="confirmada"]  { background: #ecfdf5; color: #059669; .status-dot { background: #10b981; } }
-  &[data-estado="realizada"]   { background: #dbeafe; color: #1e40af; .status-dot { background: #3b82f6; } }
-  &[data-estado="cancelada"]   { background: #fef2f2; color: #dc2626; .status-dot { background: #ef4444; } }
-  &[data-estado="no_asistio"]  { background: #f1f5f9; color: #475569; .status-dot { background: #94a3b8; } }
+  &[data-estado="pendiente"]   { background: #fffbeb; color: #b45309; border-color: #fde68a; .status-dot { background: #f59e0b; } }
+  &[data-estado="confirmada"]  { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; .status-dot { background: #6366f1; } }
+  &[data-estado="realizada"]   { background: #ecfdf5; color: #047857; border-color: #a7f3d0; .status-dot { background: #10b981; } }
+  &[data-estado="cancelada"],
+  &[data-estado="rechazada"]   { background: #fff1f2; color: #be123c; border-color: #fecdd3; .status-dot { background: #f43f5e; } }
+  &[data-estado="no_asistio"]  { background: #f1f5f9; color: #475569; border-color: #e2e8f0; .status-dot { background: #94a3b8; } }
+}
+
+/* Spec Aarón 2026-05 — motivo de cancelación: caja rose sutil con icono info */
+.appt-card__meta li.cancel-reason {
+  align-items: flex-start;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+  padding: 8px 10px;
+
+  .cancel-reason__icon { color: #be123c; }
+  .cancel-reason__text {
+    color: #9f1239;
+    font-style: italic;
+    word-break: break-word;
+  }
+  .meta-label { color: #be123c; }
 }
 
 .modalidad-chip {

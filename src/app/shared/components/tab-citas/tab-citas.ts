@@ -303,6 +303,10 @@ export class TabCitas {
   }
 
   canPostpone(a: Appointment): boolean {
+    // Spec (Aarón, 2026-05): el ALUMNO no puede aplazar bajo ninguna
+    // circunstancia. Si necesita cambiar la cita debe cancelarla con
+    // motivo y solicitar otra. El resto de roles puede aplazar.
+    if (this.esAlumno()) return false;
     if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
     if (new Date(a.scheduledAt).getTime() <= Date.now()) return false;
     const me = this.auth.currentUser()?.id;
