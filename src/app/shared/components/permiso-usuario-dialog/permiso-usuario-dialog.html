@@ -1,22 +1,21 @@
 <div class="pd-wrap">
 
-    <!-- Header -->
     <div class="pd-header">
         <div class="pd-header__left">
             <div class="pd-avatar">
-                {{ data.nombre.charAt(0) }}{{ data.apellido_paterno.charAt(0) }}
+                {{ data.nombre ? data.nombre.charAt(0) : '' }}{{ data.apellido_paterno ? data.apellido_paterno.charAt(0)
+                : '' }}
             </div>
             <div>
                 <p class="pd-header__name">{{ data.nombre }} {{ data.apellido_paterno }}</p>
                 <p class="pd-header__sub">Gestión de permisos extra</p>
             </div>
         </div>
-        <button class="pd-header__close" (click)="cerrar()">
+        <button class="pd-header__close" (click)="cerrar()" aria-label="Cerrar diálogo">
             <mat-icon>close</mat-icon>
         </button>
     </div>
 
-    <!-- Content -->
     <div class="pd-body">
 
         @if (loading()) {
@@ -24,42 +23,39 @@
             <mat-spinner diameter="28" />
             <span>Cargando permisos...</span>
         </div>
-
         } @else if (items.length === 0) {
         <div class="pd-state">
             <mat-icon>shield</mat-icon>
             <span>No hay permisos configurables para este rol.</span>
         </div>
-
         } @else {
         <ul class="pd-list">
             @for (item of items; track item.modulo + item.accion) {
-            <li class="pd-item" [class.pd-item--pending]="isPending(item)">
+            <li class="pd-item" [class.pd-item--pending]="isPending(item)" (click)="toggle(item, !tienePermiso(item))">
 
-                <!-- Checkbox — único responsable del toggle, sin propagar al body -->
                 <div class="pd-item__check" (click)="$event.stopPropagation()">
                     <mat-checkbox [checked]="tienePermiso(item)" (change)="toggle(item, $event.checked)"
                         [disabled]="saving()" />
                 </div>
 
-                <!-- Label clickeable — separado del checkbox para evitar doble disparo -->
-                <div class="pd-item__body" (click)="toggle(item, !tienePermiso(item))">
+                <div class="pd-item__body">
                     <div class="pd-item__title">
                         <span>{{ item.label }}</span>
+
                         @if (item.sensitive) {
                         <span class="pd-item__warn" matTooltip="Permiso sensible — requiere confirmación">
                             <mat-icon>warning_amber</mat-icon>
                         </span>
                         }
+
                         @if (isPending(item)) {
-                        <span class="pd-item__badge">
+                        <span class="pd-item__badge" [class.pd-item__badge--revoke]="!tienePermiso(item)">
                             {{ tienePermiso(item) ? 'por otorgar' : 'por revocar' }}
                         </span>
                         }
                     </div>
                     <p class="pd-item__desc">{{ item.descripcion }}</p>
 
-                    <!-- Auditoría — solo visible si el permiso ya está otorgado en BD -->
                     @if (auditoria(item); as info) {
                     <p class="pd-item__audit">
                         <mat-icon>history</mat-icon>
@@ -76,7 +72,6 @@
 
     </div>
 
-    <!-- Footer -->
     <div class="pd-footer">
         <span class="pd-footer__hint">
             @if (hasPending()) {

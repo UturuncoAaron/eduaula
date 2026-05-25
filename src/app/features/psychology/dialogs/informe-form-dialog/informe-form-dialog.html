@@ -140,10 +140,10 @@
             @if (loading()) {
             <mat-spinner diameter="18" />
             <span>Guardando…</span>
-            } @else {
-            <mat-icon aria-hidden="true">save</mat-icon>
-            <span>{{ isEdit() ? 'Guardar cambios' : 'Crear informe' }}</span>
-            }
+            } @else {<ng-container>
+                <mat-icon aria-hidden="true">save</mat-icon>
+                <span>{{ isEdit() ? 'Guardar cambios' : 'Crear informe' }}</span>
+            </ng-container>}
         </button>
     </mat-dialog-actions>
 </form>

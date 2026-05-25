@@ -16,7 +16,6 @@ import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../../core/services/api';
 import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 import { UserDialog } from '../../../../../shared/components/user-dialog/user-dialog';
-import { AssignStudentsDialog } from './dialogs/assign-students-dialog/assign-students-dialog';
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 import { PermisoUsuarioDialog } from '@shared/components/permiso-usuario-dialog/permiso-usuario-dialog';
@@ -151,17 +150,6 @@ export class TabPsicologos implements OnInit {
       },
     }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
   }
-
-  asignarAlumnos(row: PsicologaRow): void {
-    this.dialog.open(AssignStudentsDialog, {
-      width: '640px', maxHeight: '85vh', autoFocus: false,
-      data: {
-        psicologaId: row.id,
-        psicologaNombre: `${row.nombre} ${row.apellido_paterno}`.trim(),
-      },
-    });
-  }
-
   verDetalle(row: PsicologaRow): void {
     this.dialog.open(UserDetailDialog, {
       width: '580px', maxHeight: '90vh', autoFocus: false,
