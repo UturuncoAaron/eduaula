@@ -2,7 +2,7 @@
     <mat-icon>{{ isReschedule() ? 'event_repeat' : 'event_available' }}</mat-icon>
     @if (isReschedule()) { Reagendar cita }
     @else if (data.mode === 'alumno') { Solicitar cita con psicología }
-    @else { Agendar cita para mi hijo/a }
+    @else { Agendar cita }
 </h2>
 
 <form [formGroup]="form" (ngSubmit)="submit()">

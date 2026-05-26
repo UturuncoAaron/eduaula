@@ -193,7 +193,9 @@ export class DeriveToPsicologaDialog implements OnInit {
             this.refreshAvailability(psicologaId),
             this.refreshSlotsTaken(),
         ]);
-        this.synthesizeIfEmpty(psicologaId);
+        // Importante: NO sintetizamos disponibilidad por defecto. Si la
+        // psicóloga todavía no configuró sus bloques, debe verse vacío
+        // (empty-state) en lugar de pintar TODOS los slots como disponibles.
     }
 
     private async refreshAvailability(psicologaId: string): Promise<void> {
@@ -220,22 +222,7 @@ export class DeriveToPsicologaDialog implements OnInit {
         }
     }
 
-    private synthesizeIfEmpty(psicologaId: string): void {
-        if (this.availability().length === 0) {
-            const now = new Date().toISOString();
-            const synth: AccountAvailability[] = this.allowedDays.map((d, i) => ({
-                id: `virtual-${psicologaId}-${d}-${i}`,
-                cuentaId: psicologaId,
-                diaSemana: d as DiaSemana,
-                horaInicio: this.psicologaRule.defaultHours.start,
-                horaFin: this.psicologaRule.defaultHours.end,
-                activo: true,
-                createdAt: now,
-                updatedAt: now,
-            }));
-            this.availability.set(synth);
-        }
-    }
+    // (Eliminado) synthesizeIfEmpty: ya no sintetizamos slots fantasma.
 
     async onSlotPick(ev: BookingPickEvent): Promise<void> {
         const dur = ev.durationMin ?? this.form.value.durationMin ?? 30;
