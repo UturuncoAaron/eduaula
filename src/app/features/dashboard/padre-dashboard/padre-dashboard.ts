@@ -78,10 +78,12 @@ export class PadreDashboard implements OnInit {
   dashboardData = signal<PadreDashboardData | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
-
-  readonly tipoCitaLabel: Record<string, string> = {
-    academico: 'Académico', conductual: 'Conductual',
-    psicologico: 'Psicológico', familiar: 'Familiar', otro: 'Otro',
+  readonly tipoCitaLabel: Record<string, string | undefined> = {
+    academico: 'Académico',
+    conductual: 'Conductual',
+    psicologico: 'Psicológico',
+    familiar: 'Familiar',
+    otro: 'Otro',
   };
 
   readonly tieneCitas = computed(() =>

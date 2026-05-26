@@ -121,6 +121,12 @@ export class CourseService {
     return this.api.patch<SemanaResumen>(`courses/${courseId}/semanas/${semana}`, body);
   }
 
+  addSemana(courseId: string, bimestre: number) {
+    return this.api.post<SemanaResumen>(
+      `courses/${courseId}/semanas/next`,
+      { bimestre },
+    );
+  }
   toggleMaterial(courseId: string, materialId: string, oculto: boolean) {
     return this.api.patch<Material>(`courses/${courseId}/materials/${materialId}/toggle`, { oculto });
   }

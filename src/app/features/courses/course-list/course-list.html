@@ -1,95 +1,106 @@
-<div class="page">
-    <div class="page-head">
-        <div>
+<div class="page-container">
+    <header class="page-header">
+        <div class="page-header__title-area">
             <h1>Mis cursos</h1>
-            <p class="subtitle">{{ courses().length }} cursos activos este período</p>
+            <p class="subtitle">
+                <span class="pulse-indicator"></span>
+                {{ courses().length }} asignaturas activas este período
+            </p>
         </div>
-    </div>
+    </header>
 
     @if (loading()) {
-    <div class="state-center"><mat-spinner diameter="40" /></div>
+    <div class="state-center">
+        <mat-spinner diameter="36" strokeWidth="3" />
+    </div>
     } @else {
-    <div class="grid">
+    <div class="courses-grid">
         @for (course of courses(); track course.id; let i = $index) {
-        <div class="card" [style.animation-delay]="i * 60 + 'ms'">
+        <article class="course-card" [style.animation-delay]="i * 40 + 'ms'"
+            [style.--course-color]="course.color || '#1e293b'">
 
-            <!-- Banner -->
-            <div class="card-banner" [style.background]="gradients[i % gradients.length]">
-                <div class="banner-orb"></div>
-                <div class="banner-orb banner-orb--2"></div>
-                <div class="banner-content">
-                    <div class="course-icon">
+            <div class="course-card__banner" [style.background-color]="course.color || '#1e293b'">
+                <div class="banner-overlay"></div>
+                <div class="banner-main">
+                    <div class="icon-box">
                         <mat-icon>{{ getIcon(course.nombre) }}</mat-icon>
                     </div>
-                    <div class="banner-text">
-                        <span class="course-name">{{ course.nombre }}</span>
-                        <span class="course-section">{{ course.descripcion }}</span>
+                    <div class="title-box">
+                        <h2 class="course-title" [matTooltip]="course.nombre">{{ course.nombre }}</h2>
+                        <span class="course-meta">ID: #{{ course.id.toString().substring(0,5) }}</span>
                     </div>
-                    @if (auth.isDocente()) {
-                        <mat-icon class="docente-badge" matTooltip="Eres el docente">stars</mat-icon>
+                </div>
+
+                @if (auth.isDocente()) {
+                <span class="role-badge" matTooltip="Gestión como Docente Titular">
+                    <mat-icon>verified_user</mat-icon> Docente
+                </span>
+                }
+            </div>
+
+            <div class="course-card__body">
+                <div class="details-section">
+                    @if (course.seccion) {
+                    <div class="meta-pill">
+                        <mat-icon>door_sliding</mat-icon>
+                        <span>Aula: <strong>{{ course.seccion.nombre }}</strong></span>
+                    </div>
+                    }
+                    @if (course.docente && !auth.isDocente()) {
+                    <div class="professor-info">
+                        <div class="avatar-mini">
+                            {{ course.docente.nombre.charAt(0) }}{{ course.docente.apellido_paterno.charAt(0) }}
+                        </div>
+                        <div class="professor-text">
+                            <span class="role-label">Profesor</span>
+                            <span class="name-value">{{ course.docente.nombre }} {{ course.docente.apellido_paterno
+                                }}</span>
+                        </div>
+                    </div>
                     }
                 </div>
-            </div>
 
-            <!-- Body -->
-            <div class="card-body">
-
-                <!-- Docente -->
-                @if (course.docente) {
-                <div class="info-row">
-                    <mat-icon>person</mat-icon>
-                    <div>
-                        <span class="info-label">Docente</span>
-                        <span class="info-value">{{ course.docente.nombre }} {{ course.docente.apellido_paterno }}</span>
-                    </div>
-                </div>
-                }
-
-                <!-- Sección -->
-                @if (course.seccion) {
-                <div class="info-row">
-                    <mat-icon>class</mat-icon>
-                    <div>
-                        <span class="info-label">Sección</span>
-                        <span class="info-value">{{ course.seccion.nombre }}</span>
-                    </div>
-                </div>
-                }
-
-                <!-- Quick access tiles -->
-                <div class="tiles">
-                    <a class="tile" [routerLink]="['/cursos', course.id, 'materiales']">
-                        <div class="tile-ic tile-ic--blue"><mat-icon>folder_open</mat-icon></div>
+                <nav class="bento-navigation" aria-label="Accesos rápidos del curso">
+                    <a class="bento-tile" [routerLink]="['/cursos', course.id, 'materiales']"
+                        matTooltip="Repositorio de Archivos">
+                        <div class="bento-tile__icon bento-tile__icon--blue"><mat-icon>folder_open</mat-icon></div>
                         <span>Materiales</span>
                     </a>
-                    <a class="tile" [routerLink]="['/cursos', course.id, 'actividades']">
-                        <div class="tile-ic tile-ic--green"><mat-icon>assignment</mat-icon></div>
+                    <a class="bento-tile" [routerLink]="['/cursos', course.id, 'actividades']"
+                        matTooltip="Evaluaciones y Tareas">
+                        <div class="bento-tile__icon bento-tile__icon--green"><mat-icon>assignment_turned_in</mat-icon>
+                        </div>
                         <span>Tareas</span>
                     </a>
-                    <a class="tile" [routerLink]="['/cursos', course.id, 'foro']">
-                        <div class="tile-ic tile-ic--amber"><mat-icon>forum</mat-icon></div>
+                    <a class="bento-tile" [routerLink]="['/cursos', course.id, 'foro']"
+                        matTooltip="Debates e Interacciones">
+                        <div class="bento-tile__icon bento-tile__icon--amber"><mat-icon>chat_bubble_outline</mat-icon>
+                        </div>
                         <span>Foro</span>
                     </a>
-                    <a class="tile" [routerLink]="['/cursos', course.id, 'contenido']">
-                        <div class="tile-ic tile-ic--purple"><mat-icon>videocam</mat-icon></div>
+                    <a class="bento-tile" [routerLink]="['/cursos', course.id, 'contenido']"
+                        matTooltip="Clases síncronas">
+                        <div class="bento-tile__icon bento-tile__icon--purple"><mat-icon>sensors</mat-icon></div>
                         <span>En vivo</span>
                     </a>
-                </div>
+                </nav>
 
-                <!-- Actions -->
-                <div class="card-actions">
-                    <a class="act act--primary" [routerLink]="['/cursos', course.id]">
-                        <mat-icon>arrow_forward</mat-icon>
-                        {{ auth.isDocente() ? 'Gestionar' : 'Entrar al curso' }}
+                <div class="card-footer">
+                    <a class="btn-action" [class.btn-action--management]="auth.isDocente()"
+                        [routerLink]="['/cursos', course.id]">
+                        <span>{{ auth.isDocente() ? 'Panel de Gestión' : 'Ingresar a Aula' }}</span>
+                        <mat-icon>keyboard_arrow_right</mat-icon>
                     </a>
                 </div>
             </div>
-        </div>
+        </article>
         } @empty {
-        <div class="empty-state">
-            <mat-icon>school</mat-icon>
-            <h3>Sin cursos asignados</h3>
-            <p>No tienes cursos activos en este período académico.</p>
+        <div class="empty-workspace">
+            <div class="empty-icon-wrapper">
+                <mat-icon>auto_stories</mat-icon>
+            </div>
+            <h3>Área de trabajo vacía</h3>
+            <p>No se registran asignaturas matriculadas ni dictadas para el presente ciclo académico.</p>
         </div>
         }
     </div>

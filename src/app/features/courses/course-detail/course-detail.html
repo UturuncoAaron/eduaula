@@ -53,36 +53,53 @@
         </div>
     </header>
 
+    <!-- Tabs de navegación -->
     <nav class="tabs-nav" mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false" mat-align-tabs="start">
         @for (tab of tabs(); track tab.path) {
-        <a mat-tab-link [routerLink]="['./', tab.path]" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
+        <a mat-tab-link [routerLink]="['./', tab.path]" routerLinkActive #rla="routerLinkActive"
+            [active]="rla.isActive">
             <mat-icon>{{ tab.icon }}</mat-icon>
             {{ tab.label }}
         </a>
         }
         @if (auth.isDocente() && calificacionesQueryParams(); as qp) {
-        <a mat-tab-link
-            [routerLink]="['/notas', 'registrar']"
-            [queryParams]="qp"
-            routerLinkActive #rlaCal="routerLinkActive" [active]="rlaCal.isActive">
+        <a mat-tab-link [routerLink]="['/notas', 'registrar']" [queryParams]="qp" routerLinkActive
+            #rlaCal="routerLinkActive" [active]="rlaCal.isActive">
             <mat-icon>star</mat-icon>
             Calificaciones
         </a>
         }
         @if (auth.isAlumno() && misNotasQueryParams(); as qp) {
-        <a mat-tab-link
-            [routerLink]="['/notas']"
-            [queryParams]="qp"
-            routerLinkActive #rlaMis="routerLinkActive" [active]="rlaMis.isActive">
+        <a mat-tab-link [routerLink]="['/notas']" [queryParams]="qp" routerLinkActive #rlaMis="routerLinkActive"
+            [active]="rlaMis.isActive">
             <mat-icon>star</mat-icon>
             Calificaciones
         </a>
         }
     </nav>
 
+    @if (bimestresDisponibles().length > 1 && bimReady()) {
+    <div class="bim-filter-bar">
+        <span class="bim-filter-label">Bimestre:</span>
+        <div class="bim-chips">
+            <button class="bim-chip" [class.active]="bimFiltro.bimestre() === null" (click)="setBimestre(null)">
+                Todos
+            </button>
+            @for (bim of bimestresDisponibles(); track bim) {
+            <button class="bim-chip" [class.active]="bimFiltro.bimestre() === bim" (click)="setBimestre(bim)">
+                Bim {{ bim }}
+            </button>
+            }
+        </div>
+    </div>
+    }
+
     <mat-tab-nav-panel #tabPanel>
         <main class="main-content">
+            @if (bimReady()) {
             <router-outlet></router-outlet>
+            }
         </main>
     </mat-tab-nav-panel>
+
 </div>

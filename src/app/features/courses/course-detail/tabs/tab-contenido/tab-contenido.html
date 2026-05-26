@@ -1,138 +1,118 @@
-<div class="tab-body content-layout">
+<div class="tc-layout">
 
-    <section class="content-main">
-        <h2 class="content-title">Contenido del curso</h2>
+    <!-- ── MAIN ──────────────────────────────────────────────── -->
+    <section class="tc-main">
+        <h2 class="tc-title">Contenido del curso</h2>
 
-        <mat-accordion class="bb-accordion" multi>
+        <mat-accordion class="tc-accordion" multi>
 
-            <!-- Información general (above the fold) -->
-            <mat-expansion-panel class="bb-panel" expanded>
+            <!-- Información general -->
+            <mat-expansion-panel class="tc-panel" expanded>
                 <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        <mat-icon class="bb-panel-icon">school</mat-icon>
-                        INFORMACIÓN GENERAL DEL CURSO
-                    </mat-panel-title>
+                    <mat-panel-title class="tc-panel-title">INFORMACIÓN GENERAL DEL CURSO</mat-panel-title>
                 </mat-expansion-panel-header>
-                <div class="bb-panel-body">
-                    @if (course(); as c) {
-                    <dl class="info-grid">
-                        <div>
-                            <dt><mat-icon>school</mat-icon>Nombre del curso</dt>
-                            <dd>{{ c.nombre }}</dd>
-                        </div>
-                        @if (c.descripcion) {
-                        <div class="full-row">
-                            <dt><mat-icon>description</mat-icon>Descripción</dt>
-                            <dd>{{ c.descripcion }}</dd>
-                        </div>
-                        }
-                        @if (c.docente?.nombre) {
-                        <div>
-                            <dt><mat-icon>person</mat-icon>Docente</dt>
-                            <dd>{{ c.docente?.nombre }} {{ c.docente?.apellido_paterno }}</dd>
-                        </div>
-                        }
-                        @if (c.seccion?.nombre) {
-                        <div>
-                            <dt><mat-icon>class</mat-icon>Sección</dt>
-                            <dd>{{ c.seccion?.nombre }}</dd>
-                        </div>
-                        }
-                    </dl>
-                    } @else {
-                    <app-teacher-card-skeleton />
+                @if (course(); as c) {
+                <ul class="info-list">
+                    <li><span class="info-label">Curso</span><span class="info-value">{{ c.nombre }}</span></li>
+                    @if (c.docente?.nombre) {
+                    <li><span class="info-label">Docente</span><span class="info-value">{{ c.docente?.nombre }} {{
+                            c.docente?.apellido_paterno }}</span></li>
                     }
-                </div>
+                    @if (c.seccion?.nombre) {
+                    <li><span class="info-label">Sección</span><span class="info-value">{{ c.seccion?.nombre }}</span>
+                    </li>
+                    }
+                    @if (c.descripcion) {
+                    <li class="info-full"><span class="info-label">Descripción</span><span class="info-value">{{
+                            c.descripcion }}</span></li>
+                    }
+                </ul>
+                } @else {
+                <app-teacher-card-skeleton />
+                }
             </mat-expansion-panel>
 
-            <!-- Videoconferencias (lazy on opened) -->
-            <mat-expansion-panel class="bb-panel" (opened)="onLivePanelOpened()">
+            <!-- Videoconferencias -->
+            <mat-expansion-panel class="tc-panel" (opened)="onLivePanelOpened()">
                 <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        <mat-icon class="bb-panel-icon">videocam</mat-icon>
-                        MIS VIDEOCONFERENCIAS
-                    </mat-panel-title>
-                    <mat-panel-description>
+                    <mat-panel-title class="tc-panel-title">MIS VIDEOCONFERENCIAS</mat-panel-title>
+                    <mat-panel-description class="tc-panel-desc">
                         @if (liveClasses() !== null) {
                         @if (liveClassesCount() > 0) {
-                        <span class="bb-count">{{ liveClassesCount() }} {{ liveClassesCount() === 1 ? 'sesión' :
+                        <span class="tc-count">{{ liveClassesCount() }} {{ liveClassesCount() === 1 ? 'sesión' :
                             'sesiones' }}</span>
                         } @else {
-                        <span class="bb-count empty">Sin sesiones</span>
+                        <span class="tc-count muted">Sin sesiones</span>
                         }
                         }
                     </mat-panel-description>
                 </mat-expansion-panel-header>
-                <div class="bb-panel-body">
-                    @if (auth.isDocente()) {
-                    <div class="lc-toolbar">
-                        <button mat-flat-button class="btn-primary" (click)="abrirCrearLiveClass()">
-                            <mat-icon>add</mat-icon> Programar nueva
-                        </button>
-                    </div>
-                    }
-                    @if (loadingLive() || liveClasses() === null) {
-                    <app-week-content-skeleton [count]="2" />
-                    } @else if (liveClassesCount() === 0) {
-                    <p class="bb-empty">
-                        @if (auth.isDocente()) { Aún no programaste ninguna videoconferencia. }
-                        @else { El docente todavía no programó videoconferencias. }
-                    </p>
-                    } @else {
-                    <div class="lc-list">
-                        @for (lc of liveClasses(); track lc.id) {
-                        @let estado = estadoClase(lc);
-                        <div class="lc-row" [class.is-live]="estado === 'en-vivo'"
-                            [class.is-past]="estado === 'finalizada'">
-                            <div class="lc-icon"><mat-icon>video_call</mat-icon></div>
-                            <div class="lc-info">
-                                <div class="lc-title-row">
-                                    <h4>{{ lc.titulo }}</h4>
-                                    @if (estado === 'en-vivo') { <span class="lc-badge live">En vivo</span> }
-                                    @else if (estado === 'finalizada') { <span class="lc-badge past">Finalizada</span> }
-                                    @else { <span class="lc-badge soon">Próxima</span> }
-                                </div>
-                                @if (lc.descripcion) { <p class="lc-desc">{{ lc.descripcion }}</p> }
-                                <span class="meta-data">
-                                    <mat-icon class="sm-icon">event</mat-icon>
-                                    {{ lc.fecha_hora | date:'EEE dd MMM, HH:mm' }}
-                                    <span class="dot">•</span>
-                                    <mat-icon class="sm-icon">schedule</mat-icon>
-                                    {{ lc.duracion_min }} min
-                                </span>
+                @if (auth.isDocente()) {
+                <div class="lc-toolbar">
+                    <button mat-flat-button class="btn-primary" (click)="abrirCrearLiveClass()">
+                        <mat-icon>add</mat-icon> Programar nueva
+                    </button>
+                </div>
+                }
+                @if (loadingLive() || liveClasses() === null) {
+                <app-week-content-skeleton [count]="2" />
+                } @else if (liveClassesCount() === 0) {
+                <p class="tc-empty">
+                    @if (auth.isDocente()) { Aún no programaste ninguna videoconferencia. }
+                    @else { El docente todavía no programó videoconferencias. }
+                </p>
+                } @else {
+                <div class="lc-list">
+                    @for (lc of liveClasses(); track lc.id) {
+                    @let estado = estadoClase(lc);
+                    <div class="lc-row" [class.is-live]="estado === 'en-vivo'"
+                        [class.is-past]="estado === 'finalizada'">
+                        <div class="lc-body">
+                            <div class="lc-header-row">
+                                <h4 class="lc-title">{{ lc.titulo }}</h4>
+                                @if (estado === 'en-vivo') { <span class="lc-badge live">En vivo</span> }
+                                @else if (estado === 'finalizada') { <span class="lc-badge past">Finalizada</span> }
+                                @else { <span class="lc-badge soon">Próxima</span> }
                             </div>
-                            <div class="lc-actions">
-                                <button mat-flat-button class="btn-primary" (click)="unirseClase(lc)"
-                                    [disabled]="estado === 'finalizada'">
-                                    <mat-icon>open_in_new</mat-icon>
-                                    {{ estado === 'en-vivo' ? 'Unirse' : 'Ir a la clase' }}
-                                </button>
-                                @if (auth.isDocente() || auth.isAdmin()) {
-                                <button mat-icon-button [matMenuTriggerFor]="lcMenu">
-                                    <mat-icon>more_vert</mat-icon>
-                                </button>
-                                <mat-menu #lcMenu="matMenu">
-                                    <button mat-menu-item (click)="abrirEditarLiveClass(lc)">
-                                        <mat-icon>edit</mat-icon><span>Editar</span>
-                                    </button>
-                                    <button mat-menu-item (click)="eliminarLiveClass(lc)" class="danger">
-                                        <mat-icon>delete</mat-icon><span>Eliminar</span>
-                                    </button>
-                                </mat-menu>
-                                }
-                            </div>
+                            @if (lc.descripcion) { <p class="lc-desc">{{ lc.descripcion }}</p> }
+                            <span class="lc-meta">
+                                {{ lc.fecha_hora | date:'EEE dd MMM, HH:mm' }}
+                                <span class="dot">·</span>
+                                {{ lc.duracion_min }} min
+                            </span>
                         </div>
-                        }
+                        <div class="lc-actions">
+                            <button mat-flat-button class="btn-primary btn-sm" (click)="unirseClase(lc)"
+                                [disabled]="estado === 'finalizada'">
+                                <mat-icon>open_in_new</mat-icon>
+                                {{ estado === 'en-vivo' ? 'Unirse' : 'Ir' }}
+                            </button>
+                            @if (auth.isDocente() || auth.isAdmin()) {
+                            <button mat-icon-button [matMenuTriggerFor]="lcMenu">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <mat-menu #lcMenu="matMenu">
+                                <button mat-menu-item (click)="abrirEditarLiveClass(lc)">
+                                    <mat-icon>edit</mat-icon><span>Editar</span>
+                                </button>
+                                <button mat-menu-item (click)="eliminarLiveClass(lc)" class="danger">
+                                    <mat-icon>delete</mat-icon><span>Eliminar</span>
+                                </button>
+                            </mat-menu>
+                            }
+                        </div>
                     </div>
                     }
                 </div>
+                }
             </mat-expansion-panel>
 
-            <!-- Semanas (acordeón lazy: items se cargan al expandir la primera) -->
+            <!-- ── Semanas filtradas por bimestre ──────────────── -->
             @if (loadingSemanas()) {
-            <div class="loader-row"><mat-spinner diameter="28"></mat-spinner></div>
+            <div class="loader-row"><mat-spinner diameter="24"></mat-spinner></div>
             } @else {
-            @for (s of semanas(); track s.semana) {
+
+            @for (s of semanasFiltradas(); track s.semana) {
             <app-week-accordion [semana]="s" [items]="itemsForWeek(s.semana)"
                 [canManage]="auth.isDocente() || auth.isAdmin()" (opened)="onWeekOpened()"
                 (itemOpen)="abrirItem($event)" (itemToggle)="toggleItem($event)" (itemDelete)="eliminarItem($event)"
@@ -140,49 +120,61 @@
                 (createMaterial)="crearMaterial($event)" (createTarea)="crearTarea($event)"
                 (createForo)="crearForo($event)" />
             }
-            }
+            @if ((auth.isDocente() || auth.isAdmin()) && bimFiltro.bimestre() !== null) {
+            <div class="add-semana-row">
+                <button class="btn-add-semana" [disabled]="addingSemana()" (click)="agregarSemana()"
+                    [attr.aria-label]="'Agregar semana ' + (semanas().length + 1)">
+                    @if (addingSemana()) {
+                    <mat-spinner diameter="18"></mat-spinner>
+                    } @else {
+                    <mat-icon>add</mat-icon>
+                    }
+                </button>
+                <span class="add-semana-label">
+                    Agregar semana {{ semanas().length + 1 }}
 
+                </span>
+            </div>
+            }
+            }
         </mat-accordion>
     </section>
 
-    <!-- ── Aside (profesor + acciones) ─────────────────────────────────────────── -->
-    <aside class="content-aside">
+    <!-- ── ASIDE ─────────────────────────────────────────────── -->
+    <aside class="tc-aside">
+
         @if (course() === null) {
         <section class="aside-card">
-            <h3 class="aside-title">Profesor del curso</h3>
+            <p class="aside-label">PROFESOR DEL CURSO</p>
             <app-teacher-card-skeleton />
         </section>
         } @else if (course()?.docente; as d) {
         <section class="aside-card teacher-card">
-            <h3 class="aside-title">Profesor del curso</h3>
+            <p class="aside-label">PROFESOR DEL CURSO</p>
             <div class="teacher-row">
-                <div class="teacher-avatar">
-                    <span>{{ iniciales(d) }}</span>
-                </div>
+                <div class="teacher-avatar"><span>{{ iniciales(d) }}</span></div>
                 <div class="teacher-info">
                     <strong>{{ d.nombre }} {{ d.apellido_paterno }}{{ d.apellido_materno ? ' ' + d.apellido_materno : ''
                         }}</strong>
                     <span class="teacher-role">PROFESOR</span>
                 </div>
             </div>
-            @if (d.especialidad || d.titulo_profesional) {
+            @if (d.titulo_profesional || d.especialidad) {
             <p class="teacher-meta">
                 @if (d.titulo_profesional) { {{ d.titulo_profesional }} }
-                @if (d.especialidad) { <span class="dot">•</span>{{ d.especialidad }} }
+                @if (d.especialidad) { <span class="dot">·</span>{{ d.especialidad }} }
             </p>
             }
             @if (d.email || d.telefono) {
             <div class="teacher-contacts">
                 @if (d.email) {
                 <a class="contact-row" [href]="'mailto:' + d.email" matTooltip="Enviar correo">
-                    <mat-icon>mail</mat-icon>
-                    <span>{{ d.email }}</span>
+                    <mat-icon>mail</mat-icon><span>{{ d.email }}</span>
                 </a>
                 }
                 @if (d.telefono) {
                 <a class="contact-row" [href]="'tel:' + d.telefono" matTooltip="Llamar">
-                    <mat-icon>call</mat-icon>
-                    <span>{{ d.telefono }}</span>
+                    <mat-icon>call</mat-icon><span>{{ d.telefono }}</span>
                 </a>
                 }
             </div>
@@ -190,13 +182,13 @@
         </section>
         } @else {
         <section class="aside-card">
-            <h3 class="aside-title">Profesor del curso</h3>
-            <p class="bb-empty">Sin docente asignado todavía.</p>
+            <p class="aside-label">PROFESOR DEL CURSO</p>
+            <p class="tc-empty">Sin docente asignado.</p>
         </section>
         }
 
         <section class="aside-card">
-            <h3 class="aside-title">Detalles y acciones</h3>
+            <p class="aside-label">DETALLES Y ACCIONES</p>
             <ul class="aside-actions">
                 <li role="button" tabindex="0" (click)="abrirParticipantes()" (keydown.enter)="abrirParticipantes()">
                     <mat-icon>group</mat-icon>
@@ -214,5 +206,6 @@
                 }
             </ul>
         </section>
+
     </aside>
 </div>

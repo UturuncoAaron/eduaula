@@ -1,5 +1,3 @@
-
-
 import {
   ChangeDetectionStrategy, Component, computed, DestroyRef,
   inject, input, OnInit, signal,
@@ -16,6 +14,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../../core/auth/auth';
+import { BimestreFilterService } from '@core/models/bimestre-filter';
 import { LazyCourseStore } from '../../../data-access/lazy-course.store';
 import { CourseService } from '../../../data-access/course.store';
 import { TaskService } from '../../../../tasks/data-access/task.store';
@@ -43,6 +42,7 @@ import { WeekAccordion, SemanaItem } from './week-accordion/week-accordion';
 })
 export class TabContenido implements OnInit {
   readonly auth = inject(AuthService);
+  readonly bimFiltro = inject(BimestreFilterService);
   private store = inject(LazyCourseStore);
   private csSvc = inject(CourseService);
   private taskSvc = inject(TaskService);
@@ -50,30 +50,33 @@ export class TabContenido implements OnInit {
   private toastr = inject(ToastService);
   private destroyRef = inject(DestroyRef);
 
-  /** Recibe `id` del path param via withComponentInputBinding. */
-  // eslint-disable-next-line @angular-eslint/no-input-rename
   courseId = input.required<string>({ alias: 'id' });
 
-  // Fase 2 — above-the-fold
+  // ── Estado principal ──────────────────────────────────────
   course = signal<Course | null>(null);
   semanas = signal<SemanaResumen[]>([]);
   loadingSemanas = signal(true);
+  addingSemana = signal(false);
 
-  // Fase 4 — lazy on first interaction
-  /** `null` ⇒ todavía no se cargó el bundle. */
+  readonly semanasFiltradas = computed(() => {
+    const bim = this.bimFiltro.bimestre();
+    const all = this.semanas();
+    return bim === null ? all : all.filter(s => s.bimestre === bim);
+  });
+
+  // ── Items por semana (lazy) ───────────────────────────────
   private materialsByWeek = signal<Map<number, Material[]> | null>(null);
   private tasksByWeek = signal<Map<number, Task[]> | null>(null);
   private forumsByWeek = signal<Map<number, Forum[]> | null>(null);
   loadingItems = signal(false);
   private itemsLoaded = computed(() => this.materialsByWeek() !== null);
 
+  // ── Live classes (lazy) ───────────────────────────────────
   liveClasses = signal<LiveClass[] | null>(null);
   loadingLive = signal(false);
-
   readonly liveClassesCount = computed(() => this.liveClasses()?.length ?? 0);
 
   ngOnInit(): void {
-    // Fase 2 — 2 fetches paralelos
     this.store.course$(this.courseId())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(c => this.course.set(c));
@@ -87,7 +90,7 @@ export class TabContenido implements OnInit {
       });
   }
 
-  // ── Fase 4: lazy load items bundle ────────────────────────────
+  // ── Lazy: items al expandir primera semana ────────────────
   onWeekOpened(): void {
     if (this.itemsLoaded() || this.loadingItems()) return;
     this.loadingItems.set(true);
@@ -102,11 +105,6 @@ export class TabContenido implements OnInit {
       });
   }
 
-  /**
-   * Fase 5 — Prefetch en idle: tras la primera expansión, programar la
-   * carga de live-classes (más útil que una "siguiente semana" porque
-   * los items ya están todos cacheados en un único bundle).
-   */
   private schedulePrefetch(): void {
     if (this.liveClasses() !== null || this.loadingLive()) return;
     const run = (): void => {
@@ -122,7 +120,7 @@ export class TabContenido implements OnInit {
     }
   }
 
-  // ── Live classes lazy ─────────────────────────────────────────
+  // ── Lazy: live classes al expandir el panel ───────────────
   onLivePanelOpened(): void {
     if (this.liveClasses() !== null || this.loadingLive()) return;
     this.loadingLive.set(true);
@@ -134,10 +132,33 @@ export class TabContenido implements OnInit {
       });
   }
 
-  /**
-   * Items combinados para una semana específica.
-   * Devuelve `null` mientras el bundle no llegó (estado de skeleton).
-   */
+  // ── Agregar semana siguiente (on demand) ──────────────────
+  agregarSemana(): void {
+    if (this.addingSemana()) return;
+    const bimestre = this.bimFiltro.bimestre();
+    if (!bimestre) return;
+    this.addingSemana.set(true);
+
+    this.csSvc.addSemana(this.courseId(), bimestre)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (r: { data: SemanaResumen }) => {
+          const nuevaSemana = r.data;
+          this.semanas.update(list => [...list, nuevaSemana]);
+          this.store.invalidateSemanas(this.courseId());
+          this.addingSemana.set(false);
+          this.toastr.success(`Semana ${nuevaSemana.semana} agregada`, 'Éxito');
+        },
+        error: (err: { error?: { message?: string } }) => {
+          this.addingSemana.set(false);
+          this.toastr.error(
+            err?.error?.message ?? 'No se pudo agregar la semana',
+            'Error',
+          );
+        },
+      });
+  }
+  // ── Items por semana ──────────────────────────────────────
   itemsForWeek(n: number): SemanaItem[] | null {
     if (!this.itemsLoaded()) return null;
     const out: SemanaItem[] = [];
@@ -169,7 +190,6 @@ export class TabContenido implements OnInit {
     return out;
   }
 
-  /** Refetch del bundle tras crear/editar/eliminar. */
   private refreshItems(): void {
     this.store.invalidateItems(this.courseId());
     this.materialsByWeek.set(null);
@@ -192,7 +212,7 @@ export class TabContenido implements OnInit {
     this.onLivePanelOpened();
   }
 
-  // ── Click → abrir modal lateral según tipo ────────────────────
+  // ── Abrir modal por tipo ──────────────────────────────────
   async abrirItem(item: SemanaItem): Promise<void> {
     if (item.kind === 'material') {
       const m = item.raw as Material;
@@ -213,7 +233,7 @@ export class TabContenido implements OnInit {
       const t = item.raw as Task;
       if (this.auth.isAlumno()) {
         this.taskSvc.getMySubmission(t.id).subscribe({
-          next: async (r) => {
+          next: async r => {
             const submission = r.data ?? null;
             const { MySubmissionView } = await import(
               '../../../../tasks/my-submission-view/my-submission-view'
@@ -254,19 +274,13 @@ export class TabContenido implements OnInit {
       return;
     }
 
-    // Abrir el foro como sidebar lateral (no navegar a /foro/:id).
-    // El bug anterior: `router.navigate(['/foro', f.id])` no pasaba el
-    // `courseId` y el componente quedaba con courseId = '', resultando en
-    // peticiones a `/api/courses//forums/:id` (doble slash → 404).
     const f = item.raw as Forum;
     const { ForumThread } = await import(
       '../../../../forum/forum-thread/forum-thread'
     );
     this.dialog.open(ForumThread, {
-      width: '720px',
-      maxWidth: '100vw',
-      height: '100vh',
-      maxHeight: '100vh',
+      width: '720px', maxWidth: '100vw',
+      height: '100vh', maxHeight: '100vh',
       position: { right: '0' },
       panelClass: 'forum-thread-dialog-panel',
       autoFocus: false,
@@ -274,7 +288,7 @@ export class TabContenido implements OnInit {
     });
   }
 
-  // ── Toggles ──────────────────────────────────────────────────
+  // ── Toggles ───────────────────────────────────────────────
   toggleSemana(s: SemanaResumen): void {
     const oculta = !s.oculta;
     this.csSvc.toggleSemana(this.courseId(), s.semana, oculta).subscribe({
@@ -309,12 +323,6 @@ export class TabContenido implements OnInit {
     }
   }
 
-  /**
-   * Descarga directa de un material sin abrir el preview modal.
-   * Reusa el endpoint `/materials/:id/download` (mismo que MaterialPreview).
-   * Para materiales tipo `link` el backend devuelve `kind: 'link'` y se
-   * abre en pestaña nueva en lugar de descargar.
-   */
   descargarMaterial(item: SemanaItem): void {
     if (item.kind !== 'material') return;
     this.csSvc.getMaterialDownload(this.courseId(), item.id)
@@ -352,20 +360,14 @@ export class TabContenido implements OnInit {
     });
   }
 
-  // ── Crear desde la semana ─────────────────────────────────────
-  // Todos los formularios de creación se abren como drawer lateral derecho
-  // (mismo patrón que MaterialPreview/TaskSubmissionsPane), para mantener
-  // un único modelo mental de "panel de detalle" en toda la pantalla.
+  // ── Crear desde la semana ─────────────────────────────────
   async crearMaterial(s: SemanaResumen): Promise<void> {
     const { MaterialUpload } = await import(
       '../../../material-upload/material-upload'
     );
     const ref = this.dialog.open(
       MaterialUpload,
-      formDrawerConfig(
-        { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
-        'md',
-      ),
+      formDrawerConfig({ courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana }, 'md'),
     );
     ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
@@ -376,10 +378,7 @@ export class TabContenido implements OnInit {
     );
     const ref = this.dialog.open(
       TaskCreate,
-      formDrawerConfig(
-        { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
-        'lg',
-      ),
+      formDrawerConfig({ courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana }, 'lg'),
     );
     ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
@@ -390,15 +389,12 @@ export class TabContenido implements OnInit {
     );
     const ref = this.dialog.open(
       ForumCreate,
-      formDrawerConfig(
-        { courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana },
-        'md',
-      ),
+      formDrawerConfig({ courseId: this.courseId(), bimestre: s.bimestre, semana: s.semana }, 'md'),
     );
     ref.afterClosed().subscribe(r => { if (r) this.refreshItems(); });
   }
 
-  // ── Live classes (sin cambios de UX) ──────────────────────────
+  // ── Live classes ──────────────────────────────────────────
   estadoClase(lc: LiveClass): 'proxima' | 'en-vivo' | 'finalizada' {
     const inicio = new Date(lc.fecha_hora).getTime();
     const fin = inicio + lc.duracion_min * 60_000;
@@ -443,7 +439,7 @@ export class TabContenido implements OnInit {
 
   unirseClase(lc: LiveClass): void { window.open(lc.link_reunion, '_blank'); }
 
-  // ── Aside ────────────────────────────────────────────────────
+  // ── Aside ─────────────────────────────────────────────────
   iniciales(d?: { nombre?: string; apellido_paterno?: string } | null): string {
     if (!d) return 'D';
     return ((d.nombre?.[0] ?? '') + (d.apellido_paterno?.[0] ?? '')).toUpperCase() || 'D';

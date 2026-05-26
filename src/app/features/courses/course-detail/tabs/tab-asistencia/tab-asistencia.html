@@ -1,25 +1,12 @@
 @if (loading()) {
-  <div class="loading-center"><mat-spinner diameter="40" /></div>
+<div class="loading-center"><mat-spinner diameter="40" /></div>
 } @else if (auth.isAlumno()) {
-  <!-- Vista alumno: sólo su historial cronológico -->
-  <app-historial-asistencia
-    [registros]="miHistorial()"
-    [showByAlumno]="false" />
+<app-historial-asistencia [registros]="miHistorial()" [showByAlumno]="false" />
 } @else {
-  <!-- Vista docente / admin: roster del día + historial completo -->
-  <app-roster-del-dia
-    [roster]="roster()"
-    [canEdit]="canEdit"
-    [saving]="saving()"
-    [(date)]="today"
-    (setEstado)="setEstado($event)"
-    (setObs)="setObs($event)"
-    (marcarTodos)="marcarTodos($event)"
-    (save)="guardar()" />
+<app-roster-del-dia [roster]="roster()" [canEdit]="canEdit" [saving]="saving()" [(date)]="today"
+  (setEstado)="setEstado($event)" (setObs)="setObs($event)" (marcarTodos)="marcarTodos($event)" (save)="guardar()" />
 
-  @if (showHistorialCurso) {
-    <app-historial-asistencia
-      [registros]="cursoHistorial()"
-      [showByAlumno]="true" />
-  }
+@if (showHistorialCurso) {
+<app-historial-asistencia [registros]="cursoHistorial()" [showByAlumno]="true" />
+}
 }

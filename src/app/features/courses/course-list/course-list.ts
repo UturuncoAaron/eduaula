@@ -25,39 +25,31 @@ export class CourseList implements OnInit {
   courses = this.csSvc.courses;
   loading = this.csSvc.loading;
 
-  readonly gradients = [
-    'linear-gradient(135deg, #1e3a8a, #3b82f6)',
-    'linear-gradient(135deg, #065f46, #34d399)',
-    'linear-gradient(135deg, #581c87, #a855f7)',
-    'linear-gradient(135deg, #9a3412, #fb923c)',
-    'linear-gradient(135deg, #155e75, #22d3ee)',
-    'linear-gradient(135deg, #881337, #f43f5e)',
-    'linear-gradient(135deg, #3730a3, #818cf8)',
-    'linear-gradient(135deg, #854d0e, #facc15)',
-  ];
-
   readonly iconMap: Record<string, string> = {
-    matemáticas: 'calculate', comunicación: 'menu_book',
-    historia: 'public', inglés: 'translate',
-    ciencia: 'science', arte: 'palette',
-    educación: 'sports_soccer', computación: 'computer',
-    religión: 'church', tutoría: 'groups',
+    matemáticas: 'auto_graph',
+    comunicación: 'import_contacts',
+    historia: 'account_balance',
+    inglés: 'language',
+    ciencia: 'biotech',
+    arte: 'architecture',
+    educación: 'fitness_center',
+    computación: 'terminal',
+    religión: 'gavel',
+    tutoría: 'psychology',
     música: 'music_note',
   };
 
+  // Retorna el icono basado en coincidencias del nombre
   getIcon(nombre: string): string {
     const lower = nombre.toLowerCase();
     for (const [key, icon] of Object.entries(this.iconMap)) {
       if (lower.includes(key)) return icon;
     }
-    return 'school';
+    return 'layers';
   }
 
-  getInitials(nombre: string): string {
-    return nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
-  }
-
+  // Carga inicial de asignaturas desde el store
   ngOnInit() {
-    this.csSvc.loadMyCourses().subscribe({ error: () => {} });
+    this.csSvc.loadMyCourses().subscribe({ error: () => { } });
   }
 }

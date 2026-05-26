@@ -8,12 +8,6 @@ import { CourseService } from '../../../courses/data-access/course.store';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 
-/**
- * Listado de cursos del docente para entrar a pasar lista.
- *
- * Reutiliza `CourseService.loadMyCourses()` (mismos cursos que `/cursos`),
- * pero la card linkea a `/asistencia/curso/:id` en lugar de al detalle del curso.
- */
 @Component({
     selector: 'app-asistencia-curso-list',
     standalone: true,
@@ -34,7 +28,7 @@ export class AsistenciaCursoList implements OnInit {
 
     ngOnInit() {
         this.courseService.loadMyCourses().subscribe({
-            // Silencioso: si falla, mostramos vacío. El interceptor 401 maneja sesión.
+
             error: () => { /* noop */ },
         });
     }

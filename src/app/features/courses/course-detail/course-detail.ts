@@ -1,6 +1,6 @@
 import {
   ChangeDetectionStrategy, Component,
-  computed, inject, DestroyRef, OnInit, signal,
+  computed, effect, inject, DestroyRef, OnInit, signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -10,9 +10,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { AuthService } from '../../../core/auth/auth';
 import { LazyCourseStore } from '../data-access/lazy-course.store';
-import { Course } from '../../../core/models/course';
+import { Course, SemanaResumen } from '../../../core/models/course';
 import { PeriodoService } from '../../../core/services/periodo';
+
 import { CourseHeaderSkeleton } from '../../../shared/components/skeletons/skeletons';
+import { BimestreFilterService } from '@core/models/bimestre-filter';
 
 interface CourseTab {
   path: string;
@@ -27,12 +29,14 @@ interface CourseTab {
     MatIconModule, MatButtonModule, MatTabsModule,
     CourseHeaderSkeleton,
   ],
+  providers: [BimestreFilterService],
   templateUrl: './course-detail.html',
   styleUrl: './course-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CourseDetail implements OnInit {
   readonly auth = inject(AuthService);
+  readonly bimFiltro = inject(BimestreFilterService);
   private route = inject(ActivatedRoute);
   private store = inject(LazyCourseStore);
   private periodoSvc = inject(PeriodoService);
@@ -43,6 +47,13 @@ export class CourseDetail implements OnInit {
   courseId = signal('');
   semanasCount = signal(0);
   bimestresCount = signal(0);
+  bimReady = signal(false);
+
+  private semanasAll = signal<SemanaResumen[]>([]);
+
+  readonly bimestresDisponibles = computed<number[]>(() =>
+    [...new Set(this.semanasAll().map(s => s.bimestre))].sort((a, b) => a - b),
+  );
 
   readonly periodoLabel = computed<string | null>(() => {
     const c = this.course();
@@ -50,13 +61,14 @@ export class CourseDetail implements OnInit {
     const p = this.periodoSvc.all().find(x => x.anio === c.anio && x.activo);
     if (p) return p.nombre?.trim() || `Bim ${p.bimestre} · ${p.anio}`;
     return `Año ${c.anio}`;
-});
+  });
+
   readonly tabs = computed<CourseTab[]>(() => {
     const base: CourseTab[] = [
-      { path: 'contenido',   label: 'Contenido',    icon: 'school' },
-      { path: 'actividades', label: 'Actividades',  icon: 'task_alt' },
-      { path: 'foro',        label: 'Foro',         icon: 'forum' },
-      { path: 'materiales',  label: 'Materiales',   icon: 'folder' },
+      { path: 'contenido', label: 'Contenido', icon: 'school' },
+      { path: 'actividades', label: 'Actividades', icon: 'task_alt' },
+      { path: 'foro', label: 'Foro', icon: 'forum' },
+      { path: 'materiales', label: 'Materiales', icon: 'folder' },
     ];
     if (this.auth.isDocente() || this.auth.isAdmin()) {
       base.push({ path: 'asistencia', label: 'Asistencia', icon: 'fact_check' });
@@ -64,49 +76,63 @@ export class CourseDetail implements OnInit {
     return base;
   });
 
-  /** Params para el link "Calificaciones" del docente — abre el grid de registro. */
-readonly calificacionesQueryParams = computed(() => {
+  readonly calificacionesQueryParams = computed(() => {
     const c = this.course();
     if (!c) return null;
     const p = this.periodoSvc.all().find(x => x.anio === c.anio && x.activo);
     return {
-        cursoId: c.id,
-        cursoNombre: c.nombre,
-        bimestre: p?.bimestre ?? 1,
-        periodoId: p?.id ?? null,
+      cursoId: c.id,
+      cursoNombre: c.nombre,
+      bimestre: p?.bimestre ?? 1,
+      periodoId: p?.id ?? null,
     };
-});
-  /** Params para el link "Mis notas" del alumno — abre /notas filtrado por curso. */
+  });
+
   readonly misNotasQueryParams = computed(() => {
     const c = this.course();
     if (!c) return null;
     return { cursoId: c.id };
   });
 
+  constructor() {
+
+    effect(() => {
+      const c = this.course();
+      const periodos = this.periodoSvc.all();
+      if (!c || !periodos.length) return;
+      if (this.bimReady()) return;          // ya inicializado
+
+      const activo = periodos.find(x => x.anio === c.anio && x.activo);
+      if (activo) this.bimFiltro.set(activo.bimestre);
+      this.bimReady.set(true);              // listo, ya no flashea
+    });
+  }
+
   ngOnInit() {
     this.courseId.set(this.route.snapshot.paramMap.get('id') ?? '');
     this.loadCourse();
-    // Carga la lista de períodos (idempotente, cacheada) para resolver el
-    // nombre del período del curso en el header.
     this.periodoSvc.loadAll();
   }
 
   private loadCourse() {
     const id = this.courseId();
     if (!id) return;
-    // Primer fetch crítico (above-the-fold). El cache compartido con
-    // LazyCourseStore evita que tab-contenido refetchee.
+
     this.store.course$(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(c => this.course.set(c));
-    // Semanas también above-the-fold para mostrar el conteo en el header.
-    // Comparten cache con tab-contenido vía shareReplay.
+
     this.store.semanas$(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(list => {
+        this.semanasAll.set(list);
         this.semanasCount.set(list.length);
         this.bimestresCount.set(new Set(list.map(s => s.bimestre)).size);
       });
+  }
+
+  setBimestre(bimestre: number | null): void {
+    this.bimFiltro.set(bimestre);
   }
 
   goBack() { this.location.back(); }

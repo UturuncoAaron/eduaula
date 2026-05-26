@@ -1,9 +1,7 @@
-<mat-expansion-panel class="bb-panel semana-panel"
-    [class.is-hidden]="semana().oculta"
-    (opened)="opened.emit()">
+<mat-expansion-panel class="bb-panel semana-panel" [class.is-hidden]="semana().oculta" (opened)="opened.emit()">
     <mat-expansion-panel-header collapsedHeight="64px" expandedHeight="64px">
         <mat-panel-title>
-            <mat-icon class="bb-panel-icon">auto_stories</mat-icon>
+            <!-- Icono auto_stories eliminado: el border-left del panel da el acento visual -->
             <span class="semana-label">SEMANA {{ semana().semana }}</span>
             <span class="bim-tag">Bim {{ semana().bimestre }}</span>
             @if (semana().oculta && canManage()) {
@@ -51,9 +49,7 @@
         <div class="item-list">
             @for (it of items(); track it.kind + ':' + it.id) {
             @let chip = tipoChip(it);
-            <div class="item-row" [class.is-hidden]="it.oculto"
-                role="button" tabindex="0"
-                (click)="itemOpen.emit(it)"
+            <div class="item-row" [class.is-hidden]="it.oculto" role="button" tabindex="0" (click)="itemOpen.emit(it)"
                 (keydown.enter)="itemOpen.emit(it)">
 
                 <div class="item-icon" [style.background]="iconColor(it)">
@@ -63,9 +59,7 @@
                 <div class="item-info">
                     <div class="item-head">
                         <h4>{{ it.titulo }}</h4>
-                        <span class="type-chip"
-                            [style.color]="chip.color"
-                            [style.background-color]="chip.color + '14'"
+                        <span class="type-chip" [style.color]="chip.color" [style.background-color]="chip.color + '14'"
                             [style.border-color]="chip.color + '33'">
                             {{ chip.label }}
                         </span>
@@ -88,22 +82,18 @@
 
                 <div class="item-actions">
                     @if (canDownload(it)) {
-                    <button mat-icon-button class="action-download"
-                        matTooltip="Descargar"
+                    <button mat-icon-button class="action-download" matTooltip="Descargar"
                         (click)="$event.stopPropagation(); materialDownload.emit(it)">
                         <mat-icon>download</mat-icon>
                     </button>
                     } @else {
-                    <button mat-icon-button class="action-open"
-                        matTooltip="Abrir"
+                    <button mat-icon-button class="action-open" matTooltip="Abrir"
                         (click)="$event.stopPropagation(); itemOpen.emit(it)">
                         <mat-icon>open_in_new</mat-icon>
                     </button>
                     }
                     @if (canManage()) {
-                    <button mat-icon-button class="action-menu"
-                        matTooltip="Más opciones"
-                        [matMenuTriggerFor]="itemMenu"
+                    <button mat-icon-button class="action-menu" matTooltip="Más opciones" [matMenuTriggerFor]="itemMenu"
                         (click)="$event.stopPropagation()">
                         <mat-icon>more_vert</mat-icon>
                     </button>
@@ -117,8 +107,7 @@
                             <span>{{ it.oculto ? 'Mostrar a alumnos' : 'Ocultar a alumnos' }}</span>
                         </button>
                         @if (it.kind === 'material') {
-                        <button mat-menu-item class="danger"
-                            (click)="itemDelete.emit(it)">
+                        <button mat-menu-item class="danger" (click)="itemDelete.emit(it)">
                             <mat-icon>delete</mat-icon>
                             <span>Eliminar</span>
                         </button>

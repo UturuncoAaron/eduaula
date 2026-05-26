@@ -1,6 +1,3 @@
-// Tipos compartidos para el módulo de asistencias.
-// El backend (NestJS) acepta y devuelve estos shapes en /asistencias/*.
-
 export const ESTADOS_ASISTENCIA = [
     'asistio',
     'falta',

@@ -1,658 +1,166 @@
-// Importa esto en cada tab scss: @use '../../../../../styles/tabs-shared' as *;
-// O simplemente pega este contenido en cada tab-*.scss
+// ─────────────────────────────────────────────────────────────
+//  tab-contenido.scss  —  Mobile-first, fondo blanco, compacto
+// ─────────────────────────────────────────────────────────────
 
-$primary-blue: #2563eb;
-$primary-hover: #1d4ed8;
-$text-main: #1e293b;
+// Tokens
+$blue: #2563eb;
+$blue-dark: #1d4ed8;
+$blue-brand: #185FA5;
+$text: #0f172a;
+$text-sub: #334155;
 $text-muted: #64748b;
-$border-color: #e2e8f0;
+$border: #e2e8f0;
+$border-soft: #f1f5f9;
 $white: #ffffff;
 $warning: #eab308;
-$warning-light: rgba(234, 179, 8, .04);
 $accent: #9333ea;
-$accent-light: rgba(147, 51, 234, .04);
 $success: #10b981;
-$radius-lg: 12px;
-$radius-md: 8px;
-$radius-sm: 6px;
-
-// ── Tab body ──────────────────────────────────────────────────
-.tab-body {
-  padding: 24px;
-
-  @media (max-width: 1100px) {
-    padding: 16px;
-  }
-}
-
-// ── Action bar ────────────────────────────────────────────────
-.action-bar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-
-  .btn-primary {
-    background: $primary-blue;
-    color: $white;
-    border-radius: $radius-sm;
-  }
-}
-
-// ── Loader / Empty ────────────────────────────────────────────
-.custom-loader-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 20px;
-
-  .loader-text {
-    color: $text-muted;
-    font-size: 14px;
-    font-weight: 500;
-  }
-}
-
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-  border-radius: $radius-md;
-
-  .empty-icon {
-    width: 64px;
-    height: 64px;
-    background: $white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
-    color: #94a3b8;
-
-    mat-icon {
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
-    }
-  }
-
-  h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: $text-main;
-    margin: 0 0 4px;
-  }
-
-  p {
-    font-size: 14px;
-    color: $text-muted;
-    margin: 0;
-  }
-}
-
-// ── Resource cards ────────────────────────────────────────────
-.resource-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.resource-card {
-  display: flex;
-  align-items: center;
-  background: $white;
-  border: 1px solid $border-color;
-  border-radius: $radius-md;
-  padding: 16px 24px;
-  gap: 16px;
-  transition: all .2s ease;
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  &:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .05);
-    transform: translateY(-1px);
-
-    .icon-action {
-      color: $primary-blue;
-    }
-  }
-
-  &.is-pending {
-    border-left: 4px solid $warning;
-    background: $warning-light;
-
-    .outline-icon {
-      color: $warning;
-      background: $white;
-      border: 1px solid #fef08a;
-    }
-  }
-
-  &.is-active {
-    border-left: 4px solid $accent;
-    background: $accent-light;
-
-    .outline-icon {
-      color: $accent;
-      background: $white;
-      border: 1px solid #e9d5ff;
-    }
-  }
-
-  .resource-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: $radius-sm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: $white;
-
-    mat-icon {
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
-    }
-
-    &.outline-icon {
-      color: $text-muted;
-      background: #f8fafc;
-      border: 1px solid $border-color;
-    }
-  }
-
-  .resource-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    width: 100%;
-
-    .title-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    h3 {
-      font-size: 15px;
-      font-weight: 600;
-      color: $text-main;
-      margin: 0;
-    }
-
-    .meta-data {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: 12px;
-      color: $text-muted;
-
-      .sm-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
-      }
-
-      .tag {
-        background: #f1f5f9;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-weight: 600;
-        color: $text-main;
-        border: 1px solid #e2e8f0;
-      }
-
-      .dot {
-        opacity: .4;
-      }
-    }
-  }
-
-  .resource-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-
-    @media (max-width: 640px) {
-      width: 100%;
-      justify-content: flex-end;
-      margin-top: 4px;
-    }
-
-    .icon-action {
-      color: #cbd5e1;
-      transition: color .2s;
-    }
-
-    .btn-primary {
-      background: $primary-blue;
-      color: $white;
-      border-radius: $radius-sm;
-    }
-  }
-}
-
-.status-badge {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 12px;
-  background: $accent;
-  color: $white;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-
-// ── Task chips ────────────────────────────────────────────────
-.task-chips {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-  flex-wrap: wrap;
-
-  .chip {
-    font-size: 11px;
-    min-height: 22px;
-    padding: 0 10px;
-  }
-
-  .chip-pendiente {
-    background: #fee2e2 !important;
-    color: #991b1b !important;
-  }
-
-  .chip-vencida {
-    background: #e2e8f0 !important;
-    color: #475569 !important;
-  }
-
-  .chip-entregada {
-    background: #dbeafe !important;
-    color: #1d4ed8 !important;
-  }
-
-  .chip-calificada {
-    background: #dcfce7 !important;
-    color: #166534 !important;
-  }
-
-  .chip-retraso {
-    background: #fef3c7 !important;
-    color: #92400e !important;
-  }
-}
-
-// ── Materials ─────────────────────────────────────────────────
-.materials-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-
-  .search-field {
-    flex: 1 1 280px;
-    min-width: 240px;
-  }
-
-  .toolbar-spacer {
-    flex: 1 1 auto;
-  }
-}
-
-.materials-accordion {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: transparent;
-}
-
-.panel-icon {
-  color: #2563eb;
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-}
-
-.material-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 4px 0 12px;
-}
-
-.material-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px;
-  border-radius: 10px;
-  background: #f8fafc;
-  border: 1px solid transparent;
-  transition: background .15s, border-color .15s;
-  cursor: pointer;
-
-  &:hover {
-    background: #fff;
-    border-color: #e2e8f0;
-  }
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  &.is-viewed {
-    background: rgba(16, 185, 129, .04);
-    border-color: rgba(16, 185, 129, .25);
-  }
-}
-
-.material-info {
-  flex: 1;
-  min-width: 0;
-
-  h4 {
-    font-size: 15px;
-    font-weight: 600;
-    color: #1e293b;
-    margin: 0;
-    line-height: 1.3;
-  }
-
-  .material-title-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 2px;
-  }
-
-  .material-desc {
-    font-size: 13px;
-    color: #475569;
-    margin: 2px 0 4px;
-  }
-
-  .meta-data {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #64748b;
-  }
-
-  .tag {
-    background: #e0e7ff;
-    color: #3730a3;
-    font-weight: 600;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 999px;
-  }
-
-  .dot {
-    color: #cbd5e1;
-  }
-}
-
-.new-badge {
-  background: #dcfce7;
-  color: #166534;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  text-transform: uppercase;
-}
-
-.viewed-badge {
-  display: inline-flex;
-  align-items: center;
-  color: #16a34a;
-
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
-}
-
-.material-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.skeleton-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.skeleton-card {
-  height: 72px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
-  background-size: 200% 100%;
-  animation: skeleton-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes skeleton-pulse {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-// ── Contenido tab ─────────────────────────────────────────────
-.content-layout {
+$r-md: 8px;
+$r-sm: 6px;
+$r-xs: 4px;
+
+// ── Layout raíz ───────────────────────────────────────────────
+.tc-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
   align-items: start;
+  padding: 24px;
+  background: $white;
 
   @media (max-width: 1100px) {
     grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 0;
+    gap: 0;
   }
 }
 
-.content-main {
-  min-width: 0;
-}
-
-.content-title {
-  margin: 0 0 18px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #0f172a;
+// ── Título sección ────────────────────────────────────────────
+.tc-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: $text;
   display: flex;
   align-items: center;
   gap: 10px;
 
   &::before {
     content: '';
-    width: 4px;
-    height: 22px;
-    background: #185FA5;
-    border-radius: 999px;
-  }
-}
-
-.content-aside {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-
-  @media (max-width: 1100px) {
-    position: static;
-  }
-}
-
-.aside-card {
-  background: #fff;
-  border: 0.5px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: none;
-  transition: border-color .15s;
-
-  &:hover {
-    border-color: #cbd5e1;
-  }
-}
-
-.aside-title {
-  margin: 0 0 14px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &::before {
-    content: '';
     width: 3px;
-    height: 12px;
-    background: #185FA5;
+    height: 18px;
+    background: $blue-brand;
     border-radius: 999px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 640px) {
+    padding: 14px 16px 0;
+    margin-bottom: 10px;
+    font-size: 13px;
   }
 }
 
-.teacher-card {
-  padding-bottom: 8px;
-}
-
-.teacher-row {
+// ── Acordeón principal ────────────────────────────────────────
+.tc-accordion {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  gap: 6px;
+
+  @media (max-width: 640px) {
+    gap: 0;
+    border-top: 1px solid $border;
+  }
 }
 
-.teacher-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #185FA5, #0f3d6e);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  font-size: 19px;
+.tc-panel {
+  background: $white;
+  border: 1px solid $border !important;
+  border-radius: $r-md !important;
+  box-shadow: none !important;
+  overflow: hidden;
+
+  // Anular el margin que mat-expansion agrega al panel expandido
+  &.mat-expansion-panel-spacing,
+  ::ng-deep .mat-expansion-panel-spacing {
+    margin: 0 !important;
+  }
+
+  ::ng-deep .mat-expansion-panel-header {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 16px;
+    background: $white !important;
+  }
+
+  ::ng-deep .mat-expansion-panel-body {
+    padding: 0 16px 14px;
+    background: $white;
+    border-top: 1px solid $border-soft;
+  }
+
+  ::ng-deep .mat-expansion-panel-header-title {
+    margin-right: 8px;
+  }
+
+  // Mobile: sin radio, separador inferior, sin bordes laterales/top
+  @media (max-width: 640px) {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: 1px solid $border !important;
+
+    ::ng-deep .mat-expansion-panel-header {
+      height: 42px !important;
+      min-height: 42px !important;
+      padding: 0 14px;
+    }
+
+    ::ng-deep .mat-expansion-panel-body {
+      padding: 0 14px 12px;
+    }
+  }
+}
+
+// Título del panel (sin icono)
+.tc-panel-title {
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  color: $text-sub !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase;
+
+  @media (max-width: 640px) {
+    font-size: 11px !important;
+  }
+}
+
+.tc-panel-desc {
+  justify-content: flex-end;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(24, 95, 165, .25);
-  position: relative;
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    border: 2px solid rgba(24, 95, 165, .15);
-    pointer-events: none;
+.tc-count {
+  font-size: 11px;
+  color: $text-muted;
+  font-weight: 500;
+
+  &.muted {
+    font-style: italic;
+    color: #94a3b8;
   }
 }
 
-.teacher-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-
-  strong {
-    font-size: 14.5px;
-    font-weight: 600;
-    color: #0f172a;
-    line-height: 1.25;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .teacher-role {
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: .12em;
-    color: #185FA5;
-    margin-top: 4px;
-  }
-}
-
-.teacher-meta {
-  margin: 14px 0 0;
-  padding-top: 12px;
-  border-top: 1px dashed #e2e8f0;
-  font-size: 12.5px;
-  color: #475569;
-  line-height: 1.5;
-
-  .dot {
-    margin: 0 6px;
-    color: #cbd5e1;
-  }
-}
-
-.teacher-contacts {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px dashed #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  .contact-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    margin: 0 -8px;
-    border-radius: 8px;
-    color: #475569;
-    font-size: 12.5px;
-    text-decoration: none;
-    transition: background .15s, color .15s;
-
-    mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-      color: #185FA5;
-      flex-shrink: 0;
-    }
-
-    span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    &:hover {
-      background: rgba(24, 95, 165, .06);
-      color: #185FA5;
-    }
-  }
-}
-
-.aside-actions {
+// ── Info-list (reemplaza info-grid) ───────────────────────────
+// Lista compacta label: valor en línea. Sin tarjetas individuales.
+.info-list {
   list-style: none;
-  margin: 0;
+  margin: 10px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -660,302 +168,162 @@ $radius-sm: 6px;
 
   li {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 8px;
-    border-radius: 8px;
-    margin: 0 -8px;
-    transition: background .15s;
-    cursor: pointer;
-
-    &+li {
-      border-top: 1px dashed #f1f5f9;
-    }
-
-    &:hover {
-      background: rgba(24, 95, 165, .06);
-
-      mat-icon {
-        color: #185FA5;
-      }
-
-      a,
-      .as-link {
-        color: #185FA5;
-      }
-    }
-
-    mat-icon {
-      color: #64748b;
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-      transition: color .15s;
-    }
-
-    a,
-    .as-link {
-      color: #334155;
-      font-size: 13px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color .15s;
-      flex: 1;
-      cursor: pointer;
-    }
-  }
-}
-
-// ── BB accordion (contenido por semanas) ──────────────────────
-.bb-accordion {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.bb-panel {
-  background: #fff;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 12px !important;
-  box-shadow: none !important;
-  overflow: hidden;
-
-  // Padding solo horizontal — los paneles dejan que mat-expansion controle
-  // la altura (defaults: 48px collapsed / 64px expanded). Padding vertical
-  // pelea con esa animación.
-  ::ng-deep .mat-expansion-panel-header {
-    padding: 0 24px;
-  }
-
-  // Reset del margen extra (16px) que Material aplica al panel expandido vía
-  // .mat-expansion-panel-spacing. Sin este reset, abrir un panel rompe el
-  // ritmo del gap de 8px del .bb-accordion (la lista de semanas/secciones
-  // se descoloca al desplegar).
-  &.mat-expansion-panel-spacing,
-  ::ng-deep .mat-expansion-panel-spacing {
-    margin: 0;
-  }
-
-  ::ng-deep .mat-expansion-panel-body {
-    padding: 14px 24px;
-    background: #fafafa;
-    border-top: 0.5px solid #e2e8f0;
-  }
-
-  ::ng-deep .mat-panel-title {
-    display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 10px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #1e293b;
-    letter-spacing: .2px;
+    padding: 8px 0;
+    border-bottom: 1px solid $border-soft;
+    flex-wrap: wrap;
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    &.info-full {
+      flex-direction: column;
+      gap: 3px;
+
+      .info-value {
+        font-size: 13px;
+        color: $text-sub;
+        line-height: 1.5;
+      }
+    }
   }
-
-  ::ng-deep .mat-panel-description {
-    color: #64748b;
-    font-size: 12px;
-    justify-content: flex-end;
-  }
 }
 
-.bb-panel-icon {
-  color: #475569;
+.info-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: $text-muted;
+  flex-shrink: 0;
+  min-width: 72px;
 }
 
-.bb-panel-body {
-  font-size: 14px;
-  color: #334155;
-}
-
-.bb-empty {
-  color: #94a3b8;
-  font-size: 13px;
-  font-style: italic;
-  margin: 0;
-}
-
-.bb-count {
-  font-size: 12px;
-  color: #64748b;
+.info-value {
+  font-size: 13.5px;
   font-weight: 500;
+  color: $text;
+  flex: 1;
+  min-width: 0;
 
-  &.empty {
-    color: #94a3b8;
-    font-style: italic;
+  @media (max-width: 640px) {
+    font-size: 13px;
   }
-}
-
-.bim-tag {
-  margin-left: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #475569;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  padding: 3px 10px;
-  border-radius: 999px;
-  letter-spacing: .4px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px 24px;
-  margin: 0;
-
-  div {
-    margin: 0;
-    padding: 12px 14px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-
-    &.full-row {
-      grid-column: 1 / -1;
-    }
-  }
-
-  dt {
-    font-size: 10.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #64748b;
-    letter-spacing: .08em;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-
-    mat-icon {
-      font-size: 14px;
-      width: 14px;
-      height: 14px;
-      color: #185FA5;
-    }
-  }
-
-  dd {
-    margin: 0;
-    color: #0f172a;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-  }
-}
-
-.bb-progress {
-  height: 6px !important;
-  border-radius: 0 !important;
-  --mdc-linear-progress-active-indicator-color: #2563eb;
 }
 
 // ── Live classes ──────────────────────────────────────────────
 .lc-toolbar {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 12px;
+  padding: 10px 0 8px;
 }
 
 .lc-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  padding-top: 4px;
 }
 
 .lc-row {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
-  gap: 14px;
+  display: flex;
   align-items: flex-start;
-  padding: 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #fff;
-  transition: border-color .2s, box-shadow .2s;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid $border;
+  border-radius: $r-md;
+  background: $white;
+  transition: border-color .15s;
 
   &:hover {
     border-color: #c7d2fe;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
   }
 
   &.is-live {
-    border-color: #16a34a;
-    background: rgba(16, 185, 129, .04);
+    border-color: $success;
+    background: rgba($success, .03);
   }
 
   &.is-past {
-    opacity: .65;
+    opacity: .6;
   }
-}
 
-.lc-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: #2563eb;
-  color: #fff;
-  display: grid;
-  place-items: center;
-}
-
-.lc-info {
-  min-width: 0;
-
-  .lc-title-row {
-    display: flex;
-    align-items: center;
+  // Mobile: columna completa
+  @media (max-width: 640px) {
+    flex-direction: column;
     gap: 8px;
-    flex-wrap: wrap;
-  }
+    padding: 10px 12px;
 
-  h4 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 600;
-    color: #0f172a;
-  }
+    .lc-actions {
+      width: 100%;
+      justify-content: flex-end;
+      border-top: 1px dashed $border;
+      padding-top: 8px;
 
-  .lc-desc {
-    margin: 4px 0 6px;
-    font-size: 13px;
-    color: #475569;
+      button[mat-flat-button] {
+        flex: 1;
+      }
+    }
   }
+}
 
-  .meta-data {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #64748b;
-  }
+.lc-body {
+  flex: 1;
+  min-width: 0;
+}
 
-  .sm-icon {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
-  }
+.lc-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.lc-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: $text;
+}
+
+.lc-desc {
+  margin: 2px 0 4px;
+  font-size: 12px;
+  color: $text-muted;
+}
+
+.lc-meta {
+  font-size: 11.5px;
+  color: $text-muted;
 
   .dot {
-    opacity: .4;
+    opacity: .5;
+    margin: 0 4px;
   }
+}
+
+.lc-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .lc-badge {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .06em;
-  padding: 3px 8px;
+  letter-spacing: .05em;
+  padding: 2px 7px;
   border-radius: 999px;
 
   &.live {
-    background: #16a34a;
-    color: #fff;
+    background: $success;
+    color: $white;
     animation: pulse-live 1.6s infinite;
   }
 
@@ -965,8 +333,8 @@ $radius-sm: 6px;
   }
 
   &.past {
-    background: #f1f5f9;
-    color: #64748b;
+    background: $border-soft;
+    color: $text-muted;
   }
 }
 
@@ -978,334 +346,579 @@ $radius-sm: 6px;
   }
 
   50% {
-    opacity: .65;
+    opacity: .6;
   }
 }
 
-.lc-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-primary {
-  background: $primary-blue !important;
-  color: $white !important;
-  border-radius: $radius-sm !important;
-}
-
-// ── Semana cards (nueva sección refactor) ─────────────────────
+// ── Spinner / vacío ───────────────────────────────────────────
 .loader-row {
   display: flex;
   justify-content: center;
-  padding: 24px;
+  padding: 20px;
 }
 
-.semana-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 14px 18px;
-  margin-top: 8px;
-  background: $white;
-  border: 1px solid $border-color;
-  border-radius: $radius-md;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  transition: box-shadow 0.15s, border-color 0.15s, transform 0.05s;
+.tc-empty {
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-style: italic;
+  margin: 8px 0 0;
+  padding: 0;
+}
 
-  &:hover {
-    border-color: $primary-blue;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  }
+// ── Botones ───────────────────────────────────────────────────
+.btn-primary {
+  background: $blue !important;
+  color: $white !important;
+  border-radius: $r-sm !important;
+}
 
-  &:active {
-    transform: translateY(1px);
-  }
+.btn-sm {
+  font-size: 12px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 12px !important;
 
-  &.is-hidden {
-    background: #fafafa;
-    opacity: 0.85;
-  }
-
-  .semana-icon {
-    flex: 0 0 auto;
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    background: rgba(37, 99, 235, 0.08);
-    color: $primary-blue;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    mat-icon {
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
-    }
-  }
-
-  .semana-info {
-    flex: 1 1 auto;
-    min-width: 0;
-
-    h3 {
-      margin: 0 0 4px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: 0.4px;
-      color: $text-main;
-    }
-
-    .meta {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: $text-muted;
-      font-size: 0.8rem;
-
-      .bim-tag {
-        background: #e2e8f0;
-        color: #334155;
-        padding: 1px 8px;
-        border-radius: 999px;
-        font-weight: 600;
-        font-size: 0.7rem;
-      }
-    }
-  }
-
-  .hidden-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    background: #fef3c7;
-    color: #92400e;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-right: 8px;
-
-    mat-icon {
-      font-size: 14px;
-      width: 14px;
-      height: 14px;
-    }
-  }
-
-  .chevron {
-    flex: 0 0 auto;
-    color: #94a3b8;
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
 }
 
-// ── Inline weekly content (refactor "estilo Blackboard") ──────
-.semana-panel {
-  &.is-hidden {
-    background: #fafafa;
-
-    ::ng-deep .mat-expansion-panel-header {
-      opacity: .85;
-    }
-  }
-
-  ::ng-deep .mat-expansion-panel-header {
-    padding: 0 16px 0 24px !important;
-  }
-
-  ::ng-deep .mat-content {
-    align-items: center;
-  }
-
-  .semana-label {
-    font-weight: 700;
-    color: #1e293b;
-    letter-spacing: .3px;
-  }
-
-  .semana-count {
-    display: inline-block;
-    min-width: 110px;
-    text-align: right;
-    color: #64748b;
-    font-size: 13px;
-  }
-
-  .header-eye {
-    width: 36px;
-    height: 36px;
-    margin-left: 12px;
-    margin-right: 4px;
-    color: #475569;
-    border-radius: 50%;
-    transition: background .15s, color .15s;
-
-    &:hover {
-      background: rgba(37, 99, 235, .1);
-      color: #2563eb;
-    }
-
-    mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
-  }
-
-  .hidden-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-left: 10px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    background: #fef3c7;
-    color: #92400e;
-    font-size: 11px;
-    font-weight: 600;
-
-    mat-icon {
-      font-size: 14px;
-      width: 14px;
-      height: 14px;
-    }
-  }
-}
-
-// Aside link tipo botoncito (Ver participantes)
-.aside-actions .as-link {
-  cursor: pointer;
-
-  &:hover {
-    color: #2563eb;
-  }
-}
-
-.add-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 0 12px;
-  border-bottom: 1px dashed #e2e8f0;
-  margin-bottom: 12px;
-
-  button {
-    border-radius: 999px !important;
-    font-weight: 500;
-    color: $primary-blue !important;
-    border-color: #c7d2fe !important;
-
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      margin-right: 4px;
-    }
-  }
-}
-
-.item-list {
+// ── Aside ─────────────────────────────────────────────────────
+.tc-aside {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+
+  @media (max-width: 640px) {
+    padding: 16px;
+    gap: 12px;
+  }
 }
 
-.item-row {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) auto;
+.aside-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: $r-md;
+  padding: 14px 16px;
+}
+
+.aside-label {
+  margin: 0 0 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: $text-muted;
+  display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: border-color .15s, box-shadow .15s, background .15s;
+  gap: 7px;
 
-  &:hover {
-    border-color: #c7d2fe;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
+  &::before {
+    content: '';
+    width: 2px;
+    height: 11px;
+    background: $blue-brand;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+}
+
+// Profesor
+.teacher-card {
+  padding-bottom: 10px;
+}
+
+.teacher-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $blue-brand, #0f3d6e);
+  color: $white;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba($blue-brand, .25);
+}
+
+.teacher-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+
+  strong {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: $text;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  &.is-hidden {
-    background: #f8fafc;
-    opacity: .7;
+  .teacher-role {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: $blue-brand;
+    margin-top: 3px;
   }
+}
 
-  .item-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    color: #fff;
-    display: grid;
-    place-items: center;
+.teacher-meta {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px dashed $border;
+  font-size: 12px;
+  color: $text-muted;
+  line-height: 1.5;
 
-    mat-icon {
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
-    }
+  .dot {
+    margin: 0 5px;
+    color: #cbd5e1;
   }
+}
 
-  .item-info {
-    min-width: 0;
+.teacher-contacts {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed $border;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 
-    h4 {
-      margin: 0;
-      font-size: 14.5px;
-      font-weight: 600;
-      color: #0f172a;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-desc {
-      margin: 2px 0 4px;
-      font-size: 12.5px;
-      color: #475569;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .meta-data {
-      font-size: 11.5px;
-      color: #64748b;
-      font-weight: 500;
-    }
-  }
-
-  .item-actions {
+  .contact-row {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 8px;
+    padding: 5px 7px;
+    margin: 0 -7px;
+    border-radius: 6px;
+    color: $text-sub;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background .12s, color .12s;
 
-    button {
-      width: 36px;
-      height: 36px;
-      line-height: 36px;
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+      color: $blue-brand;
+      flex-shrink: 0;
     }
 
-    .btn-danger {
-      color: #dc2626;
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &:hover {
+      background: rgba($blue-brand, .06);
+      color: $blue-brand;
     }
   }
 }
 
-.empty-msg {
-  margin: 8px 0 0;
-  padding: 18px;
-  text-align: center;
-  font-size: 13px;
-  font-style: italic;
-  color: #64748b;
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-  border-radius: 8px;
+// Acciones aside
+.aside-actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 7px;
+    border-radius: 6px;
+    margin: 0 -7px;
+    transition: background .12s;
+    cursor: pointer;
+
+    &+li {
+      border-top: 1px dashed $border-soft;
+    }
+
+    &:hover {
+      background: rgba($blue-brand, .05);
+
+      mat-icon {
+        color: $blue-brand;
+      }
+
+      a,
+      .as-link {
+        color: $blue-brand;
+      }
+    }
+
+    mat-icon {
+      color: $text-muted;
+      font-size: 17px;
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+      transition: color .12s;
+    }
+
+    a,
+    .as-link {
+      color: $text-sub;
+      font-size: 12.5px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color .12s;
+      flex: 1;
+      cursor: pointer;
+    }
+  }
+}
+
+// ── WeekAccordion host overrides ──────────────────────────────
+// Estilos que afectan al componente hijo (semana panels).
+// Se aplican desde aquí para no duplicar en el componente hijo.
+:host ::ng-deep {
+
+  // Semana expansion panel: flat en mobile
+  app-week-accordion {
+    display: block;
+
+    @media (min-width: 641px) {
+      margin-top: 6px;
+    }
+
+    .mat-expansion-panel {
+      background: $white !important;
+      border: 1px solid $border !important;
+      border-radius: $r-md !important;
+      box-shadow: none !important;
+      overflow: hidden;
+
+      &.mat-expansion-panel-spacing {
+        margin: 0 !important;
+      }
+
+      @media (max-width: 640px) {
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-top: none !important;
+        border-bottom: 1px solid $border !important;
+      }
+    }
+
+    .mat-expansion-panel-header {
+      height: 46px !important;
+      min-height: 46px !important;
+      padding: 0 14px 0 16px !important;
+      background: $white !important;
+
+      @media (max-width: 640px) {
+        height: 44px !important;
+        min-height: 44px !important;
+        padding: 0 10px 0 14px !important;
+        // Acento izquierdo = reemplazo del icono cuadrado
+        border-left: 3px solid $blue !important;
+      }
+    }
+
+    .mat-expansion-panel-body {
+      padding: 0 16px 14px !important;
+      background: $white !important;
+      border-top: 1px solid $border-soft !important;
+
+      @media (max-width: 640px) {
+        padding: 0 12px 12px !important;
+      }
+    }
+
+    // Ocultar icono cuadrado del semana-panel en mobile
+    @media (max-width: 640px) {
+      .semana-icon {
+        display: none !important;
+      }
+
+      .hidden-pill {
+        display: none !important;
+      }
+    }
+
+    // Título semana más compacto
+    .mat-panel-title {
+      font-size: 12.5px !important;
+      font-weight: 700 !important;
+      color: $text-sub !important;
+      letter-spacing: .2px !important;
+      gap: 8px !important;
+
+      @media (max-width: 640px) {
+        font-size: 12px !important;
+      }
+    }
+
+    .mat-panel-description {
+      font-size: 11px !important;
+      color: $text-muted !important;
+      justify-content: flex-end !important;
+
+      @media (max-width: 640px) {
+        // Recortar "Sin contenido" a solo el número/texto corto
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 80px;
+      }
+    }
+
+    // bim-tag más pequeño
+    .bim-tag {
+      font-size: 10px !important;
+      padding: 1px 7px !important;
+      background: #f1f5f9 !important;
+      color: #475569 !important;
+      border: 1px solid $border !important;
+    }
+
+    // add-bar (crear material / tarea / foro)
+    .add-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 0 10px;
+      border-bottom: 1px dashed $border;
+      margin-bottom: 10px;
+
+      button {
+        border-radius: 999px !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        color: $blue !important;
+        border-color: #c7d2fe !important;
+        height: 30px !important;
+
+        mat-icon {
+          font-size: 16px !important;
+          width: 16px !important;
+          height: 16px !important;
+        }
+
+        @media (max-width: 640px) {
+          flex: 1 1 auto;
+          justify-content: center;
+          font-size: 11.5px !important;
+        }
+      }
+    }
+
+    // item-row (material / tarea / foro)
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: $white;
+      border: 1px solid $border;
+      border-radius: $r-md;
+      cursor: pointer;
+      transition: border-color .12s, box-shadow .12s;
+
+      &:hover {
+        border-color: #c7d2fe;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, .04);
+      }
+
+      &.is-hidden {
+        background: #f8fafc;
+        opacity: .65;
+      }
+
+      @media (max-width: 640px) {
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 6px;
+      }
+
+      .item-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        color: $white;
+        display: grid;
+        place-items: center;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+
+        @media (max-width: 640px) {
+          width: 32px;
+          height: 32px;
+          border-radius: 6px;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+          }
+        }
+      }
+
+      .item-info {
+        min-width: 0;
+
+        h4 {
+          margin: 0;
+          font-size: 13.5px;
+          font-weight: 600;
+          color: $text;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          // Desktop: 1 línea
+          white-space: nowrap;
+
+          // Mobile: hasta 2 líneas
+          @media (max-width: 640px) {
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            font-size: 13px;
+          }
+        }
+
+        .item-desc {
+          margin: 1px 0 3px;
+          font-size: 12px;
+          color: $text-muted;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .meta-data {
+          font-size: 11px;
+          color: $text-muted;
+          font-weight: 500;
+        }
+      }
+
+      .item-actions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+
+        button {
+          width: 34px;
+          height: 34px;
+        }
+      }
+    }
+
+    .empty-msg {
+      margin: 6px 0 0;
+      padding: 14px;
+      text-align: center;
+      font-size: 12px;
+      font-style: italic;
+      color: $text-muted;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 6px;
+    }
+  }
+}
+
+// tab-contenido.scss — reemplaza o agrega .add-semana-row y .btn-add-semana
+.add-semana-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-top: 4px;
+  border: 1.5px dashed #c7d2fe;
+  border-radius: $r-md;
+  background: rgba(37, 99, 235, .02);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+
+  &:hover {
+    border-color: $blue;
+    background: rgba(37, 99, 235, .05);
+
+    .btn-add-semana {
+      background: $blue;
+    }
+
+    .add-semana-label {
+      color: $blue;
+    }
+  }
+
+  @media (max-width: 640px) {
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: 1px dashed #c7d2fe;
+    border-bottom: none;
+  }
+}
+
+.btn-add-semana {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #dbeafe;
+  color: $blue;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  mat-spinner {
+    opacity: .6;
+  }
+
+  &:disabled {
+    opacity: .5;
+    cursor: default;
+  }
+}
+
+.add-semana-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: $text-muted;
+  transition: color .15s;
 }
