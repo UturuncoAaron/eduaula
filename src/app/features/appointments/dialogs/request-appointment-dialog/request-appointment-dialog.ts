@@ -399,26 +399,16 @@ export class RequestAppointmentDialog implements OnInit {
         }
     }
 
-    private applyRulesToCalendar(profId: string): void {
+    private applyRulesToCalendar(_profId: string): void {
         const rule = this.activeRule();
         if (!rule) return;
         if (rule.fixedDurationMin != null) {
             this.form.patchValue({ durationMin: rule.fixedDurationMin });
         }
-        if (this.availability().length === 0) {
-            const now = new Date().toISOString();
-            const synth: AccountAvailability[] = rule.allowedDays.map((d, i) => ({
-                id: `virtual-${profId}-${d}-${i}`,
-                cuentaId: profId,
-                diaSemana: d as AccountAvailability['diaSemana'],
-                horaInicio: rule.defaultHours.start,
-                horaFin: rule.defaultHours.end,
-                activo: true,
-                createdAt: now,
-                updatedAt: now,
-            }));
-            this.availability.set(synth);
-        }
+        // Importante: NO sintetizar disponibilidad por defecto. Si el
+        // profesional todavía no configuró sus bloques, debe verse vacío
+        // y el usuario verá el empty-state en lugar de poder reservar
+        // cualquier hora.
     }
 
     private async refreshSlotsTaken(): Promise<void> {

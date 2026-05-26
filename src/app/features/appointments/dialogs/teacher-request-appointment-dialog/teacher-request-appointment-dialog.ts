@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import {
-  MatDialog, MatDialogModule, MatDialogRef,
+  MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef,
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -27,7 +27,9 @@ import {
   ConfirmDialog, ConfirmData,
 } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
-import { AppointmentsStore, StudentSearchResult } from '../../data-access/appointments.store';
+import {
+  AppointmentsStore, StudentSearchResult, ParentSearchResult,
+} from '../../data-access/appointments.store';
 import { AuthService } from '../../../../core/auth/auth';
 import {
   AccountAvailability, AppointmentTipo, DiaSemana, SlotTaken,
@@ -44,6 +46,18 @@ import { parseApiError } from '../../../../shared/utils/api-errors';
 const MIN_LEAD_MINUTES = 15;
 
 type StudentOption = StudentSearchResult;
+type ParentOption = ParentSearchResult;
+
+/**
+ * Modo del dialog:
+ *  - `docente`  → busca alumno (el padre se autocarga del vínculo).
+ *  - `admin`    → busca padre/tutor directamente (admin cita sólo a padres).
+ */
+export type TeacherRequestDialogMode = 'docente' | 'admin';
+
+export interface TeacherRequestAppointmentDialogData {
+  mode?: TeacherRequestDialogMode;
+}
 
 interface PickedSlot {
   dia: DiaSemana;
@@ -73,6 +87,18 @@ export class TeacherRequestAppointmentDialog implements OnInit {
   private store = inject(AppointmentsStore);
   private auth = inject(AuthService);
   private toastr = inject(ToastService);
+  readonly data: TeacherRequestAppointmentDialogData =
+    inject<TeacherRequestAppointmentDialogData | null>(MAT_DIALOG_DATA, { optional: true })
+    ?? {};
+
+  // Modo efectivo: prioriza el data param. Si no llega, lo inferimos del rol
+  // de sesión (admin→admin, resto→docente).
+  readonly dialogMode = computed<TeacherRequestDialogMode>(() => {
+    if (this.data.mode) return this.data.mode;
+    const me = this.auth.currentUser();
+    return me?.rol === 'admin' ? 'admin' : 'docente';
+  });
+  readonly isAdminMode = computed(() => this.dialogMode() === 'admin');
 
   // ── Catálogos ───────────────────────────────────────────────
   readonly tipos: { value: AppointmentTipo; label: string }[] = [
@@ -87,10 +113,15 @@ export class TeacherRequestAppointmentDialog implements OnInit {
   loading = signal(false);
   errorMsg = signal('');
 
-  // Autocomplete alumno
+  // Autocomplete alumno (modo docente)
   searching = signal(false);
   students = signal<StudentOption[]>([]);
   selected = signal<StudentOption | null>(null);
+
+  // Autocomplete padre directo (modo admin)
+  searchingParent = signal(false);
+  parents = signal<ParentOption[]>([]);
+  selectedParent = signal<ParentOption | null>(null);
 
   // Calendario booking de MI propia disponibilidad
   loadingAvailability = signal(false);
@@ -172,7 +203,9 @@ export class TeacherRequestAppointmentDialog implements OnInit {
 
   // ── Form ────────────────────────────────────────────────────
   form: FormGroup = this.fb.group({
-    studentQuery: ['', [Validators.required]],
+    // En modo `docente` esto representa al alumno; en modo `admin` al padre.
+    studentQuery: [''],
+    parentQuery: [''],
     tipo: ['academico', [Validators.required]],
     date: [null as Date | null, [Validators.required]],
     time: ['', [Validators.required]],
@@ -183,8 +216,18 @@ export class TeacherRequestAppointmentDialog implements OnInit {
 
   // ── Lifecycle ───────────────────────────────────────────────
   async ngOnInit(): Promise<void> {
-    // Buscar alumnos a medida que el docente tipea.
+    // Marcamos el campo correcto como requerido según el modo.
+    if (this.isAdminMode()) {
+      this.form.get('parentQuery')!.addValidators(Validators.required);
+      this.form.get('parentQuery')!.updateValueAndValidity();
+    } else {
+      this.form.get('studentQuery')!.addValidators(Validators.required);
+      this.form.get('studentQuery')!.updateValueAndValidity();
+    }
+
+    // Buscador de alumnos — sólo modo docente.
     this.form.get('studentQuery')!.valueChanges.subscribe(async (raw: string | StudentOption | null) => {
+      if (this.isAdminMode()) return;
       if (typeof raw !== 'string') return;
       if (!raw || raw.trim().length < 2) { this.students.set([]); return; }
       this.searching.set(true);
@@ -193,6 +236,20 @@ export class TeacherRequestAppointmentDialog implements OnInit {
         this.students.set(items);
       } finally {
         this.searching.set(false);
+      }
+    });
+
+    // Buscador de padres directo — sólo modo admin.
+    this.form.get('parentQuery')!.valueChanges.subscribe(async (raw: string | ParentOption | null) => {
+      if (!this.isAdminMode()) return;
+      if (typeof raw !== 'string') return;
+      if (!raw || raw.trim().length < 2) { this.parents.set([]); return; }
+      this.searchingParent.set(true);
+      try {
+        const items = await this.store.searchParents(raw);
+        this.parents.set(items);
+      } finally {
+        this.searchingParent.set(false);
       }
     });
 
@@ -232,6 +289,29 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     this.selected.set(null);
     this.form.patchValue({ studentQuery: '' });
     this.students.set([]);
+  }
+
+  displayParent = (p: ParentOption | string): string => {
+    if (!p) return '';
+    if (typeof p === 'string') return p;
+    const fullName =
+      `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim();
+    return p.relacion ? `${fullName} · ${p.relacion}` : fullName;
+  };
+
+  parentInitialsOf(p: ParentOption): string {
+    return `${(p.nombre[0] ?? '').toUpperCase()}${(p.apellido_paterno[0] ?? '').toUpperCase()}`;
+  }
+
+  onSelectParent(p: ParentOption): void {
+    this.selectedParent.set(p);
+    this.form.patchValue({ parentQuery: p }, { emitEvent: false });
+  }
+
+  clearParent(): void {
+    this.selectedParent.set(null);
+    this.form.patchValue({ parentQuery: '' });
+    this.parents.set([]);
   }
 
   // ── Booking calendar ────────────────────────────────────────
@@ -333,14 +413,32 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     const me = this.auth.currentUser();
     if (!me) { this.errorMsg.set('Sesión inválida.'); return; }
 
-    const sel = this.selected();
-    if (!sel) {
-      this.errorMsg.set('Selecciona un alumno de la lista.');
-      return;
-    }
-    if (!sel.padre) {
-      this.errorMsg.set('Este alumno no tiene un padre/tutor vinculado en el sistema.');
-      return;
+    // Resolvemos al destinatario según el modo.
+    let convocadoAId: string;
+    let studentIdForPayload: string | undefined;
+    let parentIdForPayload: string | undefined;
+
+    if (this.isAdminMode()) {
+      const padre = this.selectedParent();
+      if (!padre) {
+        this.errorMsg.set('Selecciona un padre o tutor de la lista.');
+        return;
+      }
+      convocadoAId = padre.id;
+      parentIdForPayload = padre.id;
+    } else {
+      const sel = this.selected();
+      if (!sel) {
+        this.errorMsg.set('Selecciona un alumno de la lista.');
+        return;
+      }
+      if (!sel.padre) {
+        this.errorMsg.set('Este alumno no tiene un padre/tutor vinculado en el sistema.');
+        return;
+      }
+      convocadoAId = sel.padre.id;
+      studentIdForPayload = sel.id;
+      parentIdForPayload = sel.padre.id;
     }
 
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
@@ -353,7 +451,7 @@ export class TeacherRequestAppointmentDialog implements OnInit {
       return;
     }
 
-    if (sel.padre.id === me.id) {
+    if (convocadoAId === me.id) {
       this.errorMsg.set('No puedes convocarte a ti mismo.');
       return;
     }
@@ -362,9 +460,9 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     this.errorMsg.set('');
     try {
       await this.store.createAppointment({
-        convocadoAId: sel.padre.id,
-        studentId: sel.id,
-        parentId: sel.padre.id,
+        convocadoAId,
+        studentId: studentIdForPayload,
+        parentId: parentIdForPayload,
         tipo: v.tipo,
         motivo: v.motivo,
         scheduledAt: scheduled.toISOString(),

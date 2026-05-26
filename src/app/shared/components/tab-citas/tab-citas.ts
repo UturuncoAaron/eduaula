@@ -359,6 +359,7 @@ export class TabCitas {
         width: '900px', maxWidth: '95vw',
         panelClass: 'appointment-dialog-panel',
         autoFocus: 'first-tabbable',
+        data: { mode: this.esAdmin() ? 'admin' : 'docente' },
       });
       ref.afterClosed().subscribe(ok => {
         if (ok) void this.apptStore.loadMyAppointments();

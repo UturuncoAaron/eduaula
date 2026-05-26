@@ -101,8 +101,37 @@
 
             <!-- Padre / tutor -->
             @if (includeParent()) {
+
+            @if (hasMultipleLinkedParents()) {
+            <div class="afd-linked-parents">
+                <div class="afd-linked-parents__head">
+                    <mat-icon>family_restroom</mat-icon>
+                    <div>
+                        <strong>{{ linkedParents().length }} padres/tutores vinculados</strong>
+                        <p>Selecciona uno o ambos para programar la cita con cada uno.</p>
+                    </div>
+                </div>
+                <div class="afd-linked-parents__list">
+                    @for (lp of linkedParents(); track lp.id) {
+                    <label class="afd-linked-parent" [class.afd-linked-parent--checked]="isLinkedParentSelected(lp.id)">
+                        <input type="checkbox"
+                            [checked]="isLinkedParentSelected(lp.id)"
+                            (change)="toggleLinkedParent(lp.id, $any($event.target).checked)" />
+                        <div class="afd-linked-parent__info">
+                            <strong>{{ linkedParentLabel(lp) }}</strong>
+                            @if (lp.email) { <span>{{ lp.email }}</span> }
+                        </div>
+                        <mat-icon class="afd-linked-parent__check">
+                            {{ isLinkedParentSelected(lp.id) ? 'check_circle' : 'radio_button_unchecked' }}
+                        </mat-icon>
+                    </label>
+                    }
+                </div>
+            </div>
+            }
+
             <div class="afd-participant-row">
-                @if (selectedParent(); as sp) {
+                @if (!hasMultipleLinkedParents() && selectedParent(); as sp) {
                 <div class="afd-chip afd-chip--parent">
                     <div class="afd-chip__avatar">{{ sp.nombre.charAt(0) }}</div>
                     <div class="afd-chip__info">
@@ -115,7 +144,7 @@
                         <mat-icon>close</mat-icon>
                     </button>
                 </div>
-                } @else {
+                } @else if (!hasMultipleLinkedParents()) {
                 <mat-form-field appearance="outline" class="afd-field">
                     <mat-label>Buscar padre / madre / tutor</mat-label>
                     <mat-icon matPrefix class="afd-field__prefix">family_restroom</mat-icon>
