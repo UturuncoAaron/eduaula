@@ -566,6 +566,45 @@ export class AppointmentsStore {
             return [];
         }
     }
+
+    /**
+     * Búsqueda de PADRES por nombre / apellido. Usada por el admin para crear
+     * citas (el admin cita únicamente a padres, no a alumnos).
+     */
+    async searchParents(query: string): Promise<ParentSearchResult[]> {
+        const term = (query ?? '').trim();
+        if (term.length < 2) return [];
+        try {
+            const res = await firstValueFrom(
+                this.api.get<ParentSearchResult[] | { data: ParentSearchResult[] }>(
+                    'psychology/directory/parents/search',
+                    { q: term },
+                ),
+            );
+            return unwrapList<ParentSearchResult>(res.data);
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Trae los padres/tutores vinculados a un alumno. Usado por la psicóloga
+     * en la "búsqueda inteligente": al elegir un alumno, autocargamos los
+     * padres del sistema para que pueda elegir uno o ambos.
+     */
+    async getStudentParents(studentId: string): Promise<LinkedParent[]> {
+        if (!studentId) return [];
+        try {
+            const res = await firstValueFrom(
+                this.api.get<LinkedParent[] | { data: LinkedParent[] }>(
+                    `psychology/directory/students/${studentId}/parents`,
+                ),
+            );
+            return unwrapList<LinkedParent>(res.data);
+        } catch {
+            return [];
+        }
+    }
     async countFutureAppointments(): Promise<number> {
         try {
             const res = await firstValueFrom(
@@ -601,4 +640,32 @@ export interface StudentSearchResult {
         apellido_materno: string | null;
         relacion: string | null;
     } | null;
+}
+
+/**
+ * Resultado del endpoint `directory/parents/search`. Es el padre/tutor
+ * ya como entidad (no a través del alumno).
+ */
+export interface ParentSearchResult {
+    id: string;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+    relacion: string | null;
+    email: string | null;
+    telefono: string | null;
+    foto_storage_key?: string | null;
+}
+
+/**
+ * Padre vinculado a un alumno concreto (`directory/students/:id/parents`).
+ */
+export interface LinkedParent {
+    id: string;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+    relacion: string | null;
+    email: string | null;
+    telefono: string | null;
 }

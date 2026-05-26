@@ -9,7 +9,11 @@
             <span class="convoc__eyebrow">Cita pendiente</span>
             <h2 class="convoc__title">Convocar a padre/tutor</h2>
             <p class="convoc__subtitle">
+                @if (isAdminMode()) {
+                Busca al padre/tutor y elige un horario libre dentro de tu propia disponibilidad.
+                } @else {
                 Selecciona un alumno y un horario libre dentro de tu propia disponibilidad.
+                }
                 La cita se enviará en estado <strong>pendiente</strong> al padre o tutor.
             </p>
         </div>
@@ -29,10 +33,75 @@
                 <header class="section__head">
                     <span class="section__num">1</span>
                     <div class="section__heading">
+                        @if (isAdminMode()) {
+                        <h3 class="section__title">Padre / tutor</h3>
+                        <p class="section__sub">El administrador cita únicamente a padres. Busca por nombre o apellido.</p>
+                        } @else {
                         <h3 class="section__title">Alumno</h3>
                         <p class="section__sub">Busca por nombre, apellido o código de estudiante.</p>
+                        }
                     </div>
                 </header>
+
+                @if (isAdminMode()) {
+                <mat-form-field appearance="outline" class="full">
+                    <mat-label>Nombre del padre / tutor</mat-label>
+                    <input matInput formControlName="parentQuery" [matAutocomplete]="autoParent"
+                        placeholder="Ej. María García" autocomplete="off" />
+                    @if (searchingParent()) {
+                    <mat-spinner matSuffix diameter="16" />
+                    } @else {
+                    <mat-icon matSuffix>search</mat-icon>
+                    }
+                    <mat-autocomplete #autoParent="matAutocomplete" [displayWith]="displayParent"
+                        (optionSelected)="onSelectParent($event.option.value)" panelWidth="auto">
+                        @for (p of parents(); track p.id) {
+                        <mat-option [value]="p" class="opt">
+                            <div class="opt__avatar">
+                                {{ parentInitialsOf(p) }}
+                            </div>
+                            <div class="opt__body">
+                                <span class="opt__name">
+                                    {{ p.nombre }} {{ p.apellido_paterno }} {{ p.apellido_materno }}
+                                </span>
+                                <span class="opt__meta">
+                                    @if (p.relacion) { {{ p.relacion }} }
+                                    @if (p.email) { · {{ p.email }} }
+                                </span>
+                            </div>
+                        </mat-option>
+                        }
+                        @if (!searchingParent() && parents().length === 0 && (form.value.parentQuery?.length ?? 0) >= 2) {
+                        <mat-option disabled class="opt opt--empty">
+                            <mat-icon>search_off</mat-icon>
+                            <span>Sin resultados</span>
+                        </mat-option>
+                        }
+                    </mat-autocomplete>
+                </mat-form-field>
+
+                @if (selectedParent(); as p) {
+                <div class="pill">
+                    <div class="pill__avatar">
+                        {{ parentInitialsOf(p) }}
+                    </div>
+                    <div class="pill__info">
+                        <span class="pill__name">
+                            {{ p.nombre }} {{ p.apellido_paterno }} {{ p.apellido_materno }}
+                        </span>
+                        <span class="pill__meta">
+                            @if (p.relacion) { {{ p.relacion }} }
+                            @if (p.email) { · {{ p.email }} }
+                        </span>
+                    </div>
+                    <button mat-icon-button type="button" class="pill__close" (click)="clearParent()"
+                        matTooltip="Cambiar padre/tutor" [disabled]="loading()">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+                }
+
+                } @else {
 
                 <mat-form-field appearance="outline" class="full">
                     <mat-label>Nombre, apellido o código</mat-label>
@@ -130,6 +199,8 @@
                     </button>
                 </div>
                 }
+
+                }
             </section>
 
             <!-- 2. Detalles ─────────────────────────────────────── -->
@@ -152,11 +223,11 @@
                         </mat-select>
                     </mat-form-field>
 
-                    @if (myRule().fixedDurationMin != null) {
+                    @if (myRule().fixedDurationMin !== null || !isAdminMode()) {
                     <mat-form-field appearance="outline">
                         <mat-label>Duración</mat-label>
                         <input matInput readonly
-                            [value]="myRule().fixedDurationMin + ' min (fija)'" />
+                            [value]="(myRule().fixedDurationMin ?? myRule().slotMinutes) + ' min (fija)'" />
                     </mat-form-field>
                     } @else {
                     <div class="slot-count">

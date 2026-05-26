@@ -68,6 +68,7 @@ import {
 } from '../../../../core/models/appointments';
 import {
   AssignedStudent,
+  ParentOfStudent,
   SearchableParent,
 } from '../../../../core/models/psychology';
 
@@ -144,6 +145,19 @@ export class AppointmentFormDialog implements OnInit {
   readonly selectedParent = signal<SearchableParent | null>(null);
   readonly includeStudent = signal(true);
   readonly includeParent = signal(false);
+
+  /**
+   * Padres vinculados al alumno actualmente seleccionado. Se hidrata
+   * automáticamente cuando la psicóloga elige un alumno (búsqueda
+   * inteligente). Cuando hay 2+, exponemos checkboxes para elegir uno o
+   * ambos.
+   */
+  readonly linkedParents = signal<ParentOfStudent[]>([]);
+  /** IDs de padres vinculados que el usuario seleccionó (puede ser más de uno). */
+  readonly selectedLinkedParentIds = signal<readonly string[]>([]);
+
+  /** True si el alumno actual tiene 2+ padres en el sistema. */
+  readonly hasMultipleLinkedParents = computed(() => this.linkedParents().length > 1);
 
   // FormControls para que mat-autocomplete detecte cambios
   readonly studentSearchCtrl = new FormControl('');
@@ -280,15 +294,62 @@ export class AppointmentFormDialog implements OnInit {
   }
 
   onStudentSelected(student: AssignedStudent): void {
+    // CAPTURA DEL ID + PAYLOAD COMPLETO. Antes el form sólo guardaba
+    // `studentId` y el resto de los campos del alumno se quedaban en el
+    // signal `selectedStudent`. Si por alguna razón se reseteaba el signal
+    // pero el form ya tenía el id, la cita se enviaba con datos vacíos en
+    // el front (avatar, nombre, grado). Reasignamos siempre el objeto
+    // entero para garantizar consistencia.
     this.selectedStudent.set(student);
     this.form.patchValue({ studentId: student.id });
     this.studentSearchCtrl.setValue('', { emitEvent: false });
+
+    // Búsqueda inteligente: al elegir un alumno, traé sus padres
+    // vinculados del backend (sin importar si el modal trajo o no
+    // `preselectedStudentId`).
+    this.linkedParents.set([]);
+    this.selectedLinkedParentIds.set([]);
+    this.clearParent();
+    void this.fetchAndApplyLinkedParents(student.id);
   }
 
   clearStudent(): void {
     this.selectedStudent.set(null);
     this.studentSearchCtrl.setValue('', { emitEvent: false });
     this.form.patchValue({ studentId: '' });
+    this.linkedParents.set([]);
+    this.selectedLinkedParentIds.set([]);
+  }
+
+  /** Marca/desmarca un padre vinculado al alumno (checkboxes múltiples). */
+  toggleLinkedParent(parentId: string, checked: boolean): void {
+    const current = this.selectedLinkedParentIds();
+    if (checked) {
+      if (!current.includes(parentId)) {
+        this.selectedLinkedParentIds.set([...current, parentId]);
+      }
+    } else {
+      this.selectedLinkedParentIds.set(current.filter(id => id !== parentId));
+    }
+    // Mantenemos `includeParent` activo cuando hay al menos un padre marcado
+    // y sincronizamos `parentId` del form con el PRIMERO seleccionado para
+    // que el submit base siga funcionando (los demás se crean en paralelo).
+    const next = this.selectedLinkedParentIds();
+    if (next.length > 0) {
+      this.includeParent.set(true);
+      this.form.patchValue({ parentId: next[0] });
+    } else {
+      this.form.patchValue({ parentId: '' });
+    }
+  }
+
+  isLinkedParentSelected(parentId: string): boolean {
+    return this.selectedLinkedParentIds().includes(parentId);
+  }
+
+  linkedParentLabel(p: ParentOfStudent): string {
+    const rel = p.relacion ? ` (${p.relacion})` : '';
+    return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
   }
 
   onParentSelected(parent: SearchableParent): void {
@@ -385,7 +446,17 @@ export class AppointmentFormDialog implements OnInit {
 
   async submit(): Promise<void> {
     const hasStudent = this.includeStudent() && !!this.form.value.studentId;
-    const hasParent = this.includeParent() && !!this.form.value.parentId;
+
+    // Decidimos qué padres usaremos: si la psicóloga viene de la búsqueda
+    // inteligente y eligió 2+ padres vinculados, creamos UNA cita por
+    // cada uno. Si no, caemos al flujo original con `parentId` del form.
+    const linkedIds = this.selectedLinkedParentIds();
+    const parentIdsToInvite: string[] = this.includeParent()
+      ? (linkedIds.length > 0
+        ? [...linkedIds]
+        : (this.form.value.parentId ? [this.form.value.parentId] : []))
+      : [];
+    const hasParent = parentIdsToInvite.length > 0;
 
     if (!hasStudent && !hasParent) {
       this.errorMsg.set('Selecciona al menos un alumno o un padre/tutor.');
@@ -412,8 +483,7 @@ export class AppointmentFormDialog implements OnInit {
       return;
     }
 
-    const convocadoAId = hasParent ? v.parentId : v.studentId;
-    if (convocadoAId === psicologaId) {
+    if (parentIdsToInvite.includes(psicologaId) || v.studentId === psicologaId) {
       this.errorMsg.set('No puedes convocarte a ti misma.');
       return;
     }
@@ -421,32 +491,73 @@ export class AppointmentFormDialog implements OnInit {
     this.loading.set(true);
     this.errorMsg.set('');
     try {
-      const created = await this.appointmentsStore.createAppointment({
-        convocadoAId,
-        studentId: hasStudent ? v.studentId : undefined,
-        parentId: hasParent ? v.parentId : undefined,
-        tipo: v.tipo,
-        motivo: v.motivo,
-        scheduledAt: scheduled.toISOString(),
-        durationMin: this.durationMin(),
-        priorNotes: v.priorNotes || undefined,
-      });
-
-      // El BE puede devolver `availableParents` cuando la psicóloga citó al
-      // alumno y existían varios padres. La cita ya quedó creada con el
-      // primer padre vinculado — aquí solo informamos al usuario para que
-      // sepa que hay más opciones y pueda recrearla si se equivocó.
-      if (created.availableParents && created.availableParents.length > 1 && !hasParent) {
-        const names = created.availableParents
-          .map(p => `${p.nombre} ${p.apellido_paterno}`).join(', ');
-        this.toast.info(
-          `Cita programada · El alumno tiene ${created.availableParents.length} padres registrados (${names}). Se vinculó al primero — si necesitas cambiarlo, créala de nuevo seleccionando el padre.`,
-          undefined, { duration: 8000 },
+      if (parentIdsToInvite.length > 1) {
+        // 2+ padres vinculados → una cita por padre, todas con el mismo
+        // alumno, fecha, motivo y duración. Si una falla, registramos el
+        // error pero seguimos con las demás.
+        const results = await Promise.allSettled(
+          parentIdsToInvite.map(parentId =>
+            this.appointmentsStore.createAppointment({
+              convocadoAId: parentId,
+              studentId: hasStudent ? v.studentId : undefined,
+              parentId,
+              tipo: v.tipo,
+              motivo: v.motivo,
+              scheduledAt: scheduled.toISOString(),
+              durationMin: this.durationMin(),
+              priorNotes: v.priorNotes || undefined,
+            }),
+          ),
         );
+        const okCount = results.filter(r => r.status === 'fulfilled').length;
+        const failCount = results.length - okCount;
+        if (okCount > 0 && failCount === 0) {
+          this.toast.success(`Citas programadas para ${okCount} padres/tutores`);
+          this.ref.close(true);
+        } else if (okCount > 0) {
+          this.toast.info(
+            `${okCount} cita(s) creadas, ${failCount} fallaron. Revisa la agenda y reintenta las pendientes.`,
+            undefined, { duration: 8000 },
+          );
+          this.ref.close(true);
+        } else {
+          // Todas fallaron — mostramos el error del primero
+          const first = results[0];
+          this.errorMsg.set(
+            first.status === 'rejected'
+              ? parseApiError(first.reason, 'No se pudo crear la cita')
+              : 'No se pudo crear la cita',
+          );
+        }
       } else {
-        this.toast.success('Cita programada correctamente');
+        const convocadoAId = hasParent ? parentIdsToInvite[0] : v.studentId;
+        const created = await this.appointmentsStore.createAppointment({
+          convocadoAId,
+          studentId: hasStudent ? v.studentId : undefined,
+          parentId: hasParent ? parentIdsToInvite[0] : undefined,
+          tipo: v.tipo,
+          motivo: v.motivo,
+          scheduledAt: scheduled.toISOString(),
+          durationMin: this.durationMin(),
+          priorNotes: v.priorNotes || undefined,
+        });
+
+        // El BE puede devolver `availableParents` cuando la psicóloga citó
+        // al alumno y existían varios padres. La cita ya quedó creada con
+        // el primer padre — aquí informamos para que la usuaria pueda
+        // recrearla si necesita el otro padre.
+        if (created.availableParents && created.availableParents.length > 1 && !hasParent) {
+          const names = created.availableParents
+            .map(p => `${p.nombre} ${p.apellido_paterno}`).join(', ');
+          this.toast.info(
+            `Cita programada · El alumno tiene ${created.availableParents.length} padres registrados (${names}). Se vinculó al primero — si necesitas cambiarlo, créala de nuevo seleccionando el padre.`,
+            undefined, { duration: 8000 },
+          );
+        } else {
+          this.toast.success('Cita programada correctamente');
+        }
+        this.ref.close(true);
       }
-      this.ref.close(true);
     } catch (err: unknown) {
       this.errorMsg.set(parseApiError(err, 'No se pudo crear la cita'));
     } finally {
@@ -495,13 +606,52 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
+  // `loadParents` se reemplaza por `fetchAndApplyLinkedParents`, más
+  // explicativo sobre el comportamiento UI. Mantenemos esta firma por
+  // compatibilidad con el código original.
   private async loadParents(studentId: string): Promise<void> {
+    return this.fetchAndApplyLinkedParents(studentId);
+  }
+
+  /**
+   * Trae los padres del alumno y aplica una política simple:
+   *   - 0 padres: deja los signals vacíos.
+   *   - 1 padre: se preselecciona automáticamente y se activa `includeParent`.
+   *   - 2+ padres: se exponen via `linkedParents()` para que la UI muestre
+   *     checkboxes y el usuario elija uno o ambos. `includeParent` queda
+   *     activo para que la sección se vea.
+   */
+  private async fetchAndApplyLinkedParents(studentId: string): Promise<void> {
     this.loadingParents.set(true);
     try {
       const parents = await this.store.getStudentParents(studentId);
-      if (parents.length === 1) this.form.patchValue({ parentId: parents[0].id });
+      this.linkedParents.set(parents);
+      if (parents.length === 0) {
+        this.selectedLinkedParentIds.set([]);
+        return;
+      }
+      // Auto-activar la sección de padre cuando el alumno tiene vínculos.
+      this.includeParent.set(true);
+      if (parents.length === 1) {
+        const onlyOne = parents[0];
+        this.selectedLinkedParentIds.set([onlyOne.id]);
+        this.selectedParent.set({
+          id: onlyOne.id,
+          nombre: onlyOne.nombre,
+          apellido_paterno: onlyOne.apellido_paterno,
+          apellido_materno: onlyOne.apellido_materno,
+          relacion: onlyOne.relacion ?? null,
+        });
+        this.form.patchValue({ parentId: onlyOne.id });
+      } else {
+        // 2+ padres: dejamos que el usuario elija explícitamente con
+        // checkboxes. No preseleccionamos ninguno automáticamente.
+        this.selectedLinkedParentIds.set([]);
+        this.selectedParent.set(null);
+        this.form.patchValue({ parentId: '' });
+      }
     } catch {
-      // silencioso — no bloquea el flujo principal
+      this.linkedParents.set([]);
     } finally {
       this.loadingParents.set(false);
     }

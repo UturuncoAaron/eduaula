@@ -87,11 +87,11 @@
                 </mat-select>
             </mat-form-field>
 
-            @if (effectiveRule().fixedDurationMin != null) {
+            @if (effectiveRule().fixedDurationMin !== null || professionalKind() !== 'psicologa') {
             <mat-form-field appearance="outline">
                 <mat-label>Duración</mat-label>
                 <input matInput readonly
-                    [value]="effectiveRule().fixedDurationMin + ' min (fija)'" />
+                    [value]="(effectiveRule().fixedDurationMin ?? effectiveRule().slotMinutes) + ' min (fija)'" />
             </mat-form-field>
             } @else {
             <div class="slot-count">
