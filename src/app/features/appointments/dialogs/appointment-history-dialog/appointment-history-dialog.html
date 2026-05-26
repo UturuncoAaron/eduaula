@@ -1,9 +1,84 @@
 <h2 mat-dialog-title>
-    <mat-icon>history</mat-icon>
-    Historial de la cita
+    <mat-icon>info</mat-icon>
+    Detalle de la cita
 </h2>
 
 <mat-dialog-content class="hist-body">
+    <!-- ── Resumen ────────────────────────────────────────────── -->
+    <section class="hist-summary" [attr.data-estado]="appointmentInfo().estado">
+        <div class="hist-summary__head">
+            <span class="hist-summary__badge">{{ estadoLabel(appointmentInfo().estado) }}</span>
+            <span class="hist-summary__date">
+                <mat-icon>event</mat-icon>
+                {{ appointmentInfo().scheduledAt | date:'EEE d MMM y, HH:mm' }}
+                <span class="hist-summary__dur">· {{ appointmentInfo().durationMin }} min</span>
+            </span>
+        </div>
+        <dl class="hist-summary__grid">
+            <div>
+                <dt>Convocador</dt>
+                <dd>{{ convocadorLabel() }}</dd>
+            </div>
+            <div>
+                <dt>Convocado</dt>
+                <dd>{{ convocadoLabel() }}</dd>
+            </div>
+            <div>
+                <dt>Alumno</dt>
+                <dd>{{ studentLabel() }}</dd>
+            </div>
+            <div>
+                <dt>Tipo / Modalidad</dt>
+                <dd>{{ appointmentInfo().tipo }} · {{ appointmentInfo().modalidad }}</dd>
+            </div>
+        </dl>
+        @if (appointmentInfo().motivo) {
+        <div class="hist-summary__motivo">
+            <mat-icon>chat_bubble</mat-icon>
+            <div>
+                <strong>Motivo</strong>
+                <p>{{ appointmentInfo().motivo }}</p>
+            </div>
+        </div>
+        }
+        @if (isCancelada() && appointmentInfo().cancelReason) {
+        <div class="hist-summary__cancel">
+            <mat-icon>cancel</mat-icon>
+            <div>
+                <strong>Motivo de cancelación</strong>
+                <p>{{ appointmentInfo().cancelReason }}</p>
+                @if (appointmentInfo().cancelledAt) {
+                <small>{{ appointmentInfo().cancelledAt | date:'EEE d MMM y, HH:mm' }}</small>
+                }
+            </div>
+        </div>
+        }
+        @if (appointmentInfo().priorNotes) {
+        <div class="hist-summary__notes">
+            <mat-icon>sticky_note_2</mat-icon>
+            <div>
+                <strong>Notas previas / aplazamientos</strong>
+                <p>{{ appointmentInfo().priorNotes }}</p>
+            </div>
+        </div>
+        }
+        @if (appointmentInfo().followUpNotes) {
+        <div class="hist-summary__notes">
+            <mat-icon>edit_note</mat-icon>
+            <div>
+                <strong>Notas posteriores</strong>
+                <p>{{ appointmentInfo().followUpNotes }}</p>
+            </div>
+        </div>
+        }
+    </section>
+
+    <!-- ── Timeline ───────────────────────────────────────────── -->
+    <h3 class="hist-section-title">
+        <mat-icon>history</mat-icon>
+        Línea de tiempo
+    </h3>
+
     @if (loading()) {
     <div class="loading">
         <mat-spinner diameter="22" />

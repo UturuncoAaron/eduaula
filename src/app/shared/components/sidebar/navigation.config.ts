@@ -61,24 +61,27 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   // ─── Docente — Mi Agenda ──────────────────────────────────────────────────
+  // Spec: los slots visibles SOLO se gestionan en el módulo de psicología.
+  // Por eso ocultamos el sub-ítem "Disponibilidad" para el docente; sigue
+  // existiendo la ruta para auditoría, pero no se muestra en la sidebar.
   {
     label: 'Mi Agenda', icon: 'event_note',
-    modulos: [MODULO.CITAS_DOCENTE, MODULO.DISPONIBILIDAD_DOCENTE],
+    modulos: [MODULO.CITAS_DOCENTE],
     dividerBefore: true,
     children: [
       { label: 'Mis Citas', icon: 'event_available', route: '/docente/citas', modulos: [MODULO.CITAS_DOCENTE] },
-      { label: 'Disponibilidad', icon: 'schedule', route: '/docente/disponibilidad', modulos: [MODULO.DISPONIBILIDAD_DOCENTE] },
     ],
   },
 
-  // ─── Agenda propia (admin, auxiliar) ──────────────────────────────────────
+  // ─── Agenda propia (admin/director, auxiliar) ─────────────────────────────
+  // Para el director el módulo se llama "Adm-Director" y reproduce el flujo
+  // del docente (citar a padres). Para auxiliar mantenemos "Mi Agenda".
   {
-    label: 'Mi Agenda', icon: 'event_note',
+    label: 'Adm-Director', icon: 'event_note',
     modulos: [MODULO.AGENDA_PROPIA],
     dividerBefore: true,
     children: [
       { label: 'Mis Citas', icon: 'event_available', route: '/agenda/citas', modulos: [MODULO.AGENDA_PROPIA] },
-      { label: 'Disponibilidad', icon: 'schedule', route: '/agenda/disponibilidad', modulos: [MODULO.AGENDA_PROPIA] },
     ],
   },
 

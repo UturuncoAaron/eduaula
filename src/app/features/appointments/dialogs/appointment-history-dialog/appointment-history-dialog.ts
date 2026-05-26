@@ -20,9 +20,12 @@ export interface AppointmentHistoryDialogData {
 }
 
 /**
- * Drawer/timeline que muestra el historial de cambios de estado de una cita.
- * Consume `GET /appointments/:id/estado-log` (ver `getStatusLog` en el store).
- * Cada entrada describe `previousStatus → nextStatus` + autor + razón.
+ * Drawer/timeline que muestra el detalle COMPLETO de una cita:
+ *   • Header con resumen (con quién, alumno, fecha, tipo, modalidad, duración).
+ *   • Motivo + notas previas/posteriores.
+ *   • Bloque de cancelación con motivo destacado.
+ *   • Timeline append-only con cada cambio de estado (consume
+ *     `GET /appointments/:id/estado-log` via `getStatusLog` en el store).
  */
 @Component({
     selector: 'app-appointment-history-dialog',
@@ -90,4 +93,33 @@ export class AppointmentHistoryDialog implements OnInit {
         const name = `${entry.changedBy.nombre} ${entry.changedBy.apellido_paterno}`.trim();
         return entry.changedBy.rol ? `${name} · ${entry.changedBy.rol}` : name;
     }
+
+    // ── Helpers para el resumen de la cita ──────────────────────
+
+    readonly appointmentInfo = computed(() => this.data.appointment);
+
+    readonly convocadoLabel = computed(() => {
+        const c = this.data.appointment.convocadoA;
+        if (!c) return '—';
+        const full = `${c.nombre} ${c.apellido_paterno}`.trim();
+        return c.rol ? `${full} · ${c.rol}` : full;
+    });
+
+    readonly convocadorLabel = computed(() => {
+        const c = this.data.appointment.convocadoPor;
+        if (!c) return '—';
+        const full = `${c.nombre} ${c.apellido_paterno}`.trim();
+        return c.rol ? `${full} · ${c.rol}` : full;
+    });
+
+    readonly studentLabel = computed(() => {
+        const s = this.data.appointment.student;
+        if (!s) return '—';
+        return `${s.nombre} ${s.apellido_paterno}`.trim();
+    });
+
+    readonly isCancelada = computed(() => {
+        const e = this.data.appointment.estado;
+        return e === 'cancelada' || e === 'rechazada';
+    });
 }
