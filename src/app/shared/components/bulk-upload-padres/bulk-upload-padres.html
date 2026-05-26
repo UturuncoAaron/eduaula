@@ -1,0 +1,230 @@
+<div class="bu-dialog">
+
+    <!-- ══ Header ══════════════════════════════════════════════════════════ -->
+    <div class="bu-header">
+        <div class="bu-header__icon"><mat-icon>cloud_upload</mat-icon></div>
+        <div class="bu-header__text">
+            <h2>Carga masiva de libretas</h2>
+            <p>{{ data.periodo_label }} · Auto-asignación por nombre del archivo</p>
+        </div>
+        <button class="bu-header__close" mat-icon-button (click)="cancelar()" [disabled]="uploading()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <!-- ══ Zona drop (fase pick o review) ══════════════════════════════════ -->
+    @if (fase() !== 'done') {
+
+    <!-- Drop zone -->
+    <div class="bu-drop" [class.bu-drop--active]="dragging()" [class.bu-drop--compact]="files().length > 0"
+        (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)" (click)="triggerInput()">
+        <input id="bu-file-input" type="file" accept="application/pdf" multiple hidden (change)="onFileInput($event)" />
+
+        @if (files().length === 0) {
+        <!-- Estado inicial -->
+        <div class="bu-drop__content">
+            <div class="bu-drop__icon"><mat-icon>upload_file</mat-icon></div>
+            <p class="bu-drop__title">Arrastra los PDFs aquí</p>
+            <p class="bu-drop__sub">o haz clic para seleccionar · Solo archivos PDF</p>
+        </div>
+        } @else {
+        <!-- Compacto: permite agregar más archivos -->
+        <div class="bu-drop__content bu-drop__content--compact">
+            <mat-icon>add_circle_outline</mat-icon>
+            <span>Agregar más PDFs</span>
+        </div>
+        }
+    </div>
+
+    <!-- ══ Tabla de archivos ═══════════════════════════════════════════════ -->
+    @if (files().length > 0) {
+
+    <!-- Resumen rápido -->
+    <div class="bu-summary-bar">
+        <span class="bu-summary-bar__item bu-summary-bar__item--total">
+            <mat-icon>description</mat-icon>
+            {{ files().length }} archivos
+        </span>
+        <span class="bu-summary-bar__item bu-summary-bar__item--ok">
+            <mat-icon>check_circle</mat-icon>
+            {{ matched().length }} asignados
+        </span>
+        @if (unmatched().length > 0) {
+        <span class="bu-summary-bar__item bu-summary-bar__item--warn">
+            <mat-icon>warning</mat-icon>
+            {{ unmatched().length }} sin asignar
+        </span>
+        }
+    </div>
+
+    <!-- Lista de archivos -->
+    <div class="bu-file-list">
+        @for (entry of files(); track trackFile($index, entry)) {
+        <div class="bu-file-row" [class.bu-file-row--matched]="entry.padreId !== null"
+            [class.bu-file-row--unmatched]="entry.padreId === null">
+
+            <!-- Icono PDF -->
+            <div class="bu-file-pdf">
+                <mat-icon>picture_as_pdf</mat-icon>
+            </div>
+
+            <!-- Nombre y tamaño -->
+            <div class="bu-file-info">
+                <span class="bu-file-name" [matTooltip]="entry.file.name">{{ entry.file.name }}</span>
+                <span class="bu-file-size">{{ formatBytes(entry.file.size) }}</span>
+            </div>
+
+            <!-- Asignación (auto o manual) -->
+            <div class="bu-file-assign">
+                @if (entry.padreId) {
+                <!-- Asignado automáticamente: muestra label + opción de cambiar -->
+                <div class="bu-assign-chip" [class.bu-assign-chip--replace]="entry.reemplaza">
+                    <mat-icon>{{ entry.reemplaza ? 'refresh' : 'person_check' }}</mat-icon>
+                    <span class="bu-assign-label">{{ entry.padreLabel }}</span>
+                    @if (entry.reemplaza) {
+                    <span class="bu-assign-replace-badge" matTooltip="Reemplazará la libreta existente">reemplaza</span>
+                    }
+                </div>
+                } @else {
+                <!-- Sin match: selector manual -->
+                <mat-form-field appearance="outline" class="bu-assign-select" subscriptSizing="dynamic">
+                    <mat-label>Asignar padre</mat-label>
+                    <mat-select [ngModel]="entry.padreId" (ngModelChange)="asignarPadre(entry, $event)">
+                        <mat-option [value]="null">— Sin asignar —</mat-option>
+                        @for (p of padresDisponibles(); track p.id) {
+                        <mat-option [value]="p.id">{{ labelPadre(p) }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                }
+            </div>
+
+            <!-- Eliminar -->
+            <button mat-icon-button class="bu-file-remove" (click)="$event.stopPropagation(); eliminarArchivo(entry)"
+                matTooltip="Quitar archivo">
+                <mat-icon>delete_outline</mat-icon>
+            </button>
+
+        </div>
+        }
+    </div>
+
+    }
+    }
+
+    <!-- ══ Fase: subiendo ══════════════════════════════════════════════════ -->
+    @if (uploading()) {
+    <div class="bu-uploading">
+        <div class="bu-uploading__header">
+            <span>Subiendo libretas…</span>
+            <span class="bu-uploading__pct">{{ uploadPct() }}%</span>
+        </div>
+        <mat-progress-bar mode="determinate" [value]="uploadPct()" />
+
+        <div class="bu-upload-rows">
+            @for (entry of files(); track trackFile($index, entry)) {
+            <div class="bu-upload-row">
+                <mat-icon class="bu-upload-row__icon" [class.bu-upload-row__icon--done]="entry.status === 'done'"
+                    [class.bu-upload-row__icon--error]="entry.status === 'error'"
+                    [class.bu-upload-row__icon--skip]="entry.status === 'skipped'">
+                    {{ entry.status === 'done' ? 'check_circle' :
+                    entry.status === 'error' ? 'cancel' :
+                    entry.status === 'uploading' ? 'pending' :
+                    entry.status === 'skipped' ? 'remove_circle_outline' : 'schedule' }}
+                </mat-icon>
+                <span class="bu-upload-row__name">{{ entry.file.name }}</span>
+                <span class="bu-upload-row__status">
+                    @if (entry.status === 'done') { <span class="bu-status bu-status--ok">Subida</span> }
+                    @else if (entry.status === 'error') { <span class="bu-status bu-status--err"
+                        [matTooltip]="entry.error ?? ''">Error</span> }
+                    @else if (entry.status === 'uploading') { <span
+                        class="bu-status bu-status--loading">Subiendo…</span> }
+                    @else if (entry.status === 'skipped') { <span class="bu-status bu-status--skip">Omitida</span> }
+                    @else { <span class="bu-status bu-status--wait">En cola</span> }
+                </span>
+            </div>
+            }
+        </div>
+    </div>
+    }
+
+    <!-- ══ Fase: done ══════════════════════════════════════════════════════ -->
+    @if (fase() === 'done' && !uploading()) {
+    <div class="bu-result">
+        @if (doneCount() > 0) {
+        <div class="bu-result__hero bu-result__hero--ok">
+            <mat-icon>check_circle</mat-icon>
+            <div>
+                <p class="bu-result__big">{{ doneCount() }} libreta{{ doneCount() !== 1 ? 's' : '' }} subida{{
+                    doneCount() !== 1 ? 's' : '' }}</p>
+                <p class="bu-result__sub">{{ data.periodo_label }}</p>
+            </div>
+        </div>
+        } @else {
+        <div class="bu-result__hero bu-result__hero--err">
+            <mat-icon>error</mat-icon>
+            <div>
+                <p class="bu-result__big">No se subió ninguna libreta</p>
+                <p class="bu-result__sub">Revisa los errores y vuelve a intentarlo</p>
+            </div>
+        </div>
+        }
+
+        @if (errorCount() > 0) {
+        <p class="bu-result__warn">
+            <mat-icon>warning</mat-icon>
+            {{ errorCount() }} archivo{{ errorCount() !== 1 ? 's' : '' }} con error
+        </p>
+        }
+
+        <div class="bu-result-list">
+            @for (entry of files(); track trackFile($index, entry)) {
+            @if (entry.status !== 'idle') {
+            <div class="bu-result-row" [class.bu-result-row--ok]="entry.status === 'done'"
+                [class.bu-result-row--err]="entry.status === 'error'">
+                <mat-icon>
+                    {{ entry.status === 'done' ? 'check_circle' :
+                    entry.status === 'error' ? 'cancel' : 'remove_circle_outline' }}
+                </mat-icon>
+                <div class="bu-result-row__text">
+                    <span class="bu-result-row__file">{{ entry.file.name }}</span>
+                    @if (entry.padreLabel) { <span class="bu-result-row__padre">→ {{ entry.padreLabel }}</span> }
+                    @if (entry.error) { <span class="bu-result-row__error">{{ entry.error }}</span> }
+                </div>
+            </div>
+            }
+            }
+        </div>
+    </div>
+    }
+
+    <!-- ══ Footer con acciones ════════════════════════════════════════════ -->
+    <div class="bu-footer">
+        @if (fase() === 'pick') {
+        <span></span>
+        <button mat-stroked-button (click)="cancelar()">Cancelar</button>
+
+        } @else if (fase() === 'review') {
+        <button mat-stroked-button (click)="cancelar()" [disabled]="uploading()">Cancelar</button>
+        <button mat-flat-button color="primary" class="bu-footer__submit" (click)="subirTodo()"
+            [disabled]="uploading() || listos().length === 0">
+            <mat-icon>upload</mat-icon>
+            Subir {{ listos().length }} libreta{{ listos().length !== 1 ? 's' : '' }}
+        </button>
+
+        } @else {
+        <!-- done -->
+        @if (errorCount() > 0) {
+        <button mat-stroked-button (click)="reset()">
+            <mat-icon>refresh</mat-icon>Reintentar
+        </button>
+        } @else {
+        <span></span>
+        }
+        <button mat-flat-button color="primary" (click)="cerrar()">
+            <mat-icon>check</mat-icon>Cerrar
+        </button>
+        }
+    </div>
+
+</div>

@@ -1,11 +1,74 @@
 @if (registros().length === 0) {
 <div class="empty-state">
   <mat-icon>history</mat-icon>
-  <p>{{ showByAlumno() ? 'Todavía no hay asistencias registradas.' : 'Aún no tienes registros.' }}</p>
+  <p>{{ showByAlumno() ? 'No hay asistencias registradas para este periodo o rango de fechas.' : 'Aún no tienes
+    registros.' }}</p>
 </div>
 } @else if (showByAlumno()) {
 <div class="hist-card">
-  <h3 class="hist-title"><mat-icon>history_toggle_off</mat-icon> Historial del curso</h3>
+  <div class="hist-header-actions mb-4">
+    <mat-form-field appearance="outline" class="date-filter">
+      <mat-label>Ver desde</mat-label>
+      <input matInput [matDatepicker]="pickerDesde" [(ngModel)]="filtroDesde" (dateChange)="onDateRangeChange()" />
+      <mat-datepicker-toggle matIconSuffix [for]="pickerDesde"></mat-datepicker-toggle>
+      <mat-datepicker #pickerDesde></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="date-filter">
+      <mat-label>Hasta</mat-label>
+      <input matInput [matDatepicker]="pickerHasta" [(ngModel)]="filtroHasta" (dateChange)="onDateRangeChange()" />
+      <mat-datepicker-toggle matIconSuffix [for]="pickerHasta"></mat-datepicker-toggle>
+      <mat-datepicker #pickerHasta></mat-datepicker>
+    </mat-form-field>
+
+    <button mat-flat-button class="btn-excel-green" (click)="descargarExcel()">
+      <mat-icon>table_view</mat-icon> Exportar Excel
+    </button>
+  </div>
+
+  @if (fechas().length > 0) {
+  <mat-accordion class="mb-4">
+    <mat-expansion-panel class="mat-elevation-z0 border-panel" [expanded]="false">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon class="panel-icon">calendar_month</mat-icon> Matriz detallada de asistencias
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="hist-table-wrap mt-2">
+        <table class="hist-matrix">
+          <thead>
+            <tr>
+              <th class="sticky-col">Alumno</th>
+              @for (f of fechas(); track f) { <th class="fecha-col">{{ f | date:'dd MMM' }}</th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of porAlumno(); track s.alumnoId) {
+            <tr>
+              <td class="sticky-col">{{ s.nombre }}</td>
+              @for (f of fechas(); track f) {
+              @if (estadoEnFecha(s.alumnoId, f); as reg) {
+              <td class="cell-estado">
+                @let format = formatEstado(reg.estado, reg.observacion);
+                <span class="badge-dot" [class]="badgeFor(format.estado)" [title]="labelFor(format.estado)">
+                  {{ labelFor(format.estado).charAt(0) }}
+                </span>
+              </td>
+              } @else { <td class="cell-estado"><span class="cell-empty">·</span></td> }
+              }
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+  }
+
+  <div class="mb-4 mt-4">
+    <h3 class="hist-title"><mat-icon>assessment</mat-icon> Resumen Estadístico</h3>
+  </div>
+
   <div class="hist-table-wrap">
     <table class="hist-summary">
       <thead>
@@ -26,51 +89,30 @@
           <td class="num">{{ s.presente }}</td>
           <td class="num">{{ s.tardanza }}</td>
           <td class="num">{{ s.ausente }}</td>
-          <td class="num">{{ s.asistenciaPct }}%</td>
-        </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-  @if (fechas().length > 0) {
-  <div class="hist-table-wrap">
-    <table class="hist-matrix">
-      <thead>
-        <tr>
-          <th class="sticky-col">Alumno</th>
-          @for (f of fechas(); track f) { <th class="fecha-col">{{ f | date:'dd MMM' }}</th> }
-        </tr>
-      </thead>
-      <tbody>
-        @for (s of porAlumno(); track s.alumnoId) {
-        <tr>
-          <td class="sticky-col">{{ s.nombre }}</td>
-          @for (f of fechas(); track f) {
-          @if (estadoEnFecha(s.alumnoId, f); as reg) {
-          <td class="cell-estado">
-            <span class="badge-dot" [class]="badgeFor(formatEstado(reg.estado, reg.observacion).estado)"
-              [title]="labelFor(formatEstado(reg.estado, reg.observacion).estado)">
-              {{ labelFor(formatEstado(reg.estado, reg.observacion).estado).charAt(0) }}
-            </span>
+          <td class="num pct-cell" [class.pct-good]="s.asistenciaPct >= 80"
+            [class.pct-mid]="s.asistenciaPct >= 60 && s.asistenciaPct < 80" [class.pct-bad]="s.asistenciaPct < 60">
+            {{ s.asistenciaPct }}%
           </td>
-          } @else { <td class="cell-estado"><span class="cell-empty">·</span></td> }
-          }
         </tr>
         }
       </tbody>
     </table>
   </div>
-  }
 </div>
 } @else {
 <div class="historial">
   @for (a of cronologico(); track a.id) {
-  <div class="historial-row" [class]="badgeFor(formatEstado(a.estado, a.observacion).estado)">
+  @let rowState = formatEstado(a.estado, a.observacion);
+  <div class="historial-row" [class]="badgeFor(rowState.estado)">
     <div class="historial-fecha">
-      <span>{{ a.fecha | date:'dd' }}</span><span>{{ a.fecha | date:'MMM' }}</span>
+      <span class="historial-dia">{{ a.fecha | date:'dd' }}</span>
+      <span class="historial-mes">{{ a.fecha | date:'MMM' }}</span>
     </div>
     <div class="historial-body">
-      <span>{{ labelFor(formatEstado(a.estado, a.observacion).estado) }}</span>
+      <span class="historial-estado">{{ labelFor(rowState.estado) }}</span>
+      @if (rowState.observacion) {
+      <span class="historial-obs">{{ rowState.observacion }}</span>
+      }
     </div>
   </div>
   }

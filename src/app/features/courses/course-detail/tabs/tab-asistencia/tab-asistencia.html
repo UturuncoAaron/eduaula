@@ -1,12 +1,35 @@
-@if (loading()) {
+@if (loading() && viewMode() === 'hoy') {
 <div class="loading-center"><mat-spinner diameter="40" /></div>
 } @else if (auth.isAlumno()) {
 <app-historial-asistencia [registros]="miHistorial()" [showByAlumno]="false" />
 } @else {
-<app-roster-del-dia [roster]="roster()" [canEdit]="canEdit" [saving]="saving()" [(date)]="today"
-  (setEstado)="setEstado($event)" (setObs)="setObs($event)" (marcarTodos)="marcarTodos($event)" (save)="guardar()" />
 
-@if (showHistorialCurso) {
-<app-historial-asistencia [registros]="cursoHistorial()" [showByAlumno]="true" />
-}
+<div class="asis-header-toggle">
+  <mat-button-toggle-group [value]="viewMode()" (change)="onViewChange($event.value)" class="view-toggle">
+    <mat-button-toggle value="hoy">
+      <div class="toggle-content">
+        <mat-icon>how_to_reg</mat-icon> <span>Control de Hoy</span>
+      </div>
+    </mat-button-toggle>
+    <mat-button-toggle value="historial">
+      <div class="toggle-content">
+        <mat-icon>analytics</mat-icon> <span>Reportes e Historial</span>
+      </div>
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<div class="asis-content">
+  @if (viewMode() === 'hoy') {
+  <app-roster-del-dia [roster]="roster()" [canEdit]="canEdit" [saving]="saving()" [date]="today()"
+    (setEstado)="setEstado($event)" (setObs)="setObs($event)" (marcarTodos)="marcarTodos($event)" (save)="guardar()" />
+  } @else {
+  @if (loading() && cursoHistorial().length === 0) {
+  <div class="loading-center"><mat-spinner diameter="40" /></div>
+  } @else {
+  <app-historial-asistencia [registros]="cursoHistorial()" [showByAlumno]="true" [cursoId]="courseId()"
+    [periodoId]="periodoActivoId()" (dateRangeChange)="onDateRangeChange($event)" />
+  }
+  }
+</div>
 }

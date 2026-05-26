@@ -1,41 +1,32 @@
 <header class="asis-toolbar">
   <mat-form-field appearance="outline" class="asis-date">
     <mat-label>Fecha</mat-label>
-    <input
-      matInput
-      type="date"
-      [ngModel]="date()"
-      (ngModelChange)="date.set($event)" />
+    <input matInput type="date" [ngModel]="date()" (ngModelChange)="date.set($event)" />
   </mat-form-field>
 
   @if (canEdit()) {
-    <div class="asis-bulk-actions">
-      <button mat-stroked-button type="button" (click)="marcarTodos.emit('presente')">
-        <mat-icon>done_all</mat-icon> Todos presentes
-      </button>
-      <button mat-stroked-button type="button" (click)="marcarTodos.emit('ausente')">
-        <mat-icon>close</mat-icon> Todos ausentes
-      </button>
-    </div>
+  <div class="asis-bulk-actions">
+    <button mat-stroked-button type="button" (click)="marcarTodos.emit('presente')">
+      <mat-icon>done_all</mat-icon> Todos presentes
+    </button>
+    <button mat-stroked-button type="button" (click)="marcarTodos.emit('falto')">
+      <mat-icon>close</mat-icon> Todos faltosos
+    </button>
+  </div>
 
-    <div class="asis-save">
-      <button
-        mat-flat-button
-        color="primary"
-        type="button"
-        [disabled]="!canSave()"
-        (click)="save.emit()">
-        @if (saving()) {
-          <mat-spinner diameter="18" />
-        } @else {
-          <mat-icon>save</mat-icon>
-        }
-        Guardar
-        @if (dirtyCount() > 0) {
-          ({{ dirtyCount() }})
-        }
-      </button>
-    </div>
+  <div class="asis-save">
+    <button mat-flat-button color="primary" type="button" [disabled]="!canSave()" (click)="save.emit()">
+      @if (saving()) {
+      <mat-spinner diameter="18" />
+      } @else {
+      <mat-icon>save</mat-icon>
+      }
+      Guardar
+      @if (dirtyCount() > 0) {
+      ({{ dirtyCount() }})
+      }
+    </button>
+  </div>
   }
 </header>
 
@@ -54,7 +45,11 @@
   </div>
   <div class="resumen-chip estado-ausente">
     <mat-icon>cancel</mat-icon>
-    <span>{{ resumen().ausente }} ausentes</span>
+    <span>{{ resumen().falto }} faltas</span>
+  </div>
+  <div class="resumen-chip estado-permiso">
+    <mat-icon>verified_user</mat-icon>
+    <span>{{ resumen().justificado }} justificados</span>
   </div>
   <div class="resumen-chip pendiente">
     <mat-icon>help_outline</mat-icon>
@@ -63,45 +58,36 @@
 </section>
 
 @if (roster().length === 0) {
-  <div class="empty-state">
-    <mat-icon>group_off</mat-icon>
-    <p>No hay alumnos matriculados en esta sección.</p>
-  </div>
+<div class="empty-state">
+  <mat-icon>group_off</mat-icon>
+  <p>No hay alumnos matriculados en esta sección.</p>
+</div>
 } @else {
-  <div class="roster">
-    @for (row of roster(); track row.alumnoId) {
-      <div class="roster-row" [class.is-dirty]="row.dirty">
-        <div class="roster-alumno">
-          <mat-icon>person</mat-icon>
-          <span>{{ row.nombre }}</span>
-        </div>
+<div class="roster">
+  @for (row of roster(); track row.alumnoId) {
+  <div class="roster-row" [class.is-dirty]="row.dirty">
+    <div class="roster-alumno">
+      <mat-icon>person</mat-icon>
+      <span>{{ row.nombre }}</span>
+    </div>
 
-        <div class="roster-estados">
-          @for (e of estados; track e.value) {
-            <button
-              type="button"
-              mat-button
-              class="estado-pill"
-              [class.is-active]="row.estado === e.value"
-              [class]="e.class"
-              [disabled]="!canEdit()"
-              (click)="setEstado.emit({ alumnoId: row.alumnoId, estado: e.value })">
-              <mat-icon>{{ e.icon }}</mat-icon>
-              <span>{{ e.label }}</span>
-            </button>
-          }
-        </div>
+    <div class="roster-estados">
+      @for (e of estados; track e.value) {
+      <button type="button" mat-button class="estado-pill" [class.is-active]="row.estado === e.value" [class]="e.class"
+        [disabled]="!canEdit()" (click)="setEstado.emit({ alumnoId: row.alumnoId, estado: e.value })">
+        <mat-icon>{{ e.icon }}</mat-icon>
+        <span>{{ e.label }}</span>
+      </button>
+      }
+    </div>
 
-        @if (canEdit()) {
-          <mat-form-field appearance="outline" class="roster-obs">
-            <input
-              matInput
-              placeholder="Observación (opcional)"
-              [value]="row.observacion"
-              (input)="onObsChange(row.alumnoId, $event)" />
-          </mat-form-field>
-        }
-      </div>
+    @if (canEdit()) {
+    <mat-form-field appearance="outline" class="roster-obs">
+      <input matInput placeholder="Observación (opcional)" [value]="row.observacion"
+        (input)="onObsChange(row.alumnoId, $event)" />
+    </mat-form-field>
     }
   </div>
+  }
+</div>
 }

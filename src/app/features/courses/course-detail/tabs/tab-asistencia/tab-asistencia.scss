@@ -5,7 +5,58 @@
 
 .loading-center {
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 48px;
+  align-items: center;
+  min-height: 200px;
+}
+
+.asis-header-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.view-toggle {
+  border-radius: 8px;
+  background: var(--mat-sys-surface, #fff);
+
+  mat-button-toggle {
+    min-width: 180px;
+
+    .toggle-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+  }
+}
+
+.asis-content {
+  /* Opcional: animación suave al cambiar entre vistas */
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .view-toggle mat-button-toggle {
+    min-width: 140px;
+    font-size: 13px;
+
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
 }

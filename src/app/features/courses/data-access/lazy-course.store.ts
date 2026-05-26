@@ -152,9 +152,12 @@ export class LazyCourseStore {
 
 function normalizeRosterStudent(raw: any): RosterStudent {
   const a = raw?.alumno ?? raw ?? {};
+  const realAlumnoId = raw?.alumno_id ?? raw?.alumno?.id ?? raw?.id ?? '';
+  const enrollmentId = raw?.id !== realAlumnoId ? raw?.id : '';
+
   return {
-    id: String(a.id ?? raw?.alumno_id ?? ''),
-    enrollment_id: String(raw?.id ?? a.enrollment_id ?? ''),
+    id: String(realAlumnoId),
+    enrollment_id: String(enrollmentId ?? a.enrollment_id ?? ''),
     codigo_estudiante: a.codigo_estudiante ?? raw?.codigo_estudiante ?? null,
     nombre: a.nombre ?? raw?.nombre ?? '',
     apellido_paterno: a.apellido_paterno ?? raw?.apellido_paterno ?? '',
@@ -164,7 +167,6 @@ function normalizeRosterStudent(raw: any): RosterStudent {
     inclusivo: Boolean(a.inclusivo ?? raw?.inclusivo),
   };
 }
-
 function groupByWeek(materials: Material[], tasks: Task[], forums: Forum[]): ItemsByWeek {
   const m = new Map<number, Material[]>();
   const t = new Map<number, Task[]>();

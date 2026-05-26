@@ -1,5 +1,12 @@
-:host { display: block; }
+:host {
+  display: block;
+}
 
+.mb-4 {
+  margin-bottom: 24px;
+}
+
+/* ───── ESTADOS VACÍOS ───── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -8,16 +15,21 @@
   gap: 8px;
   padding: 48px;
   color: var(--mat-sys-on-surface-variant, #5b5f72);
+  text-align: center;
 
-  mat-icon { font-size: 32px; width: 32px; height: 32px; }
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
 }
 
-/* ───── Tabla docente ───── */
+/* ───── VISTA DOCENTE (TABLAS) ───── */
 .hist-card {
   background: var(--mat-sys-surface, #fff);
   border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
   border-radius: 12px;
-  padding: 16px;
+  padding: 20px;
   margin-top: 24px;
 }
 
@@ -25,24 +37,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   font-size: 16px;
   font-weight: 600;
-
-  small {
-    font-weight: 400;
-    color: var(--mat-sys-on-surface-variant, #5b5f72);
-    font-size: 12px;
-  }
-}
-
-.hist-subtitle {
-  margin: 20px 0 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--mat-sys-on-surface-variant, #5b5f72);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--mat-sys-on-surface, #1c1d23);
 }
 
 .hist-table-wrap {
@@ -57,8 +55,9 @@ table.hist-matrix {
   border-collapse: collapse;
   font-size: 13px;
 
-  th, td {
-    padding: 8px 10px;
+  th,
+  td {
+    padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
   }
@@ -70,23 +69,34 @@ table.hist-matrix {
     white-space: nowrap;
   }
 
-  td.num, th.num {
+  td.num,
+  th.num {
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
 
-  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
 }
 
-th.estado-presente { color: #2e7d32; }
-th.estado-tardanza { color: #ef6c00; }
-th.estado-ausente  { color: #c62828; }
-th.estado-permiso  { color: #6a1b9a; }
-th.estado-licencia { color: #1565c0; }
+/* Colores para el % de asistencia */
+.pct-cell {
+  font-weight: 600;
 
-.pct-good { color: #2e7d32; font-weight: 600; }
-.pct-mid  { color: #ef6c00; font-weight: 600; }
-.pct-bad  { color: #c62828; font-weight: 700; }
+  &.pct-good {
+    color: #2e7d32;
+  }
+
+  &.pct-mid {
+    color: #ef6c00;
+  }
+
+  &.pct-bad {
+    color: #c62828;
+    font-weight: 700;
+  }
+}
 
 table.hist-matrix {
   .sticky-col {
@@ -95,6 +105,8 @@ table.hist-matrix {
     background: var(--mat-sys-surface, #fff);
     z-index: 1;
     min-width: 180px;
+    font-weight: 500;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
   }
 
   thead .sticky-col {
@@ -110,12 +122,15 @@ table.hist-matrix {
 
   .cell-estado {
     text-align: center;
-    padding: 4px;
+    padding: 6px;
   }
 
-  .cell-empty { color: var(--mat-sys-outline, #c8cad6); }
+  .cell-empty {
+    color: var(--mat-sys-outline, #c8cad6);
+  }
 }
 
+/* Dots interactivos */
 .badge-dot {
   display: inline-flex;
   align-items: center;
@@ -126,35 +141,71 @@ table.hist-matrix {
   font-weight: 700;
   font-size: 11px;
   color: #fff;
+  cursor: help;
+  /* Indica que tiene un tooltip (el title) */
 
-  &.estado-presente { background: #2e7d32; }
-  &.estado-tardanza { background: #ef6c00; }
-  &.estado-ausente  { background: #c62828; }
-  &.estado-permiso  { background: #6a1b9a; }
-  &.estado-licencia { background: #1565c0; }
+  &.estado-presente {
+    background: #2e7d32;
+  }
+
+  &.estado-tardanza {
+    background: #ef6c00;
+  }
+
+  &.estado-ausente {
+    background: #c62828;
+  }
+
+  &.estado-permiso {
+    background: #6a1b9a;
+  }
+
+  &.estado-licencia {
+    background: #1565c0;
+  }
 }
 
-/* ───── Vista alumno (cards) ───── */
+/* ───── VISTA ALUMNO (CARDS CRONOLÓGICAS) ───── */
 .historial {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
 }
 
 .historial-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 12px 16px;
   border-radius: 10px;
   border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
   background: var(--mat-sys-surface, #fff);
+  transition: transform 0.2s ease;
 
-  &.estado-presente { border-left: 4px solid #2e7d32; }
-  &.estado-tardanza { border-left: 4px solid #ef6c00; }
-  &.estado-ausente  { border-left: 4px solid #c62828; }
-  &.estado-permiso  { border-left: 4px solid #6a1b9a; }
-  &.estado-licencia { border-left: 4px solid #1565c0; }
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  &.estado-presente {
+    border-left: 4px solid #2e7d32;
+  }
+
+  &.estado-tardanza {
+    border-left: 4px solid #ef6c00;
+  }
+
+  &.estado-ausente {
+    border-left: 4px solid #c62828;
+  }
+
+  &.estado-permiso {
+    border-left: 4px solid #6a1b9a;
+  }
+
+  &.estado-licencia {
+    border-left: 4px solid #1565c0;
+  }
 }
 
 .historial-fecha {
@@ -164,13 +215,16 @@ table.hist-matrix {
   min-width: 48px;
 
   .historial-dia {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     line-height: 1;
+    color: var(--mat-sys-on-surface, #1c1d23);
   }
+
   .historial-mes {
     font-size: 11px;
     text-transform: uppercase;
+    font-weight: 600;
     color: var(--mat-sys-on-surface-variant, #5b5f72);
   }
 }
@@ -182,5 +236,110 @@ table.hist-matrix {
   min-width: 0;
 }
 
-.historial-estado { font-weight: 600; }
-.historial-obs    { font-size: 12px; color: var(--mat-sys-on-surface-variant, #5b5f72); }
+.historial-estado {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.historial-obs {
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant, #5b5f72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .hist-title {
+    margin: 0;
+  }
+}
+
+.border-panel {
+  border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+  border-radius: 8px !important;
+  background: var(--mat-sys-surface-container-lowest, #fff);
+
+  .panel-icon {
+    margin-right: 8px;
+    color: var(--mat-sys-on-surface-variant, #5b5f72);
+  }
+}
+
+.mt-2 {
+  margin-top: 16px;
+}
+
+/* ... Estilos anteriores permanecen ... */
+
+.hist-header-actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--mat-sys-surface-container-low, #fcfdfe);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+
+  .date-filter {
+    width: 160px;
+
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+
+    // Ocultar espacio de hint
+  }
+
+  .btn-excel-green {
+    margin-left: auto; // Empuja el botón a la derecha
+    background-color: #2e7d32; // Verde Excel
+    color: #fff;
+
+    &:hover {
+      background-color: #266b2a;
+    }
+  }
+}
+
+.border-panel {
+  border: 1px solid var(--mat-sys-outline-variant, #e2e3ec);
+  border-radius: 8px !important;
+  background: var(--mat-sys-surface, #fff);
+
+  .panel-icon {
+    margin-right: 8px;
+    color: var(--mat-sys-on-surface-variant, #5b5f72);
+  }
+}
+
+.mt-2 {
+  margin-top: 16px;
+}
+
+/* Asegurar el sticky de la columna de alumnos dentro del expandible */
+table.hist-matrix {
+  .sticky-col {
+    position: sticky;
+    left: 0;
+    background: var(--mat-sys-surface, #fff);
+    z-index: 1;
+    min-width: 180px;
+    font-weight: 500;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
+  }
+
+  thead .sticky-col {
+    background: var(--mat-sys-surface-container, #f6f7fb);
+    z-index: 2;
+  }
+}
