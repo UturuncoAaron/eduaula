@@ -8,28 +8,66 @@
   <mat-button-toggle-group [value]="viewMode()" (change)="onViewChange($event.value)" class="view-toggle">
     <mat-button-toggle value="hoy">
       <div class="toggle-content">
-        <mat-icon>how_to_reg</mat-icon> <span>Control de Hoy</span>
+        <mat-icon>how_to_reg</mat-icon>
+        <span>Control de Hoy</span>
       </div>
     </mat-button-toggle>
     <mat-button-toggle value="historial">
       <div class="toggle-content">
-        <mat-icon>analytics</mat-icon> <span>Reportes e Historial</span>
+        <mat-icon>analytics</mat-icon>
+        <span>Reportes e Historial</span>
       </div>
     </mat-button-toggle>
   </mat-button-toggle-group>
 </div>
 
 <div class="asis-content">
+
   @if (viewMode() === 'hoy') {
+  <!-- ── CONTROL DEL DÍA ── -->
   <app-roster-del-dia [roster]="roster()" [canEdit]="canEdit" [saving]="saving()" [date]="today()"
     (setEstado)="setEstado($event)" (setObs)="setObs($event)" (marcarTodos)="marcarTodos($event)" (save)="guardar()" />
+
   } @else {
-  @if (loading() && cursoHistorial().length === 0) {
+  <!-- ── HISTORIAL: BARRA DE FILTROS SIEMPRE VISIBLE ── -->
+  <div class="historial-filter-bar">
+    <div class="filter-group">
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Ver desde</mat-label>
+        <input matInput [matDatepicker]="pickerDesde" [ngModel]="filtroDesde()"
+          (ngModelChange)="filtroDesde.set($event)" />
+        <mat-datepicker-toggle matIconSuffix [for]="pickerDesde" />
+        <mat-datepicker #pickerDesde />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Hasta</mat-label>
+        <input matInput [matDatepicker]="pickerHasta" [ngModel]="filtroHasta()"
+          (ngModelChange)="filtroHasta.set($event)" />
+        <mat-datepicker-toggle matIconSuffix [for]="pickerHasta" />
+        <mat-datepicker #pickerHasta />
+      </mat-form-field>
+
+      @if (filtroDesde() || filtroHasta()) {
+      <button mat-icon-button (click)="limpiarFechas()" class="btn-clear" title="Limpiar fechas">
+        <mat-icon>close</mat-icon>
+      </button>
+      }
+    </div>
+
+    <button mat-flat-button class="btn-excel" (click)="exportarExcel()">
+      <mat-icon>table_view</mat-icon>
+      Exportar Excel
+    </button>
+  </div>
+
+  <!-- ── CONTENIDO DEL HISTORIAL ── -->
+  @if (loading() && !historialLoaded()) {
   <div class="loading-center"><mat-spinner diameter="40" /></div>
   } @else {
-  <app-historial-asistencia [registros]="cursoHistorial()" [showByAlumno]="true" [cursoId]="courseId()"
-    [periodoId]="periodoActivoId()" (dateRangeChange)="onDateRangeChange($event)" />
+  <app-historial-asistencia [registros]="cursoHistorial()" [showByAlumno]="true" />
   }
+
   }
 </div>
 }

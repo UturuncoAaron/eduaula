@@ -37,7 +37,7 @@ export class TabDisponibilidad implements OnInit {
   readonly availability = computed(() => this.store.availability());
   readonly myRule = computed(() => {
     const me = this.auth.currentUser();
-    return me ? ruleForRol(me.rol, me.cargo) : null;
+    return me ? ruleForRol(me.rol) : null;
   });
 
   async ngOnInit(): Promise<void> {
@@ -45,11 +45,6 @@ export class TabDisponibilidad implements OnInit {
     if (me) await this.store.loadAvailability(me.id);
   }
 
-  /**
-   * Elimina un único bloque guardado. Si hay citas activas el BE devuelve
-   * 409 con la lista de afectadas; mostramos el modal de cascada y, si el
-   * usuario confirma, reintentamos con `confirm=true`.
-   */
   async onDeleteSlot(av: AccountAvailability): Promise<void> {
     const me = this.auth.currentUser();
     if (!me) return;

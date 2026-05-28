@@ -48,11 +48,6 @@ const MIN_LEAD_MINUTES = 15;
 type StudentOption = StudentSearchResult;
 type ParentOption = ParentSearchResult;
 
-/**
- * Modo del dialog:
- *  - `docente`  → busca alumno (el padre se autocarga del vínculo).
- *  - `admin`    → busca padre/tutor directamente (admin cita sólo a padres).
- */
 export type TeacherRequestDialogMode = 'docente' | 'admin';
 
 export interface TeacherRequestAppointmentDialogData {
@@ -91,8 +86,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     inject<TeacherRequestAppointmentDialogData | null>(MAT_DIALOG_DATA, { optional: true })
     ?? {};
 
-  // Modo efectivo: prioriza el data param. Si no llega, lo inferimos del rol
-  // de sesión (admin→admin, resto→docente).
   readonly dialogMode = computed<TeacherRequestDialogMode>(() => {
     if (this.data.mode) return this.data.mode;
     const me = this.auth.currentUser();
@@ -100,7 +93,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
   });
   readonly isAdminMode = computed(() => this.dialogMode() === 'admin');
 
-  // ── Catálogos ───────────────────────────────────────────────
   readonly tipos: { value: AppointmentTipo; label: string }[] = [
     { value: 'academico', label: 'Académico' },
     { value: 'conductual', label: 'Conductual' },
@@ -109,21 +101,17 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     { value: 'otro', label: 'Otro' },
   ];
 
-  // ── UI state ────────────────────────────────────────────────
   loading = signal(false);
   errorMsg = signal('');
 
-  // Autocomplete alumno (modo docente)
   searching = signal(false);
   students = signal<StudentOption[]>([]);
   selected = signal<StudentOption | null>(null);
 
-  // Autocomplete padre directo (modo admin)
   searchingParent = signal(false);
   parents = signal<ParentOption[]>([]);
   selectedParent = signal<ParentOption | null>(null);
 
-  // Calendario booking de MI propia disponibilidad
   loadingAvailability = signal(false);
   loadingSlots = signal(false);
   weekStart = signal<string>(getCurrentMonday());
@@ -137,7 +125,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     return `${s.padre.nombre} ${s.padre.apellido_paterno}`.trim();
   });
 
-  /** "5° A" o '' si todavía no hay matrícula activa. */
   readonly gradoSeccionLabel = computed<string>(() => {
     const s = this.selected();
     if (!s) return '';
@@ -145,7 +132,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     return parts.join(' ');
   });
 
-  /** Iniciales para el avatar del alumno seleccionado. */
   readonly studentInitials = computed<string>(() => {
     const s = this.selected();
     if (!s) return '';
@@ -162,34 +148,16 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     this.availability().some(a => a.activo),
   );
 
-  /**
-   * Regla del rol del propio docente/admin (define duración + días).
-   * Fallback a la regla de docente si no se puede resolver la sesión,
-   * ya que este dialog sólo se abre desde la vista del docente.
-   */
   readonly myRule = computed(() => {
     const me = this.auth.currentUser();
     if (!me) return APPOINTMENT_RULES.docente;
-    return ruleForRol(me.rol, me.cargo) ?? APPOINTMENT_RULES.docente;
+    return ruleForRol(me.rol) ?? APPOINTMENT_RULES.docente;
   });
-  readonly mySlotMinutes = computed<number>(() => {
-    // Granularidad de la grilla: para roles con duración fija = la duración,
-    // para los demás = el step canónico del rol (15 o 30).
-    return this.myRule().slotMinutes;
-  });
-  readonly myAllowedDays = computed<readonly string[]>(
-    () => this.myRule().allowedDays,
-  );
-  readonly myStartHour = computed<number>(
-    () => ruleToStartHour(this.myRule()),
-  );
-  readonly myEndHour = computed<number>(
-    () => ruleToEndHour(this.myRule()),
-  );
-  /** Máx slots consecutivos permitidos según mi rol. */
-  readonly myMaxConsecutiveSlots = computed<number>(
-    () => ruleToMaxConsecutiveSlots(this.myRule()),
-  );
+  readonly mySlotMinutes = computed<number>(() => this.myRule().slotMinutes);
+  readonly myAllowedDays = computed<readonly string[]>(() => this.myRule().allowedDays);
+  readonly myStartHour = computed<number>(() => ruleToStartHour(this.myRule()));
+  readonly myEndHour = computed<number>(() => ruleToEndHour(this.myRule()));
+  readonly myMaxConsecutiveSlots = computed<number>(() => ruleToMaxConsecutiveSlots(this.myRule()));
   readonly slotCountOptions = computed<number[]>(() => {
     const n = this.myMaxConsecutiveSlots();
     return Array.from({ length: n }, (_, i) => i + 1);
@@ -201,9 +169,7 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     return Math.max(1, Math.round(dur / step));
   });
 
-  // ── Form ────────────────────────────────────────────────────
   form: FormGroup = this.fb.group({
-    // En modo `docente` esto representa al alumno; en modo `admin` al padre.
     studentQuery: [''],
     parentQuery: [''],
     tipo: ['academico', [Validators.required]],
@@ -214,9 +180,7 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     priorNotes: [''],
   });
 
-  // ── Lifecycle ───────────────────────────────────────────────
   async ngOnInit(): Promise<void> {
-    // Marcamos el campo correcto como requerido según el modo.
     if (this.isAdminMode()) {
       this.form.get('parentQuery')!.addValidators(Validators.required);
       this.form.get('parentQuery')!.updateValueAndValidity();
@@ -225,7 +189,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
       this.form.get('studentQuery')!.updateValueAndValidity();
     }
 
-    // Buscador de alumnos — sólo modo docente.
     this.form.get('studentQuery')!.valueChanges.subscribe(async (raw: string | StudentOption | null) => {
       if (this.isAdminMode()) return;
       if (typeof raw !== 'string') return;
@@ -239,7 +202,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
       }
     });
 
-    // Buscador de padres directo — sólo modo admin.
     this.form.get('parentQuery')!.valueChanges.subscribe(async (raw: string | ParentOption | null) => {
       if (!this.isAdminMode()) return;
       if (typeof raw !== 'string') return;
@@ -253,12 +215,8 @@ export class TeacherRequestAppointmentDialog implements OnInit {
       }
     });
 
-    // Cargar mi propia disponibilidad y mis slots ocupados.
     await Promise.all([this.refreshAvailability(), this.refreshSlotsTaken()]);
 
-    // Alinear la duración inicial con la regla del rol del usuario.
-    // Por ejemplo el docente arranca con 45 min (su duración fija) en vez
-    // del 30 min hard-codeado en el form.
     const rule = this.myRule();
     const initialDur = rule.fixedDurationMin ?? rule.slotMinutes;
     if (this.form.value.durationMin !== initialDur) {
@@ -266,7 +224,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     }
   }
 
-  // ── Helpers ─────────────────────────────────────────────────
   displayStudent = (s: StudentOption | string): string => {
     if (!s) return '';
     if (typeof s === 'string') return s;
@@ -314,7 +271,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     this.parents.set([]);
   }
 
-  // ── Booking calendar ────────────────────────────────────────
   async onWeekChange(weekStart: string): Promise<void> {
     this.weekStart.set(weekStart);
     this.clearPicked();
@@ -322,7 +278,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
   }
 
   async onDurationChange(): Promise<void> {
-    // Si cambia la duración, lo agendado deja de tener sentido.
     this.clearPicked();
     await this.refreshSlotsTaken();
   }
@@ -379,7 +334,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     this.form.patchValue({ date: null, time: '' });
   }
 
-  // ── Carga remota ────────────────────────────────────────────
   private async refreshAvailability(): Promise<void> {
     const me = this.auth.currentUser();
     if (!me) { this.availability.set([]); return; }
@@ -406,14 +360,12 @@ export class TeacherRequestAppointmentDialog implements OnInit {
     }
   }
 
-  // ── Submit ──────────────────────────────────────────────────
   cancel(): void { this.ref.close(false); }
 
   async submit(): Promise<void> {
     const me = this.auth.currentUser();
     if (!me) { this.errorMsg.set('Sesión inválida.'); return; }
 
-    // Resolvemos al destinatario según el modo.
     let convocadoAId: string;
     let studentIdForPayload: string | undefined;
     let parentIdForPayload: string | undefined;
@@ -472,9 +424,6 @@ export class TeacherRequestAppointmentDialog implements OnInit {
       this.toastr.success('Cita enviada al padre/tutor — pendiente de su confirmación');
       this.ref.close(true);
     } catch (err: unknown) {
-      // 409 → otro pidió el mismo slot entre el load y el submit. Reset
-      // selección + refrescar slotsTaken para que el usuario vea el
-      // bloque marcado como ocupado.
       if (isConflictError(err)) {
         this.errorMsg.set('Ese horario ya está ocupado. Elige otro slot disponible.');
         this.picked.set(null);

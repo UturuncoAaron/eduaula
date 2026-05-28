@@ -1,120 +1,210 @@
+<!-- ═══════════════════════════════════════════════════
+     VISTA ALUMNO — Cards cronológicas
+═══════════════════════════════════════════════════ -->
+@if (!showByAlumno()) {
 @if (registros().length === 0) {
 <div class="empty-state">
-  <mat-icon>history</mat-icon>
-  <p>{{ showByAlumno() ? 'No hay asistencias registradas para este periodo o rango de fechas.' : 'Aún no tienes
-    registros.' }}</p>
-</div>
-} @else if (showByAlumno()) {
-<div class="hist-card">
-  <div class="hist-header-actions mb-4">
-    <mat-form-field appearance="outline" class="date-filter">
-      <mat-label>Ver desde</mat-label>
-      <input matInput [matDatepicker]="pickerDesde" [(ngModel)]="filtroDesde" (dateChange)="onDateRangeChange()" />
-      <mat-datepicker-toggle matIconSuffix [for]="pickerDesde"></mat-datepicker-toggle>
-      <mat-datepicker #pickerDesde></mat-datepicker>
-    </mat-form-field>
-    <mat-form-field appearance="outline" class="date-filter">
-      <mat-label>Hasta</mat-label>
-      <input matInput [matDatepicker]="pickerHasta" [(ngModel)]="filtroHasta" (dateChange)="onDateRangeChange()" />
-      <mat-datepicker-toggle matIconSuffix [for]="pickerHasta"></mat-datepicker-toggle>
-      <mat-datepicker #pickerHasta></mat-datepicker>
-    </mat-form-field>
-
-    <button mat-flat-button class="btn-excel-green" (click)="descargarExcel()">
-      <mat-icon>table_view</mat-icon> Exportar Excel
-    </button>
-  </div>
-
-  @if (fechas().length > 0) {
-  <mat-accordion class="mb-4">
-    <mat-expansion-panel class="mat-elevation-z0 border-panel" [expanded]="false">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon class="panel-icon">calendar_month</mat-icon> Matriz detallada de asistencias
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-
-      <div class="hist-table-wrap mt-2">
-        <table class="hist-matrix">
-          <thead>
-            <tr>
-              <th class="sticky-col">Alumno</th>
-              @for (f of fechas(); track f) { <th class="fecha-col">{{ f | date:'dd MMM' }}</th> }
-            </tr>
-          </thead>
-          <tbody>
-            @for (s of porAlumno(); track s.alumnoId) {
-            <tr>
-              <td class="sticky-col">{{ s.nombre }}</td>
-              @for (f of fechas(); track f) {
-              @if (estadoEnFecha(s.alumnoId, f); as reg) {
-              <td class="cell-estado">
-                @let format = formatEstado(reg.estado, reg.observacion);
-                <span class="badge-dot" [class]="badgeFor(format.estado)" [title]="labelFor(format.estado)">
-                  {{ labelFor(format.estado).charAt(0) }}
-                </span>
-              </td>
-              } @else { <td class="cell-estado"><span class="cell-empty">·</span></td> }
-              }
-            </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </mat-expansion-panel>
-  </mat-accordion>
-  }
-
-  <div class="mb-4 mt-4">
-    <h3 class="hist-title"><mat-icon>assessment</mat-icon> Resumen Estadístico</h3>
-  </div>
-
-  <div class="hist-table-wrap">
-    <table class="hist-summary">
-      <thead>
-        <tr>
-          <th>Alumno</th>
-          <th class="num">Tot.</th>
-          <th class="num">Pres.</th>
-          <th class="num">Tard.</th>
-          <th class="num">Aus.</th>
-          <th class="num">% Asis.</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (s of porAlumno(); track s.alumnoId) {
-        <tr>
-          <td>{{ s.nombre }}</td>
-          <td class="num">{{ s.total }}</td>
-          <td class="num">{{ s.presente }}</td>
-          <td class="num">{{ s.tardanza }}</td>
-          <td class="num">{{ s.ausente }}</td>
-          <td class="num pct-cell" [class.pct-good]="s.asistenciaPct >= 80"
-            [class.pct-mid]="s.asistenciaPct >= 60 && s.asistenciaPct < 80" [class.pct-bad]="s.asistenciaPct < 60">
-            {{ s.asistenciaPct }}%
-          </td>
-        </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+  <mat-icon>event_busy</mat-icon>
+  <p>Aún no tienes registros de asistencia.</p>
 </div>
 } @else {
-<div class="historial">
+<div class="historial-alumno">
   @for (a of cronologico(); track a.id) {
   @let rowState = formatEstado(a.estado, a.observacion);
-  <div class="historial-row" [class]="badgeFor(rowState.estado)">
-    <div class="historial-fecha">
-      <span class="historial-dia">{{ a.fecha | date:'dd' }}</span>
-      <span class="historial-mes">{{ a.fecha | date:'MMM' }}</span>
+  <div class="asis-card" [attr.data-estado]="rowState.estado">
+    <div class="asis-fecha">
+      <span class="dia">{{ a.fecha | date:'dd' }}</span>
+      <span class="mes">{{ a.fecha | date:'MMM':'':'es' }}</span>
     </div>
-    <div class="historial-body">
-      <span class="historial-estado">{{ labelFor(rowState.estado) }}</span>
+    <div class="asis-info">
+      <span class="asis-estado">{{ labelFor(rowState.estado) }}</span>
       @if (rowState.observacion) {
-      <span class="historial-obs">{{ rowState.observacion }}</span>
+      <span class="asis-obs">{{ rowState.observacion }}</span>
       }
+    </div>
+    <span class="asis-badge" [class]="badgeFor(rowState.estado)">
+      {{ labelFor(rowState.estado).charAt(0) }}
+    </span>
+  </div>
+  }
+</div>
+}
+}
+
+<!-- ═══════════════════════════════════════════════════
+     VISTA DOCENTE — Paneles colapsables
+═══════════════════════════════════════════════════ -->
+@if (showByAlumno()) {
+
+<!-- Estado vacío -->
+@if (registros().length === 0) {
+<div class="empty-state">
+  <div class="empty-icon-wrap">
+    <mat-icon>event_busy</mat-icon>
+  </div>
+  <h3>Sin registros</h3>
+  <p>No hay asistencias para el bimestre o rango de fechas seleccionado.</p>
+</div>
+
+} @else {
+
+<!-- ── Stats rápidas ── -->
+@if (statsGlobales(); as stats) {
+<div class="quick-stats">
+  <div class="stat-pill">
+    <mat-icon>groups</mat-icon>
+    <span>{{ stats.totalAlumnos }} alumnos</span>
+  </div>
+  <div class="stat-pill">
+    <mat-icon>event_note</mat-icon>
+    <span>{{ fechas().length }} {{ fechas().length === 1 ? 'clase' : 'clases' }}</span>
+  </div>
+  <div class="stat-pill" [class.stat-good]="stats.promedioPct >= 80"
+    [class.stat-mid]="stats.promedioPct >= 60 && stats.promedioPct < 80" [class.stat-bad]="stats.promedioPct < 60">
+    <mat-icon>percent</mat-icon>
+    <span>{{ stats.promedioPct }}% promedio</span>
+  </div>
+  @if (stats.ausentes > 0) {
+  <div class="stat-pill stat-warn">
+    <mat-icon>warning_amber</mat-icon>
+    <span>{{ stats.ausentes }} con faltas</span>
+  </div>
+  }
+</div>
+}
+
+<!-- ═══ PANEL 1: Matriz ═══ -->
+<div class="collapse-card" [class.open]="matrizAbierta()">
+  <button class="collapse-header" (click)="toggleMatriz()" type="button">
+    <div class="collapse-title">
+      <span class="collapse-icon-wrap">
+        <mat-icon>calendar_month</mat-icon>
+      </span>
+      <div class="collapse-labels">
+        <span class="collapse-name">Matriz de asistencias</span>
+        <span class="collapse-sub">
+          {{ porAlumno().length }} alumnos · {{ fechas().length }} fechas
+        </span>
+      </div>
+    </div>
+    <div class="collapse-actions">
+      <!-- Leyenda compacta -->
+      <div class="legend" aria-hidden="true">
+        <span class="leg-dot leg-presente" title="Presente">P</span>
+        <span class="leg-dot leg-tardanza" title="Tardanza">T</span>
+        <span class="leg-dot leg-justificado" title="Justificado">J</span>
+        <span class="leg-dot leg-falto" title="Faltó">F</span>
+      </div>
+      <mat-icon class="chevron">
+        {{ matrizAbierta() ? 'expand_less' : 'expand_more' }}
+      </mat-icon>
+    </div>
+  </button>
+
+  @if (matrizAbierta()) {
+  <div class="collapse-body">
+    <div class="matrix-wrap">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th class="sticky-col">Alumno</th>
+            @for (f of fechas(); track f) {
+            <th class="fecha-col">
+              <span class="fecha-day">{{ f | date:'dd' }}</span>
+              <span class="fecha-mon">{{ f | date:'MMM':'':'es' }}</span>
+            </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of porAlumno(); track s.alumnoId) {
+          <tr>
+            <td class="sticky-col alumno-col">{{ s.nombre }}</td>
+            @for (f of fechas(); track f) {
+            @if (estadoEnFecha(s.alumnoId, f); as reg) {
+            <td class="cell-estado">
+              @let fmt = formatEstado(reg.estado, reg.observacion);
+              <span class="dot" [class]="badgeFor(fmt.estado)" [title]="labelFor(fmt.estado)">
+                {{ labelFor(fmt.estado).charAt(0) }}
+              </span>
+            </td>
+            } @else {
+            <td class="cell-estado"><span class="dot-empty">·</span></td>
+            }
+            }
+          </tr>
+          }
+        </tbody>
+      </table>
     </div>
   </div>
   }
 </div>
+
+<!-- ═══ PANEL 2: Resumen ═══ -->
+<div class="collapse-card" [class.open]="resumenAbierto()">
+  <button class="collapse-header" (click)="toggleResumen()" type="button">
+    <div class="collapse-title">
+      <span class="collapse-icon-wrap">
+        <mat-icon>assessment</mat-icon>
+      </span>
+      <div class="collapse-labels">
+        <span class="collapse-name">Resumen estadístico</span>
+        <span class="collapse-sub">Por alumno · bimestre activo</span>
+      </div>
+    </div>
+    <mat-icon class="chevron">
+      {{ resumenAbierto() ? 'expand_less' : 'expand_more' }}
+    </mat-icon>
+  </button>
+
+  @if (resumenAbierto()) {
+  <div class="collapse-body">
+    <div class="table-wrap">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th class="col-name">Alumno</th>
+            <th class="col-num">Tot.</th>
+            <th class="col-num">Pres.</th>
+            <th class="col-num">Tard.</th>
+            <th class="col-num">Just.</th>
+            <th class="col-num">Aus.</th>
+            <th class="col-pct">% Asis.</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of porAlumno(); track s.alumnoId) {
+          <tr>
+            <td class="col-name">{{ s.nombre }}</td>
+            <td class="col-num">{{ s.total }}</td>
+            <td class="col-num text-green">{{ s.presente }}</td>
+            <td class="col-num text-amber">{{ s.tardanza }}</td>
+            <td class="col-num text-blue">{{ s.justificado }}</td>
+            <td class="col-num text-red">{{ s.ausente }}</td>
+            <td class="col-pct">
+              <div class="pct-wrap">
+                <div class="pct-bar">
+                  <div class="pct-fill" [class.fill-good]="s.asistenciaPct >= 80"
+                    [class.fill-mid]="s.asistenciaPct >= 60 && s.asistenciaPct < 80"
+                    [class.fill-bad]="s.asistenciaPct < 60" [style.width.%]="s.asistenciaPct">
+                  </div>
+                </div>
+                <span class="pct-num" [class.pct-good]="s.asistenciaPct >= 80"
+                  [class.pct-mid]="s.asistenciaPct >= 60 && s.asistenciaPct < 80"
+                  [class.pct-bad]="s.asistenciaPct < 60">
+                  {{ s.asistenciaPct }}%
+                </span>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+</div>
+
+}
 }

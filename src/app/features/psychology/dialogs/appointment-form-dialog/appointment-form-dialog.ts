@@ -220,7 +220,7 @@ export class AppointmentFormDialog implements OnInit {
   readonly myRule = computed(() => {
     const me = this.auth.currentUser();
     return me
-      ? (ruleForRol(me.rol, me.cargo) ?? APPOINTMENT_RULES.psicologa)
+      ? (ruleForRol(me.rol) ?? APPOINTMENT_RULES.psicologa)
       : APPOINTMENT_RULES.psicologa;
   });
 

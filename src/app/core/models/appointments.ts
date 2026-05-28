@@ -24,24 +24,14 @@ export type DiaSemana =
     | 'lunes' | 'martes' | 'miercoles'
     | 'jueves' | 'viernes' | 'sabado';
 
-// ── Reglas por rol (mirror del BE) ─────────────────────────────
 export type AppointmentRole =
-    | 'psicologa' | 'docente' | 'director'
-    | 'admin' | 'auxiliar' | 'padre';
+    | 'psicologa' | 'docente' | 'admin' | 'auxiliar' | 'padre';
 
 export interface AppointmentRoleRule {
     role: AppointmentRole;
-    /** Duración fija para este rol. null = el convocador puede elegir múltiples bloques. */
     fixedDurationMin: number | null;
-    /** Duración máxima permitida en minutos. */
     maxDurationMin: number;
-    /** Granularidad del bloque: la duración solicitada debe ser múltiplo de este valor. */
     slotMinutes: number;
-    /**
-     * Cantidad máxima de slots consecutivos que se pueden encadenar en una sola cita.
-     * Espejo de la regla canónica del BE (`MAX_CONSECUTIVE_SLOTS` por defecto = 2).
-     * Para roles con `fixedDurationMin` la cita siempre ocupa 1 slot.
-     */
     maxConsecutiveSlots: number;
     allowedDays: readonly string[];
     defaultHours: { start: string; end: string };
@@ -49,10 +39,6 @@ export interface AppointmentRoleRule {
     label: string;
 }
 
-/**
- * Tope canónico de slots consecutivos por cita: una cita simple = 1 slot,
- * una cita doble = 2 slots. El BE rechaza cualquier cosa por arriba.
- */
 export const MAX_CONSECUTIVE_SLOTS = 2;
 
 const WEEK_FULL: readonly string[] = [
@@ -82,34 +68,23 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         directBooking: false,
         label: 'Docente',
     },
-    director: {
-        role: 'director',
-        fixedDurationMin: null,
-        maxDurationMin: 30,
-        slotMinutes: 15,
-        maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
-        allowedDays: ['martes', 'jueves'],
-        defaultHours: { start: '08:00', end: '15:30' },
-        directBooking: false,
-        label: 'Dirección',
-    },
     admin: {
         role: 'admin',
-        fixedDurationMin: null,
-        maxDurationMin: 30,
+        fixedDurationMin: 15,
+        maxDurationMin: 15,
         slotMinutes: 15,
-        maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
+        maxConsecutiveSlots: 1,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
         directBooking: false,
-        label: 'Administración',
+        label: 'Administrador',
     },
     auxiliar: {
         role: 'auxiliar',
-        fixedDurationMin: null,
-        maxDurationMin: 30,
+        fixedDurationMin: 15,
+        maxDurationMin: 15,
         slotMinutes: 15,
-        maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
+        maxConsecutiveSlots: 1,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
         directBooking: false,
@@ -128,15 +103,8 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     },
 };
 
-export function isDirectorCargo(cargo: string | null | undefined): boolean {
-    if (!cargo) return false;
-    return /director/i.test(cargo);
-}
-
-export function ruleForRol(rol: string, cargo?: string | null): AppointmentRoleRule | null {
-    if (rol === 'admin') {
-        return isDirectorCargo(cargo) ? APPOINTMENT_RULES.director : APPOINTMENT_RULES.admin;
-    }
+export function ruleForRol(rol: string): AppointmentRoleRule | null {
+    if (rol === 'admin') return APPOINTMENT_RULES.admin;
     if (rol === 'psicologa') return APPOINTMENT_RULES.psicologa;
     if (rol === 'docente') return APPOINTMENT_RULES.docente;
     if (rol === 'auxiliar') return APPOINTMENT_RULES.auxiliar;
@@ -144,7 +112,6 @@ export function ruleForRol(rol: string, cargo?: string | null): AppointmentRoleR
     return null;
 }
 
-// ── Helpers de hora ────────────────────────────────────────────
 export function hmToMinutes(hm: string): number {
     const [h, m] = hm.split(':').map(Number);
     return (h ?? 0) * 60 + (m ?? 0);
@@ -161,10 +128,7 @@ export function ruleToEndHour(rule: AppointmentRoleRule): number {
     return m > 0 ? h + 1 : h;
 }
 
-export function ruleToSlotMinutes(
-    rule: AppointmentRoleRule,
-    fallback = 30,
-): number {
+export function ruleToSlotMinutes(rule: AppointmentRoleRule, fallback = 30): number {
     return rule.fixedDurationMin ?? fallback;
 }
 
@@ -174,7 +138,6 @@ export function ruleToMaxConsecutiveSlots(rule: AppointmentRoleRule): number {
     return Math.min(rule.maxConsecutiveSlots, byMin);
 }
 
-// ── Modelos de cita ────────────────────────────────────────────
 export interface Appointment {
     id: string;
     createdById: string;
@@ -271,23 +234,15 @@ export interface SlotTaken {
     estado: AppointmentEstado;
 }
 
-/**
- * Slot calculado por el backend: disponibilidad − ocupados − pasados.
- * `available = false` indica que el slot está ocupado o ya pasó.
- */
 export interface FreeSlot {
-    start: string;   // HH:mm
-    end: string;     // HH:mm
+    start: string;
+    end: string;
     available: boolean;
 }
 
-// ────────────────────────────────────────────────────────────────
-// PAYLOADS NUEVOS (alineados al spec del backend)
-// ────────────────────────────────────────────────────────────────
-
 export interface PostponeAppointmentPayload {
     motivo: string;
-    nuevaFechaHora: string; // ISO
+    nuevaFechaHora: string;
 }
 
 export interface DeriveAppointmentPayload {
@@ -302,7 +257,6 @@ export interface CompleteAppointmentPayload {
     notasPosteriores?: string;
 }
 
-/** Padre disponible cuando psicóloga cita a un alumno con >1 padres. */
 export interface AvailableParent {
     id: string;
     nombre: string;
@@ -310,20 +264,18 @@ export interface AvailableParent {
     apellido_materno: string | null;
 }
 
-/** Respuesta extendida cuando psicóloga crea cita y hay múltiples padres. */
 export interface CreateAppointmentResult extends Appointment {
     availableParents?: AvailableParent[];
 }
 
-/** Slot semanal devuelto por GET /psicologas/:id/disponibilidad. */
 export interface WeeklyAvailabilitySlot {
-    start: string;        // ISO
-    end: string;          // ISO
+    start: string;
+    end: string;
     available: boolean;
 }
 
 export interface WeeklyAvailabilityDay {
-    date: string;         // YYYY-MM-DD
+    date: string;
     diaSemana: DiaSemana;
     diaLabel: string;
     slots: WeeklyAvailabilitySlot[];
@@ -331,12 +283,11 @@ export interface WeeklyAvailabilityDay {
 
 export interface WeeklyAvailability {
     cuentaId: string;
-    weekStart: string;    // YYYY-MM-DD (lunes)
+    weekStart: string;
     slotMinutes: number;
     days: WeeklyAvailabilityDay[];
 }
 
-/** Cita afectada cuando se intenta borrar un bloque con citas activas. */
 export interface AffectedAppointment {
     id: string;
     scheduledAt: string;
@@ -348,7 +299,6 @@ export interface AffectedAppointment {
     student: { id: string; nombre: string; apellido_paterno: string } | null;
 }
 
-/** Cuerpo del 409 cuando se intenta borrar un slot con citas activas. */
 export interface SlotConflictResponse {
     statusCode: 409;
     message: string;
@@ -356,11 +306,6 @@ export interface SlotConflictResponse {
     affected: AffectedAppointment[];
 }
 
-/**
- * Entrada del historial de cambios de estado de una cita. Mirror del
- * `cita_estado_log` del BE (ver `appointment-status-log.entity.ts`).
- * `previousStatus` es `null` en la primera entrada (creación de la cita).
- */
 export interface AppointmentStatusLogEntry {
     id: string;
     appointmentId: string;

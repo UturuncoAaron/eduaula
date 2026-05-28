@@ -65,19 +65,17 @@ export class ScheduleEditor implements OnInit {
   private readonly toastr = inject(ToastService);
   private readonly dialog = inject(MatDialog);
 
-
   // Params + query
   readonly seccionId = this.route.snapshot.paramMap.get('seccionId')!;
-  readonly periodoId = this.route.snapshot.paramMap.get('periodoId')!;
+  readonly anio = this.route.snapshot.queryParamMap.get('anio')
+    ?? String(new Date().getFullYear());
   readonly seccionNombre = this.route.snapshot.queryParamMap.get('seccion') ?? '';
   readonly gradoNombre = this.route.snapshot.queryParamMap.get('grado') ?? '';
-
 
   // Estado base
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly courses = signal<CourseSchedule[]>([]);
-
 
   // Estado editable
   readonly workingCourses = signal<CourseSchedule[]>([]);
@@ -121,7 +119,7 @@ export class ScheduleEditor implements OnInit {
   load(): void {
     this.loading.set(true);
     this.api
-      .get<CourseSchedule[]>(`schedule/section/${this.seccionId}/period/${this.periodoId}`)
+      .get<CourseSchedule[]>(`schedule/section/${this.seccionId}?anio=${this.anio}`)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: r => {
@@ -179,7 +177,7 @@ export class ScheduleEditor implements OnInit {
   }
 
   private openEditDialog(slot: EditableSlot): void {
-    this.editingSlotId.set(slot.id);   // ← resalta el slot en la grilla
+    this.editingSlotId.set(slot.id);
     const courses = this.workingCourses();
     const ref = this.dialog.open<SlotAssignDialog, SlotAssignData, SlotAssignResult | null>(
       SlotAssignDialog,
@@ -215,7 +213,6 @@ export class ScheduleEditor implements OnInit {
       return;
     }
 
-    // action === 'save'
     const newSlot: PendingPayloadSlot = {
       curso_id: res.curso_id,
       dia_semana: res.dia_semana,
@@ -230,24 +227,23 @@ export class ScheduleEditor implements OnInit {
     }
 
     if (res.originalSlotId != null) {
-      // Editando un slot existente — puede haber cambiado de curso.
       this.removeSlot(res.originalCursoId!, res.originalSlotId);
     }
     this.addSlot(newSlot);
   }
 
-  private hasOverlapAnyCourse(slot: PendingPayloadSlot, ignoreSlotId: number | string | null): boolean {
+  private hasOverlapAnyCourse(
+    slot: PendingPayloadSlot,
+    ignoreSlotId: number | string | null,
+  ): boolean {
     const a = toMinutes(slot.hora_inicio);
     const b = toMinutes(slot.hora_fin);
 
     for (const course of this.workingCourses()) {
       for (const s of course.slots) {
-        // Ignorar el slot que estamos editando
         if (s.id === ignoreSlotId && course.curso_id === slot.curso_id) continue;
         if (s.dia_semana !== slot.dia_semana) continue;
-        if (toMinutes(s.hora_inicio) < b && toMinutes(s.hora_fin) > a) {
-          return true;
-        }
+        if (toMinutes(s.hora_inicio) < b && toMinutes(s.hora_fin) > a) return true;
       }
     }
     return false;
@@ -338,7 +334,7 @@ export class ScheduleEditor implements OnInit {
     });
   }
 
-  // ─── Crear cursos sin salir del editor ───────────────────────
+  // ─── Generar cursos desde plantilla ───────────────────────────
   generateCoursesFromTemplate(): void {
     if (this.saving()) return;
     const ref = this.dialog.open(ConfirmDialog, {
@@ -350,14 +346,14 @@ export class ScheduleEditor implements OnInit {
         confirm: 'Generar',
       },
     });
-    ref.afterClosed().subscribe((ok) => {
+    ref.afterClosed().subscribe(ok => {
       if (!ok) return;
       this.saving.set(true);
       this.api
-        .post(`courses/generate/${this.seccionId}/${this.periodoId}`, {})
+        .post(`courses/generate/${this.seccionId}?anio=${this.anio}`, {})
         .pipe(finalize(() => this.saving.set(false)))
         .subscribe({
-          next: (r) => {
+          next: r => {
             const data = r.data as { mensaje?: string } | undefined;
             this.toastr.success(data?.mensaje ?? 'Cursos generados');
             this.load();
@@ -379,9 +375,7 @@ export class ScheduleEditor implements OnInit {
         danger: true,
       },
     });
-    ref.afterClosed().subscribe(ok => {
-      if (ok) this.goBack();
-    });
+    ref.afterClosed().subscribe(ok => { if (ok) this.goBack(); });
   }
 
   private goBack(): void {
@@ -389,7 +383,6 @@ export class ScheduleEditor implements OnInit {
     else this.router.navigate(['/admin/academico']);
   }
 
-  // Bloquea recarga / cierre si hay cambios sin guardar.
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(ev: BeforeUnloadEvent): void {
     if (this.dirtyCourses().size === 0) return;
