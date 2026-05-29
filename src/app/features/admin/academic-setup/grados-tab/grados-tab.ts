@@ -55,8 +55,7 @@ export class GradosTab implements OnInit {
         }).subscribe({
             next: ({ grados, secciones }) => {
                 this.grados.set((grados as any).data ?? []);
-                this.secciones.set((secciones as any).data ?? []);
-                // Seleccionar el primero por defecto
+                this.secciones.set(this.mapSecciones((secciones as any).data ?? []));
                 const lista = (grados as any).data ?? [];
                 if (lista.length) this.selectedGrado.set(lista[0]);
                 this.loading.set(false);
@@ -67,6 +66,22 @@ export class GradosTab implements OnInit {
             },
         });
     }
+    private mapSecciones(raw: any[]): Section[] {
+    return raw.map(s => ({
+        ...s,
+        tutor: s.tutor_id ? {
+            id: s.tutor_id,
+            nombre: s.tutor_nombre,
+            apellido_paterno: s.tutor_apellido,
+        } : null,
+    }));
+}
+
+private reloadSecciones(): void {
+    this.api.get<Section[]>('academic/secciones').subscribe({
+        next: r => this.secciones.set(this.mapSecciones((r as any).data ?? [])),
+    });
+}
 
     selectGrado(g: GradeLevel): void {
         this.selectedGrado.set(g);
@@ -151,9 +166,4 @@ export class GradosTab implements OnInit {
         this.router.navigate(['/admin/academico/cursos']);
     }
 
-    private reloadSecciones(): void {
-        this.api.get<Section[]>('academic/secciones').subscribe({
-            next: r => this.secciones.set((r as any).data ?? []),
-        });
-    }
 }

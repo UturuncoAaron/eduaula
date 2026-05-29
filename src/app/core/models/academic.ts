@@ -9,17 +9,21 @@ export interface Section {
     id: string;
     nombre: string;
     capacidad: number;
+    activo: boolean;
     grado_id: string;
-    tutor_id: string | null;
-    grado?: GradeLevel;
+    grado_nombre?: string;
+    grado_orden?: number;
+    tutor_id?: string | null;
+    tutor_nombre?: string | null;
+    tutor_apellido?: string | null;
     tutor?: {
         id: string;
         nombre: string;
         apellido_paterno: string;
-        apellido_materno: string | null;
+        apellido_materno?: string | null;
     } | null;
+    grado?: GradeLevel;
 }
-
 export interface Period {
     id: number;
     nombre: string;
@@ -33,10 +37,11 @@ export interface Period {
 export interface Course {
     id: string;
     nombre: string;
+    catalogo_id?: string;
     color: string | null;
     docente_id: string | null;
     seccion_id: string;
-    periodo_id: number;
+    anio?: number;
     activo: boolean;
     docente?: {
         id: string;
@@ -47,10 +52,9 @@ export interface Course {
     seccion?: {
         id: string;
         nombre: string;
-        grado?: { id: number; nombre: string };
+        grado?: { id: string; nombre: string; orden?: number };
     };
 }
-
 export interface Matricula {
     id: string;
     activo: boolean;

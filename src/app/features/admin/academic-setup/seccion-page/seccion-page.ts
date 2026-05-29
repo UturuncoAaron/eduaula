@@ -95,21 +95,25 @@ export class SeccionPage implements OnInit {
       alumnos: this.store.rosterRaw$<any>(id),
     }).subscribe({
       next: ({ secciones, periodos, alumnos }) => {
-        const lista: Section[] = (secciones as any).data ?? [];
-        this.seccion.set(lista.find(s => s.id === id) ?? null);
+        const lista: any[] = (secciones as any).data ?? [];
+        const raw = lista.find(s => s.id === id) ?? null;
+        const seccionMapeada = raw ? {
+          ...raw,
+          tutor: raw.tutor_id ? {
+            id: raw.tutor_id,
+            nombre: raw.tutor_nombre,
+            apellido_paterno: raw.tutor_apellido,
+          } : null,
+        } : null;
+
+        this.seccion.set(seccionMapeada);
 
         const activo = ((periodos as any).data as any[]).find(p => p.activo);
         this.anio.set(activo?.anio ?? new Date().getFullYear());
 
         this.alumnos.set(this.mapAlumnos(alumnos ?? []));
         this.loading.set(false);
-
-        // Cursos los cargamos después para no bloquear la UI
         this.loadCursos();
-      },
-      error: () => {
-        this.toastr.error('Error al cargar la sección', 'Error');
-        this.loading.set(false);
       },
     });
 
@@ -190,17 +194,21 @@ export class SeccionPage implements OnInit {
       data: { seccionId: s.id, nombre: s.nombre, capacidad: s.capacidad },
     });
     ref.afterClosed().subscribe(result => {
-      if (!result) return;
-      this.api.patch<any>(`academic/secciones/${s.id}`, {
-        nombre: result.nombre, capacidad: result.capacidad,
-      }).subscribe({
-        next: () => {
-          this.toastr.success('Sección actualizada', 'Éxito');
-          this.seccion.update(sec => sec ? { ...sec, ...result } : sec);
-        },
-        error: err =>
-          this.toastr.error(err.error?.message ?? 'Error', 'Error'),
-      });
+      if (result !== undefined) {
+        this.api.get<any>('academic/secciones').subscribe(r => {
+          const lista: any[] = (r as any).data ?? [];
+          const raw = lista.find(sec => sec.id === s.id) ?? null;
+          const seccionMapeada = raw ? {
+            ...raw,
+            tutor: raw.tutor_id ? {
+              id: raw.tutor_id,
+              nombre: raw.tutor_nombre,
+              apellido_paterno: raw.tutor_apellido,
+            } : null,
+          } : null;
+          this.seccion.set(seccionMapeada ?? s);
+        });
+      }
     });
   }
 
@@ -221,8 +229,17 @@ export class SeccionPage implements OnInit {
     ref.afterClosed().subscribe(result => {
       if (result !== undefined) {
         this.api.get<any>('academic/secciones').subscribe(r => {
-          const lista: Section[] = (r as any).data ?? [];
-          this.seccion.set(lista.find(sec => sec.id === s.id) ?? s);
+          const lista: any[] = (r as any).data ?? [];
+          const raw = lista.find(sec => sec.id === s.id) ?? null;
+          const seccionMapeada = raw ? {
+            ...raw,
+            tutor: raw.tutor_id ? {
+              id: raw.tutor_id,
+              nombre: raw.tutor_nombre,
+              apellido_paterno: raw.tutor_apellido,
+            } : null,
+          } : null;
+          this.seccion.set(seccionMapeada ?? s);
         });
       }
     });

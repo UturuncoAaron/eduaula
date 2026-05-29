@@ -12,11 +12,11 @@ import { of } from 'rxjs';
 import { ApiService } from '../../../core/services/api';
 
 export interface EnrollAlumnoDialogData {
-  seccionId: number;
-  periodoId: number;
+  seccionId: string;
+  anio: number;
   seccionNombre: string;
   gradoNombre: string;
-  alumnosMatriculadosIds: string[];
+  alumnosMatriculadosIds?: string[];
 }
 
 export interface AlumnoSearchResult {
@@ -28,7 +28,6 @@ export interface AlumnoSearchResult {
   numero_documento?: string;
 }
 
-// Extrae array de cualquier nivel de anidamiento del TransformInterceptor
 function unwrapArray(res: any): any[] {
   if (Array.isArray(res)) return res;
   if (Array.isArray(res?.data)) return res.data;
@@ -60,27 +59,31 @@ export class EnrollAlumnoDialog implements OnInit {
   selectedId = signal<string | null>(null);
 
   selectedAlumno = computed(() =>
-    this.results().find(a => a.id === this.selectedId()) ?? null
+    this.results().find(a => a.id === this.selectedId()) ?? null,
   );
 
   ngOnInit() {
     this.searchCtrl.valueChanges.pipe(
       filter(v => typeof v === 'string' && v.trim().length >= 2),
-      tap(() => { this.searching.set(true); this.results.set([]); this.selectedId.set(null); }),
+      tap(() => {
+        this.searching.set(true);
+        this.results.set([]);
+        this.selectedId.set(null);
+      }),
       debounceTime(350),
       distinctUntilChanged(),
       switchMap(q =>
-        this.api.get<any>(`admin/users/alumnos/search?q=${encodeURIComponent(q!.trim())}`).pipe(
+        this.api.get<any>(
+          `admin/users/alumnos/search?q=${encodeURIComponent(q!.trim())}`,
+        ).pipe(
           catchError(() => of({ data: [] })),
-        )
+        ),
       ),
     ).subscribe(res => {
-      // ← Fix: usar unwrapArray para manejar cualquier nivel de anidamiento
       const all = unwrapArray(res);
+      const excluidos = this.data.alumnosMatriculadosIds ?? [];
       this.results.set(
-        all.filter((a: AlumnoSearchResult) =>
-          !this.data.alumnosMatriculadosIds.includes(a.id)
-        )
+        all.filter((a: AlumnoSearchResult) => !excluidos.includes(a.id)),
       );
       this.searching.set(false);
     });
@@ -97,7 +100,7 @@ export class EnrollAlumnoDialog implements OnInit {
     this.api.post('courses/enroll', {
       alumnoId: this.selectedId(),
       seccionId: this.data.seccionId,
-      periodoId: this.data.periodoId,
+      anio: this.data.anio,
     }).subscribe({
       next: () => {
         const a = this.selectedAlumno();
@@ -108,7 +111,11 @@ export class EnrollAlumnoDialog implements OnInit {
         this.ref.close(this.selectedAlumno());
       },
       error: (err) => {
-        this.toastr.error(err?.error?.message ?? 'Error al matricular', 'Cerrar', { duration: 4000 });
+        this.toastr.error(
+          err?.error?.message ?? 'Error al matricular',
+          'Cerrar',
+          { duration: 4000 },
+        );
         this.saving.set(false);
       },
     });

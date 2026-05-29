@@ -45,7 +45,22 @@ export class CreatePeriodoDialog {
       this.form.markAllAsTouched();
       return;
     }
-    this.dialogRef.close(this.form.value);
+
+    const v = this.form.value;
+
+    this.dialogRef.close({
+      nombre: v.nombre,
+      anio: v.anio,
+      bimestre: v.bimestre,
+      fecha_inicio: this.formatDate(v.fecha_inicio!),
+      fecha_fin: this.formatDate(v.fecha_fin!),
+    });
+  }
+  private formatDate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   onCancel(): void {
