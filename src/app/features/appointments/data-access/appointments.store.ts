@@ -19,6 +19,10 @@ import type {
     WeeklyAvailability,
     SlotConflictResponse,
     AppointmentStatusLogEntry,
+    DayBlocksResponse,
+    FollowUpSuggestion,
+    CloseSessionPayload,
+    CloseSessionResult,
 } from '../../../core/models/appointments';
 import type { Psicologa } from '../../../core/models/psychology';
 import type { Child } from '../../../core/models/parent-portal';
@@ -54,6 +58,10 @@ export type {
     AffectedAppointment,
     SlotConflictResponse,
     AvailableParent,
+    DayBlocksResponse,
+    FollowUpSuggestion,
+    CloseSessionPayload,
+    CloseSessionResult,
 } from '../../../core/models/appointments';
 
 export type { Psicologa } from '../../../core/models/psychology';
@@ -406,6 +414,66 @@ export class AppointmentsStore {
         } catch {
             return [];
         }
+    }
+
+    /**
+     * Detalle por bloques + sub-slots de un día (drawer/slide-over). El
+     * calendario macro muestra bloques generales; al abrir un día se
+     * despliegan los sub-slots de 15/30 min.
+     */
+    async getDayBlocks(
+        cuentaId: string,
+        date: string,
+    ): Promise<DayBlocksResponse | null> {
+        try {
+            const res = await firstValueFrom(
+                this.api.get<DayBlocksResponse | { data: DayBlocksResponse }>(
+                    `appointments/day-blocks/${cuentaId}`,
+                    { date } as Record<string, string>,
+                ),
+            );
+            return (res?.data ?? null) as DayBlocksResponse | null;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Plan de Seguimiento Inteligente: fecha recomendada + slots libres
+     * precargados para la próxima sesión de la psicóloga.
+     */
+    async getFollowUpSuggestion(
+        appointmentId: string,
+    ): Promise<FollowUpSuggestion | null> {
+        try {
+            const res = await firstValueFrom(
+                this.api.get<FollowUpSuggestion | { data: FollowUpSuggestion }>(
+                    `appointments/${appointmentId}/seguimiento-sugerido`,
+                ),
+            );
+            return (res?.data ?? null) as FollowUpSuggestion | null;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Cierre clínico en una sola operación: marca la cita realizada, guarda
+     * notas clínicas (ficha privada) y, opcionalmente, crea la cita de
+     * seguimiento. (Botón "Guardar Notas y Programar Seguimiento".)
+     */
+    async closeSession(
+        appointmentId: string,
+        payload: CloseSessionPayload,
+    ): Promise<CloseSessionResult> {
+        const res = await firstValueFrom(
+            this.api.post<CloseSessionResult>(
+                `appointments/${appointmentId}/cerrar-sesion`,
+                payload,
+            ),
+        );
+        await this.loadMine({});
+        return res.data;
     }
 
     // ════════════════════════════════════════════════════════════

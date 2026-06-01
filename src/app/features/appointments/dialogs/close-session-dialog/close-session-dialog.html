@@ -1,0 +1,176 @@
+<div class="cierre-panel">
+  <header class="cierre-header">
+    <div class="cierre-header__title">
+      <mat-icon>task_alt</mat-icon>
+      <div>
+        <h2>Cierre de sesión</h2>
+        <p class="cierre-header__ctx">{{ data.contextLabel }}</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="cancel()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="cierre-body">
+    <!-- ── Sección 1: Notas clínicas ─────────────────────────── -->
+    <section class="cierre-section">
+      <h3 class="cierre-section__title">
+        <span class="step">1</span> Notas clínicas
+        <span class="badge-private">
+          <mat-icon>lock</mat-icon> Privado
+        </span>
+      </h3>
+      <p class="cierre-section__hint">
+        Resumen de la sesión. Se guarda como ficha privada del alumno.
+      </p>
+
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Categoría de la ficha</mat-label>
+        <mat-select [ngModel]="fichaCategoria()" (ngModelChange)="fichaCategoria.set($event)">
+          @for (c of categorias; track c.value) {
+            <mat-option [value]="c.value">{{ c.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Notas clínicas (privadas)</mat-label>
+        <textarea
+          matInput rows="5"
+          [maxlength]="maxNotas"
+          [ngModel]="notasClinicas()"
+          (ngModelChange)="notasClinicas.set($event)"
+          placeholder="Observaciones, avances, plan terapéutico..."></textarea>
+        <mat-hint align="end">{{ trimmedNotasLength }}/{{ maxNotas }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Notas posteriores (resumen visible)</mat-label>
+        <textarea
+          matInput rows="2"
+          [ngModel]="notasPosteriores()"
+          (ngModelChange)="notasPosteriores.set($event)"
+          placeholder="Opcional — resumen administrativo de la cita"></textarea>
+      </mat-form-field>
+    </section>
+
+    <!-- ── Sección 2: Plan de seguimiento inteligente ────────── -->
+    <section class="cierre-section">
+      <h3 class="cierre-section__title">
+        <span class="step">2</span> Plan de seguimiento
+      </h3>
+
+      <div class="cierre-toggle">
+        <mat-slide-toggle
+          [ngModel]="programar()"
+          (ngModelChange)="programar.set($event)">
+          Programar cita de seguimiento
+        </mat-slide-toggle>
+      </div>
+
+      @if (loadingSuggestion()) {
+        <div class="cierre-loading">
+          <mat-spinner diameter="28"></mat-spinner>
+          <span>Calculando fecha recomendada...</span>
+        </div>
+      } @else if (programar()) {
+        @if (suggestion(); as sug) {
+          <div class="cierre-reco">
+            <mat-icon>auto_awesome</mat-icon>
+            <span>
+              Recomendado <strong>{{ intervalLabel() }}</strong> para citas de
+              tipo <strong>{{ sug.tipo }}</strong>.
+            </span>
+          </div>
+
+          <!-- ── Sección 3: Selector de agenda ─────────────── -->
+          <h3 class="cierre-section__title cierre-section__title--sub">
+            <span class="step">3</span> Agenda del seguimiento
+          </h3>
+
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Fecha de la próxima sesión</mat-label>
+            <input matInput type="date"
+              [min]="minDate()"
+              [ngModel]="selectedDate()"
+              (ngModelChange)="onDateChange($event)">
+          </mat-form-field>
+
+          <div class="cierre-duration">
+            <span class="cierre-duration__label">Duración:</span>
+            <mat-button-toggle-group
+              [ngModel]="durationMin()" (ngModelChange)="durationMin.set($event)">
+              <mat-button-toggle [value]="30">30 min</mat-button-toggle>
+              <mat-button-toggle [value]="60">60 min</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <div class="cierre-slots">
+            @if (loadingSlots()) {
+              <div class="cierre-loading">
+                <mat-spinner diameter="24"></mat-spinner>
+                <span>Cargando horarios...</span>
+              </div>
+            } @else if (availableSlots().length === 0) {
+              <p class="cierre-empty">
+                <mat-icon>event_busy</mat-icon>
+                No hay horarios libres ese día. Prueba con otra fecha.
+              </p>
+            } @else {
+              <div class="cierre-slot-grid">
+                @for (s of slots(); track s.start) {
+                  <button type="button"
+                    class="slot-chip"
+                    [class.slot-chip--selected]="selectedSlotStart() === s.start"
+                    [class.slot-chip--busy]="!s.available"
+                    [disabled]="!s.available"
+                    (click)="selectSlot(s)">
+                    {{ s.start }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          @if (parents().length > 0) {
+            <div class="cierre-toggle">
+              <mat-slide-toggle
+                [ngModel]="incluirPadre()"
+                (ngModelChange)="incluirPadre.set($event)">
+                Incluir al padre/tutor (la cita nacerá pendiente)
+              </mat-slide-toggle>
+            </div>
+
+            @if (incluirPadre()) {
+              <mat-form-field appearance="outline" class="full">
+                <mat-label>Padre / Tutor</mat-label>
+                <mat-select [ngModel]="parentId()" (ngModelChange)="parentId.set($event)">
+                  @for (p of parents(); track p.id) {
+                    <mat-option [value]="p.id">
+                      {{ p.nombre }} {{ p.apellido_paterno }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          }
+        } @else {
+          <p class="cierre-empty">
+            <mat-icon>info</mat-icon>
+            No se pudo calcular el seguimiento para esta cita.
+          </p>
+        }
+      }
+    </section>
+  </div>
+
+  <footer class="cierre-footer">
+    <button mat-stroked-button (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary"
+      [disabled]="!canSubmit()" (click)="submit()">
+      <mat-icon>save</mat-icon>
+      {{ programar() ? 'Guardar notas y programar seguimiento' : 'Guardar y cerrar sesión' }}
+    </button>
+  </footer>
+</div>

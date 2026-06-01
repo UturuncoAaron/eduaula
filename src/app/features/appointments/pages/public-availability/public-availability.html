@@ -32,6 +32,17 @@
         <strong>{{ weekRangeLabel() }}</strong>
     </div>
 
+    <div class="public-avail__daystrip">
+        <span class="muted public-avail__daystrip-hint">
+            <mat-icon>touch_app</mat-icon> Ver detalle por sub-slots:
+        </span>
+        @for (d of weekDays(); track d.date) {
+            <button mat-stroked-button type="button" (click)="openDay(d.date)">
+                {{ d.label }}
+            </button>
+        }
+    </div>
+
     @if (loading()) {
         <div class="state-center">
             <mat-spinner diameter="36" />

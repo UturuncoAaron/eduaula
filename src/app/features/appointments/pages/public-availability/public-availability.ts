@@ -7,8 +7,12 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
 
 import { AppointmentsStore } from '../../data-access/appointments.store';
+import {
+    DayBlocksDrawer, DayBlocksDrawerData,
+} from '../../dialogs/day-blocks-drawer/day-blocks-drawer';
 import {
     WeeklyAvailability, WeeklyAvailabilitySlot, DiaSemana,
 } from '../../../../core/models/appointments';
@@ -68,6 +72,7 @@ export class PublicAvailability implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly store = inject(AppointmentsStore);
+    private readonly dialog = inject(MatDialog);
 
     readonly loading = signal(true);
     readonly data = signal<WeeklyAvailability | null>(null);
@@ -126,6 +131,47 @@ export class PublicAvailability implements OnInit {
     });
 
     readonly hasData = computed(() => (this.data()?.days?.length ?? 0) > 0);
+
+    /** Días (lun–vie) de la semana visible, para abrir el detalle de sub-slots. */
+    readonly weekDays = computed<{ date: string; label: string }[]>(() => {
+        const w = this.weekStart();
+        if (!w) return [];
+        const out: { date: string; label: string }[] = [];
+        for (let i = 0; i < 5; i++) {
+            const iso = addDays(w, i);
+            const d = new Date(`${iso}T00:00:00`);
+            out.push({
+                date: iso,
+                label: d.toLocaleDateString('es-PE', {
+                    weekday: 'short', day: '2-digit', month: 'short',
+                }),
+            });
+        }
+        return out;
+    });
+
+    /** Abre el drawer con los bloques + sub-slots del día seleccionado. */
+    openDay(date: string): void {
+        const d = new Date(`${date}T00:00:00`);
+        const dateLabel = d.toLocaleDateString('es-PE', {
+            weekday: 'long', day: '2-digit', month: 'long',
+        });
+        const data: DayBlocksDrawerData = {
+            cuentaId: this.cuentaId(),
+            date,
+            dateLabel,
+            ownerLabel: `${this.rolLabel()} · agenda`,
+        };
+        this.dialog.open(DayBlocksDrawer, {
+            data,
+            width: '460px',
+            maxWidth: '96vw',
+            height: '100vh',
+            position: { right: '0', top: '0' },
+            panelClass: 'form-drawer-pane',
+            autoFocus: false,
+        });
+    }
 
     async ngOnInit(): Promise<void> {
         const id = this.route.snapshot.paramMap.get('id') ?? '';

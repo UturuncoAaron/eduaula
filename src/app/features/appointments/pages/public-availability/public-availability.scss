@@ -123,3 +123,28 @@
         justify-content: space-between;
     }
 }
+
+.public-avail__daystrip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 16px;
+
+    &-hint {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.82rem;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    button {
+        text-transform: capitalize;
+    }
+}

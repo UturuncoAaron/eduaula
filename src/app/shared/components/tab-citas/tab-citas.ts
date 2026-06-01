@@ -39,6 +39,10 @@ import {
   RealizarAppointmentDialog, RealizarDialogData, RealizarDialogResult,
 } from '../../../features/appointments/dialogs/realizar-appointment-dialog/realizar-appointment-dialog';
 import {
+  CloseSessionDialog, CloseSessionDialogData,
+} from '../../../features/appointments/dialogs/close-session-dialog/close-session-dialog';
+import type { CloseSessionPayload } from '../../../core/models/appointments';
+import {
   AppointmentHistoryDialog, AppointmentHistoryDialogData,
 } from '../../../features/appointments/dialogs/appointment-history-dialog/appointment-history-dialog';
 import { parseApiError } from '../../utils/api-errors';
@@ -477,8 +481,13 @@ export class TabCitas {
     }
   }
 
-  // ── Realizar (sólo psicóloga) ──────────────────────────────
+  // ── Realizar / Cierre clínico (psicóloga) ──────────────────
   async realizar(row: Appointment): Promise<void> {
+    // La psicóloga usa el panel de Cierre Clínico (notas + seguimiento
+    // automatizado). El admin conserva el cierre administrativo simple.
+    if (this.esPsicologa()) {
+      return this.cerrarSesionClinica(row);
+    }
     const data: RealizarDialogData = { contextLabel: this.rejectContext(row) };
     const ref = this.dialog.open<RealizarAppointmentDialog, RealizarDialogData, RealizarDialogResult>(
       RealizarAppointmentDialog,
@@ -494,6 +503,40 @@ export class TabCitas {
     } catch (err: unknown) {
       this.toastr.error(
         parseApiError(err, 'No se pudo marcar la cita como realizada'),
+        'Error', { duration: 4000 },
+      );
+    }
+  }
+
+  /** Panel de Cierre Clínico (slide-over) con seguimiento automatizado. */
+  private async cerrarSesionClinica(row: Appointment): Promise<void> {
+    const data: CloseSessionDialogData = {
+      appointment: row,
+      contextLabel: this.rejectContext(row),
+    };
+    const ref = this.dialog.open<CloseSessionDialog, CloseSessionDialogData, CloseSessionPayload>(
+      CloseSessionDialog,
+      {
+        data,
+        width: '520px',
+        maxWidth: '96vw',
+        height: '100vh',
+        position: { right: '0', top: '0' },
+        panelClass: 'form-drawer-pane',
+        autoFocus: false,
+      },
+    );
+    const payload = await firstValueFrom(ref.afterClosed());
+    if (!payload) return;
+    try {
+      const res = await this.apptStore.closeSession(row.id, payload);
+      const msg = res.followUp
+        ? 'Sesión cerrada y seguimiento programado'
+        : 'Sesión cerrada correctamente';
+      this.toastr.success(msg, 'OK', { duration: 3000 });
+    } catch (err: unknown) {
+      this.toastr.error(
+        parseApiError(err, 'No se pudo cerrar la sesión'),
         'Error', { duration: 4000 },
       );
     }

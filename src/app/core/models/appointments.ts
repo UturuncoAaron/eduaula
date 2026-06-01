@@ -35,6 +35,8 @@ export interface AppointmentRoleRule {
     maxConsecutiveSlots: number;
     allowedDays: readonly string[];
     defaultHours: { start: string; end: string };
+    /** Hora límite de atención (HH:mm). null = solo aplica defaultHours. */
+    attentionEnd?: string | null;
     directBooking: boolean;
     label: string;
 }
@@ -59,12 +61,15 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     },
     docente: {
         role: 'docente',
-        fixedDurationMin: 45,
-        maxDurationMin: 45,
-        slotMinutes: 45,
+        // Bloques de 45 min divididos en 3 sub-slots de 15 min: cada cita
+        // ocupa un sub-slot de 15 min (hasta 3 padres por bloque).
+        fixedDurationMin: 15,
+        maxDurationMin: 15,
+        slotMinutes: 15,
         maxConsecutiveSlots: 1,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
+        attentionEnd: '15:30',
         directBooking: false,
         label: 'Docente',
     },
@@ -76,6 +81,7 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         maxConsecutiveSlots: 1,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
+        attentionEnd: '15:30',
         directBooking: false,
         label: 'Administrador',
     },
@@ -319,4 +325,75 @@ export interface AppointmentStatusLogEntry {
         apellido_paterno: string;
         rol: string;
     } | null;
+}
+
+// ── Sub-slots / Drawer (bloques de disponibilidad de un día) ─────────
+export interface DaySubSlot {
+    start: string;
+    end: string;
+    available: boolean;
+    appointmentId: string | null;
+    occupantLabel: string | null;
+}
+
+export interface DayBlock {
+    start: string;
+    end: string;
+    total: number;
+    freeCount: number;
+    subSlots: DaySubSlot[];
+}
+
+export interface DayBlocksResponse {
+    cuentaId: string;
+    rol: string;
+    role: AppointmentRole | null;
+    date: string;
+    diaSemana: DiaSemana | null;
+    slotMinutes: number;
+    fixedDurationMin: number | null;
+    maxConsecutiveSlots: number;
+    attentionEnd: string | null;
+    blocks: DayBlock[];
+}
+
+// ── Cierre clínico + Plan de Seguimiento Inteligente ─────────────────
+export interface FollowUpSuggestion {
+    appointmentId: string;
+    psychologistId: string;
+    studentId: string;
+    tipo: AppointmentTipo;
+    /** Intervalo de recurrencia (días) según el tipo de cita. */
+    intervalDays: number;
+    /** Fecha recomendada (YYYY-MM-DD). */
+    suggestedDate: string;
+    slotMinutes: number;
+    maxConsecutiveSlots: number;
+    defaultDurationMin: number;
+    slots: FreeSlot[];
+    parents: AvailableParent[];
+}
+
+export interface CloseSessionFollowUp {
+    scheduledAt: string;
+    durationMin?: number;
+    incluirPadre?: boolean;
+    parentId?: string;
+    tipo?: AppointmentTipo;
+    motivo?: string;
+}
+
+export type FichaCategoria =
+    | 'conductual' | 'academico' | 'familiar' | 'emocional' | 'otro';
+
+export interface CloseSessionPayload {
+    notasClinicas?: string;
+    fichaCategoria?: FichaCategoria;
+    notasPosteriores?: string;
+    seguimiento?: CloseSessionFollowUp;
+}
+
+export interface CloseSessionResult {
+    closed: Appointment;
+    followUp: Appointment | null;
 }

@@ -1,0 +1,68 @@
+<div class="drawer">
+  <header class="drawer__header">
+    <div class="drawer__title">
+      <mat-icon>view_day</mat-icon>
+      <div>
+        <h2>{{ data.dateLabel }}</h2>
+        @if (data.ownerLabel) {
+          <p class="drawer__sub">{{ data.ownerLabel }}</p>
+        }
+      </div>
+    </div>
+    <button mat-icon-button (click)="close()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="drawer__body">
+    @if (loading()) {
+      <div class="drawer__loading">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Cargando bloques...</span>
+      </div>
+    } @else if (blocks().length === 0) {
+      <div class="drawer__empty">
+        <mat-icon>event_busy</mat-icon>
+        <p>No hay bloques de atención este día.</p>
+      </div>
+    } @else {
+      <p class="drawer__summary">
+        <strong>{{ totalFree() }}</strong> sub-slot(s) libre(s) de
+        {{ slotMinutes() }} min
+      </p>
+
+      @for (block of blocks(); track block.start) {
+        <section class="block">
+          <div class="block__head">
+            <span class="block__range">{{ block.start }} – {{ block.end }}</span>
+            <span class="block__count"
+              [class.block__count--full]="block.freeCount === 0">
+              {{ block.freeCount }}/{{ block.total }} libres
+            </span>
+          </div>
+
+          <div class="block__slots">
+            @for (slot of block.subSlots; track slot.start) {
+              <button type="button"
+                class="subslot"
+                [class.subslot--free]="slot.available"
+                [class.subslot--busy]="!slot.available"
+                [disabled]="!slot.available"
+                (click)="pick(slot)"
+                [matTooltip]="slot.occupantLabel || ''">
+                <span class="subslot__time">{{ slot.start }}</span>
+                <span class="subslot__state">
+                  @if (slot.available) {
+                    Libre
+                  } @else {
+                    {{ slot.occupantLabel || 'Ocupado' }}
+                  }
+                </span>
+              </button>
+            }
+          </div>
+        </section>
+      }
+    }
+  </div>
+</div>
