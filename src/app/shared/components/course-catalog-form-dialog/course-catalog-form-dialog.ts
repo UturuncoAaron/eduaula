@@ -1,7 +1,4 @@
-import {
-  Component, inject, signal, OnInit,
-  ChangeDetectionStrategy,
-} from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,32 +6,33 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { CourseDataService } from '../../../core/services/course-data'; // Tu nuevo servicio
+import { ToastService } from 'ngx-toastr-notifier';
 import type { CourseCatalog } from '../../../core/models/course';
-
-export const AREAS = [
-  'Comunicación', 'Matemática', 'Ciencias Sociales',
-  'Ciencia y Tecnología', 'Inglés', 'Arte y Cultura',
-  'Educación Física', 'Educación Religiosa', 'Tutoría', 'Otro',
-];
-
-export const COLORES = [
-  '#1976d2', '#388e3c', '#f57c00', '#7b1fa2',
-  '#c62828', '#00838f', '#558b2f', '#4527a0',
-  '#2e7d32', '#1565c0', '#6d4c41', '#37474f',
-];
 
 export interface CourseCatalogFormData {
   mode: 'create' | 'edit';
   item?: CourseCatalog;
 }
 
+interface ColorOption {
+  label: string;
+  value: string;
+}
+
 @Component({
   selector: 'app-course-catalog-form-dialog',
   standalone: true,
   imports: [
-    ReactiveFormsModule, MatDialogModule,
-    MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIconModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
   ],
   templateUrl: './course-catalog-form-dialog.html',
   styleUrl: './course-catalog-form-dialog.scss',
@@ -42,20 +40,39 @@ export interface CourseCatalogFormData {
 })
 export class CourseCatalogFormDialog implements OnInit {
   readonly data = inject<CourseCatalogFormData>(MAT_DIALOG_DATA);
-  private ref = inject(MatDialogRef<CourseCatalogFormDialog>);
-  private fb = inject(FormBuilder);
+  private readonly ref = inject(MatDialogRef<CourseCatalogFormDialog>);
+  private readonly fb = inject(FormBuilder);
+  private readonly courseData = inject(CourseDataService); // Inyectamos el servicio con caché
+  private readonly toastr = inject(ToastService);
 
-  saving = signal(false);
-  readonly areas = AREAS;
-  readonly colores = COLORES;
+  readonly saving = signal(false);
 
-  form = this.fb.group({
+  readonly areasCurriculares = signal<string[]>([]);
+  readonly coloresSugeridos = signal<ColorOption[]>([]);
+
+  readonly form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
     area: [null as string | null],
-    color: ['#1976d2'],
+    color: ['', [Validators.required]],
   });
 
   ngOnInit(): void {
+    // forkJoin ahora consume streams cacheables. Si ya se llamaron antes, responden en 0 milisegundos.
+    forkJoin({
+      colores: this.courseData.getAvailableColors().pipe(catchError(() => of([]))),
+      areas: this.courseData.getAvailableAreas().pipe(catchError(() => of([]))),
+    }).subscribe({
+      next: ({ colores, areas }) => {
+        this.coloresSugeridos.set(colores);
+        this.areasCurriculares.set(areas);
+
+        if (this.data.mode === 'create' && colores.length > 0) {
+          this.form.patchValue({ color: colores[0].value });
+        }
+      },
+      error: () => this.toastr.error('Error al sincronizar los catálogos del servidor', 'Cerrar')
+    });
+
     if (this.data.mode === 'edit' && this.data.item) {
       this.form.patchValue({
         nombre: this.data.item.nombre,
@@ -66,9 +83,22 @@ export class CourseCatalogFormDialog implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.ref.close(this.form.value);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const formValues = this.form.value;
+    const payload = {
+      ...formValues,
+      nombre: formValues.nombre?.trim(),
+      area: formValues.area ?? null
+    };
+
+    this.ref.close(payload);
   }
 
-  cancel(): void { this.ref.close(null); }
+  cancel(): void {
+    this.ref.close(null);
+  }
 }

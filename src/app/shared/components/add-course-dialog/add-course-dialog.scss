@@ -1,3 +1,4 @@
+// ── Cabecera del Modal ──────────────────────────────────────
 .dialog-header {
   display: flex;
   align-items: center;
@@ -31,6 +32,7 @@
     font-weight: 700 !important;
     color: #0f172a;
   }
+
   .subtitle {
     margin: 2px 0 0;
     font-size: 0.85rem;
@@ -39,6 +41,7 @@
   }
 }
 
+// ── Cuerpo del Formulario ───────────────────────────────────
 .course-form {
   display: flex;
   flex-direction: column;
@@ -50,73 +53,28 @@
   width: 100%;
 }
 
-/* Grilla de colores */
-.color-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.color-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #475569;
-}
-
-.color-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-
-  @media (min-width: 480px) {
-    grid-template-columns: repeat(8, 1fr);
-  }
-}
-
-.color-btn {
-  height: 38px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  transition: all 0.15s ease;
-
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-    font-weight: 700;
-  }
-
-  &:hover {
-    transform: scale(1.04);
-    filter: brightness(0.95);
-  }
-
-  &.selected {
-    border-color: #0f172a;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8) inset;
-  }
-}
-
-// CORREGIDO: Asegura alineación simétrica de los botones de Material con iconos
+// ── Botones de Acción (Footer Despegado y Alineado) ──────────
 .dialog-actions {
-  padding: 16px 0 0 !important;
+  padding: 16px 24px 20px 24px !important; // Despegado perfecto de bordes e inferior
   border-top: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
+  justify-content: flex-end; // Asegura la alineación simétrica a la derecha
   gap: 8px;
+  margin: 0 !important; // Resetea márgenes por defecto de Material
+
+  button {
+    height: 40px;
+    border-radius: 8px;
+    font-weight: 500;
+  }
 
   button[mat-flat-button] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    
+
     mat-icon {
       margin: 0 !important;
       font-size: 18px;
@@ -126,11 +84,17 @@
   }
 }
 
+// ── Estados de Carga ────────────────────────────────────────
 .spinning {
   animation: spin 1.2s linear infinite;
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }

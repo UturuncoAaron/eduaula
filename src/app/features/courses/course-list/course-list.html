@@ -4,22 +4,23 @@
             <h1>Mis cursos</h1>
             <p class="subtitle">
                 <span class="pulse-indicator"></span>
-                {{ courses().length }} asignaturas activas este período
+                {{ courses().length }} asignaturas activas en este período lectivo
             </p>
         </div>
     </header>
 
     @if (loading()) {
     <div class="state-center">
-        <mat-spinner diameter="36" strokeWidth="3" />
+        <mat-spinner diameter="40" strokeWidth="3" />
     </div>
     } @else {
     <div class="courses-grid">
         @for (course of courses(); track course.id; let i = $index) {
         <article class="course-card" [style.animation-delay]="i * 40 + 'ms'"
-            [style.--course-color]="course.color || '#1e293b'">
+            [style.--course-color]="course.color || '#3B82F6'">
 
-            <div class="course-card__banner" [style.background-color]="course.color || '#1e293b'">
+            <!-- Banner con Degradado de Color Dinámico -->
+            <div class="course-card__banner">
                 <div class="banner-overlay"></div>
                 <div class="banner-main">
                     <div class="icon-box">
@@ -27,69 +28,84 @@
                     </div>
                     <div class="title-box">
                         <h2 class="course-title" [matTooltip]="course.nombre">{{ course.nombre }}</h2>
-                        <span class="course-meta">ID: #{{ course.id.toString().substring(0,5) }}</span>
+
+                        <!-- CORREGIDO: Acceso seguro mediante casting implícito o lectura dinámica de propiedades alternas -->
+                        <span class="course-room">
+                            <mat-icon>door_sliding</mat-icon>
+                            @if (course.seccion; as sec) {
+                            {{ ($any(sec)).grado?.nombre || 'Secundaria' }} — Sección "{{ sec.nombre }}"
+                            } @else {
+                            Aula no asignada
+                            }
+                        </span>
                     </div>
                 </div>
 
                 @if (auth.isDocente()) {
-                <span class="role-badge" matTooltip="Gestión como Docente Titular">
+                <span class="role-badge" matTooltip="Docente Titular">
                     <mat-icon>verified_user</mat-icon> Docente
                 </span>
                 }
             </div>
 
+            <!-- Cuerpo Informativo con Estilo de Tarjeta Premium -->
             <div class="course-card__body">
-                <div class="details-section">
-                    @if (course.seccion) {
-                    <div class="meta-pill">
-                        <mat-icon>door_sliding</mat-icon>
-                        <span>Aula: <strong>{{ course.seccion.nombre }}</strong></span>
-                    </div>
-                    }
+                <div class="info-container">
+                    <!-- Información del Profesor (Solo visible para Alumnos/Padres) -->
                     @if (course.docente && !auth.isDocente()) {
-                    <div class="professor-info">
+                    <div class="professor-row">
                         <div class="avatar-mini">
                             {{ course.docente.nombre.charAt(0) }}{{ course.docente.apellido_paterno.charAt(0) }}
                         </div>
-                        <div class="professor-text">
-                            <span class="role-label">Profesor</span>
-                            <span class="name-value">{{ course.docente.nombre }} {{ course.docente.apellido_paterno
-                                }}</span>
+                        <div class="professor-details">
+                            <span class="label">Profesor</span>
+                            <span class="value">{{ course.docente.nombre }} {{ course.docente.apellido_paterno }}</span>
                         </div>
                     </div>
                     }
+
+                    <!-- Metadatos Vivos -->
+                    <div class="meta-row">
+                        <div class="meta-item">
+                            <mat-icon>calendar_today</mat-icon>
+                            <span>Año: <strong>{{ course.anio }}</strong></span>
+                        </div>
+                        <div class="meta-item">
+                            <mat-icon>toggle_on</mat-icon>
+                            <span>Estado: <strong class="text-success">Activo</strong></span>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Bento Grid de Accesos Rápidos Estilizados -->
                 <nav class="bento-navigation" aria-label="Accesos rápidos del curso">
-                    <a class="bento-tile" [routerLink]="['/cursos', course.id, 'materiales']"
-                        matTooltip="Repositorio de Archivos">
-                        <div class="bento-tile__icon bento-tile__icon--blue"><mat-icon>folder_open</mat-icon></div>
+                    <a class="bento-tile bento-tile--blue" [routerLink]="['/cursos', course.id, 'materiales']"
+                        matTooltip="Archivos de clase">
+                        <mat-icon>folder_open</mat-icon>
                         <span>Materiales</span>
                     </a>
-                    <a class="bento-tile" [routerLink]="['/cursos', course.id, 'actividades']"
-                        matTooltip="Evaluaciones y Tareas">
-                        <div class="bento-tile__icon bento-tile__icon--green"><mat-icon>assignment_turned_in</mat-icon>
-                        </div>
+                    <a class="bento-tile bento-tile--green" [routerLink]="['/cursos', course.id, 'actividades']"
+                        matTooltip="Tareas y Evaluaciones">
+                        <mat-icon>assignment_turned_in</mat-icon>
                         <span>Tareas</span>
                     </a>
-                    <a class="bento-tile" [routerLink]="['/cursos', course.id, 'foro']"
-                        matTooltip="Debates e Interacciones">
-                        <div class="bento-tile__icon bento-tile__icon--amber"><mat-icon>chat_bubble_outline</mat-icon>
-                        </div>
+                    <a class="bento-tile bento-tile--amber" [routerLink]="['/cursos', course.id, 'foro']"
+                        matTooltip="Foro de consultas">
+                        <mat-icon>chat_bubble_outline</mat-icon>
                         <span>Foro</span>
                     </a>
-                    <a class="bento-tile" [routerLink]="['/cursos', course.id, 'contenido']"
+                    <a class="bento-tile bento-tile--purple" [routerLink]="['/cursos', course.id, 'contenido']"
                         matTooltip="Clases síncronas">
-                        <div class="bento-tile__icon bento-tile__icon--purple"><mat-icon>sensors</mat-icon></div>
+                        <mat-icon>sensors</mat-icon>
                         <span>En vivo</span>
                     </a>
                 </nav>
 
+                <!-- Footer unificado -->
                 <div class="card-footer">
-                    <a class="btn-action" [class.btn-action--management]="auth.isDocente()"
-                        [routerLink]="['/cursos', course.id]">
-                        <span>{{ auth.isDocente() ? 'Panel de Gestión' : 'Ingresar a Aula' }}</span>
-                        <mat-icon>keyboard_arrow_right</mat-icon>
+                    <a class="btn-action" [routerLink]="['/cursos', course.id]">
+                        <span>{{ auth.isDocente() ? 'Panel de Gestión' : 'Ingresar al Aula' }}</span>
+                        <mat-icon>arrow_forward</mat-icon>
                     </a>
                 </div>
             </div>
@@ -100,7 +116,7 @@
                 <mat-icon>auto_stories</mat-icon>
             </div>
             <h3>Área de trabajo vacía</h3>
-            <p>No se registran asignaturas matriculadas ni dictadas para el presente ciclo académico.</p>
+            <p>No se registran asignaturas asignadas para el presente ciclo académico.</p>
         </div>
         }
     </div>

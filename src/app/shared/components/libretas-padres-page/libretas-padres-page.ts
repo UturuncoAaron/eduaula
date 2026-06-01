@@ -21,18 +21,11 @@ import { MatBadgeModule } from '@angular/material/badge';
 
 import { ApiService } from '../../../core/services/api';
 import { AuthService } from '../../../core/auth/auth';
-import {
-  NotebookUploadDrawer,
-  type NotebookUploadTarget,
-} from '../notebook-upload-drawer/notebook-upload-drawer';
+import { NotebookUploadDrawer, type NotebookUploadTarget } from '../notebook-upload-drawer/notebook-upload-drawer';
 import { LibretaAuditoriaDialog } from '../libreta-auditoria-dialog/libreta-auditoria-dialog';
 
-// ── Interfaces ──────────────────────────────────────────────────────────────
-
 interface SeccionItem { id: string; nombre: string; grado_nombre: string; }
-
 interface PeriodoItem { id: number; nombre: string; bimestre: number; anio: number; activo: boolean; }
-
 export interface LecturaInfo { vista_en: string; ultima_apertura_en: string; veces_vista: number; }
 
 export interface LibretaConLectura {
@@ -63,8 +56,6 @@ export interface BulkUploadPadresData {
   existentes: Set<string>;
 }
 
-// ── Componente ──────────────────────────────────────────────────────────────
-
 @Component({
   selector: 'app-libretas-padres-page',
   standalone: true,
@@ -80,10 +71,10 @@ export interface BulkUploadPadresData {
   styleUrl: './libretas-padres-page.scss',
 })
 export class LibretasPadresPage implements OnInit {
-  private api = inject(ApiService);
-  private auth = inject(AuthService);
-  private toastr = inject(ToastService);
-  private dialog = inject(MatDialog);
+  private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
+  private readonly toastr = inject(ToastService);
+  private readonly dialog = inject(MatDialog);
 
   readonly drawerRef = viewChild<MatSidenav>('drawer');
   readonly uploadTarget = signal<NotebookUploadTarget | null>(null);
@@ -179,9 +170,6 @@ export class LibretasPadresPage implements OnInit {
     this.expandedId.update(cur => cur === id ? null : id);
   }
 
-  // Usa el mismo endpoint para admin y docente.
-  // El backend ya permite docentes (@Roles('admin','docente')) y
-  // devuelve TODOS los padres — el filtro de sección es opcional.
   private cargarPadres(): void {
     const pid = this.periodoId();
     if (!pid) return;
@@ -216,7 +204,7 @@ export class LibretasPadresPage implements OnInit {
       },
       error: () => {
         this.loadingPadres.set(false);
-        this.toastr.error('No se pudieron cargar los padres', 'Error');
+        this.toastr.error('No se pudieron cargar los apoderados', 'Error');
       },
     });
   }
@@ -236,7 +224,6 @@ export class LibretasPadresPage implements OnInit {
   }
 
   closeDrawer(): void { this.drawerRef()?.close(); this.uploadTarget.set(null); }
-
   onUploaded(): void { this.closeDrawer(); this.cargarPadres(); }
 
   async openBulkUpload(): Promise<void> {

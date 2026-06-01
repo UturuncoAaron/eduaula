@@ -25,11 +25,6 @@ interface DocenteOption {
   especialidad?: string;
 }
 
-interface ColorOption {
-  label: string;
-  value: string;
-}
-
 @Component({
   selector: 'app-add-course-dialog',
   standalone: true,
@@ -55,37 +50,25 @@ export class AddCourseDialog implements OnInit {
 
   catalogo = signal<CourseCatalog[]>([]);
   docentes = signal<DocenteOption[]>([]);
-  colors = signal<ColorOption[]>([]);
   saving = signal(false);
 
   form = this.fb.group({
-    catalogo_id: ['' as string, Validators.required],
-    descripcion: [''],
-    color: ['#1976d2', Validators.required],
+    catalogo_id: ['', Validators.required],
+    descripcion: [null as string | null], // Inicializado en null por defecto
     docente_id: [null as string | null],
   });
 
   ngOnInit(): void {
+    // Ya no consultamos la paleta de colores del backend, ahorrando un request redundante
     forkJoin({
       catalogo: this.api.get<any>('courses/catalog'),
       docentes: this.api.get<any>('admin/users/docentes'),
-      colors: this.api.get<any>('courses/colors'),
     }).subscribe({
-      next: ({ catalogo, docentes, colors }) => {
+      next: ({ catalogo, docentes }) => {
         this.catalogo.set(catalogo?.data ?? []);
         this.docentes.set(docentes?.data?.data ?? docentes?.data ?? []);
-
-        const paleta: ColorOption[] = colors?.data ?? [];
-        this.colors.set(paleta);
-        if (paleta.length) this.form.patchValue({ color: paleta[0].value });
       },
       error: () => this.toastr.error('Error al cargar datos del formulario', 'Cerrar'),
-    });
-
-    // Cuando cambia el curso del catálogo, heredar su color por defecto
-    this.form.controls.catalogo_id.valueChanges.subscribe(id => {
-      const item = this.catalogo().find(c => c.id === id);
-      if (item) this.form.patchValue({ color: item.color }, { emitEvent: false });
     });
   }
 
@@ -99,13 +82,14 @@ export class AddCourseDialog implements OnInit {
     const v = this.form.value;
     const cursoNombre = this.catalogo().find(c => c.id === v.catalogo_id)?.nombre ?? '';
 
+    // Estructura del payload ideal para el endpoint POST de NestJS
     const payload: Record<string, unknown> = {
       catalogo_id: v.catalogo_id,
       seccion_id: this.data.seccionId,
       anio: this.data.anio,
-      color: v.color,
+      descripcion: v.descripcion?.trim() || null, // Se envía null si el usuario no ingresó nada
     };
-    if (v.descripcion?.trim()) payload['descripcion'] = v.descripcion.trim();
+
     if (v.docente_id) payload['docente_id'] = v.docente_id;
 
     this.api.post('courses', payload).subscribe({

@@ -1,144 +1,115 @@
 :host {
     display: block;
-    background-color: #f8fafc;
+    background-color: #f4f6f9;
     min-height: 100vh;
-}
-
-@keyframes entranceUp {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .page-container {
     padding: 32px 40px;
-    max-width: 1340px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
 .page-header {
-    margin-bottom: 28px;
+    margin-bottom: 32px;
     border-bottom: 1px solid #e2e8f0;
     padding-bottom: 20px;
 
     h1 {
         margin: 0;
-        font-size: 1.75rem;
+        font-size: 2rem;
         font-weight: 800;
         color: #0f172a;
-        letter-spacing: -0.025em;
+        letter-spacing: -0.03em;
     }
 
     .subtitle {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin: 6px 0 0;
-        font-size: 0.88rem;
+        margin: 8px 0 0;
+        font-size: 0.9rem;
         color: #64748b;
         font-weight: 500;
     }
 }
 
 .pulse-indicator {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     background-color: #10b981;
     border-radius: 50%;
-    display: inline-block;
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
     0% {
-        transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
     }
 
     70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
     }
 
     100% {
-        transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
 }
 
-.state-center {
-    display: flex;
-    justify-content: center;
-    padding: 80px;
-}
-
+// ── Rejilla de Tarjetas Moderna ──────────────────────────────
 .courses-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 28px;
 }
 
 .course-card {
     background: #ffffff;
-    border-radius: 14px;
+    border-radius: 16px;
     border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    animation: entranceUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-    transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover {
-        transform: translateY(-4px);
-        border-color: var(--course-color); // El borde cambia dinámicamente al color del curso
-        box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.08);
+        transform: translateY(-6px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        border-color: var(--course-color);
     }
 
     &__banner {
         position: relative;
-        padding: 24px 20px;
+        padding: 28px 24px;
         color: #ffffff;
-        overflow: hidden;
+        background-color: var(--course-color);
+        // Crea un sutil degradado transparente sobre el color del banner
+        background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0.15) 100%);
     }
 }
 
-.banner-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.15) 100%);
-    z-index: 1;
-}
-
 .banner-main {
-    position: relative;
-    z-index: 2;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
 }
 
 .icon-box {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(8px);
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
     display: grid;
     place-items: center;
     flex-shrink: 0;
 
     mat-icon {
-        font-size: 22px;
-        width: 22px;
-        height: 22px;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
         color: #ffffff;
     }
 }
@@ -150,200 +121,155 @@
 
 .course-title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    letter-spacing: -0.01em;
 }
 
-.course-meta {
-    display: block;
-    font-size: 0.72rem;
-    opacity: 0.75;
-    margin-top: 3px;
-    font-family: monospace;
+.course-room {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-top: 6px;
+    font-weight: 500;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
 }
 
 .role-badge {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    z-index: 2;
-    font-size: 11px;
+    top: 16px;
+    right: 16px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.03em;
     text-transform: uppercase;
     background: #ffffff;
-    color: #1e293b;
-    padding: 3px 10px;
-    border-radius: 20px;
-    display: inline-flex;
+    color: #0f172a;
+    padding: 4px 10px;
+    border-radius: 30px;
+    display: flex;
     align-items: center;
     gap: 4px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 
     mat-icon {
-        font-size: 13px;
-        width: 13px;
-        height: 13px;
-        color: #16a34a;
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        color: #10b981;
     }
 }
 
+// ── Cuerpo de la Tarjeta ────────────────────────────────────
 .course-card__body {
-    padding: 20px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
     flex: 1;
 }
 
-.details-section {
-    margin-bottom: 16px;
+.info-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 14px;
+    margin-bottom: 18px;
 }
 
-.meta-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    color: #475569;
-    background: #f1f5f9;
-    padding: 5px 12px;
-    border-radius: 8px;
-    width: fit-content;
-
-    mat-icon {
-        font-size: 15px;
-        width: 15px;
-        height: 15px;
-        color: #64748b;
-    }
-}
-
-.professor-info {
+.professor-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 4px 0;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .avatar-mini {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: #e2e8f0;
-    color: #334155;
-    font-size: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 11px;
     font-weight: 700;
     display: grid;
     place-items: center;
-    border: 1.5px solid #ffffff;
-    box-shadow: 0 0 0 1px #cbd5e1;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #e2e8f0;
 }
 
-.professor-text {
+.professor-details {
     display: flex;
     flex-direction: column;
 
-    .role-label {
-        font-size: 0.68rem;
+    .label {
+        font-size: 0.65rem;
         color: #94a3b8;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .name-value {
-        font-size: 0.82rem;
+    .value {
+        font-size: 0.85rem;
         font-weight: 600;
         color: #334155;
     }
 }
 
+.meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #475569;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #94a3b8;
+    }
+
+    .text-success {
+        color: #10b981;
+    }
+}
+
+// ── Grid Bento Optimizado ───────────────────────────────────
 .bento-navigation {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin: 12px 0 20px;
+    gap: 10px;
+    margin: 8px 0 20px;
 }
 
 .bento-tile {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 12px;
-    border-radius: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f8fafc;
     border: 1px solid #f1f5f9;
-    background: #fafafa;
     text-decoration: none;
-    color: #334155;
-    font-size: 0.8rem;
+    color: #475569;
+    font-size: 0.85rem;
     font-weight: 600;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: #ffffff;
-        border-color: #cbd5e1;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        transform: translateY(-1px);
-    }
-
-    __icon {
-        width: 26px;
-        height: 26px;
-        border-radius: 6px;
-        display: grid;
-        place-items: center;
-        flex-shrink: 0;
-
-        mat-icon {
-            font-size: 15px;
-            width: 15px;
-            height: 15px;
-        }
-
-        &--blue {
-            background: #eff6ff;
-            color: #2563eb;
-        }
-
-        &--green {
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-
-        &--amber {
-            background: #fffbeb;
-            color: #d97706;
-        }
-
-        &--purple {
-            background: #f5f3ff;
-            color: #7c3aed;
-        }
-    }
-}
-
-.card-footer {
-    margin-top: auto;
-}
-
-.btn-action {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 11px 16px;
-    border-radius: 10px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    text-decoration: none;
-    background: #0f172a;
-    color: #ffffff;
     transition: all 0.2s ease;
 
     mat-icon {
@@ -354,35 +280,84 @@
     }
 
     &:hover {
-        background: #1e293b;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        background: #ffffff;
+        transform: translateY(-1px);
 
         mat-icon {
-            transform: translateX(3px);
+            transform: scale(1.1);
         }
     }
 
-    &--management {
-        background: var(--course-color); // El botón del docente adopta el color exacto del curso
+    &--blue:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
 
-        &:hover {
-            filter: brightness(0.9); // Efecto hover oscuro unificado
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    &--green:hover {
+        border-color: #10b981;
+        color: #10b981;
+    }
+
+    &--amber:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+    }
+
+    &--purple:hover {
+        border-color: #8b5cf6;
+        color: #8b5cf6;
+    }
+}
+
+// ── Botón de Acción Principal ────────────────────────────────
+.card-footer {
+    margin-top: auto;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    background: #0f172a;
+    color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1);
+    transition: all 0.2s ease;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        transition: transform 0.2s ease;
+    }
+
+    &:hover {
+        background: var(--course-color);
+        box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2);
+
+        mat-icon {
+            transform: translateX(4px);
         }
     }
 }
 
+// ── Estado Vacío ─────────────────────────────────────────────
 .empty-workspace {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 80px 24px;
+    padding: 60px 24px;
     background: #ffffff;
     border-radius: 16px;
-    border: 1px dashed #cbd5e1;
+    border: 2px dashed #cbd5e1;
 
     .empty-icon-wrapper {
-        width: 64px;
-        height: 64px;
+        width: 56px;
+        height: 56px;
         background: #f1f5f9;
         color: #94a3b8;
         border-radius: 50%;
@@ -391,45 +366,33 @@
         margin: 0 auto 16px;
 
         mat-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
+            font-size: 28px;
+            width: 28px;
+            height: 28px;
         }
     }
 
     h3 {
         margin: 0 0 6px;
         color: #1e293b;
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         font-weight: 700;
     }
 
     p {
         margin: 0;
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         color: #64748b;
-        max-width: 400px;
-        margin: 0 auto;
     }
 }
 
 @media (max-width: 768px) {
     .page-container {
-        padding: 20px 16px;
+        padding: 24px 16px;
     }
 
     .courses-grid {
         grid-template-columns: 1fr;
-        gap: 18px;
-    }
-
-    .bento-navigation {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 360px) {
-    .bento-navigation {
-        grid-template-columns: 1fr;
+        gap: 20px;
     }
 }

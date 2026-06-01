@@ -20,26 +20,27 @@ import { CourseService } from '../data-access/course.store';
 })
 export class CourseList implements OnInit {
   readonly auth = inject(AuthService);
-  private csSvc = inject(CourseService);
+  private readonly csSvc = inject(CourseService);
 
-  courses = this.csSvc.courses;
-  loading = this.csSvc.loading;
+  // Signals reactivos mapeados del Store
+  readonly courses = this.csSvc.courses;
+  readonly loading = this.csSvc.loading;
 
+  // Mapa de íconos según áreas y nombres maestros
   readonly iconMap: Record<string, string> = {
-    matemáticas: 'auto_graph',
-    comunicación: 'import_contacts',
+    matemát: 'auto_graph',
+    comunicac: 'import_contacts',
     historia: 'account_balance',
     inglés: 'language',
     ciencia: 'biotech',
     arte: 'architecture',
-    educación: 'fitness_center',
-    computación: 'terminal',
+    física: 'fitness_center',
+    computac: 'terminal',
     religión: 'gavel',
     tutoría: 'psychology',
     música: 'music_note',
   };
 
-  // Retorna el icono basado en coincidencias del nombre
   getIcon(nombre: string): string {
     const lower = nombre.toLowerCase();
     for (const [key, icon] of Object.entries(this.iconMap)) {
@@ -48,8 +49,7 @@ export class CourseList implements OnInit {
     return 'layers';
   }
 
-  // Carga inicial de asignaturas desde el store
-  ngOnInit() {
+  ngOnInit(): void {
     this.csSvc.loadMyCourses().subscribe({ error: () => { } });
   }
 }

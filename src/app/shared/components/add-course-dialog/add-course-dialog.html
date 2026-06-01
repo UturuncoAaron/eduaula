@@ -36,23 +36,6 @@
                 placeholder="Breve descripción del curso..."></textarea>
         </mat-form-field>
 
-        @if (colors().length > 0) {
-        <div class="color-section">
-            <label class="color-label">Color identificador del curso</label>
-            <div class="color-grid">
-                @for (c of colors(); track c.value) {
-                <button type="button" class="color-btn" [style.background]="c.value"
-                    [class.selected]="form.value.color === c.value" (click)="form.patchValue({ color: c.value })"
-                    [title]="c.label">
-                    @if (form.value.color === c.value) {
-                    <mat-icon>check</mat-icon>
-                    }
-                </button>
-                }
-            </div>
-        </div>
-        }
-
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Asignar docente (opcional)</mat-label>
             <mat-icon matPrefix>person</mat-icon>

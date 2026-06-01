@@ -1,16 +1,17 @@
-.dlg-header {
+// ── Cabecera del Modal ──────────────────────────────────────
+.dialog-header {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding-bottom: 16px;
+    gap: 16px;
+    padding: 24px 24px 20px 24px; // Espaciado interno premium
     border-bottom: 1px solid #e2e8f0;
 }
 
-.dlg-icon-wrap {
+.header-icon {
     width: 44px;
     height: 44px;
-    border-radius: 10px;
-    background: #eff6ff;
+    border-radius: 12px;
+    background-color: #eff6ff;
     color: #1976d2;
     display: flex;
     align-items: center;
@@ -18,106 +19,139 @@
     flex-shrink: 0;
 
     mat-icon {
-        font-size: 22px;
-        width: 22px;
-        height: 22px;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
     }
 }
 
-.dlg-header-text {
+.header-text {
     h2 {
         margin: 0 !important;
-        font-size: 1.1rem !important;
+        font-size: 1.25rem !important;
         font-weight: 700 !important;
         color: #0f172a;
+        line-height: 1.2;
+    }
+
+    .subtitle {
+        margin: 4px 0 0;
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
     }
 }
 
-.dlg-sub {
-    margin: 2px 0 0;
-    font-size: 12px;
-    color: #64748b;
+// ── Contenido y Formulario ──────────────────────────────────
+.custom-dialog-content {
+    padding: 24px !important; // Despega el formulario de las paredes del modal
+    margin: 0 !important;
 }
 
-.dlg-form {
+.catalog-form {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding-top: 16px;
+    gap: 24px; // Espacio uniforme entre bloques principales
 }
 
-.full {
+// Controla la distribución de los inputs
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr; // Por defecto uno abajo del otro en móviles
+    gap: 16px;
+
+    @media (min-width: 540px) {
+        grid-template-columns: 1.2fr 0.8fr; // Nombre más ancho que el área en pantallas medianas/grandes
+    }
+}
+
+.full-width {
     width: 100%;
 }
 
-// ── Color picker ──────────────────────────────────────────────
-.color-field {
-    margin-top: 4px;
+// ── Selector de Colores Optimizado ──────────────────────────
+.color-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .color-label {
-    display: block;
-    font-size: 12px;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #475569;
-    margin-bottom: 10px;
+    letter-spacing: 0.3px;
 }
 
 .color-grid {
     display: grid;
+    // Ajuste dinámico de hasta 6 columnas perfectamente alineadas
     grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
+    gap: 12px;
+
+    @media (min-width: 480px) {
+        grid-template-columns: repeat(6, 44px); // Limita el tamaño para que no se estiren de más
+    }
 }
 
 .color-btn {
-    height: 36px;
+    height: 38px;
     border-radius: 8px;
     border: 2px solid transparent;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
-    transition: all 0.15s ease;
+    color: #ffffff;
+    transition: all 0.2s ease;
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        font-weight: 700;
     }
 
     &:hover {
-        transform: scale(1.06);
+        transform: translateY(-2px);
         filter: brightness(0.95);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     &.selected {
         border-color: #0f172a;
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7) inset;
+        transform: scale(1.02);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8) inset;
     }
 }
 
-// ── Actions ───────────────────────────────────────────────────
-.dlg-actions {
-    padding: 16px 0 0 !important;
+// ── Botones de Acción (Footer del Modal) ────────────────────
+.dialog-actions {
+    padding: 16px 24px 24px 24px !important; // Mantiene consistencia de bordes limpios
     border-top: 1px solid #e2e8f0;
-    gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 !important;
 
-    button[mat-flat-button] {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+    button {
+        height: 40px;
+        padding: 0 20px;
+        font-weight: 500;
+        border-radius: 8px;
     }
 }
 
-.spin {
+// Animación de carga
+.spinning {
     animation: spin 1s linear infinite;
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
 }
 
 @keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
     to {
         transform: rotate(360deg);
     }
