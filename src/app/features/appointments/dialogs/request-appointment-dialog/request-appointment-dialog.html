@@ -43,6 +43,10 @@
                     <mat-icon>school</mat-icon>
                     Docente
                 </mat-button-toggle>
+                <mat-button-toggle value="admin">
+                    <mat-icon>badge</mat-icon>
+                    Administración
+                </mat-button-toggle>
             </mat-button-toggle-group>
         </div>
         }
@@ -51,6 +55,7 @@
             <mat-form-field appearance="outline" class="full">
                 <mat-label>
                     @if (professionalKind() === 'docente') { Docente }
+                    @else if (professionalKind() === 'admin') { Administración }
                     @else { Psicóloga }
                 </mat-label>
                 <mat-select formControlName="professionalId" (selectionChange)="onProfessionalChange()">
@@ -62,6 +67,15 @@
                     }
                     @for (d of store.docentes(); track d.id) {
                     <mat-option [value]="d.id">{{ docenteLabel(d) }}</mat-option>
+                    }
+                    } @else if (professionalKind() === 'admin') {
+                    @if (store.loadingAdmins()) {
+                    <mat-option disabled>Cargando administración…</mat-option>
+                    } @else if (store.admins().length === 0) {
+                    <mat-option disabled>No hay personal administrativo disponible</mat-option>
+                    }
+                    @for (a of store.admins(); track a.id) {
+                    <mat-option [value]="a.id">{{ adminLabel(a) }}</mat-option>
                     }
                     } @else {
                     @if (store.loadingPsicologas()) {
@@ -135,8 +149,10 @@
                 [allowedDays]="ruleAllowedDays()" [startHour]="ruleStartHour()" [endHour]="ruleEndHour()"
                 [emptyMessage]="
                     professionalKind() === 'docente'
-                      ? 'Este docente aún no tiene disponibilidad configurada.'
-                      : 'Esta psicóloga aún no tiene disponibilidad configurada.'
+                      ? 'No hay disponibilidad para este docente'
+                      : professionalKind() === 'admin'
+                        ? 'No hay disponibilidad para este administrador'
+                        : 'Esta psicóloga aún no tiene disponibilidad configurada.'
                 " [selectedDia]="picked()?.dia ?? null" [selectedHour]="picked()?.hour ?? null"
                 (pick)="onSlotPick($event)" (weekChange)="onWeekChange($event)" />
 

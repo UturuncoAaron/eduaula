@@ -251,9 +251,20 @@ export class TabCitas {
   }
 
   canRespond(a: Appointment): boolean {
-    return a.estado === 'pendiente' &&
-      this.esConvocadoSinCalendario() &&
-      this.esSoyConvocado(a);
+    if (a.estado !== 'pendiente') return false;
+    if (!this.esConvocadoSinCalendario()) return false; // solo padre/alumno
+    const me = String(this.auth.currentUser()?.id ?? '');
+    if (!me) return false;
+    // Si yo convoqué la cita, espero la respuesta del otro lado.
+    if (String(a.createdById) === me) return false;
+
+    // Spec (Aarón, 2026-06): si la cita tiene un padre/tutor vinculado
+    // (cita mixta o aplazada por la psicóloga), SOLO el padre confirma o
+    // rechaza — nunca el alumno convocado.
+    if (a.parentId) {
+      return String(a.parentId) === me;
+    }
+    return this.esSoyConvocado(a);
   }
 
   /**

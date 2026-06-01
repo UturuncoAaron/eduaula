@@ -38,6 +38,15 @@ export interface DocenteSelectItem {
     foto_url: string | null;
 }
 
+// ── Tipo Administrador/Directivo para el select de profesionales ──
+export interface AdminSelectItem {
+    id: string;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+    cargo: string | null;
+}
+
 // ── Re-exports — para componentes que importan tipos desde el store
 export type {
     Appointment,
@@ -84,6 +93,7 @@ export class AppointmentsStore {
     readonly appointments = signal<Appointment[]>([]);
     readonly availability = signal<AccountAvailability[]>([]);
     readonly docentes = signal<DocenteSelectItem[]>([]);
+    readonly admins = signal<AdminSelectItem[]>([]);
     readonly psicologas = signal<Psicologa[]>([]);
     readonly children = signal<Child[]>([]);
 
@@ -91,6 +101,7 @@ export class AppointmentsStore {
     readonly loadingAppointments = signal(false);
     readonly loadingAvailability = signal(false);
     readonly loadingDocentes = signal(false);
+    readonly loadingAdmins = signal(false);
     readonly loadingPsicologas = signal(false);
     readonly loadingChildren = signal(false);
 
@@ -100,6 +111,7 @@ export class AppointmentsStore {
         this.appointments.set([]);
         this.availability.set([]);
         this.docentes.set([]);
+        this.admins.set([]);
         this.psicologas.set([]);
         this.children.set([]);
         this.error.set(null);
@@ -577,6 +589,28 @@ export class AppointmentsStore {
             this.docentes.set([]);
         } finally {
             this.loadingDocentes.set(false);
+        }
+    }
+
+    /**
+     * Carga los administradores/directivos con los que se puede agendar
+     * (admin incluye director, secretaría, etc.). Endpoint role-aware
+     * `appointments/admins/bookable`.
+     */
+    async loadAdmins(): Promise<void> {
+        if (this.loadingAdmins()) return;
+        this.loadingAdmins.set(true);
+        try {
+            const res = await firstValueFrom(
+                this.api.get<AdminSelectItem[] | { data: AdminSelectItem[] }>(
+                    'appointments/admins/bookable',
+                ),
+            );
+            this.admins.set(unwrapList<AdminSelectItem>(res.data));
+        } catch {
+            this.admins.set([]);
+        } finally {
+            this.loadingAdmins.set(false);
         }
     }
 

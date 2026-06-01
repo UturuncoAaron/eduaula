@@ -38,7 +38,7 @@ import {
 import { Psicologa, Docente } from '../../../../core/models/psychology';
 import { Child } from '../../../../core/models/parent-portal';
 
-export type ProfessionalKind = 'psicologa' | 'docente';
+export type ProfessionalKind = 'psicologa' | 'docente' | 'admin';
 
 export interface RequestAppointmentDialogData {
     mode: 'alumno' | 'padre';
@@ -139,6 +139,10 @@ export class RequestAppointmentDialog implements OnInit {
             const d = this.store.docentes().find(x => x.id === id);
             return d ? this.docenteLabel(d) : '';
         }
+        if (this.professionalKind() === 'admin') {
+            const a = this.store.admins().find(x => x.id === id);
+            return a ? this.adminLabel(a) : '';
+        }
         const p = this.store.psicologas().find(x => x.id === id);
         return p ? this.psicologaLabel(p) : '';
     });
@@ -155,9 +159,10 @@ export class RequestAppointmentDialog implements OnInit {
     readonly effectiveRule = computed<AppointmentRoleRule>(() => {
         const remote = this.activeRule();
         if (remote) return remote;
-        return this.professionalKind() === 'docente'
-            ? APPOINTMENT_RULES.docente
-            : APPOINTMENT_RULES.psicologa;
+        const kind = this.professionalKind();
+        if (kind === 'docente') return APPOINTMENT_RULES.docente;
+        if (kind === 'admin') return APPOINTMENT_RULES.admin;
+        return APPOINTMENT_RULES.psicologa;
     });
 
     /** Tamaño de slot en minutos para la grilla y `buildBookingSlots`. */
@@ -243,10 +248,17 @@ export class RequestAppointmentDialog implements OnInit {
 
     // ── Catálogos: psicólogas / docentes ───────────────────────
     private async loadProfessionalsForKind(): Promise<void> {
-        if (this.professionalKind() === 'docente') {
+        const kind = this.professionalKind();
+        if (kind === 'docente') {
             if (this.store.docentes().length === 0) await this.store.loadDocentes();
             if (this.store.docentes().length === 1 && !this.form.value.professionalId) {
                 this.form.patchValue({ professionalId: this.store.docentes()[0].id });
+                await this.refreshProfessionalCalendar();
+            }
+        } else if (kind === 'admin') {
+            if (this.store.admins().length === 0) await this.store.loadAdmins();
+            if (this.store.admins().length === 1 && !this.form.value.professionalId) {
+                this.form.patchValue({ professionalId: this.store.admins()[0].id });
                 await this.refreshProfessionalCalendar();
             }
         } else {
@@ -282,6 +294,11 @@ export class RequestAppointmentDialog implements OnInit {
         const esp = d.especialidad ? ` · ${d.especialidad}` : '';
         const tut = d.tutoria_actual ? ` · Tutor ${d.tutoria_actual.seccion_label}` : '';
         return `${d.nombre} ${d.apellido_paterno} ${d.apellido_materno ?? ''}`.trim() + esp + tut;
+    }
+
+    adminLabel(a: { nombre: string; apellido_paterno: string; apellido_materno: string | null; cargo: string | null }): string {
+        const cargo = a.cargo ? ` · ${a.cargo}` : '';
+        return `${a.nombre} ${a.apellido_paterno} ${a.apellido_materno ?? ''}`.trim() + cargo;
     }
 
     // ── Cambios de control ─────────────────────────────────────
