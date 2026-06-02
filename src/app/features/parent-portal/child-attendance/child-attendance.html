@@ -1,155 +1,80 @@
-<app-page-header
-    title="Asistencia del alumno"
-    subtitle="Seguimiento de asistencia general y clases en vivo"
+<app-page-header title="Asistencia del estudiante" subtitle="Registro general de asistencia por bimestre"
     backRoute="/portal-padres" />
 
-<!-- Tab toggle -->
-<div class="tab-bar">
-    <mat-button-toggle-group [value]="tab()" (change)="setTab($event.value)" hideSingleSelectionIndicator>
-        <mat-button-toggle value="general">
-            <mat-icon>how_to_reg</mat-icon>
-            <span>Asistencia General</span>
-        </mat-button-toggle>
-        <mat-button-toggle value="vivo">
-            <mat-icon>fact_check</mat-icon>
-            <span>Por Curso</span>
-        </mat-button-toggle>
-    </mat-button-toggle-group>
+@if (loading()) {
+<div class="state-center">
+    <mat-spinner diameter="36" />
+    <p>Cargando asistencia...</p>
 </div>
 
-<!-- ═══ TAB: Asistencia General ════════════════════════════════════════════ -->
-@if (tab() === 'general') {
-    @if (loadingGeneral()) {
-        <div class="state-center">
-            <mat-spinner diameter="36" />
-            <p>Cargando asistencia general...</p>
-        </div>
-    } @else if (!resumen()) {
-        <app-empty-state
-            icon="event"
-            title="Sin registros"
-            message="No hay registros de asistencia general para este alumno." />
-    } @else {
-        <!-- Resumen cards -->
-        <div class="summary-grid">
-            <div class="summary-card summary-card--main">
-                <span class="summary-label">Asistencia</span>
-                <span class="summary-value" [style.color]="resumen()!.porcentaje !== null && resumen()!.porcentaje! >= 90 ? '#16a34a' : resumen()!.porcentaje !== null && resumen()!.porcentaje! >= 75 ? '#ca8a04' : '#dc2626'">
-                    {{ resumen()!.porcentaje !== null ? (resumen()!.porcentaje! | number:'1.0-0') + '%' : '—' }}
-                </span>
-            </div>
-            <div class="summary-card">
-                <span class="summary-label">Total</span>
-                <span class="summary-value">{{ resumen()!.total }}</span>
-            </div>
-            <div class="summary-card" style="border-left: 3px solid #16a34a;">
-                <span class="summary-label">Asistió</span>
-                <span class="summary-value" style="color:#16a34a">{{ resumen()!.asistio }}</span>
-            </div>
-            <div class="summary-card" style="border-left: 3px solid #ca8a04;">
-                <span class="summary-label">Tardanza</span>
-                <span class="summary-value" style="color:#ca8a04">{{ resumen()!.tardanza }}</span>
-            </div>
-            <div class="summary-card" style="border-left: 3px solid #2563eb;">
-                <span class="summary-label">Justificado</span>
-                <span class="summary-value" style="color:#2563eb">{{ resumen()!.justificado }}</span>
-            </div>
-            <div class="summary-card" style="border-left: 3px solid #dc2626;">
-                <span class="summary-label">Falta</span>
-                <span class="summary-value" style="color:#dc2626">{{ resumen()!.falta }}</span>
-            </div>
-        </div>
+} @else if (allDetalle().length === 0) {
+<app-empty-state icon="event_busy" title="Sin registros" message="No hay registros de asistencia para este alumno." />
 
-        <!-- Detalle diario -->
-        @if (detalle().length) {
-            <h3 class="sub-title">Detalle diario</h3>
-            <div class="detail-list">
-                @for (d of detalle(); track d.id) {
-                    <div class="detail-row">
-                        <span class="detail-date">{{ d.fecha | date:'dd/MM/yyyy' }}</span>
-                        <span class="detail-periodo">{{ d.periodo_nombre }}</span>
-                        <span class="estado-badge"
-                              [style.color]="estadoColor(d.estado)"
-                              [style.background]="estadoBg(d.estado)">
-                            <mat-icon>{{ estadoIcon(d.estado) }}</mat-icon>
-                            {{ estadoLabel(d.estado) }}
-                        </span>
-                        <span class="detail-obs">{{ d.observacion || '' }}</span>
-                    </div>
-                }
-            </div>
-        }
+} @else {
+
+<!-- Chips de bimestre -->
+<div class="bim-chips">
+    @for (bim of bimestres(); track bim) {
+    <button class="bim-chip" [class.bim-chip--active]="selectedBimestre() === bim" (click)="selectBimestre(bim)">
+        Bimestre {{ bim }}°
+    </button>
     }
+</div>
+
+<!-- Tarjetas de resumen -->
+@if (resumenFiltrado(); as r) {
+<div class="summary-grid">
+    <div class="summary-card summary-card--main">
+        <span class="summary-label">Asistencia</span>
+        <span class="summary-value" [style.color]="porcentajeColor(r.porcentaje)">
+            {{ r.porcentaje !== null ? (r.porcentaje | number:'1.0-1') + '%' : '—' }}
+        </span>
+    </div>
+    <div class="summary-card">
+        <span class="summary-label">Total días</span>
+        <span class="summary-value">{{ r.total }}</span>
+    </div>
+    <div class="summary-card summary-card--green">
+        <span class="summary-label">Asistió</span>
+        <span class="summary-value">{{ r.asistio }}</span>
+    </div>
+    <div class="summary-card summary-card--amber">
+        <span class="summary-label">Tardanza</span>
+        <span class="summary-value">{{ r.tardanza }}</span>
+    </div>
+    <div class="summary-card summary-card--blue">
+        <span class="summary-label">Justificado</span>
+        <span class="summary-value">{{ r.justificado }}</span>
+    </div>
+    <div class="summary-card summary-card--red">
+        <span class="summary-label">Falta</span>
+        <span class="summary-value">{{ r.falta }}</span>
+    </div>
+</div>
 }
 
-<!-- ═══ TAB: Clases en Vivo ════════════════════════════════════════════════ -->
-@if (tab() === 'vivo') {
-    @if (loadingVivo()) {
-        <div class="state-center">
-            <mat-spinner diameter="36" />
-            <p>Cargando asistencia por curso...</p>
-        </div>
-    } @else if (records().length === 0) {
-        <app-empty-state
-            icon="fact_check"
-            title="Sin registros"
-            message="No hay registros de asistencia por curso." />
-    } @else {
-
-        <div class="summary-grid">
-            <div class="summary-card summary-card--main">
-                <span class="summary-label">Asistencia</span>
-                <span class="summary-value" [style.color]="porcentajeVivo() >= 90 ? '#16a34a' : porcentajeVivo() >= 75 ? '#ca8a04' : '#dc2626'">
-                    {{ porcentajeVivo() | number:'1.0-0' }}%
-                </span>
-            </div>
-            <div class="summary-card">
-                <span class="summary-label">Presentes</span>
-                <span class="summary-value" style="color:#16a34a">{{ presentes() }}</span>
-            </div>
-            <div class="summary-card">
-                <span class="summary-label">Total clases</span>
-                <span class="summary-value">{{ totalVivo() }}</span>
-            </div>
-        </div>
-
-        <div class="table-wrap">
-            <table mat-table [dataSource]="records()">
-
-                <ng-container matColumnDef="fecha">
-                    <th mat-header-cell *matHeaderCellDef>Fecha</th>
-                    <td mat-cell *matCellDef="let r">{{ r.fecha_hora | date:'dd/MM/yyyy' }}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="curso">
-                    <th mat-header-cell *matHeaderCellDef>Curso</th>
-                    <td mat-cell *matCellDef="let r">{{ r.curso }}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="estado">
-                    <th mat-header-cell *matHeaderCellDef>Estado</th>
-                    <td mat-cell *matCellDef="let r">
-                        @if (r.presente) {
-                            <span class="estado-badge" style="color:#16a34a;background:#dcfce7">
-                                <mat-icon>check_circle</mat-icon>
-                                Presente
-                            </span>
-                        } @else {
-                            <span class="estado-badge" style="color:#dc2626;background:#fee2e2">
-                                <mat-icon>cancel</mat-icon>
-                                Ausente
-                            </span>
-                            @if (r.justificacion) {
-                                <small class="just"> · {{ r.justificacion }}</small>
-                            }
-                        }
-                    </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="colsVivo"></tr>
-                <tr mat-row *matRowDef="let row; columns: colsVivo;"></tr>
-            </table>
-        </div>
-
+<!-- Detalle diario -->
+<h3 class="section-title">
+    Detalle diario
+    @if (selectedBimestre() !== null) {
+    <span class="section-title__sub">— Bimestre {{ selectedBimestre() }}°</span>
     }
+</h3>
+
+<div class="detail-list">
+    @for (d of detalle(); track trackByDetalle($index, d)) {
+    <div class="detail-row">
+        <span class="detail-date">{{ d.fecha | date:'EEE dd/MM' : '' : 'es' }}</span>
+        <span class="detail-periodo">{{ d.periodo_nombre }}</span>
+        <span class="estado-badge" [style.color]="estadoColor(d.estado)" [style.background]="estadoBg(d.estado)">
+            <mat-icon>{{ estadoIcon(d.estado) }}</mat-icon>
+            {{ estadoLabel(d.estado) }}
+        </span>
+        @if (d.observacion) {
+        <span class="detail-obs">{{ d.observacion }}</span>
+        }
+    </div>
+    }
+</div>
+
 }

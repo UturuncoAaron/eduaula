@@ -71,6 +71,15 @@ export const routes: Routes = [
         ],
       },
 
+      // ═══ PORTAL DE PADRES — hijos, notas, asistencia, horario ════════════
+      {
+        path: 'portal-padres',
+        canActivate: [permissionGuard([MODULO.HIJOS])],
+        loadChildren: () =>
+          import('./features/parent-portal/parent.routes').then(r => r.PARENT_ROUTES),
+        title: 'Portal Familia | EduAula',
+      },
+
       // ═══ ALUMNO — Mis citas ═══════════════════════════════════════════════
       {
         path: 'mis-citas',
@@ -128,8 +137,6 @@ export const routes: Routes = [
       },
 
       // ═══ LIBRETAS PADRES — admin siempre, docente con permiso extra ══════
-      // LIBRETAS_PADRE_ACCESO está en los módulos base del admin y se inyecta
-      // dinámicamente en el JWT del docente cuando el admin otorga el permiso.
       {
         path: 'libretas-padres',
         canActivate: [permissionGuard([MODULO.LIBRETAS_PADRE_ACCESO])],
@@ -167,11 +174,6 @@ export const routes: Routes = [
           import('./features/tasks/task.routes').then(r => r.TASKS_ROUTES),
       },
       {
-        path: 'clases-vivo',
-        loadChildren: () =>
-          import('./features/live-classes/live-classes.routes').then(r => r.LIVE_CLASSES_ROUTES),
-      },
-      {
         path: 'mis-libretas',
         canActivate: [permissionGuard([MODULO.MIS_LIBRETAS])],
         loadChildren: () =>
@@ -184,7 +186,6 @@ export const routes: Routes = [
           import('./features/tutoring/tutoring.routes').then(r => r.TUTORING_ROUTES),
       },
       {
-        // Acepta HIJOS (padre base) o MIS_LIBRETAS_PADRE: cubre JWT antiguos.
         path: 'mis-libretas-padre',
         canActivate: [permissionGuard([MODULO.MIS_LIBRETAS_PADRE, MODULO.HIJOS])],
         loadComponent: () =>
@@ -198,9 +199,7 @@ export const routes: Routes = [
           import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
       },
 
-      // ═══ DISPONIBILIDAD PÚBLICA (read-only) ═══════════════════════
-      // Cualquier usuario autenticado puede ver la agenda semanal de
-      // una psicóloga o un docente para decidir antes de pedir cita.
+      // ═══ DISPONIBILIDAD PÚBLICA (read-only) ═══════════════════════════════
       {
         path: 'psicologas/:id/disponibilidad',
         loadComponent: () =>

@@ -1,105 +1,108 @@
-<app-page-header
-    title="Notas del estudiante"
-    subtitle="Historial de calificaciones por curso y bimestre"
+<app-page-header title="Notas del estudiante" subtitle="Calificaciones por curso y bimestre"
     backRoute="/portal-padres" />
 
 @if (loading()) {
-    <div class="state-center">
-        <mat-spinner diameter="36" />
-        <p>Cargando notas...</p>
-    </div>
-} @else if (allGrades().length === 0) {
-    <app-empty-state
-        icon="assignment"
-        title="Sin notas registradas"
-        message="Aún no hay calificaciones registradas para este estudiante." />
+<div class="state-center">
+    <mat-spinner diameter="36" />
+    <p>Cargando notas...</p>
+</div>
+
+} @else if (allGroups().length === 0) {
+<app-empty-state icon="assignment" title="Sin notas registradas"
+    message="Aún no hay calificaciones registradas para este estudiante." />
+
 } @else {
 
-    <!-- Resumen por bimestre -->
-    <div class="bimestre-summary">
-        <div class="bim-card bim-card--main">
-            <span class="bim-label">Promedio general</span>
-            <span class="bim-value" [style.color]="gradeColor(promedioGeneral())">
-                {{ promedioGeneral() !== null ? (promedioGeneral()! | number:'1.1-1') : '—' }}
+<!-- Resumen general + chips de bimestre -->
+<div class="summary-bar">
+    <div class="promedio-general">
+        <span class="pg-label">Promedio general</span>
+        <span class="pg-value" [style.color]="promedioColor(promedioGeneral())"
+            [style.background]="promedioBg(promedioGeneral())">
+            {{ promedioGeneral() !== null ? (promedioGeneral()! | number:'1.1-1') : '—' }}
+        </span>
+    </div>
+
+    <div class="bim-chips">
+        @for (bim of resumenBimestres(); track bim.bimestre) {
+        <button class="bim-chip" [class.bim-chip--active]="selectedBimestre() === bim.bimestre"
+            (click)="selectBimestre(bim.bimestre)">
+            <span class="bim-chip__label">{{ bim.nombre }}</span>
+            <span class="bim-chip__prom" [style.color]="promedioColor(bim.promedio)">
+                {{ bim.promedio !== null ? (bim.promedio | number:'1.1-1') : '—' }}
+            </span>
+            <span class="bim-chip__cursos">{{ bim.cursos }} cursos</span>
+        </button>
+        }
+    </div>
+</div>
+
+@if (selectedBimestre() !== null) {
+<div class="filter-bar">
+    <mat-icon>filter_list</mat-icon>
+    <span>Bimestre {{ selectedBimestre() }}°</span>
+    <button mat-icon-button (click)="selectBimestre(selectedBimestre()!)">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+}
+
+<!-- Cards por curso -->
+<div class="curso-list">
+    @for (grupo of grupos(); track trackByCurso($index, grupo)) {
+    <div class="curso-card">
+
+        <!-- Header del curso -->
+        <div class="curso-card__header">
+            <div class="curso-dot" [style.background]="grupo.color"></div>
+            <div class="curso-info">
+                <span class="curso-nombre">{{ grupo.curso_nombre }}</span>
+                @if (grupo.area) {
+                <span class="curso-area">{{ grupo.area }}</span>
+                }
+            </div>
+            <div class="curso-promedio" [style.color]="promedioColor(grupo.promedio)"
+                [style.background]="promedioBg(grupo.promedio)">
+                {{ grupo.promedio !== null ? (grupo.promedio | number:'1.1-1') : '—' }}
+            </div>
+        </div>
+
+        <!-- Evaluaciones -->
+        <div class="eval-list">
+            @for (nota of grupo.notas; track trackByNota($index, nota)) {
+            <div class="eval-row">
+                <div class="eval-info">
+                    <span class="eval-titulo">{{ nota.titulo }}</span>
+                    <span class="eval-tipo">{{ tipoLabel(nota.tipo) }}</span>
+                </div>
+                <div class="eval-fecha">
+                    {{ nota.fecha ?? '—' }}
+                </div>
+                <div class="nota-badge" [style.color]="notaColor(nota.nota)" [style.background]="notaBg(nota.nota)">
+                    {{ nota.nota !== null ? (nota.nota | number:'1.0-2') : '—' }}
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Footer: promedio del curso -->
+        <div class="curso-card__footer">
+            <span>Promedio {{ grupo.periodo_nombre }} {{ grupo.anio }}</span>
+            <span class="footer-prom" [style.color]="promedioColor(grupo.promedio)">
+                {{ grupo.promedio !== null ? (grupo.promedio | number:'1.1-1') : 'Sin notas' }}
             </span>
         </div>
 
-        @for (bim of resumenBimestres(); track bim.bimestre) {
-            <div class="bim-card"
-                 [class.bim-card--active]="selectedBimestre() === bim.bimestre"
-                 (click)="onBimestreChange(selectedBimestre() === bim.bimestre ? null : bim.bimestre)">
-                <span class="bim-label">{{ bim.periodo }} {{ bim.anio }}</span>
-                <span class="bim-value" [style.color]="gradeColor(bim.promedio)">
-                    {{ bim.promedio !== null ? (bim.promedio | number:'1.1-1') : '—' }}
-                </span>
-                <span class="bim-cursos">{{ bim.evaluaciones }} evaluaciones</span>
-            </div>
-        }
     </div>
-
-    @if (selectedBimestre() !== null) {
-        <div class="filter-indicator">
-            <span>Mostrando Bimestre {{ selectedBimestre() }}°</span>
-            <button mat-icon-button (click)="onBimestreChange(null)">
-                <mat-icon>close</mat-icon>
-            </button>
-        </div>
     }
+</div>
 
-    <div class="table-wrap">
-        <table mat-table [dataSource]="grades()" class="grades-table">
+<!-- Leyenda -->
+<div class="legend">
+    <span class="legend-item" style="color:#166534;background:#dcfce7">17–20 Excelente</span>
+    <span class="legend-item" style="color:#1d4ed8;background:#dbeafe">14–16 Bueno</span>
+    <span class="legend-item" style="color:#92400e;background:#fef3c7">11–13 Regular</span>
+    <span class="legend-item" style="color:#991b1b;background:#fee2e2">0–10 Deficiente</span>
+</div>
 
-            <ng-container matColumnDef="curso">
-                <th mat-header-cell *matHeaderCellDef>Curso</th>
-                <td mat-cell *matCellDef="let g">
-                    <span class="curso-name">{{ g.curso }}</span>
-                    <span class="periodo-label">{{ g.periodo }} {{ g.anio }} · Bim. {{ g.bimestre }}</span>
-                </td>
-            </ng-container>
-
-            <ng-container matColumnDef="titulo">
-                <th mat-header-cell *matHeaderCellDef>Evaluación</th>
-                <td mat-cell *matCellDef="let g">{{ g.titulo }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="tipo">
-                <th mat-header-cell *matHeaderCellDef>Tipo</th>
-                <td mat-cell *matCellDef="let g">
-                    <span class="tipo-badge">{{ g.tipo }}</span>
-                </td>
-            </ng-container>
-
-            <ng-container matColumnDef="nota">
-                <th mat-header-cell *matHeaderCellDef>Nota</th>
-                <td mat-cell *matCellDef="let g">
-                    @if (g.nota !== null) {
-                        <span class="nota-badge"
-                              [style.color]="notaBadgeColor(g.nota)"
-                              [style.background]="notaBadgeBg(g.nota)">
-                            {{ g.nota | number:'1.1-2' }}
-                        </span>
-                    } @else {
-                        <span class="no-data">—</span>
-                    }
-                </td>
-            </ng-container>
-
-            <ng-container matColumnDef="fecha">
-                <th mat-header-cell *matHeaderCellDef>Fecha</th>
-                <td mat-cell *matCellDef="let g">
-                    {{ g.fecha ? (g.fecha | date:'dd/MM/yyyy') : '—' }}
-                </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="cols"></tr>
-            <tr mat-row *matRowDef="let row; columns: cols;"></tr>
-        </table>
-    </div>
-
-    <div class="legend">
-        <span class="legend-item" style="color:#166534;background:#dcfce7">18-20: Excelente</span>
-        <span class="legend-item" style="color:#1d4ed8;background:#dbeafe">14-17: Bueno</span>
-        <span class="legend-item" style="color:#92400e;background:#fef3c7">11-13: Regular</span>
-        <span class="legend-item" style="color:#991b1b;background:#fee2e2">0-10: Deficiente</span>
-    </div>
 }

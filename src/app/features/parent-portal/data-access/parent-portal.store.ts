@@ -1,42 +1,35 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from '../../../core/services/api';
-import {
+import type {
     Announcement,
+    AttendanceGeneralPayload,
     Child,
-    ChildAttendanceRecord,
-    ChildGrade,
     ChildLibreta,
+    CursoGradesGroup,
+    ScheduleSlot,
 } from '../../../core/models/parent-portal';
 
-export interface AttendanceGeneralResumen {
-    total: number;
-    asistio: number;
-    tardanza: number;
-    justificado: number;
-    falta: number;
-    porcentaje: number | null;
-}
-export interface AttendanceGeneralDetalle {
-    id: string;
-    fecha: string;
-    estado: string;
-    observacion: string | null;
-    periodo_nombre: string;
-    periodo_anio: number;
-    periodo_bimestre: number;
-}
-export interface AttendanceGeneralPayload {
-    resumen: AttendanceGeneralResumen;
-    detalle: AttendanceGeneralDetalle[];
+// Reexportar para que componentes que ya importan desde el store no rompan
+export type {
+    Announcement,
+    AttendanceGeneralDetalle,
+    AttendanceGeneralPayload,
+    AttendanceGeneralResumen,
+    Child,
+    ChildLibreta,
+    CursoGradesGroup,
+    NotaItem,
+    ScheduleSlot,
+} from '../../../core/models/parent-portal';
+
+export interface GradesQuery {
+    anio?: number;
+    periodoId?: string;
 }
 
-export interface ScheduleSlot {
-    diaSemana: string;
-    horaInicio: string;
-    horaFin: string;
-    curso: string;
-    aula: string | null;
-    docente: string | null;
+export interface AttendanceQuery {
+    anio?: number;
+    periodoId?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -48,41 +41,42 @@ export class ParentPortalService {
         return this.api.get<Child[]>('parent/children');
     }
 
-    /** Notas del hijo (acceso protegido por backend). */
-    getChildGrades(childId: string) {
-        return this.api.get<ChildGrade[]>(`parent/children/${childId}/grades`);
+    /**
+     * Notas del hijo agrupadas por curso.
+     * Filtros opcionales: anio (default = año del periodo activo), periodoId (UUID).
+     */
+    getChildGrades(childId: string, query?: GradesQuery) {
+        const params: Record<string, string> = {};
+        if (query?.anio) params['anio'] = String(query.anio);
+        if (query?.periodoId) params['periodoId'] = query.periodoId;
+        return this.api.get<CursoGradesGroup[]>(`parent/children/${childId}/grades`, params);
     }
 
-    /** Asistencia del hijo a clases en vivo (legacy). */
-    getChildAttendance(childId: string) {
-        return this.api.get<ChildAttendanceRecord[]>(
-            `parent/children/${childId}/attendance`,
-        );
-    }
-
-    /** Asistencia general diaria (entrada/tutor). */
-    getChildAttendanceGeneral(childId: string) {
+    /**
+     * Asistencia general diaria del hijo (registrada por el auxiliar).
+     * Devuelve resumen de conteos + detalle cronológico.
+     */
+    getChildAttendance(childId: string, query?: AttendanceQuery) {
+        const params: Record<string, string> = {};
+        if (query?.anio) params['anio'] = String(query.anio);
+        if (query?.periodoId) params['periodoId'] = query.periodoId;
         return this.api.get<AttendanceGeneralPayload>(
-            `parent/children/${childId}/attendance-general`,
+            `parent/children/${childId}/attendance`,
+            params,
         );
     }
 
     /** Horario semanal del hijo. */
     getChildSchedule(childId: string) {
-        return this.api.get<ScheduleSlot[]>(
-            `parent/children/${childId}/schedule`,
-        );
+        return this.api.get<ScheduleSlot[]>(`parent/children/${childId}/schedule`);
     }
 
-    /**
-     * Libretas del hijo. Usa /api/libretas/hijo/:alumnoId que devuelve
-     * cada libreta con `url` firmada lista para abrir en navegador.
-     */
+    /** Libretas del hijo con URL firmada lista para abrir. */
     getChildLibretas(childId: string) {
         return this.api.get<ChildLibreta[]>(`libretas/hijo/${childId}`);
     }
 
-    /** Comunicados visibles para el padre (todos + específicos para padres). */
+    /** Comunicados visibles para el padre. */
     getAnnouncementsForParent() {
         return this.api.get<Announcement[]>('announcements', { activo: 'true' });
     }

@@ -40,8 +40,6 @@ const MESES = [
 
 const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
-// ── Componente ────────────────────────────────────────────────────────────────
-
 @Component({
   selector: 'app-asistencia-docentes',
   standalone: true,
@@ -57,7 +55,14 @@ export class AsistenciaDocentes implements OnInit, OnDestroy {
   private readonly router = inject(Router);
 
   // ── Estado general ─────────────────────────────────────────────────────────
-  readonly todayStr = new Date().toISOString().slice(0, 10);
+
+  // SOLUCIÓN AL DESFASE: Formatea la fecha actual forzando la zona horaria de Perú de manera nativa (Formato YYYY-MM-DD)
+  readonly todayStr = (() => {
+    const opciones = { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' } as const;
+    const formateador = new Intl.DateTimeFormat('en-CA', opciones); // 'en-CA' genera la estructura YYYY-MM-DD de forma limpia
+    return formateador.format(new Date());
+  })();
+
   readonly tabActivo = signal<TabActivo>('registro');
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -70,9 +75,8 @@ export class AsistenciaDocentes implements OnInit, OnDestroy {
   readonly docentes = signal<DocenteDelDia[]>([]);
   readonly edicion = signal<Map<string, EstadoEdicion>>(new Map());
   readonly expandido = signal<string | null>(null);
-  readonly salidaMarcando = signal<string | null>(null); // horario_id en proceso
+  readonly salidaMarcando = signal<string | null>(null);
 
-  // Hora actual actualizada cada minuto para evaluar bloqueo de tardanza
   readonly horaActual = signal<Date>(new Date());
   private clockInterval?: ReturnType<typeof setInterval>;
 
@@ -80,7 +84,7 @@ export class AsistenciaDocentes implements OnInit, OnDestroy {
 
   readonly fechaLabel = computed(() => {
     const d = new Date(this.fecha() + 'T00:00:00');
-    return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+    return `${DIAS[d.getDay()]} , ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
   });
 
   readonly fechaCorta = computed(() => {
@@ -242,7 +246,7 @@ export class AsistenciaDocentes implements OnInit, OnDestroy {
 
   marcarSalida(horarioId: string) {
     if (this.salidaMarcando()) return;
-    const horaSalida = new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit' }); // HH:mm:ss
+    const horaSalida = new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit' });
     this.salidaMarcando.set(horarioId);
 
     this.svc.marcarSalida({ horario_id: horarioId, fecha: this.fecha(), hora_salida: horaSalida }).subscribe({
@@ -368,8 +372,6 @@ export class AsistenciaDocentes implements OnInit, OnDestroy {
     setTimeout(() => this.descargando.set(false), 1500);
   }
 
-  // ── Helpers privados ───────────────────────────────────────────────────────
-
   private patchEdicion(docenteId: string, patch: Partial<EstadoEdicion>) {
     const m = new Map(this.edicion());
     const prev = m.get(docenteId) ?? { estado: 'presente' as EstadoDocente };
@@ -381,7 +383,7 @@ export class AsistenciaDocentes implements OnInit, OnDestroy {
     for (const d of this.docentes()) {
       const ed = this.edicion().get(d.docente_id);
       if (ed?.estado === 'justificado' && !ed.motivo_justificacion?.trim()) {
-        return `"${d.apellido_paterno}, ${d.docente_nombre}" está justificado pero falta el motivo`;
+        return `"${d.apellido_paterno} , ${d.docente_nombre}" está justificado pero falta el motivo`;
       }
     }
     return null;
@@ -392,8 +394,6 @@ export class AsistenciaDocentes implements OnInit, OnDestroy {
     if (tipo === 'dia') return { tipo, fecha: this.filtroFecha() };
     return { tipo, fecha_inicio: this.filtroDesde(), fecha_fin: this.filtroHasta() };
   }
-
-  // ── Helpers UI ─────────────────────────────────────────────────────────────
 
   getAvatarColor(apellido: string): string {
     let h = 0;
