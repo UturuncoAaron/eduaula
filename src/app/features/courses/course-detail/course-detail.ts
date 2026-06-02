@@ -8,12 +8,11 @@ import { Location } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../core/auth/auth';
 import { LazyCourseStore } from '../data-access/lazy-course.store';
 import { Course, SemanaResumen } from '../../../core/models/course';
 import { PeriodoService } from '../../../core/services/periodo';
-
-import { CourseHeaderSkeleton } from '../../../shared/components/skeletons/skeletons';
 import { BimestreFilterService } from '@core/models/bimestre-filter';
 
 interface CourseTab {
@@ -24,10 +23,10 @@ interface CourseTab {
 
 @Component({
   selector: 'app-course-detail',
+  standalone: true,
   imports: [
     RouterLink, RouterLinkActive, RouterOutlet,
-    MatIconModule, MatButtonModule, MatTabsModule,
-    CourseHeaderSkeleton,
+    MatIconModule, MatButtonModule, MatTabsModule, MatTooltipModule,
   ],
   providers: [BimestreFilterService],
   templateUrl: './course-detail.html',
@@ -37,19 +36,19 @@ interface CourseTab {
 export class CourseDetail implements OnInit {
   readonly auth = inject(AuthService);
   readonly bimFiltro = inject(BimestreFilterService);
-  private route = inject(ActivatedRoute);
-  private store = inject(LazyCourseStore);
-  private periodoSvc = inject(PeriodoService);
-  private location = inject(Location);
-  private destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly store = inject(LazyCourseStore);
+  private readonly periodoSvc = inject(PeriodoService);
+  private readonly location = inject(Location);
+  private readonly destroyRef = inject(DestroyRef);
 
-  course = signal<Course | null>(null);
-  courseId = signal('');
-  semanasCount = signal(0);
-  bimestresCount = signal(0);
-  bimReady = signal(false);
+  readonly course = signal<Course | null>(null);
+  readonly courseId = signal('');
+  readonly semanasCount = signal(0);
+  readonly bimestresCount = signal(0);
+  readonly bimReady = signal(false);
 
-  private semanasAll = signal<SemanaResumen[]>([]);
+  private readonly semanasAll = signal<SemanaResumen[]>([]);
 
   readonly bimestresDisponibles = computed<number[]>(() =>
     [...new Set(this.semanasAll().map(s => s.bimestre))].sort((a, b) => a - b),
@@ -95,32 +94,35 @@ export class CourseDetail implements OnInit {
   });
 
   constructor() {
-
     effect(() => {
       const c = this.course();
       const periodos = this.periodoSvc.all();
       if (!c || !periodos.length) return;
-      if (this.bimReady()) return;          // ya inicializado
+      if (this.bimReady()) return;
 
       const activo = periodos.find(x => x.anio === c.anio && x.activo);
       if (activo) this.bimFiltro.set(activo.bimestre);
-      this.bimReady.set(true);              // listo, ya no flashea
+      this.bimReady.set(true);
     });
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.courseId.set(this.route.snapshot.paramMap.get('id') ?? '');
     this.loadCourse();
     this.periodoSvc.loadAll();
   }
 
-  private loadCourse() {
+  private loadCourse(): void {
     const id = this.courseId();
     if (!id) return;
 
     this.store.course$(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(c => this.course.set(c));
+      .subscribe(c => {
+        if (c) {
+          this.course.set(c);
+        }
+      });
 
     this.store.semanas$(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -135,5 +137,5 @@ export class CourseDetail implements OnInit {
     this.bimFiltro.set(bimestre);
   }
 
-  goBack() { this.location.back(); }
+  goBack(): void { this.location.back(); }
 }

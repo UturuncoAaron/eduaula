@@ -1,7 +1,6 @@
 <mat-expansion-panel class="bb-panel semana-panel" [class.is-hidden]="semana().oculta" (opened)="opened.emit()">
     <mat-expansion-panel-header collapsedHeight="64px" expandedHeight="64px">
         <mat-panel-title>
-            <!-- Icono auto_stories eliminado: el border-left del panel da el acento visual -->
             <span class="semana-label">SEMANA {{ semana().semana }}</span>
             <span class="bim-tag">Bim {{ semana().bimestre }}</span>
             @if (semana().oculta && canManage()) {
@@ -17,7 +16,7 @@
                 }
             </span>
             @if (canManage()) {
-            <button mat-icon-button class="header-eye"
+            <button mat-icon-button class="header-eye" type="button"
                 [matTooltip]="semana().oculta ? 'Mostrar a alumnos' : 'Ocultar a alumnos'"
                 (click)="$event.stopPropagation(); toggleSemana.emit(semana())">
                 <mat-icon>{{ semana().oculta ? 'visibility_off' : 'visibility' }}</mat-icon>
@@ -29,13 +28,13 @@
     <div class="bb-panel-body">
         @if (canManage()) {
         <div class="add-bar">
-            <button mat-stroked-button (click)="createMaterial.emit(semana())">
+            <button mat-stroked-button type="button" (click)="createMaterial.emit(semana())">
                 <mat-icon>folder_open</mat-icon> Material
             </button>
-            <button mat-stroked-button (click)="createTarea.emit(semana())">
+            <button mat-stroked-button type="button" (click)="createTarea.emit(semana())">
                 <mat-icon>assignment</mat-icon> Tarea
             </button>
-            <button mat-stroked-button (click)="createForo.emit(semana())">
+            <button mat-stroked-button type="button" (click)="createForo.emit(semana())">
                 <mat-icon>forum</mat-icon> Foro
             </button>
         </div>
@@ -80,21 +79,21 @@
                     </div>
                 </div>
 
-                <div class="item-actions">
+                <div class="item-actions" (click)="$event.stopPropagation()">
                     @if (canDownload(it)) {
-                    <button mat-icon-button class="action-download" matTooltip="Descargar"
-                        (click)="$event.stopPropagation(); materialDownload.emit(it)">
+                    <button mat-icon-button class="action-download" type="button" matTooltip="Descargar"
+                        (click)="materialDownload.emit(it)">
                         <mat-icon>download</mat-icon>
                     </button>
                     } @else {
-                    <button mat-icon-button class="action-open" matTooltip="Abrir"
-                        (click)="$event.stopPropagation(); itemOpen.emit(it)">
+                    <button mat-icon-button class="action-open" type="button" matTooltip="Abrir"
+                        (click)="itemOpen.emit(it)">
                         <mat-icon>open_in_new</mat-icon>
                     </button>
                     }
                     @if (canManage()) {
-                    <button mat-icon-button class="action-menu" matTooltip="Más opciones" [matMenuTriggerFor]="itemMenu"
-                        (click)="$event.stopPropagation()">
+                    <button mat-icon-button class="action-menu" type="button" matTooltip="Más opciones"
+                        [matMenuTriggerFor]="itemMenu">
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #itemMenu="matMenu" xPosition="before">

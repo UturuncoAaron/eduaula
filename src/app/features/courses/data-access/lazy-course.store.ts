@@ -3,9 +3,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api';
 import { TaskService } from '../../tasks/data-access/task.store';
-import {
-  Course, LiveClass, Material, SemanaResumen,
-} from '../../../core/models/course';
+import { Course, LiveClass, Material, SemanaResumen } from '../../../core/models/course';
 import { Task } from '../../../core/models/task';
 import { Forum } from '../../../core/models/forum';
 
@@ -29,22 +27,22 @@ export interface RosterStudent {
 
 @Injectable({ providedIn: 'root' })
 export class LazyCourseStore {
-  private api = inject(ApiService);
-  private taskSvc = inject(TaskService);
+  private readonly api = inject(ApiService);
+  private readonly taskSvc = inject(TaskService);
 
-  private courseStreams = new Map<string, Observable<Course | null>>();
-  private semanasStreams = new Map<string, Observable<SemanaResumen[]>>();
-  private itemsStreams = new Map<string, Observable<ItemsByWeek>>();
-  private liveStreams = new Map<string, Observable<LiveClass[]>>();
-  private rosterStreams = new Map<string, Observable<RosterStudent[]>>();
-  private rosterRawStreams = new Map<string, Observable<unknown[]>>();
+  private readonly courseStreams = new Map<string, Observable<Course | null>>();
+  private readonly semanasStreams = new Map<string, Observable<SemanaResumen[]>>();
+  private readonly itemsStreams = new Map<string, Observable<ItemsByWeek>>();
+  private readonly liveStreams = new Map<string, Observable<LiveClass[]>>();
+  private readonly rosterStreams = new Map<string, Observable<RosterStudent[]>>();
+  private readonly rosterRawStreams = new Map<string, Observable<unknown[]>>();
 
   course$(courseId: string): Observable<Course | null> {
     let s = this.courseStreams.get(courseId);
     if (!s) {
       s = this.api.get<Course>(`courses/${courseId}`).pipe(
         map(r => r.data ?? null),
-        catchError(() => of(null as Course | null)),
+        catchError(() => of(null)),
         shareReplay({ bufferSize: 1, refCount: false }),
       );
       this.courseStreams.set(courseId, s);
@@ -57,7 +55,7 @@ export class LazyCourseStore {
     if (!s) {
       s = this.api.get<SemanaResumen[]>(`courses/${courseId}/semanas`).pipe(
         map(r => r.data ?? []),
-        catchError(() => of<SemanaResumen[]>([])),
+        catchError(() => of([])),
         shareReplay({ bufferSize: 1, refCount: false }),
       );
       this.semanasStreams.set(courseId, s);
@@ -69,12 +67,9 @@ export class LazyCourseStore {
     let s = this.itemsStreams.get(courseId);
     if (!s) {
       s = forkJoin({
-        materials: this.api.get<Material[]>(`courses/${courseId}/materials`)
-          .pipe(map(r => r.data ?? []), catchError(() => of<Material[]>([]))),
-        tasks: this.taskSvc.getTasks(courseId)
-          .pipe(map(r => r.data ?? []), catchError(() => of<Task[]>([]))),
-        forums: this.api.get<Forum[]>(`courses/${courseId}/forums`)
-          .pipe(map(r => r.data ?? []), catchError(() => of<Forum[]>([]))),
+        materials: this.api.get<Material[]>(`courses/${courseId}/materials`).pipe(map(r => r.data ?? []), catchError(() => of([]))),
+        tasks: this.taskSvc.getTasks(courseId).pipe(map(r => r.data ?? []), catchError(() => of([]))),
+        forums: this.api.get<Forum[]>(`courses/${courseId}/forums`).pipe(map(r => r.data ?? []), catchError(() => of([]))),
       }).pipe(
         map(({ materials, tasks, forums }) => groupByWeek(materials, tasks, forums)),
         shareReplay({ bufferSize: 1, refCount: false }),
@@ -101,7 +96,7 @@ export class LazyCourseStore {
     if (!s) {
       s = this.api.get<unknown[]>(`courses/seccion/${seccionId}/students`).pipe(
         map(r => r.data ?? []),
-        catchError(() => of<unknown[]>([])),
+        catchError(() => of([])),
         shareReplay({ bufferSize: 1, refCount: false }),
       );
       this.rosterRawStreams.set(seccionId, s);
@@ -121,7 +116,7 @@ export class LazyCourseStore {
         map(r => [...(r.data ?? [])].sort(
           (a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime(),
         )),
-        catchError(() => of<LiveClass[]>([])),
+        catchError(() => of([])),
         shareReplay({ bufferSize: 1, refCount: false }),
       );
       this.liveStreams.set(courseId, s);
@@ -157,7 +152,7 @@ function normalizeRosterStudent(raw: any): RosterStudent {
 
   return {
     id: String(realAlumnoId),
-    enrollment_id: String(enrollmentId ?? a.enrollment_id ?? ''),
+    enrollment_id: String(enrollmentId),
     codigo_estudiante: a.codigo_estudiante ?? raw?.codigo_estudiante ?? null,
     nombre: a.nombre ?? raw?.nombre ?? '',
     apellido_paterno: a.apellido_paterno ?? raw?.apellido_paterno ?? '',
@@ -167,6 +162,7 @@ function normalizeRosterStudent(raw: any): RosterStudent {
     inclusivo: Boolean(a.inclusivo ?? raw?.inclusivo),
   };
 }
+
 function groupByWeek(materials: Material[], tasks: Task[], forums: Forum[]): ItemsByWeek {
   const m = new Map<number, Material[]>();
   const t = new Map<number, Task[]>();
@@ -175,35 +171,4 @@ function groupByWeek(materials: Material[], tasks: Task[], forums: Forum[]): Ite
   for (const x of tasks) { if (x.semana) (t.get(x.semana) ?? t.set(x.semana, []).get(x.semana)!).push(x); }
   for (const x of forums) { if (x.semana) (f.get(x.semana) ?? f.set(x.semana, []).get(x.semana)!).push(x); }
   return { materials: m, tasks: t, forums: f };
-}
-
-export type EstadoAsistencia = 'presente' | 'ausente' | 'tardanza';
-
-export interface RosterRow {
-  alumnoId: string;
-  nombre: string;
-  estado: EstadoAsistencia | null;
-  observacion: string;
-  asistenciaId?: string;
-  dirty: boolean;
-}
-
-export function toBackendEstado(estado: EstadoAsistencia, obs?: string): { estado: string, observacion?: string } {
-  const o = obs?.trim() ?? '';
-  const map: Record<EstadoAsistencia, string> = {
-    presente: 'asistio',
-    ausente: 'falta',
-    tardanza: 'tardanza'
-  };
-  return { estado: map[estado], observacion: o || undefined };
-}
-
-export function fromBackendEstado(estado: string, obs?: string | null): { estado: EstadoAsistencia, observacion: string } {
-  const o = obs ?? '';
-  switch (estado) {
-    case 'asistio': return { estado: 'presente', observacion: o };
-    case 'tardanza': return { estado: 'tardanza', observacion: o };
-    case 'falta': return { estado: 'ausente', observacion: o };
-    default: return { estado: 'presente', observacion: o };
-  }
 }

@@ -1,10 +1,5 @@
-// ─────────────────────────────────────────────────────────────
-//  tab-contenido.scss  —  Mobile-first, fondo blanco, compacto
-// ─────────────────────────────────────────────────────────────
-
 // Tokens
 $blue: #2563eb;
-$blue-dark: #1d4ed8;
 $blue-brand: #185FA5;
 $text: #0f172a;
 $text-sub: #334155;
@@ -12,913 +7,427 @@ $text-muted: #64748b;
 $border: #e2e8f0;
 $border-soft: #f1f5f9;
 $white: #ffffff;
-$warning: #eab308;
-$accent: #9333ea;
 $success: #10b981;
-$r-md: 8px;
-$r-sm: 6px;
-$r-xs: 4px;
+$purple-accent: #8b5cf6; // Morado oficial para inserción
+$r-md: 12px;
+$r-sm: 8px;
 
-// ── Layout raíz ───────────────────────────────────────────────
-.tc-layout {
+.tc-dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 24px;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
   align-items: start;
-  padding: 24px;
-  background: $white;
 
-  @media (max-width: 1100px) {
+  @media (max-width: 1024px) {
     grid-template-columns: 1fr;
-    padding: 16px;
-  }
-
-  @media (max-width: 640px) {
-    padding: 0;
-    gap: 0;
+    gap: 20px;
   }
 }
 
-// ── Título sección ────────────────────────────────────────────
-.tc-title {
-  margin: 0 0 14px;
-  font-size: 15px;
-  font-weight: 700;
-  color: $text;
+.tc-main-stream {
+  @media (max-width: 1024px) {
+    order: 2;
+  }
+}
+
+.tc-sidebar-area {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (max-width: 1024px) {
+    order: 1;
+  }
+}
+
+// Estructura de Acordeones Homologados de Material
+::ng-deep .tc-custom-panel {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: $r-md !important;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  margin-bottom: 12px !important;
+
+  .mat-expansion-panel-header {
+    background: #f8fafc !important;
+    height: 54px !important;
+    padding: 0 20px !important;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .mat-expansion-panel-body {
+    padding: 0 20px 20px !important;
+  }
+}
+
+.panel-header-title-clean {
   display: flex;
   align-items: center;
   gap: 10px;
-
-  &::before {
-    content: '';
-    width: 3px;
-    height: 18px;
-    background: $blue-brand;
-    border-radius: 999px;
-    flex-shrink: 0;
-  }
-
-  @media (max-width: 640px) {
-    padding: 14px 16px 0;
-    margin-bottom: 10px;
-    font-size: 13px;
-  }
-}
-
-// ── Acordeón principal ────────────────────────────────────────
-.tc-accordion {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  @media (max-width: 640px) {
-    gap: 0;
-    border-top: 1px solid $border;
-  }
-}
-
-.tc-panel {
-  background: $white;
-  border: 1px solid $border !important;
-  border-radius: $r-md !important;
-  box-shadow: none !important;
-  overflow: hidden;
-
-  // Anular el margin que mat-expansion agrega al panel expandido
-  &.mat-expansion-panel-spacing,
-  ::ng-deep .mat-expansion-panel-spacing {
-    margin: 0 !important;
-  }
-
-  ::ng-deep .mat-expansion-panel-header {
-    height: 44px !important;
-    min-height: 44px !important;
-    padding: 0 16px;
-    background: $white !important;
-  }
-
-  ::ng-deep .mat-expansion-panel-body {
-    padding: 0 16px 14px;
-    background: $white;
-    border-top: 1px solid $border-soft;
-  }
-
-  ::ng-deep .mat-expansion-panel-header-title {
-    margin-right: 8px;
-  }
-
-  // Mobile: sin radio, separador inferior, sin bordes laterales/top
-  @media (max-width: 640px) {
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
-    border-bottom: 1px solid $border !important;
-
-    ::ng-deep .mat-expansion-panel-header {
-      height: 42px !important;
-      min-height: 42px !important;
-      padding: 0 14px;
-    }
-
-    ::ng-deep .mat-expansion-panel-body {
-      padding: 0 14px 12px;
-    }
-  }
-}
-
-// Título del panel (sin icono)
-.tc-panel-title {
-  font-size: 11.5px !important;
+  font-size: 0.82rem !important;
   font-weight: 700 !important;
-  color: $text-sub !important;
-  letter-spacing: .06em !important;
+  color: #475569 !important;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 
-  @media (max-width: 640px) {
-    font-size: 11px !important;
+  .title-icon-accent {
+    color: var(--course-color);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
   }
 }
 
-.tc-panel-desc {
-  justify-content: flex-end;
-  flex-shrink: 0;
+.panel-header-title-clean-bold {
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+  color: $text !important;
 }
 
-.tc-count {
-  font-size: 11px;
-  color: $text-muted;
-  font-weight: 500;
-
-  &.muted {
-    font-style: italic;
-    color: #94a3b8;
-  }
+.panel-inner-body {
+  padding-top: 16px;
 }
 
-// ── Info-list (reemplaza info-grid) ───────────────────────────
-// Lista compacta label: valor en línea. Sin tarjetas individuales.
-.info-list {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
+// Ficha del Docente Titular
+.professor-identity-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f0fdf4;
+  color: #16a34a;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(22, 163, 74, 0.15);
+}
+
+.identity-text {
   display: flex;
   flex-direction: column;
-  gap: 0;
+
+  strong {
+    font-size: 0.95rem;
+    color: #1e293b;
+  }
+
+  .role-caption {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+}
+
+.professor-academic-meta {
+  margin: 12px 0;
+  font-size: 0.8rem;
+  color: $text-sub;
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.professor-communication-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .channel-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #475569;
+    text-decoration: none;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #a1a1aa;
+    }
+
+    &:hover {
+      color: var(--course-color);
+
+      mat-icon {
+        color: var(--course-color);
+      }
+    }
+  }
+}
+
+// Enlaces Laterales de Acciones
+.sidebar-action-links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .interactive-action-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.88rem;
+    color: #475569;
+    font-weight: 600;
+    cursor: pointer;
+
+    mat-icon {
+      color: #94a3b8;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      width: 100%;
+    }
+
+    &:hover {
+      color: var(--course-color);
+
+      mat-icon {
+        color: var(--course-color);
+      }
+    }
+  }
+}
+
+// Ficha de Datos Técnicos del Curso
+.data-sheet-list {
+  list-style: none;
+  padding: 20px 0 0 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 
   li {
     display: flex;
-    align-items: baseline;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid $border-soft;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #f1f5f9;
 
     &:last-child {
       border-bottom: none;
-      padding-bottom: 0;
     }
 
-    &.info-full {
-      flex-direction: column;
-      gap: 3px;
+    .property-name {
+      font-size: 0.85rem;
+      color: $text-muted;
+      font-weight: 500;
+    }
 
-      .info-value {
-        font-size: 13px;
-        color: $text-sub;
-        line-height: 1.5;
-      }
+    .property-value {
+      font-size: 0.88rem;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .highlight-course-name {
+      color: var(--course-color);
+      font-weight: 800;
     }
   }
 }
 
-.info-label {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: $text-muted;
-  flex-shrink: 0;
-  min-width: 72px;
-}
-
-.info-value {
-  font-size: 13.5px;
-  font-weight: 500;
-  color: $text;
-  flex: 1;
-  min-width: 0;
-
-  @media (max-width: 640px) {
-    font-size: 13px;
-  }
-}
-
-// ── Live classes ──────────────────────────────────────────────
-.lc-toolbar {
+// Videoconferencias
+.toolbar-action-container {
   display: flex;
   justify-content: flex-end;
-  padding: 10px 0 8px;
+  padding: 14px 0;
 }
 
-.lc-list {
+.live-sessions-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-top: 4px;
+  gap: 10px;
+  padding-top: 8px;
 }
 
-.lc-row {
+.session-card-row {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
   border: 1px solid $border;
-  border-radius: $r-md;
+  border-radius: $r-sm;
   background: $white;
-  transition: border-color .15s;
 
-  &:hover {
-    border-color: #c7d2fe;
-  }
-
-  &.is-live {
+  &.state-live {
     border-color: $success;
-    background: rgba($success, .03);
+    background: rgba($success, 0.02);
   }
 
-  &.is-past {
-    opacity: .6;
-  }
-
-  // Mobile: columna completa
-  @media (max-width: 640px) {
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px 12px;
-
-    .lc-actions {
-      width: 100%;
-      justify-content: flex-end;
-      border-top: 1px dashed $border;
-      padding-top: 8px;
-
-      button[mat-flat-button] {
-        flex: 1;
-      }
-    }
+  &.state-past {
+    opacity: 0.6;
   }
 }
 
-.lc-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.lc-header-row {
+.session-title-wrapper {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-}
 
-.lc-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: $text;
-}
-
-.lc-desc {
-  margin: 2px 0 4px;
-  font-size: 12px;
-  color: $text-muted;
-}
-
-.lc-meta {
-  font-size: 11.5px;
-  color: $text-muted;
-
-  .dot {
-    opacity: .5;
-    margin: 0 4px;
+  h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $text;
   }
 }
 
-.lc-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.lc-badge {
+.status-indicator-tag {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .05em;
-  padding: 2px 7px;
-  border-radius: 999px;
+  padding: 2px 8px;
+  border-radius: 20px;
 
   &.live {
     background: $success;
     color: $white;
-    animation: pulse-live 1.6s infinite;
   }
 
-  &.soon {
+  &.upcoming {
     background: #dbeafe;
     color: #1e40af;
   }
 
   &.past {
-    background: $border-soft;
+    background: #f1f5f9;
     color: $text-muted;
   }
 }
 
-@keyframes pulse-live {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: .6;
-  }
+.session-abstract {
+  margin: 4px 0;
+  font-size: 0.82rem;
+  color: $text-muted;
 }
 
-// ── Spinner / vacío ───────────────────────────────────────────
-.loader-row {
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-}
-
-.tc-empty {
-  font-size: 12.5px;
-  color: #94a3b8;
-  font-style: italic;
-  margin: 8px 0 0;
-  padding: 0;
-}
-
-// ── Botones ───────────────────────────────────────────────────
-.btn-primary {
-  background: $blue !important;
-  color: $white !important;
-  border-radius: $r-sm !important;
-}
-
-.btn-sm {
-  font-size: 12px !important;
-  height: 32px !important;
-  line-height: 32px !important;
-  padding: 0 12px !important;
+.session-timestamp-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: $text-muted;
 
   mat-icon {
-    font-size: 16px !important;
-    width: 16px !important;
-    height: 16px !important;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
   }
 }
 
-// ── Aside ─────────────────────────────────────────────────────
-.tc-aside {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  @media (max-width: 640px) {
-    padding: 16px;
-    gap: 12px;
-  }
-}
-
-.aside-card {
-  background: $white;
-  border: 1px solid $border;
-  border-radius: $r-md;
-  padding: 14px 16px;
-}
-
-.aside-label {
-  margin: 0 0 12px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: $text-muted;
+.session-actions-buttons {
   display: flex;
   align-items: center;
-  gap: 7px;
-
-  &::before {
-    content: '';
-    width: 2px;
-    height: 11px;
-    background: $blue-brand;
-    border-radius: 999px;
-    flex-shrink: 0;
-  }
+  gap: 6px;
 }
 
-// Profesor
-.teacher-card {
-  padding-bottom: 10px;
-}
-
-.teacher-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.teacher-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $blue-brand, #0f3d6e);
-  color: $white;
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  font-size: 16px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba($blue-brand, .25);
-}
-
-.teacher-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-
-  strong {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: $text;
-    line-height: 1.25;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .teacher-role {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .12em;
-    color: $blue-brand;
-    margin-top: 3px;
-  }
-}
-
-.teacher-meta {
-  margin: 10px 0 0;
-  padding-top: 10px;
-  border-top: 1px dashed $border;
-  font-size: 12px;
-  color: $text-muted;
-  line-height: 1.5;
-
-  .dot {
-    margin: 0 5px;
-    color: #cbd5e1;
-  }
-}
-
-.teacher-contacts {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px dashed $border;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  .contact-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 7px;
-    margin: 0 -7px;
-    border-radius: 6px;
-    color: $text-sub;
-    font-size: 12px;
-    text-decoration: none;
-    transition: background .12s, color .12s;
-
-    mat-icon {
-      font-size: 15px;
-      width: 15px;
-      height: 15px;
-      color: $blue-brand;
-      flex-shrink: 0;
-    }
-
-    span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    &:hover {
-      background: rgba($blue-brand, .06);
-      color: $blue-brand;
-    }
-  }
-}
-
-// Acciones aside
-.aside-actions {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 7px;
-    border-radius: 6px;
-    margin: 0 -7px;
-    transition: background .12s;
-    cursor: pointer;
-
-    &+li {
-      border-top: 1px dashed $border-soft;
-    }
-
-    &:hover {
-      background: rgba($blue-brand, .05);
-
-      mat-icon {
-        color: $blue-brand;
-      }
-
-      a,
-      .as-link {
-        color: $blue-brand;
-      }
-    }
-
-    mat-icon {
-      color: $text-muted;
-      font-size: 17px;
-      width: 17px;
-      height: 17px;
-      flex-shrink: 0;
-      transition: color .12s;
-    }
-
-    a,
-    .as-link {
-      color: $text-sub;
-      font-size: 12.5px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color .12s;
-      flex: 1;
-      cursor: pointer;
-    }
-  }
-}
-
-// ── WeekAccordion host overrides ──────────────────────────────
-// Estilos que afectan al componente hijo (semana panels).
-// Se aplican desde aquí para no duplicar en el componente hijo.
-:host ::ng-deep {
-
-  // Semana expansion panel: flat en mobile
-  app-week-accordion {
-    display: block;
-
-    @media (min-width: 641px) {
-      margin-top: 6px;
-    }
-
-    .mat-expansion-panel {
-      background: $white !important;
-      border: 1px solid $border !important;
-      border-radius: $r-md !important;
-      box-shadow: none !important;
-      overflow: hidden;
-
-      &.mat-expansion-panel-spacing {
-        margin: 0 !important;
-      }
-
-      @media (max-width: 640px) {
-        border-radius: 0 !important;
-        border-left: none !important;
-        border-right: none !important;
-        border-top: none !important;
-        border-bottom: 1px solid $border !important;
-      }
-    }
-
-    .mat-expansion-panel-header {
-      height: 46px !important;
-      min-height: 46px !important;
-      padding: 0 14px 0 16px !important;
-      background: $white !important;
-
-      @media (max-width: 640px) {
-        height: 44px !important;
-        min-height: 44px !important;
-        padding: 0 10px 0 14px !important;
-        // Acento izquierdo = reemplazo del icono cuadrado
-        border-left: 3px solid $blue !important;
-      }
-    }
-
-    .mat-expansion-panel-body {
-      padding: 0 16px 14px !important;
-      background: $white !important;
-      border-top: 1px solid $border-soft !important;
-
-      @media (max-width: 640px) {
-        padding: 0 12px 12px !important;
-      }
-    }
-
-    // Ocultar icono cuadrado del semana-panel en mobile
-    @media (max-width: 640px) {
-      .semana-icon {
-        display: none !important;
-      }
-
-      .hidden-pill {
-        display: none !important;
-      }
-    }
-
-    // Título semana más compacto
-    .mat-panel-title {
-      font-size: 12.5px !important;
-      font-weight: 700 !important;
-      color: $text-sub !important;
-      letter-spacing: .2px !important;
-      gap: 8px !important;
-
-      @media (max-width: 640px) {
-        font-size: 12px !important;
-      }
-    }
-
-    .mat-panel-description {
-      font-size: 11px !important;
-      color: $text-muted !important;
-      justify-content: flex-end !important;
-
-      @media (max-width: 640px) {
-        // Recortar "Sin contenido" a solo el número/texto corto
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 80px;
-      }
-    }
-
-    // bim-tag más pequeño
-    .bim-tag {
-      font-size: 10px !important;
-      padding: 1px 7px !important;
-      background: #f1f5f9 !important;
-      color: #475569 !important;
-      border: 1px solid $border !important;
-    }
-
-    // add-bar (crear material / tarea / foro)
-    .add-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding: 8px 0 10px;
-      border-bottom: 1px dashed $border;
-      margin-bottom: 10px;
-
-      button {
-        border-radius: 999px !important;
-        font-size: 12px !important;
-        font-weight: 500 !important;
-        color: $blue !important;
-        border-color: #c7d2fe !important;
-        height: 30px !important;
-
-        mat-icon {
-          font-size: 16px !important;
-          width: 16px !important;
-          height: 16px !important;
-        }
-
-        @media (max-width: 640px) {
-          flex: 1 1 auto;
-          justify-content: center;
-          font-size: 11.5px !important;
-        }
-      }
-    }
-
-    // item-row (material / tarea / foro)
-    .item-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .item-row {
-      display: grid;
-      grid-template-columns: 36px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
-      background: $white;
-      border: 1px solid $border;
-      border-radius: $r-md;
-      cursor: pointer;
-      transition: border-color .12s, box-shadow .12s;
-
-      &:hover {
-        border-color: #c7d2fe;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, .04);
-      }
-
-      &.is-hidden {
-        background: #f8fafc;
-        opacity: .65;
-      }
-
-      @media (max-width: 640px) {
-        grid-template-columns: 32px minmax(0, 1fr) auto;
-        gap: 10px;
-        padding: 9px 10px;
-        border-radius: 6px;
-      }
-
-      .item-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        color: $white;
-        display: grid;
-        place-items: center;
-
-        mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
-        }
-
-        @media (max-width: 640px) {
-          width: 32px;
-          height: 32px;
-          border-radius: 6px;
-
-          mat-icon {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-          }
-        }
-      }
-
-      .item-info {
-        min-width: 0;
-
-        h4 {
-          margin: 0;
-          font-size: 13.5px;
-          font-weight: 600;
-          color: $text;
-          overflow: hidden;
-          text-overflow: ellipsis;
-
-          // Desktop: 1 línea
-          white-space: nowrap;
-
-          // Mobile: hasta 2 líneas
-          @media (max-width: 640px) {
-            white-space: normal;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            font-size: 13px;
-          }
-        }
-
-        .item-desc {
-          margin: 1px 0 3px;
-          font-size: 12px;
-          color: $text-muted;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
-        .meta-data {
-          font-size: 11px;
-          color: $text-muted;
-          font-weight: 500;
-        }
-      }
-
-      .item-actions {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-
-        button {
-          width: 34px;
-          height: 34px;
-        }
-      }
-    }
-
-    .empty-msg {
-      margin: 6px 0 0;
-      padding: 14px;
-      text-align: center;
-      font-size: 12px;
-      font-style: italic;
-      color: $text-muted;
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      border-radius: 6px;
-    }
-  }
-}
-
-// tab-contenido.scss — reemplaza o agrega .add-semana-row y .btn-add-semana
+// ── CORREGIDO: Fila Bento Centralizada para Añadir Semanas ────────
 .add-semana-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  margin-top: 4px;
-  border: 1.5px dashed #c7d2fe;
+  justify-content: center; // Centrado total horizontal
+  padding: 16px;
+  margin-top: 14px;
+  border: 2px dashed #cbd5e1;
   border-radius: $r-md;
-  background: rgba(37, 99, 235, .02);
+  background: #ffffff;
   cursor: pointer;
-  transition: border-color .15s, background .15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .add-semana-center-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
   &:hover {
-    border-color: $blue;
-    background: rgba(37, 99, 235, .05);
+    border-color: $purple-accent; // Cambio a Violeta Premium al pasar el mouse
+    background: rgba(139, 92, 246, 0.02);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.05);
 
     .btn-add-semana {
-      background: $blue;
+      background: $purple-accent;
+      color: #ffffff;
+      transform: scale(1.05);
     }
 
     .add-semana-label {
-      color: $blue;
+      color: $purple-accent;
     }
-  }
-
-  @media (max-width: 640px) {
-    margin: 0;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-top: 1px dashed #c7d2fe;
-    border-bottom: none;
   }
 }
 
 .btn-add-semana {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: none;
-  background: #dbeafe;
-  color: $blue;
+  background: #f3e8ff; // Tono morado claro base
+  color: $purple-accent;
   display: grid;
   place-items: center;
   flex-shrink: 0;
   cursor: pointer;
-  transition: background .15s, color .15s;
+  transition: all 0.2s ease;
 
   mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
-
-  mat-spinner {
-    opacity: .6;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    font-weight: 700;
   }
 
   &:disabled {
-    opacity: .5;
-    cursor: default;
+    opacity: 0.5;
   }
 }
 
 .add-semana-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: $text-muted;
-  transition: color .15s;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+// Overrides estructurales para el componente hijo WeekAccordion
+:host ::ng-deep {
+  app-week-accordion {
+    display: block;
+    margin-bottom: 12px;
+
+    .mat-expansion-panel {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    }
+
+    .mat-expansion-panel-header {
+      background: #ffffff !important;
+      height: 56px !important;
+    }
+
+    .mat-expansion-panel-body {
+      padding: 20px !important;
+    }
+  }
 }

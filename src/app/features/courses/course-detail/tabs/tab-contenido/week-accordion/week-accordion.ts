@@ -25,9 +25,8 @@ export interface SemanaItem {
 }
 
 interface TipoChip {
-  /** Texto del chip ("PDF", "VIDEO", "TAREA", "FORO", …). */
   label: string;
-  /** Color base — usado para fondo (alpha 12%) y texto (full). */
+
   color: string;
 }
 

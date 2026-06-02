@@ -1,364 +1,447 @@
-$primary-blue: #2563eb;
-$primary-hover: #1d4ed8;
-$accent: #185FA5;
-$text-main: #1e293b;
-$text-muted: #64748b;
-$border-color: #e2e8f0;
-$white: #ffffff;
-$success-light: rgba(16, 185, 129, 0.1);
-$radius-lg: 12px;
-$radius-sm: 6px;
+$text-main-dark: #0f172a;
+$text-sub-slate: #475569;
+$text-grey-muted: #64748b;
+$border-ui-color: #e2e8f0;
+$white-pure: #ffffff;
+$radius-premium: 16px;
 
 .page-container {
-    padding: 0 32px 40px;
-    font-family: 'Inter', Roboto, sans-serif;
+    padding: 0 24px 40px;
     width: 100%;
     box-sizing: border-box;
 
     @media (max-width: 768px) {
-        padding: 0 16px 24px;
+        padding: 0 12px 24px;
     }
 }
 
-// ── Header ────────────────────────────────────────────────────
-.course-header {
+// ── Cabecera Ampliada (Glassmorphism sobre el color de la BD) ─────
+.course-header-banner {
     position: relative;
     overflow: hidden;
-    background:
-        linear-gradient(135deg, #ffffff 0%, #ffffff 65%, #f8fafc 100%);
-    border: 1px solid $border-color;
-    border-left: 3px solid $accent;
-    border-radius: $radius-lg;
-    padding: 24px 32px;
+    background-color: var(--course-color);
+    background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(15, 23, 42, 0.25) 100%);
+    border-radius: $radius-premium;
+    padding: 36px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+    margin-top: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    color: $white-pure;
 
     @media (max-width: 768px) {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
-        padding: 20px;
+        padding: 24px 16px;
     }
 
-    .header-content {
+    .banner-inner-content {
         display: flex;
         align-items: flex-start;
-        gap: 16px;
-        position: relative;
-        z-index: 1;
+        gap: 20px;
+        z-index: 3;
         flex: 1;
         min-width: 0;
     }
 
-    .btn-back {
-        color: $text-muted;
-        background: #f8fafc;
-        border: 1px solid $border-color;
-        transition: all .2s;
-        flex-shrink: 0;
+    .btn-back-nav {
+        color: $white-pure;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(8px);
+        transition: all 0.2s ease;
 
         &:hover {
-            color: $primary-blue;
-            background: #eff6ff;
-            border-color: #bfdbfe;
+            background: $white-pure;
+            color: var(--course-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
     }
 
-    .header-titles {
+    .header-main-titles {
+        flex: 1;
         min-width: 0;
 
-        .badge-active {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: $success-light;
-            color: #047857;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            padding: 4px 10px 4px 8px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-
-            .dot-pulse {
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: #10b981;
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, .6);
-                animation: dot-pulse 1.8s ease-out infinite;
-            }
-        }
-
         h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: $text-main;
-            margin: 0 0 4px;
-            line-height: 1.2;
+            font-size: 30px;
+            font-weight: 800;
+            color: $white-pure;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.025em;
+            line-height: 1.15;
         }
 
-        .course-desc {
-            font-size: 14px;
-            color: $text-muted;
-            margin: 0 0 12px;
-            line-height: 1.45;
-            max-width: 720px;
-        }
-
-        // Compatibilidad: si `<p>` aparece sin clase (skeleton fallback,
-        // descripciones legacy), conserva el estilo tipográfico anterior.
-        p:not(.course-desc) {
-            font-size: 14px;
-            color: $text-muted;
-            margin: 0;
+        .course-description-text {
+            font-size: 14.5px;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0 0 16px 0;
+            line-height: 1.5;
+            max-width: 850px;
         }
     }
 }
 
-// Chips de metadata bajo el título — sección, período, # semanas, # bimestres.
-.meta-row {
+.metadata-chips-group {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 4px;
 }
 
-.meta-chip {
+.custom-meta-chip {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 12px 5px 10px;
-    background: #f1f5f9;
-    border: 1px solid $border-color;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
-    color: #334155;
-    letter-spacing: .1px;
-    transition: background .15s, border-color .15s, color .15s;
+    color: $white-pure;
+    backdrop-filter: blur(4px);
 
     mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
-        color: $accent;
-    }
-
-    &:hover {
-        background: #eff6ff;
-        border-color: #c7d2fe;
-        color: $accent;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+        color: $white-pure;
     }
 }
 
-// Decoración del lado derecho — 2 círculos suaves + ícono de "sparkle"
-// para que el header no se vea tan plano. Pointer-events: none para
-// que no interfiera con clicks.
-.header-decoration {
+.banner-geometric-deco {
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 280px;
-    height: 100%;
+    right: 32px;
+    top: 32px;
+    opacity: 0.15;
     pointer-events: none;
-    overflow: hidden;
-    opacity: .9;
+
+    mat-icon {
+        font-size: 54px;
+        width: 54px;
+        height: 54px;
+        color: $white-pure;
+    }
 
     @media (max-width: 768px) {
         display: none;
     }
-
-    .deco-circle {
-        position: absolute;
-        border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%,
-                rgba(24, 95, 165, .12),
-                rgba(24, 95, 165, 0) 70%);
-    }
-
-    .deco-circle-1 {
-        width: 220px;
-        height: 220px;
-        top: -60px;
-        right: -60px;
-    }
-
-    .deco-circle-2 {
-        width: 140px;
-        height: 140px;
-        bottom: -40px;
-        right: 80px;
-        background: radial-gradient(circle at 50% 50%,
-                rgba(99, 102, 241, .08),
-                rgba(99, 102, 241, 0) 70%);
-    }
-
-    .deco-icon {
-        position: absolute;
-        top: 28px;
-        right: 32px;
-        font-size: 26px;
-        width: 26px;
-        height: 26px;
-        color: rgba(24, 95, 165, .35);
-        animation: deco-twinkle 3.5s ease-in-out infinite;
-    }
 }
 
-@keyframes dot-pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, .55);
-    }
-
-    70% {
-        box-shadow: 0 0 0 7px rgba(16, 185, 129, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-    }
-}
-
-@keyframes deco-twinkle {
-
-    0%,
-    100% {
-        transform: scale(1) rotate(0deg);
-        opacity: .35;
-    }
-
-    50% {
-        transform: scale(1.12) rotate(8deg);
-        opacity: .6;
-    }
-}
-
-// ── Tabs nav (mat-tab-nav-bar) ────────────────────────────────
-.tabs-nav {
-    background: $white;
-    border: 1px solid $border-color;
-    border-radius: $radius-lg $radius-lg 0 0;
-    border-bottom: none;
-    padding: 0 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
+// ── CORREGIDO: Tabs Universales con Separación de Iconos ─────────
+.tabs-navigation-bar {
+    background: $white-pure;
+    border: 1px solid $border-ui-color;
+    border-radius: $radius-premium $radius-premium 0 0;
+    padding: 0 20px;
 
     ::ng-deep {
         .mat-mdc-tab-link {
-            min-height: 56px;
-            padding: 0 22px;
-            font-size: 14px;
+            min-height: 58px;
             font-weight: 600;
-            letter-spacing: 0.2px;
-            opacity: 0.7;
-            color: $text-muted;
+            color: $text-grey-muted;
+            font-size: 0.94rem;
+            padding: 0 24px !important; // Más separación entre pestañas individuales
+            gap: 10px !important; // Separación simétrica interna para los iconos
 
             &.mdc-tab--active {
-                opacity: 1;
-                color: $accent;
+                color: var(--course-color);
             }
 
-            mat-icon {
-                margin-right: 8px;
-                font-size: 20px;
-                width: 20px;
-                height: 20px;
+            .mat-icon,
+            mat-icon,
+            .tab-icon-spaced {
+                margin-right: 4px !important; // Mayor holgura a la derecha del icono
+                font-size: 20px !important;
+                width: 20px !important;
+                height: 20px !important;
             }
         }
 
         .mdc-tab-indicator__content--underline {
-            border-color: $accent !important;
-            border-width: 3px !important;
-            border-top-left-radius: 3px;
-            border-top-right-radius: 3px;
+            border-color: var(--course-color) !important;
+            border-width: 3.5px !important;
         }
     }
 }
 
-// ── Tab panel content ─────────────────────────────────────────
-.main-content {
-    background: $white;
-    border: 1px solid $border-color;
+.router-outlet-wrapper {
+    background: $white-pure;
+    border: 1px solid $border-ui-color;
     border-top: none;
-    border-radius: 0 0 $radius-lg $radius-lg;
-    padding: 24px;
-    min-height: 400px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
+    border-radius: 0 0 $radius-premium $radius-premium;
+    padding: 32px;
+    min-height: 480px;
+    box-sizing: border-box;
 
     @media (max-width: 768px) {
         padding: 16px;
     }
 }
 
-// ── Agregar a course-detail.scss ─────────────────────────────
-// Barra de filtro de bimestre (entre tabs y contenido)
+// ── Layout Bento de Contenidos ──────────────────────────────────
+.tc-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: start;
 
-.bim-filter-bar {
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+.tc-main-stream {
+    @media (max-width: 1024px) {
+        order: 2;
+    }
+}
+
+.tc-sidebar-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    @media (max-width: 1024px) {
+        order: 1;
+    }
+}
+
+::ng-deep .tc-custom-panel {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01) !important;
+    margin-bottom: 12px !important;
+
+    .mat-expansion-panel-header {
+        background: #f8fafc !important;
+        height: 54px !important;
+        padding: 0 20px !important;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .mat-content {
+        align-items: center;
+    }
+
+    .mat-expansion-panel-content {
+        background: #ffffff;
+    }
+}
+
+.panel-header-title-clean {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 24px;
-    background: #fff;
-    border-bottom: 1px solid #e2e8f0;
+    gap: 10px;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    color: #475569 !important;
+    letter-spacing: 0.06em;
 
-    @media (max-width: 640px) {
-        padding: 8px 14px;
+    .title-icon-accent {
+        color: var(--course-color);
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.panel-header-title-clean-bold {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    color: $text-main-dark !important;
+    letter-spacing: 0.02em;
+}
+
+.panel-inner-body {
+    padding: 20px 0;
+}
+
+.professor-identity-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.avatar-circle {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #f0fdf4;
+    color: #16a34a;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(22, 163, 74, 0.15);
+}
+
+.identity-text {
+    display: flex;
+    flex-direction: column;
+
+    strong {
+        font-size: 0.98rem;
+        color: #1e293b;
+    }
+
+    .role-caption {
+        font-size: 0.72rem;
+        color: #94a3b8;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+}
+
+.professor-academic-meta {
+    margin: 12px 0;
+    font-size: 0.82rem;
+    color: $text-sub-slate;
+    background: #f8fafc;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.professor-communication-channels {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+
+    .channel-link {
+        display: flex;
+        align-items: center;
         gap: 8px;
-        overflow-x: auto;
-        scrollbar-width: none;
+        font-size: 0.85rem;
+        color: #475569;
+        text-decoration: none;
+        font-weight: 500;
 
-        &::-webkit-scrollbar {
-            display: none;
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            color: #a1a1aa;
+        }
+
+        &:hover {
+            color: var(--course-color);
+
+            mat-icon {
+                color: var(--course-color);
+            }
         }
     }
 }
 
-.bim-filter-label {
-    font-size: 11.5px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.bim-chips {
+.sidebar-action-links-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
     display: flex;
-    gap: 6px;
-    flex-wrap: nowrap;
+    flex-direction: column;
+    gap: 12px;
+
+    .interactive-action-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.88rem;
+        color: #475569;
+        font-weight: 600;
+        cursor: pointer;
+        transition: color 0.15s;
+
+        mat-icon {
+            color: #94a3b8;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            width: 100%;
+        }
+
+        &:hover {
+            color: var(--course-color);
+
+            mat-icon {
+                color: var(--course-color);
+            }
+        }
+    }
 }
 
-.bim-chip {
-    display: inline-flex;
+.data-sheet-list {
+    list-style: none;
+    padding: 20px 4px 4px 4px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #f1f5f9;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        .property-name {
+            font-size: 0.85rem;
+            color: $text-grey-muted;
+            font-weight: 500;
+        }
+
+        .property-value {
+            font-size: 0.88rem;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .highlight-course-name {
+            color: var(--course-color);
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+    }
+}
+
+.bimestre-filter-container {
+    display: flex;
     align-items: center;
-    height: 28px;
-    padding: 0 12px;
-    border-radius: 999px;
-    border: 1px solid #e2e8f0;
+    gap: 14px;
+    padding: 12px 24px;
     background: #f8fafc;
+    border: 1px solid $border-ui-color;
+    border-top: none;
+}
+
+.action-chip-btn {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 99px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
     color: #475569;
-    font-size: 12px;
+    font-size: 0.82rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all .15s;
-    white-space: nowrap;
-
-    &:hover {
-        border-color: #2563eb;
-        color: #2563eb;
-        background: rgba(37, 99, 235, .05);
-    }
+    transition: all 0.2s ease;
 
     &.active {
-        background: #2563eb;
-        border-color: #2563eb;
-        color: #fff;
-        font-weight: 600;
+        background: var(--course-color) !important;
+        border-color: var(--course-color) !important;
+        color: #ffffff;
+        font-weight: 700;
     }
 }

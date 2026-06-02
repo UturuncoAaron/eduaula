@@ -1,93 +1,83 @@
-<div class="page-container">
+<div class="page-container" [style.--course-color]="course()?.color || '#2563eb'">
 
-    <header class="course-header">
-        <div class="header-content">
-            <button mat-icon-button class="btn-back" (click)="goBack()">
+    <!-- Cabecera Expandida con Sincronización de Título Coor -->
+    <header class="course-header-banner">
+        <div class="banner-inner-content">
+            <button mat-icon-button class="btn-back-nav" (click)="goBack()" matTooltip="Volver a mis cursos">
                 <mat-icon>arrow_back</mat-icon>
             </button>
-            <div class="header-titles">
-                @if (course(); as c) {
-                <div class="badge-active">
-                    <span class="dot-pulse"></span>
-                    Curso activo
-                </div>
-                <h1>{{ c.nombre }}</h1>
-                @if (c.descripcion) {
-                <p class="course-desc">{{ c.descripcion }}</p>
+            <div class="header-main-titles">
+                <!-- CORREGIDO: Respaldo de renderizado inmediato si el signal cambia -->
+                <h1>{{ course()?.nombre || 'Cargando asignatura...' }}</h1>
+                @if (course()?.descripcion) {
+                <p class="course-description-text">{{ course()?.descripcion }}</p>
                 }
-                <div class="meta-row">
-                    @if (c.seccion?.nombre; as seccion) {
-                    <span class="meta-chip">
-                        <mat-icon>class</mat-icon>
-                        Sección {{ seccion }}
+
+                <div class="metadata-chips-group">
+                    <span class="custom-meta-chip">
+                        <mat-icon>school</mat-icon>
+                        {{ ($any(course()?.seccion))?.grado?.nombre || 'Secundaria' }} — "{{ course()?.seccion?.nombre
+                        || 'A' }}"
                     </span>
-                    }
-                    @if (periodoLabel(); as periodo) {
-                    <span class="meta-chip">
-                        <mat-icon>event</mat-icon>
-                        {{ periodo }}
+                    @if (periodoLabel(); as label) {
+                    <span class="custom-meta-chip">
+                        <mat-icon>event_note</mat-icon>
+                        {{ label }}
                     </span>
                     }
                     @if (semanasCount() > 0) {
-                    <span class="meta-chip">
+                    <span class="custom-meta-chip">
                         <mat-icon>auto_stories</mat-icon>
-                        {{ semanasCount() }} {{ semanasCount() === 1 ? 'semana' : 'semanas' }}
-                    </span>
-                    }
-                    @if (bimestresCount() > 0) {
-                    <span class="meta-chip">
-                        <mat-icon>calendar_month</mat-icon>
-                        {{ bimestresCount() }} {{ bimestresCount() === 1 ? 'bimestre' : 'bimestres' }}
+                        {{ semanasCount() }} {{ semanasCount() === 1 ? 'Semana' : 'Semanas' }}
                     </span>
                     }
                 </div>
-                } @else {
-                <app-course-header-skeleton />
-                }
             </div>
         </div>
-        <div class="header-decoration" aria-hidden="true">
-            <div class="deco-circle deco-circle-1"></div>
-            <div class="deco-circle deco-circle-2"></div>
-            <mat-icon class="deco-icon">auto_awesome</mat-icon>
+        <div class="banner-geometric-deco">
+            <mat-icon>auto_awesome</mat-icon>
         </div>
     </header>
 
-    <!-- Tabs de navegación -->
-    <nav class="tabs-nav" mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false" mat-align-tabs="start">
+    <!-- Barra de Navegación por Tabs con Iconos Separados -->
+    <nav class="tabs-navigation-bar" mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false"
+        mat-align-tabs="start">
         @for (tab of tabs(); track tab.path) {
         <a mat-tab-link [routerLink]="['./', tab.path]" routerLinkActive #rla="routerLinkActive"
             [active]="rla.isActive">
-            <mat-icon>{{ tab.icon }}</mat-icon>
-            {{ tab.label }}
+            <mat-icon class="tab-icon-spaced">{{ tab.icon }}</mat-icon>
+            <span class="tab-label-text">{{ tab.label }}</span>
         </a>
         }
         @if (auth.isDocente() && calificacionesQueryParams(); as qp) {
         <a mat-tab-link [routerLink]="['/notas', 'registrar']" [queryParams]="qp" routerLinkActive
             #rlaCal="routerLinkActive" [active]="rlaCal.isActive">
-            <mat-icon>star</mat-icon>
-            Calificaciones
+            <mat-icon class="tab-icon-spaced">star</mat-icon>
+            <span class="tab-label-text">Calificaciones</span>
         </a>
         }
         @if (auth.isAlumno() && misNotasQueryParams(); as qp) {
         <a mat-tab-link [routerLink]="['/notas']" [queryParams]="qp" routerLinkActive #rlaMis="routerLinkActive"
             [active]="rlaMis.isActive">
-            <mat-icon>star</mat-icon>
-            Calificaciones
+            <mat-icon class="tab-icon-spaced">star</mat-icon>
+            <span class="tab-label-text">Calificaciones</span>
         </a>
         }
     </nav>
 
+    <!-- Selector de Bimestres -->
     @if (bimestresDisponibles().length > 1 && bimReady()) {
-    <div class="bim-filter-bar">
-        <span class="bim-filter-label">Bimestre:</span>
-        <div class="bim-chips">
-            <button class="bim-chip" [class.active]="bimFiltro.bimestre() === null" (click)="setBimestre(null)">
-                Todos
+    <div class="bimestre-filter-container">
+        <span class="filter-caption">Filtrar Bimestre:</span>
+        <div class="chips-flex-wrapper">
+            <button type="button" class="action-chip-btn" [class.active]="bimFiltro.bimestre() === null" (click
+                Ram)="setBimestre(null)">
+                Todos los periodos
             </button>
             @for (bim of bimestresDisponibles(); track bim) {
-            <button class="bim-chip" [class.active]="bimFiltro.bimestre() === bim" (click)="setBimestre(bim)">
-                Bim {{ bim }}
+            <button type="button" class="action-chip-btn" [class.active]="bimFiltro.bimestre() === bim"
+                (click)="setBimestre(bim)">
+                Bimestre {{ bim }}
             </button>
             }
         </div>
@@ -95,7 +85,7 @@
     }
 
     <mat-tab-nav-panel #tabPanel>
-        <main class="main-content">
+        <main class="router-outlet-wrapper">
             @if (bimReady()) {
             <router-outlet></router-outlet>
             }
