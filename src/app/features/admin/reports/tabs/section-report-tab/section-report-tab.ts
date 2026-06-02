@@ -1,12 +1,5 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
-import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
+import { Component, ChangeDetectionStrategy, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -33,22 +26,20 @@ interface ListaItem {
   imports: [
     CommonModule,
     FormsModule,
-    DatePipe,
-    TitleCasePipe,
     MatFormFieldModule,
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
     MatTabsModule,
     MatProgressBarModule,
-    MatTooltipModule,
+    MatTooltipModule
   ],
   templateUrl: './section-report-tab.html',
-  styleUrl: './section-report-tab.scss',
+  styleUrl: './section-report-tab.scss'
 })
 export class SectionReportTab implements OnInit {
   private api = inject(ApiService);
-  private toastr= inject(ToastService);
+  private toastr = inject(ToastService);
   readonly store = inject(ReportsStore);
 
   readonly grados = signal<ListaItem[]>([]);
@@ -59,22 +50,18 @@ export class SectionReportTab implements OnInit {
   seccionId = '';
   periodoId = '';
 
-  readonly seccionCargada = computed(
-    () =>
-      this.store.seccionLoading() === 'success' && !!this.store.seccionResumen(),
-  );
+  readonly seccionCargada = computed(() => this.store.seccionLoading() === 'success' && !!this.store.seccionResumen());
 
-  // Helpers expuestos a la plantilla
   readonly nombreCompleto = nombreCompleto;
   readonly categoriaChip = categoriaChip;
   readonly escalaChip = escalaChip;
 
   ngOnInit(): void {
     this.api.get<ListaItem[]>('academic/grados').subscribe({
-      next: (r) => this.grados.set(r.data ?? []),
+      next: (r: any) => this.grados.set(r?.data ?? r ?? [])
     });
     this.api.get<ListaItem[]>('academic/periodos').subscribe({
-      next: (r) => this.periodos.set(r.data ?? []),
+      next: (r: any) => this.periodos.set(r?.data ?? r ?? [])
     });
   }
 
@@ -83,18 +70,19 @@ export class SectionReportTab implements OnInit {
     this.seccionId = '';
     this.secciones.set([]);
     if (!gradoId) return;
-    this.api
-      .get<ListaItem[]>(`academic/secciones?gradoId=${gradoId}`)
-      .subscribe({ next: (r) => this.secciones.set(r.data ?? []) });
+    this.api.get<ListaItem[]>(`academic/secciones?gradoId=${gradoId}`).subscribe({
+      next: (r: any) => this.secciones.set(r?.data ?? r ?? [])
+    });
   }
 
   cargar(): void {
     if (!this.seccionId || !this.periodoId) {
-      this.toastr.success('Selecciona sección y periodo', 'OK', { duration: 3000 });
+      this.toastr.error('Campos requeridos vacíos', 'Error');
       return;
     }
     this.store.loadSeccionResumen(this.seccionId, this.periodoId);
   }
+
   descargarXlsx(): void {
     if (!this.seccionId || !this.periodoId) return;
     this.store.downloadXlsx(this.seccionId, this.periodoId);

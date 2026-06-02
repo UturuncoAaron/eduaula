@@ -3,9 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { ToastService } from 'ngx-toastr-notifier';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -14,11 +12,11 @@ import { of } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { ToastService } from 'ngx-toastr-notifier';
 
-// Estructura real que devuelve el backend
 export interface UserSearchResult {
   id: string;
-  numero_documento?: string;  // alumnos no tienen este campo directo — viene de cuenta
+  numero_documento?: string;
   codigo_estudiante?: string;
   nombre: string;
   apellido_paterno: string;
@@ -31,7 +29,6 @@ interface RecentLink {
   alumno: string;
 }
 
-// Normaliza la respuesta del backend al formato que usa el template
 function normalizeUser(u: any): UserSearchResult {
   return {
     id: u.id,
@@ -43,7 +40,6 @@ function normalizeUser(u: any): UserSearchResult {
   };
 }
 
-// Extrae el array de resultados sin importar el nivel de anidamiento
 function extractArray(res: any): any[] {
   if (Array.isArray(res)) return res;
   if (Array.isArray(res?.data)) return res.data;
@@ -56,7 +52,7 @@ function extractArray(res: any): any[] {
   standalone: true,
   imports: [
     ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatCardModule, MatIconModule, MatAutocompleteModule, MatProgressSpinnerModule, PageHeader,
+    MatButtonModule, MatIconModule, MatAutocompleteModule, MatProgressSpinnerModule, PageHeader
   ],
   templateUrl: './parent-child-link.html',
   styleUrl: './parent-child-link.scss',
@@ -70,11 +66,6 @@ export class ParentChildLink implements OnInit {
   loading = signal(false);
   isSearchingPadre = signal(false);
   isSearchingAlumno = signal(false);
-  /**
-   * Panel "Vínculos recientes" — persistente: se hidrata desde
-   * GET /admin/users/parent-child/recent. Antes vivía solo en memoria
-   * y se perdía al recargar.
-   */
   recentLinks = signal<RecentLink[]>([]);
 
   form = this.fb.group({
@@ -116,11 +107,7 @@ export class ParentChildLink implements OnInit {
       debounceTime(300),
       distinctUntilChanged(),
       switchMap(query =>
-        // incluir_matriculados=true: aquí buscamos alumnos ya matriculados
-        // para vincularlos con un padre/tutor (no es flujo de matrícula nueva).
-        this.api.get<any>(
-          `admin/users/alumnos/search?q=${encodeURIComponent(query as string)}&incluir_matriculados=true`,
-        ).pipe(
+        this.api.get<any>(`admin/users/alumnos/search?q=${encodeURIComponent(query as string)}&incluir_matriculados=true`).pipe(
           map(res => extractArray(res).map(normalizeUser)),
           catchError(() => of([])),
         )
@@ -146,7 +133,6 @@ export class ParentChildLink implements OnInit {
       });
   }
 
-  /** Texto que muestra el input cuando se selecciona una opción */
   displayFn(user: UserSearchResult | null): string {
     if (!user || typeof user !== 'object') return '';
     const doc = user.numero_documento ?? user.codigo_estudiante ?? '';
@@ -174,8 +160,6 @@ export class ParentChildLink implements OnInit {
         this.toastr.success('Vínculo creado exitosamente', 'Éxito');
         this.form.reset();
         this.loading.set(false);
-        // Re-hidratar desde server para que el "reciente" sea autoritativo
-        // (incluye created_at real y sobrevive al refresh).
         this.loadRecentLinks();
       },
       error: (err) => {

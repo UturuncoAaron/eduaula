@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -18,16 +18,15 @@ import { estadoDocenteChip, estadoDocenteLabel } from '../../_shared/chips.util'
   imports: [
     CommonModule,
     FormsModule,
-    DatePipe,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatTabsModule,
-    MatProgressBarModule,
+    MatProgressBarModule
   ],
   templateUrl: './teacher-attendance-tab.html',
-  styleUrl: './teacher-attendance-tab.scss',
+  styleUrl: './teacher-attendance-tab.scss'
 })
 export class TeacherAttendanceTab {
   private svc = inject(ReportsService);
@@ -37,7 +36,6 @@ export class TeacherAttendanceTab {
   rangoInicio = this.primerDiaMes();
   rangoFin = new Date().toISOString().slice(0, 10);
 
-  // Helpers expuestos a la plantilla
   readonly estadoDocenteChip = estadoDocenteChip;
   readonly estadoDocenteLabel = estadoDocenteLabel;
 
@@ -51,7 +49,23 @@ export class TeacherAttendanceTab {
   }
 
   descargarDiario(): void {
-    this.svc.downloadReporteDiarioXlsx(this.fechaDocentes).subscribe();
+    this.svc.downloadConsolidatedReport({
+      scope: 'teacher_attendance_range',
+      format: 'xlsx',
+      fecha_inicio: this.fechaDocentes,
+      fecha_fin: this.fechaDocentes
+    }).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `asist_docentes_${this.fechaDocentes}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+    });
   }
 
   private primerDiaMes(): string {

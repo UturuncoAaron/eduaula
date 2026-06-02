@@ -1,5 +1,20 @@
 @use '../../_shared/reports-styles' as *;
 
-:host {
-    display: block;
+.filters-row-range {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: center;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, 1fr) auto;
+    }
+}
+
+.btn-search-range {
+    height: 52px;
+    border-radius: 8px !important;
+    font-weight: 600;
+    background-color: #2563eb !important;
+    color: #ffffff !important;
 }

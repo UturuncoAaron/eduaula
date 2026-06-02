@@ -1,34 +1,41 @@
 <app-page-header title="Reportes" subtitle="Notas, asistencia y docentes" />
 
-<mat-tab-group animationDuration="200ms" class="reports-tabs" (selectedIndexChange)="onTabChange($event)">
-    <!-- TAB 0 — EXPORTAR NOTAS (eager: tab por defecto) -->
-    <mat-tab label="Exportar notas">
-        <app-export-grades-tab />
-    </mat-tab>
+<div class="reports-workspace">
+    <mat-tab-group animationDuration="250ms" class="modern-reports-tabs" [selectedIndex]="tabActivo()"
+        (selectedIndexChange)="onTabChange($event)">
 
-    <!-- TAB 1 — REPORTE POR SECCIÓN (lazy via @defer + matTabContent) -->
-    <mat-tab label="Reporte por sección">
-        <ng-template matTabContent>
-            @defer (on viewport) {
-            <app-section-report-tab />
-            } @placeholder {
-            <div class="defer-placeholder">
-                <mat-progress-bar mode="indeterminate" />
+        <mat-tab label="Exportar notas">
+            <div class="tab-body-wrapper">
+                <app-export-grades-tab />
             </div>
-            }
-        </ng-template>
-    </mat-tab>
+        </mat-tab>
 
-    <!-- TAB 2 — ASISTENCIA DOCENTES (lazy via @defer + matTabContent) -->
-    <mat-tab label="Asistencia docentes">
-        <ng-template matTabContent>
-            @defer (on viewport) {
-            <app-teacher-attendance-tab />
-            } @placeholder {
-            <div class="defer-placeholder">
-                <mat-progress-bar mode="indeterminate" />
-            </div>
-            }
-        </ng-template>
-    </mat-tab>
-</mat-tab-group>
+        <mat-tab label="Reporte por sección">
+            <ng-template matTabContent>
+                <div class="tab-body-wrapper">
+                    @defer (on viewport) {
+                    <app-section-report-tab />
+                    } @placeholder {
+                    <div class="defer-placeholder">
+                        <mat-progress-bar mode="indeterminate" />
+                    </div>
+                    }
+                </div>
+            </ng-template>
+        </mat-tab>
+
+        <mat-tab label="Asistencia docentes">
+            <ng-template matTabContent>
+                <div class="tab-body-wrapper">
+                    @defer (on viewport) {
+                    <app-teacher-attendance-tab />
+                    } @placeholder {
+                    <div class="defer-placeholder">
+                        <mat-progress-bar mode="indeterminate" />
+                    </div>
+                    }
+                </div>
+            </ng-template>
+        </mat-tab>
+    </mat-tab-group>
+</div>

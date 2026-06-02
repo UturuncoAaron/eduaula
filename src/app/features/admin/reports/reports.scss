@@ -1,18 +1,109 @@
-// Shell de reports — estilos mínimos. Los tabs hijos importan su propio SCSS
-// y comparten ::ng-deep / partial _reports-styles.scss para tablas y chips.
+$bp-md: 768px;
+$color-primary: #2563eb;
+$color-primary-light: #eff6ff;
+$color-border: #e2e8f0;
+$color-text-inactive: #64748b;
+$color-text-active: #1e40af;
 
 :host {
   display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.reports-tabs {
+.reports-workspace {
   width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  padding: 0.5rem;
 
-  ::ng-deep .mat-mdc-tab-body-content {
-    padding: 0;
+  @media (min-width: $bp-md) {
+    padding: 1.5rem 0;
+  }
+}
+
+.tab-body-wrapper {
+  padding: 1.25rem 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (min-width: $bp-md) {
+    padding: 2rem 0;
   }
 }
 
 .defer-placeholder {
-  padding: 24px;
+  padding: 2.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.modern-reports-tabs {
+  width: 100%;
+
+  ::ng-deep {
+
+    .mat-mdc-tab-body-content {
+      padding: 0 !important;
+    }
+    .mat-mdc-tab-header {
+      border-bottom: 1px solid $color-border;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+      @media (min-width: $bp-md) {
+        background-color: transparent;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+    .mat-mdc-tab-header-pagination {
+      display: none !important;
+
+      @media (min-width: $bp-md) {
+        display: flex !important;
+      }
+    }
+
+    .mat-mdc-tab-label-container {
+      overflow-x: auto !important;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    .mat-mdc-tab {
+      height: 48px !important;
+      padding: 0 1.25rem !important;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-weight: 500 !important;
+      font-size: 0.875rem !important;
+      color: $color-text-inactive !important;
+      opacity: 1 !important;
+      letter-spacing: -0.01em;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      &:hover {
+        color: $color-primary !important;
+      }
+      &.mdc-tab--active {
+        .mdc-tab__text-label {
+          color: $color-primary !important;
+          font-weight: 600 !important;
+        }
+      }
+    }
+
+    .mat-mdc-tab-ink-bar {
+      height: 3px !important;
+
+      .mdc-tab-indicator__content--active {
+        border-color: $color-primary !important;
+        border-radius: 3px 3px 0 0;
+      }
+    }
+  }
 }

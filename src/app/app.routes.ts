@@ -71,7 +71,7 @@ export const routes: Routes = [
         ],
       },
 
-      // ═══ PORTAL DE PADRES — hijos, notas, asistencia, horario ════════════
+      // ═══ PORTAL DE PADRES ════════════════════════════════════════════════
       {
         path: 'portal-padres',
         canActivate: [permissionGuard([MODULO.HIJOS])],
@@ -87,6 +87,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./shared/components/tab-citas/tab-citas').then(m => m.TabCitas),
         title: 'Mis citas | EduAula',
+      },
+
+      // ═══ ALUMNO — Mi Psicología ═══════════════════════════════════════════
+      {
+        path: 'mi-psicologia',
+        canActivate: [permissionGuard([MODULO.MI_PSICOLOGIA])],
+        loadChildren: () =>
+          import('./features/student-portal/student-portal.routes')
+            .then(r => r.STUDENT_PORTAL_ROUTES),
+        title: 'Mi Psicología | EduAula',
       },
 
       // ═══ ADMIN / AUXILIAR — Agenda propia ════════════════════════════════
@@ -127,7 +137,7 @@ export const routes: Routes = [
           import('./features/notificaciones/notificaciones').then(c => c.Notificaciones),
       },
 
-      // ═══ REPORTES — docente/psicologa con permiso extra ══════════════════
+      // ═══ REPORTES ════════════════════════════════════════════════════════
       {
         path: 'reportes',
         canActivate: [permissionGuard([MODULO.REPORTES_ACCESO])],
@@ -136,7 +146,7 @@ export const routes: Routes = [
         title: 'Reportes | EduAula',
       },
 
-      // ═══ LIBRETAS PADRES — admin siempre, docente con permiso extra ══════
+      // ═══ LIBRETAS PADRES ══════════════════════════════════════════════════
       {
         path: 'libretas-padres',
         canActivate: [permissionGuard([MODULO.LIBRETAS_PADRE_ACCESO])],
@@ -199,7 +209,7 @@ export const routes: Routes = [
           import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
       },
 
-      // ═══ DISPONIBILIDAD PÚBLICA (read-only) ═══════════════════════════════
+      // ═══ DISPONIBILIDAD PÚBLICA ═══════════════════════════════════════════
       {
         path: 'psicologas/:id/disponibilidad',
         loadComponent: () =>

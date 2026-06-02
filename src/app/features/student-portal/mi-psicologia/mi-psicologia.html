@@ -1,0 +1,105 @@
+<app-page-header title="Mi Psicología" subtitle="Documentos e informes compartidos por tu psicóloga" />
+
+<!-- Tabs -->
+<div class="tab-bar">
+    @for (tab of tabs; track tab.id) {
+    <button class="tab-btn" [class.tab-btn--active]="activeTab() === tab.id" (click)="selectTab(tab.id)">
+        <mat-icon>{{ tab.icon }}</mat-icon>
+        <span>{{ tab.label }}</span>
+    </button>
+    }
+</div>
+
+<!-- ═══ TAB: DOCUMENTOS ═══════════════════════════════════════════════ -->
+@if (activeTab() === 'documentos') {
+
+@if (loadingArchivos()) {
+<div class="state-center">
+    <mat-spinner diameter="36" />
+    <p>Cargando documentos...</p>
+</div>
+
+} @else if (archivos().length === 0) {
+<app-empty-state icon="folder_open" title="Sin documentos"
+    message="Tu psicóloga aún no ha compartido documentos contigo." />
+
+} @else {
+<div class="archivo-grid">
+    @for (archivo of archivos(); track trackById($index, archivo)) {
+    <div class="archivo-card" matRipple>
+        <div class="archivo-card__icon" [style.color]="mimeColor(archivo.mimeType)">
+            <mat-icon>{{ mimeIcon(archivo.mimeType) }}</mat-icon>
+        </div>
+
+        <div class="archivo-card__body">
+            <span class="archivo-nombre">{{ archivo.nombre }}</span>
+            @if (archivo.descripcion) {
+            <span class="archivo-desc">{{ archivo.descripcion }}</span>
+            }
+            <div class="archivo-meta">
+                <span class="categoria-badge categoria-badge--{{ archivo.categoria }}">
+                    {{ categoriaLabel[archivo.categoria] }}
+                </span>
+                @if (archivo.sizeBytes) {
+                <span class="meta-text">{{ formatBytes(archivo.sizeBytes) }}</span>
+                }
+                <span class="meta-text">{{ archivo.createdAt | date:'dd MMM yyyy' }}</span>
+            </div>
+        </div>
+
+        <button mat-icon-button class="archivo-card__action" [matTooltip]="'Descargar'"
+            [disabled]="downloadingId() === archivo.id" (click)="descargarArchivo(archivo)">
+            @if (downloadingId() === archivo.id) {
+            <mat-spinner diameter="20" />
+            } @else {
+            <mat-icon>download</mat-icon>
+            }
+        </button>
+    </div>
+    }
+</div>
+}
+}
+
+<!-- ═══ TAB: INFORMES ════════════════════════════════════════════════ -->
+@if (activeTab() === 'informes') {
+
+@if (loadingInformes()) {
+<div class="state-center">
+    <mat-spinner diameter="36" />
+    <p>Cargando informes...</p>
+</div>
+
+} @else if (informes().length === 0) {
+<app-empty-state icon="description" title="Sin informes"
+    message="Tu psicóloga aún no ha compartido informes contigo." />
+
+} @else {
+<div class="informe-list">
+    @for (informe of informes(); track trackById($index, informe)) {
+    <div class="informe-card">
+        <div class="informe-card__icon">
+            <mat-icon>description</mat-icon>
+        </div>
+
+        <div class="informe-card__body">
+            <span class="informe-titulo">{{ informe.titulo }}</span>
+            <span class="informe-tipo">{{ tipoLabel[informe.tipo] || informe.tipo }}</span>
+            <div class="informe-meta">
+                <mat-icon class="meta-icon">person</mat-icon>
+                <span class="meta-text">{{ informe.psicologaNombre }}</span>
+                @if (informe.finalizadoAt) {
+                <mat-icon class="meta-icon">event</mat-icon>
+                <span class="meta-text">{{ informe.finalizadoAt | date:'dd MMM yyyy' }}</span>
+                }
+            </div>
+        </div>
+
+        <button mat-icon-button class="informe-card__action" matTooltip="Ver PDF" (click)="verInformePdf(informe)">
+            <mat-icon>open_in_new</mat-icon>
+        </button>
+    </div>
+    }
+</div>
+}
+}

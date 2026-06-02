@@ -6,7 +6,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ApiService } from '../../../../../core/services/api';
-import { ReportsStore } from '../../data-access/reports.store';
+import { ReportsStore, ExportFormat } from '../../data-access/reports.store';
 
 interface ListaItem {
   id: string;
@@ -23,10 +23,10 @@ interface ListaItem {
     MatFormFieldModule,
     MatSelectModule,
     MatButtonModule,
-    MatIconModule,
+    MatIconModule
   ],
   templateUrl: './export-grades-tab.html',
-  styleUrl: './export-grades-tab.scss',
+  styleUrl: './export-grades-tab.scss'
 })
 export class ExportGradesTab implements OnInit {
   private api = inject(ApiService);
@@ -42,10 +42,10 @@ export class ExportGradesTab implements OnInit {
 
   ngOnInit(): void {
     this.api.get<ListaItem[]>('academic/grados').subscribe({
-      next: (r) => this.grados.set(r.data ?? []),
+      next: (r: any) => this.grados.set(r?.data ?? r ?? [])
     });
     this.api.get<ListaItem[]>('academic/periodos').subscribe({
-      next: (r) => this.periodos.set(r.data ?? []),
+      next: (r: any) => this.periodos.set(r?.data ?? r ?? [])
     });
   }
 
@@ -54,16 +54,17 @@ export class ExportGradesTab implements OnInit {
     this.filtroSeccionId = '';
     this.secciones.set([]);
     if (!gradoId) return;
-    this.api
-      .get<ListaItem[]>(`academic/secciones?gradoId=${gradoId}`)
-      .subscribe({ next: (r) => this.secciones.set(r.data ?? []) });
+    this.api.get<ListaItem[]>(`academic/secciones?gradoId=${gradoId}`).subscribe({
+      next: (r: any) => this.secciones.set(r?.data ?? r ?? [])
+    });
   }
 
-  descargar(): void {
-    this.store.downloadCsv({
+  descargarFormato(format: ExportFormat): void {
+    const params = {
       periodo_id: this.filtroPeriodoId || undefined,
       grado_id: this.filtroGradoId || undefined,
-      seccion_id: this.filtroSeccionId || undefined,
-    });
+      seccion_id: this.filtroSeccionId || undefined
+    };
+    this.store.executeSecureDownload('academic_general', format, params);
   }
 }

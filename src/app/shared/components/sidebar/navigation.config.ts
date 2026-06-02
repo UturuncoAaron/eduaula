@@ -22,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Mis cursos', icon: 'menu_book', route: '/cursos', modulos: [MODULO.MIS_CURSOS] },
   { label: 'Mis libretas', icon: 'auto_stories', route: '/mis-libretas', modulos: [MODULO.MIS_LIBRETAS] },
   { label: 'Mis citas', icon: 'event_available', route: '/mis-citas', modulos: [MODULO.MIS_CITAS] },
+  { label: 'Mi Psicología', icon: 'psychology', route: '/mi-psicologia', modulos: [MODULO.MI_PSICOLOGIA] },
 
   // ─── Docente ──────────────────────────────────────────────────────────────
   { label: 'Mis cursos', icon: 'menu_book', route: '/cursos', modulos: [MODULO.CURSOS_DOCENTE] },
@@ -30,19 +31,19 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.TUTORIA], exactMatch: true,
   },
 
-  // ─── Comunicados ─────────────────────────────────────────────────────────
+  // ─── Comunicados ──────────────────────────────────────────────────────────
   {
     label: 'Comunicados', icon: 'campaign', route: '/comunicados',
     modulos: [MODULO.COMUNICADOS], dividerBefore: true,
   },
 
-  // ─── Libretas de Padres (admin siempre · docente con permiso extra) ───────
+  // ─── Libretas de Padres ───────────────────────────────────────────────────
   {
     label: 'Libretas Padres', icon: 'folder_shared', route: '/libretas-padres',
     modulos: [MODULO.LIBRETAS_PADRE_ACCESO],
   },
 
-  // ─── Reportes (docente/psicologa con permiso extra) ───────────────────────
+  // ─── Reportes ─────────────────────────────────────────────────────────────
   {
     label: 'Reportes', icon: 'bar_chart', route: '/reportes',
     modulos: [MODULO.REPORTES_ACCESO],
@@ -53,12 +54,10 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Mi libreta', icon: 'folder_shared', route: '/mis-libretas-padre',
     modulos: [MODULO.MIS_LIBRETAS_PADRE, MODULO.HIJOS],
   },
-  // ↓ NUEVA ENTRADA
   {
     label: 'Mis Hijos', icon: 'family_restroom', route: '/portal-padres',
     modulos: [MODULO.HIJOS],
   },
-  // ↑ FIN NUEVA ENTRADA
   {
     label: 'Mis Citas', icon: 'event_available', route: '/padre/citas',
     modulos: [MODULO.CITAS_PADRE, MODULO.CITAS_AGENDADAS],

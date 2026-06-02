@@ -22,9 +22,11 @@ import { TeacherAttendanceTab } from './tabs/teacher-attendance-tab/teacher-atte
   styleUrl: './reports.scss',
 })
 export class Reports {
-  readonly tabActivo = signal(0);
+  readonly tabActivo = signal<number>(0);
 
-  onTabChange(i: number): void {
-    this.tabActivo.set(i);
+  onTabChange(index: number): void {
+    if (this.tabActivo() !== index) {
+      this.tabActivo.set(index);
+    }
   }
 }

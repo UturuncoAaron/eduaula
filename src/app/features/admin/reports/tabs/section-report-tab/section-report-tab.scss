@@ -1,5 +1,97 @@
 @use '../../_shared/reports-styles' as *;
 
-:host {
-  display: block;
+.kpi-dashboard-header {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.meta-title-block {
+  h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .sub-indicator {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.825rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.kpi-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+
+  .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.05em;
+  }
+
+  &.critical-alert {
+    background: #fef2f2;
+    border-color: #fca5a5;
+
+    .value {
+      color: #b91c1c;
+    }
+  }
+
+  &.efficiency {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+
+    .value {
+      color: #16a34a;
+    }
+  }
+}
+
+.btn-export-xlsx {
+  height: 44px;
+  border-radius: 8px !important;
+  font-weight: 600;
+  background-color: #0f172a !important;
+  color: #ffffff !important;
 }
