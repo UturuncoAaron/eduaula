@@ -267,15 +267,17 @@
 ========================================= */
 @media (max-width: 768px) {
   .sidebar {
-    position: absolute;
-    z-index: 100;
+    position: fixed;
+    z-index: 1000; // ← encima del overlay
     height: 100vh;
+    width: 270px !important;
+    transform: translateX(0);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 8px 0 24px rgba(0, 0, 0, 0.4);
   }
 
   .sidebar.collapsed {
     transform: translateX(-100%);
-    width: 270px;
-    border: none;
+    box-shadow: none;
   }
 }
