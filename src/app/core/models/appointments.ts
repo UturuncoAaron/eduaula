@@ -32,6 +32,13 @@ export interface AppointmentRoleRule {
     fixedDurationMin: number | null;
     maxDurationMin: number;
     slotMinutes: number;
+    /**
+     * Tamaño del bloque que se muestra en el editor de disponibilidad (grilla).
+     * Para docente = 45 min (bloque con 3 sub-slots de 15 min).
+     * Para admin/director = 15 min (slot indivisible).
+     * Para psicóloga = 30 min.
+     */
+    availabilityBlockMin: number;
     maxConsecutiveSlots: number;
     allowedDays: readonly string[];
     defaultHours: { start: string; end: string };
@@ -53,6 +60,8 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         fixedDurationMin: null,
         maxDurationMin: 60,
         slotMinutes: 30,
+        // La psicóloga publica bloques de 30 min en su disponibilidad.
+        availabilityBlockMin: 30,
         maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '16:00' },
@@ -61,11 +70,13 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     },
     docente: {
         role: 'docente',
-        // Bloques de 45 min divididos en 3 sub-slots de 15 min: cada cita
-        // ocupa un sub-slot de 15 min (hasta 3 padres por bloque).
+        // Spec (Aarón, 2026-05): el docente publica bloques de 45 min en su
+        // disponibilidad. El motor los divide internamente en 3 sub-slots de
+        // 15 min, permitiendo hasta 3 padres por bloque. Cada cita = 15 min.
         fixedDurationMin: 15,
         maxDurationMin: 15,
         slotMinutes: 15,
+        availabilityBlockMin: 45,
         maxConsecutiveSlots: 1,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
@@ -75,9 +86,11 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
     },
     admin: {
         role: 'admin',
+        // El admin publica slots de 15 min fijos e indivisibles (1 padre/slot).
         fixedDurationMin: 15,
         maxDurationMin: 15,
         slotMinutes: 15,
+        availabilityBlockMin: 15,
         maxConsecutiveSlots: 1,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
@@ -90,6 +103,7 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         fixedDurationMin: 15,
         maxDurationMin: 15,
         slotMinutes: 15,
+        availabilityBlockMin: 15,
         maxConsecutiveSlots: 1,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
@@ -101,6 +115,7 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         fixedDurationMin: null,
         maxDurationMin: 60,
         slotMinutes: 30,
+        availabilityBlockMin: 30,
         maxConsecutiveSlots: MAX_CONSECUTIVE_SLOTS,
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '16:00' },
@@ -216,6 +231,8 @@ export interface ListAppointmentsQuery {
     limit?: number;
 }
 
+export type AvailabilityTipo = 'weekly' | 'specific';
+
 export interface AccountAvailability {
     id: string;
     cuentaId: string;
@@ -223,6 +240,10 @@ export interface AccountAvailability {
     horaInicio: string;
     horaFin: string;
     activo: boolean;
+    /** 'weekly' = se repite cada semana; 'specific' = solo en fechaEspecifica */
+    tipo: AvailabilityTipo;
+    /** YYYY-MM-DD — solo cuando tipo='specific' */
+    fechaEspecifica: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -231,6 +252,26 @@ export interface SetAvailabilityPayload {
     diaSemana: DiaSemana;
     horaInicio: string;
     horaFin: string;
+    tipo?: AvailabilityTipo;
+    fechaEspecifica?: string;
+}
+
+// ── Disponibilidad semanal con citas y seguimientos ───────────────────
+export interface WeekAppointmentSummary {
+    id: string;
+    scheduledAt: string;
+    durationMin: number;
+    estado: AppointmentEstado;
+    motivo: string;
+    isFollowUp: boolean;
+    studentName: string | null;
+}
+
+export interface WeekAvailabilityResponse {
+    weekStart: string;
+    weeklyBlocks: AccountAvailability[];
+    specificBlocks: AccountAvailability[];
+    appointments: WeekAppointmentSummary[];
 }
 
 export interface SlotTaken {

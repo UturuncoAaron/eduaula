@@ -5,7 +5,7 @@
             <div>
                 <h3>Disponibilidad semanal</h3>
                 <small>
-                    Haz clic dentro de la grilla para marcar bloques de {{ step() }} min como disponibles.
+                    Haz clic en la grilla para marcar bloques de {{ step() }} min como disponibles.
                 </small>
                 @if (ruleHint(); as hint) {
                 <small class="editor__rule">
@@ -16,7 +16,7 @@
         </div>
 
         <div class="editor__actions">
-            <span class="editor__counter" [matTooltip]="cellsCount() + ' celdas seleccionadas'">
+            <span class="editor__counter" [matTooltip]="cellsCount() + ' bloques seleccionados'">
                 <mat-icon>schedule</mat-icon>
                 {{ hoursCount() }} h / semana
             </span>
@@ -48,6 +48,14 @@
         <button mat-button type="button" (click)="clearAll()" [disabled]="saving() || cellsCount() === 0">
             <mat-icon>clear_all</mat-icon>
             Vaciar todo
+        </button>
+
+        <!-- Botón para agregar horario personalizado (hora de inicio libre) -->
+        <button mat-stroked-button color="primary" type="button" (click)="openCustomModal()"
+            [disabled]="saving()"
+            matTooltip="Agrega un bloque de {{ step() }} min con hora de inicio personalizada">
+            <mat-icon>add_circle_outline</mat-icon>
+            Horario personalizado
         </button>
 
         <span class="legend-wrap">
@@ -84,3 +92,72 @@
         </section>
     }
 </div>
+
+<!-- ── Modal: Horario personalizado ─────────────────────────── -->
+@if (showCustomModal()) {
+<div class="custom-modal-overlay" (click)="closeCustomModal()">
+    <div class="custom-modal" (click)="$event.stopPropagation()">
+        <header class="custom-modal__header">
+            <div class="custom-modal__title">
+                <mat-icon>tune</mat-icon>
+                <h4>Horario personalizado</h4>
+            </div>
+            <button mat-icon-button type="button" (click)="closeCustomModal()" matTooltip="Cerrar">
+                <mat-icon>close</mat-icon>
+            </button>
+        </header>
+
+        <div class="custom-modal__body">
+            <p class="custom-modal__description">
+                Elige un día y la hora de inicio. Se agregará un bloque de
+                <strong>{{ step() }} minutos</strong> a tu disponibilidad.
+                @if (step() === 45) {
+                <br /><span class="custom-modal__note">
+                    Cada bloque de 45 min admite hasta <strong>3 citas de 15 min</strong> con padres distintos.
+                </span>
+                }
+            </p>
+
+            <!-- Día de la semana -->
+            <mat-form-field appearance="outline" class="custom-modal__field">
+                <mat-label>Día de la semana</mat-label>
+                <mat-select [ngModel]="customDia()" (ngModelChange)="customDia.set($event)">
+                    @for (opt of diasOptions(); track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Hora de inicio -->
+            <mat-form-field appearance="outline" class="custom-modal__field">
+                <mat-label>Hora de inicio</mat-label>
+                <input matInput
+                    type="time"
+                    [ngModel]="customHoraInicio()"
+                    (ngModelChange)="customHoraInicio.set($event); customHoraError.set(null)"
+                    placeholder="HH:MM" />
+                <mat-hint>
+                    El bloque termina a las
+                    <strong>{{ customBlockEnd() }}</strong>
+                    ({{ step() }} min)
+                </mat-hint>
+            </mat-form-field>
+
+            @if (customHoraError(); as err) {
+            <p class="custom-modal__error">
+                <mat-icon>error_outline</mat-icon>
+                {{ err }}
+            </p>
+            }
+        </div>
+
+        <footer class="custom-modal__footer">
+            <button mat-button type="button" (click)="closeCustomModal()">Cancelar</button>
+            <button mat-flat-button color="primary" type="button" (click)="confirmCustomSlot()">
+                <mat-icon>add</mat-icon>
+                Agregar bloque
+            </button>
+        </footer>
+    </div>
+</div>
+}

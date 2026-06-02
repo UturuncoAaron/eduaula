@@ -258,6 +258,8 @@ export class PostponeAppointmentDialog implements OnInit {
                 horaInicio: rule.defaultHours.start,
                 horaFin: rule.defaultHours.end,
                 activo: true,
+                tipo: 'weekly' as const,
+                fechaEspecifica: null,
                 createdAt: now,
                 updatedAt: now,
             }));

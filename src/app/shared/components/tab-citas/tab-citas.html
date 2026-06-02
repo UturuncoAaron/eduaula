@@ -162,26 +162,19 @@
                 <ng-container matColumnDef="estado">
                     <th mat-header-cell *matHeaderCellDef>Estado</th>
                     <td mat-cell *matCellDef="let row">
-                        <span class="status-chip" [attr.data-estado]="row.estado">
+                        <!-- Cita con fecha pasada pero sin marcar como realizada: se muestra "Finalizada" -->
+                        @if (isFinalizada(row)) {
+                        <span class="status-chip" data-estado="finalizada"
+                            matTooltip="La fecha de esta cita ya pasó y está pendiente de revisión">
+                            <span class="status-dot"></span>
+                            Finalizada
+                        </span>
+                        } @else {
+                        <span class="status-chip" [attr.data-estado]="row.estado"
+                            [matTooltip]="row.cancelReason || ''">
                             <span class="status-dot"></span>
                             {{ estadoLabel(row.estado) }}
                         </span>
-                        @if (row.estado === 'realizada' && row.followUpNotes) {
-                        <div class="follow-up-notes" [matTooltip]="row.followUpNotes">
-                            <mat-icon class="follow-up-notes__icon">sticky_note_2</mat-icon>
-                            <span class="follow-up-notes__text">{{ row.followUpNotes }}</span>
-                        </div>
-                        }
-                        <!--
-                            Spec Aarón 2026-05: motivo de cancelación visible para
-                            que ambas partes sepan por qué se canceló la cita.
-                        -->
-                        @if ((row.estado === 'cancelada' || row.estado === 'rechazada')
-                              && row.cancelReason) {
-                        <div class="cancel-reason" [matTooltip]="row.cancelReason">
-                            <mat-icon class="cancel-reason__icon">info</mat-icon>
-                            <span class="cancel-reason__text">{{ row.cancelReason }}</span>
-                        </div>
                         }
                     </td>
                 </ng-container>

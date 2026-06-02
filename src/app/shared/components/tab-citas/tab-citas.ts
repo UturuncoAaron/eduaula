@@ -245,6 +245,16 @@ export class TabCitas {
     return map[estado] ?? '';
   }
 
+  /**
+   * True si la cita ya pasó en el tiempo pero sigue en un estado "vivo"
+   * (pendiente o confirmada). En la vista se muestra como "Finalizada"
+   * para que el usuario sepa que ya ocurrió aunque no haya sido marcada.
+   */
+  isFinalizada(a: Appointment): boolean {
+    if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
+    return new Date(a.scheduledAt).getTime() <= Date.now();
+  }
+
   // ── Permisos de accion ───────────────────────────────────────
   esSoyConvocado(a: Appointment): boolean {
     return a.convocadoAId === this.auth.currentUser()?.id;
