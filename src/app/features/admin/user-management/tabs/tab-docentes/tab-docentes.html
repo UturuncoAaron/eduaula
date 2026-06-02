@@ -1,167 +1,129 @@
 <div class="page-container fade-in">
-
-    <!-- ══ HEADER ══════════════════════════════════════════════════ -->
-    <div class="page-header">
+    <header class="page-header">
         <div class="header-info">
-            <h1 class="mat-headline-5 m-0">Gestión de Docentes</h1>
-            <p class="text-muted m-0">Administra el personal académico de la institución.</p>
+            <h1>Gestión de Docentes</h1>
+            <p class="text-muted">Administra el personal académico de la institución.</p>
         </div>
+
         <div class="header-actions">
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
                 <mat-icon matPrefix>search</mat-icon>
-                <mat-label>Buscar</mat-label>
-                <input matInput [formControl]="busqueda" placeholder="Nombre, documento o especialidad...">
+                <mat-label>Buscar docente</mat-label>
+                <input matInput [formControl]="busqueda" placeholder="Nombre, documento...">
                 @if (busqueda.value) {
-                <button mat-icon-button matSuffix (click)="limpiarBusqueda()">
+                <button mat-icon-button matSuffix (click)="limpiarBusqueda()" aria-label="Limpiar búsqueda">
                     <mat-icon>close</mat-icon>
                 </button>
                 }
             </mat-form-field>
+
             <button mat-flat-button color="primary" class="btn-create" (click)="abrirCrearDocente()">
-                <mat-icon>person_add</mat-icon><span>Nuevo Docente</span>
+                <mat-icon>person_add</mat-icon>
+                <span>Nuevo Docente</span>
             </button>
         </div>
-    </div>
+    </header>
 
-    <!-- ══ STATS BAR ════════════════════════════════════════════════ -->
-    @if (!loading() && total() > 0) {
-    <div class="results-bar">
-        <span class="results-count">
-            <strong>{{ total() }}</strong>
-            docente{{ total() !== 1 ? 's' : '' }}
-            {{ busqueda.value ? 'encontrados' : 'registrados' }}
-        </span>
-    </div>
-    }
+    <main class="table-card">
+        @if (loading()) {
+        <div class="loading-state" aria-busy="true">
+            <div class="spinner-ring"></div>
+            <p>Cargando docentes...</p>
+        </div>
+        } @else if (dataSource.data.length === 0) {
+        <div class="empty-state">
+            <mat-icon>person_search</mat-icon>
+            <p>No se encontraron docentes registrados.</p>
+        </div>
+        } @else {
+        <div class="table-responsive">
+            <table mat-table [dataSource]="dataSource" class="users-table">
 
-    <!-- ══ TABLA / ESTADOS ══════════════════════════════════════════ -->
-    <div class="table-card">
-        <div class="tab-table-container">
+                <ng-container matColumnDef="documento">
+                    <th mat-header-cell *matHeaderCellDef class="hide-on-mobile">Documento</th>
+                    <td mat-cell *matCellDef="let row" class="col-doc hide-on-mobile">
+                        <span class="doc-type">{{ row.tipo_documento | uppercase }}</span>
+                        <span class="doc-num">{{ row.numero_documento }}</span>
+                    </td>
+                </ng-container>
 
-            @if (loading()) {
-            <div class="loading-state">
-                <div class="spinner-ring"></div>
-                <p>Cargando docentes...</p>
-            </div>
+                <ng-container matColumnDef="nombre">
+                    <th mat-header-cell *matHeaderCellDef>Docente</th>
+                    <td mat-cell *matCellDef="let row" class="col-name">
+                        <div class="avatar-name-wrapper">
+                            <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno"
+                                rol="docente" [fotoUrl]="row.foto_url" [size]="42" />
+                            <div class="info-block">
+                                <span class="full-name">{{ row.apellido_paterno }} {{ row.apellido_materno }}, {{
+                                    row.nombre }}</span>
+                                <span class="email">{{ row.email }}</span>
 
-            } @else if (dataSource.data.length === 0) {
-            <div class="empty-state">
-                <mat-icon>person_search</mat-icon>
-                <p>No se encontraron docentes</p>
-                <span class="empty-hint">
-                    @if (busqueda.value) {
-                    Intenta con otro nombre, documento o especialidad.
-                    } @else {
-                    Aún no hay docentes registrados. Usa "Nuevo Docente" para comenzar.
-                    }
-                </span>
-            </div>
-
-            } @else {
-            <div class="table-responsive">
-                <table mat-table [dataSource]="dataSource" class="users-table">
-
-                    <ng-container matColumnDef="documento">
-                        <th mat-header-cell *matHeaderCellDef>Documento</th>
-                        <td mat-cell *matCellDef="let row">
-                            @if (row.numero_documento) {
-                            <span class="doc-type-chip">{{ row.tipo_documento }}</span>
-                            <span class="doc-number">{{ row.numero_documento }}</span>
-                            } @else { <span class="text-muted">—</span> }
-                        </td>
-                    </ng-container>
-
-                    <ng-container matColumnDef="nombre">
-                        <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
-                        <td mat-cell *matCellDef="let row" class="name-cell">
-                            <div class="avatar-name">
-                                <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno"
-                                    rol="docente" [fotoUrl]="row.foto_url ?? null" [size]="36" />
-                                <div>
-                                    <span class="full-name">
-                                        {{ row.apellido_paterno }}
-                                        {{ row.apellido_materno ? row.apellido_materno + ',' : ',' }}
-                                        {{ row.nombre }}
-                                    </span>
-                                    @if (row.email) {
-                                    <span class="sub-text">{{ row.email }}</span>
-                                    }
+                                <div class="mobile-meta show-on-mobile">
+                                    <span class="meta-badge">{{ row.tipo_documento | uppercase }}: {{
+                                        row.numero_documento }}</span>
+                                    <span class="meta-spec">{{ row.especialidad || 'General' }}</span>
                                 </div>
                             </div>
-                        </td>
-                    </ng-container>
+                        </div>
+                    </td>
+                </ng-container>
 
-                    <ng-container matColumnDef="especialidad">
-                        <th mat-header-cell *matHeaderCellDef>Especialidad</th>
-                        <td mat-cell *matCellDef="let row">
-                            {{ row.especialidad || 'General' }}
-                        </td>
-                    </ng-container>
+                <ng-container matColumnDef="especialidad">
+                    <th mat-header-cell *matHeaderCellDef class="hide-on-mobile">Especialidad</th>
+                    <td mat-cell *matCellDef="let row" class="hide-on-mobile">{{ row.especialidad || 'General' }}</td>
+                </ng-container>
 
-                    <ng-container matColumnDef="estado">
-                        <th mat-header-cell *matHeaderCellDef>Estado</th>
-                        <td mat-cell *matCellDef="let row">
-                            <span class="status-chip" [class.active]="row.activo !== false"
-                                [class.inactive]="row.activo === false">
-                                <span class="status-dot"></span>
-                                {{ row.activo !== false ? 'Activo' : 'Inactivo' }}
-                            </span>
-                        </td>
-                    </ng-container>
+                <ng-container matColumnDef="estado">
+                    <th mat-header-cell *matHeaderCellDef>Estado</th>
+                    <td mat-cell *matCellDef="let row" class="col-status">
+                        <span class="status-chip" [class.active]="row.activo !== false">
+                            <span class="status-indicator"></span>
+                            {{ row.activo !== false ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                </ng-container>
 
-                    <ng-container matColumnDef="acciones">
-                        <th mat-header-cell *matHeaderCellDef class="col-actions">Acciones</th>
-                        <td mat-cell *matCellDef="let row" class="col-actions">
-                            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }"
-                                class="menu-trigger">
-                                <mat-icon>more_vert</mat-icon>
-                            </button>
-                        </td>
-                    </ng-container>
+                <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef class="col-actions"></th>
+                    <td mat-cell *matCellDef="let row" class="col-actions">
+                        <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }"
+                            aria-label="Acciones">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
 
-                    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
-                        [class.inactive-row]="row.activo === false"></tr>
-                    <tr class="mat-row" *matNoDataRow>
-                        <td class="mat-cell no-results" colspan="5">
-                            <mat-icon>search_off</mat-icon>
-                            Sin resultados para "{{ busqueda.value }}"
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- Paginador server-side -->
-            <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageIndex]="page() - 1"
-                [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons />
-            }
-
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
         </div>
-    </div>
+
+        <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageSizeOptions]="[10, 20, 50]"
+            (page)="onPageChange($event)" aria-label="Seleccionar página" />
+        }
+    </main>
 </div>
 
-<!-- ══ MENÚ ACCIONES ════════════════════════════════════════════ -->
-<mat-menu #rowMenu="matMenu">
+<mat-menu #rowMenu="matMenu" xPosition="before">
     <ng-template matMenuContent let-row="row">
-        <button mat-menu-item (click)="editarDocente(row)">
-            <mat-icon>edit</mat-icon><span>Editar perfil</span>
-        </button>
         <button mat-menu-item (click)="verDetalle(row)">
-            <mat-icon color="primary">visibility</mat-icon><span>Ver detalle</span>
+            <mat-icon class="material-symbols-outlined">visibility</mat-icon>
+            <span>Ver Detalle</span>
         </button>
-        <mat-divider />
+        <button mat-menu-item (click)="editarDocente(row)">
+            <mat-icon class="material-symbols-outlined">edit</mat-icon>
+            <span>Editar información</span>
+        </button>
         <button mat-menu-item (click)="gestionarPermisos(row)">
-            <mat-icon>shield_person</mat-icon><span>Gestionar permisos</span>
+            <mat-icon class="material-symbols-outlined">shield_person</mat-icon>
+            <span>Gestionar Permisos</span>
         </button>
         <mat-divider />
-        @if (row.activo !== false) {
-        <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">
-            <mat-icon color="warn">block</mat-icon><span>Desactivar cuenta</span>
+        <button mat-menu-item (click)="toggleEstado(row)" [class.action-danger]="row.activo !== false">
+            <mat-icon [color]="row.activo !== false ? 'warn' : ''">
+                {{ row.activo !== false ? 'person_off' : 'how_to_reg' }}
+            </mat-icon>
+            <span>{{ row.activo !== false ? 'Desactivar Cuenta' : 'Reactivar Cuenta' }}</span>
         </button>
-        } @else {
-        <button mat-menu-item (click)="toggleEstado(row)" class="success-item">
-            <mat-icon>check_circle</mat-icon><span>Reactivar cuenta</span>
-        </button>
-        }
     </ng-template>
 </mat-menu>

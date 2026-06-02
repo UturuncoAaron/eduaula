@@ -1,43 +1,45 @@
-/* psicologa/informe-print/informe-print.scss */
+@import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
+// ── Variables ────────────────────────────────────────────────────
 $ink: #1a1a1a;
-$muted: #666666;
-$primary: #1a3a6b;
+$muted: #555555;
 $green: #1e6b3a;
 $amber: #7a4f00;
+$border: #cccccc;
 
-$toolbar-h: 56px;
+// Dimensiones A4 exactas en mm
+$a4-w: 210mm;
+$a4-h: 297mm;
+$a4-pad-v: 20mm;
+$a4-pad-h: 22mm;
 
 // ── Host ─────────────────────────────────────────────────────────
+// No tocamos el fondo del host — lo maneja el MainLayout.
+// Solo ocupamos todo el espacio disponible.
 :host {
     display: block;
-    background: #f0f0ed;
-    min-height: 100vh;
+    min-height: 100%;
+    font-family: 'Times New Roman', Times, serif;
     color: $ink;
-    font-family: 'Inter', system-ui, sans-serif;
+    background: #e0e0e0; // fondo gris solo dentro del content area
 }
 
-// ══════════════════════════════════════════════════════════════════
-// TOOLBAR
-// ══════════════════════════════════════════════════════════════════
-
+// ── Toolbar propio del informe ────────────────────────────────────
+// Va sobre el contenido (no fixed, para no interferir con el sidebar)
 .print-toolbar {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    height: $toolbar-h;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     padding: 0 20px;
+    height: 52px;
     background: #ffffff;
     border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+    font-family: system-ui, sans-serif;
 
     .toolbar-left {
         display: flex;
@@ -66,7 +68,7 @@ $toolbar-h: 56px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 340px;
+            max-width: 360px;
         }
     }
 
@@ -87,6 +89,7 @@ $toolbar-h: 56px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: .4px;
+        font-family: system-ui, sans-serif;
 
         mat-icon {
             font-size: 13px;
@@ -108,12 +111,7 @@ $toolbar-h: 56px;
     }
 }
 
-// ── Page wrap ───────────────────────────────────────────────────
-.page-wrap {
-    padding: calc(#{$toolbar-h} + 32px) 16px 64px;
-}
-
-// ── Estados ─────────────────────────────────────────────────────
+// ── Estados ──────────────────────────────────────────────────────
 .state-center,
 .state-error {
     display: flex;
@@ -121,8 +119,9 @@ $toolbar-h: 56px;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    padding: calc(#{$toolbar-h} + 60px) 24px 80px;
+    padding: 60px 24px;
     color: $muted;
+    font-family: system-ui, sans-serif;
 
     mat-icon {
         font-size: 40px;
@@ -135,141 +134,208 @@ $toolbar-h: 56px;
     }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// DOCUMENTO
-// ══════════════════════════════════════════════════════════════════
-
-.informe-doc {
-    max-width: 720px;
-    margin: 0 auto;
-    background: #fff;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, .08);
-    border-radius: 4px;
-    padding: 56px 64px 60px;
-    font-size: 10.5pt;
-    line-height: 1.7;
-    color: $ink;
+// ── Page wrap — área gris que simula visor PDF ────────────────────
+.page-wrap {
+    padding: 24px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: auto;
+    min-height: calc(100vh - 52px);
 }
 
-// ── Header (solo título) ────────────────────────────────────────
+// ── Hoja A4 ───────────────────────────────────────────────────────
+.informe-doc {
+    width: $a4-w;
+    min-height: $a4-h;
+    background: // Línea de corte de página simulada cada 297mm
+    repeating-linear-gradient(to bottom,
+        #fff 0,
+        #fff calc(#{$a4-h} - 1px),
+        #bbb calc(#{$a4-h} - 1px),
+        #bbb $a4-h );
+    box-shadow: 0 2px 16px rgba(0, 0, 0, .28);
+    box-sizing: border-box;
+    font-size: 10.5pt;
+    line-height: 1.6;
+    color: $ink;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    padding: $a4-pad-v $a4-pad-h calc(#{$a4-pad-v} + 14mm);
+}
+
+// ── Encabezado ───────────────────────────────────────────────────
 .doc-header {
-    margin-bottom: 36px;
     text-align: center;
+    margin-bottom: 18pt;
 
     .doc-title {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 13pt;
         font-weight: 700;
-        letter-spacing: 1px;
+        letter-spacing: .5px;
         color: $ink;
+        text-decoration: underline;
+        font-family: 'Times New Roman', Times, serif;
     }
 }
 
-// ── Secciones ───────────────────────────────────────────────────
+// ── Secciones ────────────────────────────────────────────────────
 .doc-section {
-    margin-top: 28px;
-    break-inside: avoid;
+    margin-top: 14pt;
 }
 
 .sec-title {
-    margin: 0 0 10px;
-    font-size: .78rem;
+    margin: 0 0 6pt;
+    font-size: 10.5pt;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .8px;
-    color: $primary;
+    color: $ink;
+    font-family: 'Times New Roman', Times, serif;
 }
 
-// ── Datos del alumno (centrado) ─────────────────────────────────
-.datos-bloque {
-    text-align: center;
-    margin: 0;
+// ── Tabla de filiación ───────────────────────────────────────────
+.filiacion-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
 
-    p {
-        margin: 2px 0;
+    &--mt {
+        margin-top: 10pt;
+    }
+
+    td {
+        padding: 1.5pt 0;
+        vertical-align: top;
         font-size: 10.5pt;
-        color: $ink;
+        font-family: 'Times New Roman', Times, serif;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
 
-        strong {
-            font-size: 11.5pt;
-            font-weight: 700;
+    .label {
+        width: 130pt;
+        padding-right: 8pt;
+        font-weight: normal;
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
+
+        &::after {
+            content: ':';
         }
+    }
+
+    .value {
+        font-weight: bold;
     }
 }
 
-// ── Texto de secciones ──────────────────────────────────────────
+.filiacion-divider {
+    border: none;
+    border-top: 1px solid $border;
+    margin: 8pt 0;
+}
+
+// ── Cuerpo de texto ──────────────────────────────────────────────
 .body-text {
     margin: 0;
     text-align: justify;
     hyphens: auto;
     font-size: 10.5pt;
+    font-family: 'Times New Roman', Times, serif;
+    line-height: 1.6;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 
     &.multiline {
         white-space: pre-wrap;
     }
 }
 
-.parents-list {
-    margin: 0;
-    padding-left: 18px;
+// ── Subtítulos de subsección ─────────────────────────────────────
+.subsec-title {
+    margin: 10pt 0 3pt;
     font-size: 10.5pt;
-
-    li {
-        margin: 4px 0;
-    }
+    font-weight: 700;
+    color: $ink;
+    font-family: 'Times New Roman', Times, serif;
 }
 
-// ── Footer y Firma ──────────────────────────────────────────────
+// ── Nota al pie ──────────────────────────────────────────────────
+.doc-footnote {
+    margin-top: 24pt;
+    padding-top: 4pt;
+    border-top: 1px solid $border;
+    font-size: 7.5pt;
+    color: $muted;
+    text-align: center;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+// ── Footer y Firma ───────────────────────────────────────────────
 .doc-footer {
-    margin-top: 60px;
+    margin-top: 32pt;
+    margin-bottom: 8pt;
     display: flex;
     justify-content: center;
 
     .signature-block {
-        width: 240px;
+        width: 200pt;
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
 
         .firma-img {
-            max-width: 200px;
-            max-height: 80px;
+            max-width: 160pt;
+            max-height: 60pt;
             object-fit: contain;
-            margin-bottom: 6px;
+            margin-bottom: 4pt;
         }
 
         .firma-blank {
-            width: 200px;
-            height: 60px;
+            width: 160pt;
+            height: 48pt;
         }
 
         .firma-line {
             width: 100%;
             border-top: 1px solid $ink;
-            margin-bottom: 8px;
+            margin-bottom: 5pt;
         }
 
         .firma-name {
             margin: 0;
-            font-size: .85rem;
+            font-size: 9pt;
+            font-weight: 700;
+            color: $ink;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .firma-rol {
+            margin: 2pt 0 0;
+            font-size: 8.5pt;
             font-weight: 600;
             color: $ink;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .firma-cpsp {
-            margin: 3px 0 0;
-            font-size: .75rem;
-            color: $muted;
+            margin: 2pt 0 0;
+            font-size: 8.5pt;
+            color: $ink;
+            font-family: 'Times New Roman', Times, serif;
         }
     }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// IMPRESIÓN
-// ══════════════════════════════════════════════════════════════════
-
+// ── Impresión ────────────────────────────────────────────────────
 @media print {
+    @page {
+        size: A4;
+        margin: 20mm 22mm;
+    }
+
     :host {
         background: #fff;
     }
@@ -281,12 +347,45 @@ $toolbar-h: 56px;
 
     .page-wrap {
         padding: 0;
+        min-height: auto;
+        background: none;
+        overflow: visible;
     }
 
     .informe-doc {
-        max-width: none;
+        width: 100%;
+        min-height: auto;
+        background: #fff;
         box-shadow: none;
-        border-radius: 0;
-        padding: 20mm 20mm;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .doc-footnote {
+        display: none;
+    }
+
+    .doc-section {
+        break-inside: avoid;
+    }
+
+    .doc-footer {
+        break-inside: avoid;
+    }
+
+    .subsec-title {
+        break-after: avoid;
+    }
+
+    .sec-title {
+        break-after: avoid;
+    }
+}
+
+// ── Responsive ───────────────────────────────────────────────────
+@media screen and (max-width: 900px) {
+    .informe-doc {
+        width: calc(100vw - 40px);
+        padding: 10mm 12mm 18mm;
     }
 }

@@ -12,34 +12,28 @@ $shadow-sm: 0 1px 2px rgba(15, 23, 42, .04);
 $shadow-md: 0 6px 18px rgba(15, 23, 42, .08);
 
 :host {
-    display: block;
-    height: 100%;
-}
-
-.notebook-tab {
-    background: transparent;
-    height: 100%;
-}
-
-mat-sidenav-content {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 0;
-    background: transparent !important;
+    width: 100%;
 }
 
-/* ── Periodo bar ─────────────────────────────────────────── */
 .periodo-bar {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
     background: $bg-card;
     border: 1px solid $border;
     border-radius: $radius;
     box-shadow: $shadow-sm;
+
+    @media (min-width: 768px) {
+        flex-direction: row;
+        align-items: center;
+        padding: 12px 16px;
+    }
 
     .periodo-label {
         display: inline-flex;
@@ -50,6 +44,7 @@ mat-sidenav-content {
         text-transform: uppercase;
         letter-spacing: .04em;
         color: $text-muted;
+        flex-shrink: 0;
 
         mat-icon {
             font-size: 18px;
@@ -61,19 +56,43 @@ mat-sidenav-content {
     .periodo-pills {
         display: flex;
         gap: 6px;
-        flex-wrap: wrap;
+        overflow-x: auto;
+        width: 100%;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            width: auto;
+            overflow: visible;
+        }
     }
 
     .bar-spacer {
-        flex: 1 1 0;
-        min-width: 12px;
+        display: none;
+
+        @media (min-width: 768px) {
+            display: block;
+            flex: 1 1 0;
+        }
     }
 
     .bulk-btn {
+        width: 100%;
+        height: 40px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         gap: 6px;
+        flex-shrink: 0;
 
-        mat-icon {
-            vertical-align: middle;
+        @media (min-width: 768px) {
+            width: auto;
         }
     }
 }
@@ -82,7 +101,7 @@ mat-sidenav-content {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 14px;
+    padding: 8px 16px;
     border-radius: 999px;
     border: 1px solid $border;
     background: #fff;
@@ -90,7 +109,8 @@ mat-sidenav-content {
     font-size: .82rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
+    white-space: nowrap;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
 
     &:hover {
         background: #f8fafc;
@@ -118,16 +138,19 @@ mat-sidenav-content {
     }
 }
 
-/* ── Progress card ───────────────────────────────────────── */
 .progress-card {
     background: $bg-card;
     border: 1px solid $border;
     border-radius: $radius;
-    padding: 18px 20px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     box-shadow: $shadow-sm;
+
+    @media (min-width: 768px) {
+        padding: 18px 20px;
+    }
 }
 
 .progress-info {
@@ -212,37 +235,51 @@ mat-sidenav-content {
     }
 }
 
-/* ── Students list ───────────────────────────────────────── */
 .students-list {
     background: $bg-card;
     border: 1px solid $border;
     border-radius: $radius;
     overflow: hidden;
     box-shadow: $shadow-sm;
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
 }
 
 .student-row {
-    display: grid;
-    grid-template-columns: minmax(220px, 1fr) auto auto;
-    gap: 16px;
-    align-items: center;
-    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
     border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
     transition: background .15s ease;
 
     &:last-child {
         border-bottom: 0;
     }
 
-    &:hover {
-        background: #f8fafc;
+    &.cargada {
+        background: linear-gradient(180deg, #f0fdf4 0%, transparent 100%);
     }
 
-    &.cargada {
-        background: linear-gradient(90deg, #f0fdf4 0%, transparent 60%);
+    @media (min-width: 768px) {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr;
+        align-items: center;
+        padding: 14px 18px;
+        gap: 16px;
+
+        &.cargada {
+            background: linear-gradient(90deg, #f0fdf4 0%, transparent 60%);
+
+            &:hover {
+                background: linear-gradient(90deg, #dcfce7 0%, transparent 60%) !important;
+            }
+        }
 
         &:hover {
-            background: linear-gradient(90deg, #dcfce7 0%, transparent 60%);
+            background: #f8fafc;
         }
     }
 
@@ -254,15 +291,15 @@ mat-sidenav-content {
     }
 
     .avatar {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         display: grid;
         place-items: center;
         background: linear-gradient(135deg, #4a5cba 0%, #5e72e4 100%);
         color: #fff;
         font-weight: 700;
-        font-size: .9rem;
+        font-size: .85rem;
         flex-shrink: 0;
     }
 
@@ -286,17 +323,63 @@ mat-sidenav-content {
         }
     }
 
+    .status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        @media (min-width: 768px) {
+            justify-content: flex-start;
+        }
+
+        .mobile-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: $text-muted;
+
+            @media (min-width: 768px) {
+                display: none;
+            }
+        }
+    }
+
     .actions {
         display: flex;
-        gap: 6px;
-        flex-shrink: 0;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 8px;
+        margin-top: 4px;
 
-        a,
-        button {
+        @media (min-width: 768px) {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+            justify-content: flex-end;
+        }
+
+        .actions-group {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+            justify-content: flex-end;
+
+            @media (min-width: 768px) {
+                width: auto;
+            }
+        }
+
+        .action-btn {
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 0.82rem !important;
+            height: 36px !important;
+            display: inline-flex;
+            align-items: center;
             gap: 4px;
 
             mat-icon {
-                vertical-align: middle;
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
             }
         }
     }
@@ -306,10 +389,10 @@ mat-sidenav-content {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 999px;
     font-size: .78rem;
-    font-weight: 600;
+    font-weight: 700;
 
     mat-icon {
         font-size: 14px;
@@ -328,7 +411,6 @@ mat-sidenav-content {
     }
 }
 
-/* ── Empty state ─────────────────────────────────────────── */
 .empty-state {
     background: $bg-card;
     border: 1px dashed $border;
@@ -360,50 +442,67 @@ mat-sidenav-content {
     }
 }
 
-/* ── Drawer ──────────────────────────────────────────────── */
-mat-sidenav {
-    width: min(440px, 100vw);
-    max-width: 100%;
-}
+// ── FORZADO MODAL GLOBAL DE MAXIMA PRIORIDAD ────────────────
+mat-sidenav.global-upload-drawer {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    background: #ffffff;
+    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 99999 !important;
 
-/* ── Responsive ──────────────────────────────────────────── */
-@media (max-width: 768px) {
-    .periodo-bar {
-
-        .bulk-btn .btn-label,
-        .bulk-btn span:not(.mat-mdc-button-touch-target) {
-            display: inline;
-        }
-    }
-
-    .student-row {
-        grid-template-columns: 1fr;
-        gap: 10px;
-
-        .actions {
-            justify-content: flex-end;
-        }
-
-        .status {
-            justify-self: flex-start;
-        }
+    @media (min-width: 768px) {
+        width: 480px !important;
+        max-width: 480px !important;
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
     }
 }
 
-@media (max-width: 480px) {
-    .periodo-bar {
-        .bulk-btn .btn-label {
-            display: none;
-        }
+::v-deep app-notebook-upload-drawer {
+    display: flex;
+    flex-direction: column;
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden;
+    box-sizing: border-box;
+
+    .drawer-header {
+        flex-shrink: 0;
+        padding: 24px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ffffff;
     }
 
-    .progress-card {
-        padding: 14px;
+    .drawer-body {
+        flex-grow: 1;
+        overflow-y: auto !important;
+        padding: 24px;
+        -webkit-overflow-scrolling: touch;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
     }
 
-    .student-row {
-        .actions .btn-label {
-            display: none;
-        }
+    .drawer-footer {
+        flex-shrink: 0;
+        padding: 16px 24px;
+        border-top: 1px solid #e2e8f0;
+        background: #f8fafc;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        width: 100%;
+        box-sizing: border-box;
     }
 }

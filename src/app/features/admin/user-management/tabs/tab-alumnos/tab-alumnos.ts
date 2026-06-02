@@ -1,14 +1,15 @@
-import { Component, ViewChild, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, ViewChild, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, map, forkJoin } from 'rxjs';
-import { DatePipe } from '@angular/common';
+import { debounceTime, distinctUntilChanged, filter, switchMap, forkJoin } from 'rxjs';
+import { DatePipe, UpperCasePipe } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,22 +36,21 @@ export interface AlumnoRow {
   telefono?: string;
   email?: string;
   foto_url?: string | null;
-  activo?: boolean;
-  inclusivo?: boolean;
+  activo: boolean;
+  inclusivo: boolean;
   grado?: string;
-  grado_id?: number;
+  grado_id?: string;
   seccion?: string;
   seccion_id?: string;
-
 }
 
 @Component({
   selector: 'app-tab-alumnos',
   standalone: true,
   imports: [
-    ReactiveFormsModule, DatePipe,
+    ReactiveFormsModule, DatePipe, UpperCasePipe,
     MatTableModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
+    MatButtonModule, MatMenuModule, MatDialogModule, MatDividerModule,
     MatFormFieldModule, MatInputModule, MatSelectModule, MatTooltipModule,
     UserAvatar,
   ],
@@ -61,17 +61,18 @@ export class TabAlumnos implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
-
-  // ── Filtros ───────────────────────────────────────────────────
+  // ── Filtros y Estructura Académica ───────────────────────────
   grados = signal<GradeLevel[]>([]);
   secciones = signal<Section[]>([]);
-  loadingFiltros = signal(true);
+  loadingFiltros = signal<boolean>(true);
 
   gradoFiltro = new FormControl<string | null>(null);
-   seccionFiltro = new FormControl<string | null>(null);
-  busqueda = new FormControl('');
+  seccionFiltro = new FormControl<string | null>(null);
+  busqueda = new FormControl('', { nonNullable: true });
 
+  // Derivación computada reactiva (Signals) para filtrado local instantáneo de secciones
   seccionesFiltradas = computed(() => {
     const gId = this.gradoFiltro.value;
     return gId
@@ -79,25 +80,30 @@ export class TabAlumnos implements OnInit {
       : this.secciones();
   });
 
-  // ── Datos ─────────────────────────────────────────────────────
-  loading = signal(true);
+  // ── Datos de la Tabla ─────────────────────────────────────────
+  loading = signal<boolean>(true);
   dataSource = new MatTableDataSource<AlumnoRow>([]);
-  displayedColumns = ['codigo', 'documento', 'nombre', 'grado', 'nacimiento', 'telefono', 'estado', 'acciones'];
+  displayedColumns: string[] = ['codigo', 'documento', 'nombre', 'grado', 'nacimiento', 'telefono', 'estado', 'acciones'];
 
-  // ── Paginación server-side ────────────────────────────────────
-  total = signal(0);
-  page = signal(1);    // 1-based
-  pageSize = signal(20);
+  // ── Paginación Server-Side ────────────────────────────────────
+  total = signal<number>(0);
+  page = signal<number>(1);
+  pageSize = signal<number>(20);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  // ── Init ──────────────────────────────────────────────────────
   ngOnInit(): void {
-    // Cargar filtros y datos iniciales en paralelo
+    this.initAcademicFilters();
+    this.setupReactiveStreams();
+  }
+
+  private initAcademicFilters(): void {
+    this.loadingFiltros.set(true);
+
     forkJoin({
       grados: this.api.get<GradeLevel[]>('academic/grados'),
       secciones: this.api.get<Section[]>('academic/secciones'),
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ grados, secciones }) => {
         this.grados.set((grados as any).data ?? []);
         this.secciones.set((secciones as any).data ?? []);
@@ -105,65 +111,67 @@ export class TabAlumnos implements OnInit {
         this.loadData();
       },
       error: () => {
+        this.toastr.error('Error al inicializar la estructura de los filtros académicos.', 'Error');
         this.loadingFiltros.set(false);
         this.loading.set(false);
       },
     });
+  }
 
-    // Limpiar sección al cambiar grado y recargar
-    this.gradoFiltro.valueChanges.subscribe(() => {
+  private setupReactiveStreams(): void {
+    // Resetea la sección y la página al permutar el grado de interés
+    this.gradoFiltro.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.seccionFiltro.setValue(null, { emitEvent: false });
       this.page.set(1);
       this.loadData();
     });
 
-    // Búsqueda reactiva con debounce
+    // Escucha de escritura con debounce controlado
     this.busqueda.valueChanges.pipe(
       debounceTime(400),
       distinctUntilChanged(),
-      map(v => v?.trim() ?? ''),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
       this.page.set(1);
       this.loadData();
     });
   }
 
-  // ── Carga ─────────────────────────────────────────────────────
   loadData(): void {
     const sid = this.seccionFiltro.value;
     const gid = this.gradoFiltro.value;
-    const q = this.busqueda.value?.trim();
+    const q = this.busqueda.value.trim();
 
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({
+      page: String(this.page()),
+      limit: String(this.pageSize())
+    });
+
     if (sid) params.set('seccion_id', sid);
     else if (gid) params.set('grado_id', String(gid));
-    if (q && q.length >= 2) params.set('q', q);
-    params.set('page', String(this.page()));
-    params.set('limit', String(this.pageSize()));
+
+    if (q.length >= 2) params.set('q', q);
 
     this.loading.set(true);
 
-    this.api.get<any>(`admin/users/alumnos?${params.toString()}`).subscribe({
-      next: res => {
-        const body = (res as any).data ?? res;
-        if (Array.isArray(body)) {
-          // Retrocompatible si el backend aún devuelve array plano
-          this.dataSource.data = body;
-          this.total.set(body.length);
-        } else {
-          this.dataSource.data = body.data ?? [];
-          this.total.set(body.total ?? 0);
-        }
+    this.api.get<any>(`admin/users/alumnos?${params.toString()}`).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (res) => {
+        const body = res?.data ?? res;
+        this.dataSource.data = Array.isArray(body) ? body : (body.data ?? []);
+        this.total.set(Array.isArray(body) ? body.length : (body.total ?? 0));
         this.loading.set(false);
       },
       error: () => {
-        this.toastr.error('Error al cargar alumnos', 'Error');
+        this.toastr.error('Ocurrió un error al cargar la lista de alumnos.', 'Error');
         this.loading.set(false);
       },
     });
   }
 
-  // ── Filtros ───────────────────────────────────────────────────
   aplicarFiltros(): void {
     this.page.set(1);
     this.loadData();
@@ -181,25 +189,26 @@ export class TabAlumnos implements OnInit {
     return !!(this.gradoFiltro.value || this.seccionFiltro.value || this.busqueda.value);
   }
 
-  // ── Paginación ────────────────────────────────────────────────
   onPageChange(e: PageEvent): void {
-    this.page.set(e.pageIndex + 1); // mat-paginator es 0-based
+    this.page.set(e.pageIndex + 1);
     this.pageSize.set(e.pageSize);
     this.loadData();
   }
 
-  // ── Acciones ──────────────────────────────────────────────────
+  // ── Orquestación de Diálogos Adaptativos ─────────────────────
   abrirCrearAlumno(): void {
     this.dialog.open(UserDialog, {
-      width: '650px',
+      width: '100%',
+      maxWidth: '650px',
       disableClose: true,
       data: { mode: 'create', rol: 'alumno' },
-    }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
+    }).afterClosed().pipe(filter(Boolean)).subscribe(() => this.loadData());
   }
 
-  editarAlumno(row: AlumnoRow) {
+  editarAlumno(row: AlumnoRow): void {
     this.dialog.open(UserDialog, {
-      width: '700px',
+      width: '100%',
+      maxWidth: '700px',
       disableClose: true,
       data: {
         mode: 'edit',
@@ -219,12 +228,13 @@ export class TabAlumnos implements OnInit {
           inclusivo: row.inclusivo ?? false,
         } as unknown as User,
       },
-    }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
+    }).afterClosed().pipe(filter(result => result?.updated)).subscribe(() => this.loadData());
   }
 
   verDetalle(row: AlumnoRow): void {
     this.dialog.open(UserDetailDialog, {
-      width: '580px',
+      width: '100%',
+      maxWidth: '580px',
       maxHeight: '90vh',
       autoFocus: false,
       data: { id: row.id, tipo: 'alumnos' },
@@ -233,8 +243,10 @@ export class TabAlumnos implements OnInit {
 
   toggleEstado(row: AlumnoRow): void {
     const activo = row.activo ?? true;
+
     this.dialog.open(ConfirmDialog, {
-      width: '380px',
+      width: '100%',
+      maxWidth: '380px',
       data: {
         title: activo ? '¿Desactivar alumno?' : '¿Reactivar alumno?',
         message: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
@@ -242,15 +254,18 @@ export class TabAlumnos implements OnInit {
         cancel: 'Cancelar',
         danger: activo,
       },
-    }).afterClosed().subscribe(ok => {
-      if (!ok) return;
-      const req$ = activo
+    }).afterClosed().pipe(
+      filter(Boolean),
+      switchMap(() => activo
         ? this.api.delete(`admin/users/${row.id}`)
-        : this.api.patch(`admin/users/${row.id}/reactivar`, {});
-      req$.subscribe({
-        next: () => { this.toastr.success('Cambios guardados', 'Éxito'); this.loadData(); },
-        error: () => this.toastr.error('Error al actualizar', 'Error'),
-      });
+        : this.api.patch(`admin/users/${row.id}/reactivar`, {})
+      )
+    ).subscribe({
+      next: () => {
+        this.toastr.success('Cambios guardados con éxito.', 'Éxito');
+        this.loadData();
+      },
+      error: () => this.toastr.error('Error al intentar actualizar el estado de la cuenta.', 'Error'),
     });
   }
 }

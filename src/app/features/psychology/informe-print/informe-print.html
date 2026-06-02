@@ -1,22 +1,22 @@
 <!-- psicologa/informe-print/informe-print.html -->
 
-<!-- ── Toolbar FIJO (no-print) ──────────────────────────────────── -->
+<!-- ── Toolbar sticky (dentro del content area, con el sidebar) ── -->
 <div class="print-toolbar no-print">
-
     <div class="toolbar-left">
-        <a mat-icon-button [routerLink]="['..']" class="back-btn">
+        <a mat-icon-button [routerLink]="['../..']" class="back-btn">
             <mat-icon>arrow_back</mat-icon>
         </a>
         <div class="toolbar-info">
-            <span class="toolbar-title">Vista previa</span>
+            <span class="toolbar-title">Vista previa del informe</span>
             @if (informe(); as inf) {
-            <span class="toolbar-sub">{{ inf.titulo }}</span>
+            <span class="toolbar-sub">
+                {{ inf.motivoConsultaCorto ?? 'Informe Psicológico' }}
+            </span>
             }
         </div>
     </div>
 
     <div class="toolbar-right">
-
         @if (informe()?.estado === 'borrador') {
         <span class="badge-toolbar badge-draft">
             <mat-icon>edit_note</mat-icon> Borrador
@@ -26,21 +26,16 @@
             <mat-icon>check_circle</mat-icon> Finalizado
         </span>
         }
-
         <button mat-flat-button color="primary" (click)="downloadPdf()"
             [disabled]="loading() || !informe() || downloading()">
-            @if (downloading()) {
-            <mat-spinner diameter="18" />
-            } @else {
-            <mat-icon>download</mat-icon>
-            }
+            @if (downloading()) { <mat-spinner diameter="18" /> }
+            @else { <mat-icon>download</mat-icon> }
             <span>{{ downloading() ? 'Descargando…' : 'Descargar PDF' }}</span>
         </button>
-
     </div>
 </div>
 
-<!-- ── Estados ──────────────────────────────────────────────────── -->
+<!-- ── Estados ─────────────────────────────────────────────────── -->
 @if (loading()) {
 <div class="state-center no-print">
     <mat-spinner diameter="36" />
@@ -51,7 +46,7 @@
 <div class="state-error no-print">
     <mat-icon>error_outline</mat-icon>
     <p>{{ error() }}</p>
-    <a mat-stroked-button [routerLink]="['..']">Volver</a>
+    <a mat-stroked-button [routerLink]="['../..']">Volver</a>
 </div>
 }
 @else if (informe(); as inf) {
@@ -59,75 +54,187 @@
 <div class="page-wrap">
     <article class="informe-doc">
 
-        <!-- ══ TÍTULO ══════════════════════════════════════════════ -->
+        <!-- TÍTULO -->
         <header class="doc-header">
-            <h1 class="doc-title">Informe Psicológico</h1>
+            <h1 class="doc-title">INFORME PSICOLÓGICO</h1>
         </header>
 
-        <!-- ══ DATOS DEL ALUMNO ═══════════════════════════════════ -->
+        <!-- I. DATOS DE FILIACIÓN -->
         <section class="doc-section">
-            <h2 class="sec-title">Datos del alumno</h2>
-            <div class="datos-bloque">
-                <p><strong>{{ studentFullName(student()) }}</strong></p>
-                <p>{{ (inf.finalizadoAt ?? inf.createdAt) | date:'longDate':'':'es-PE' }}</p>
-                @if (studentAge() !== null) {
-                <p>{{ studentAge() }} años</p>
-                }
-            </div>
+            <h2 class="sec-title">I. DATOS DE FILIACIÓN</h2>
+
+            <table class="filiacion-table">
+                <tbody>
+                    <tr>
+                        <td class="label">Nombres y apellidos</td>
+                        <td class="value">{{ studentFullName(student()) }}</td>
+                    </tr>
+                    @if (inf.edadEvaluacion) {
+                    <tr>
+                        <td class="label">Edad</td>
+                        <td class="value">{{ inf.edadEvaluacion }} años</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+
+            <hr class="filiacion-divider" />
+
+            <table class="filiacion-table">
+                <tbody>
+                    @if (inf.motivoConsultaCorto) {
+                    <tr>
+                        <td class="label">Motivo de consulta</td>
+                        <td class="value">{{ inf.motivoConsultaCorto }}</td>
+                    </tr>
+                    }
+                    @if (inf.referente) {
+                    <tr>
+                        <td class="label">Referente</td>
+                        <td class="value">{{ inf.referente }}</td>
+                    </tr>
+                    }
+                    <tr>
+                        <td class="label">Evaluador</td>
+                        <td class="value">{{ psicologaFullName() }}</td>
+                    </tr>
+                    @if (inf.fechaEvaluacionInicio) {
+                    <tr>
+                        <td class="label">Fecha de Evaluación</td>
+                        <td class="value">
+                            {{ inf.fechaEvaluacionInicio | date:'dd/MM/yyyy' }}
+                            @if (inf.fechaEvaluacionFin && inf.fechaEvaluacionFin !== inf.fechaEvaluacionInicio) {
+                            – {{ inf.fechaEvaluacionFin | date:'dd/MM/yyyy' }}
+                            }
+                        </td>
+                    </tr>
+                    }
+                    <tr>
+                        <td class="label">Fecha de Informe</td>
+                        <td class="value">
+                            {{ (inf.fechaInforme ?? inf.finalizadoAt ?? inf.createdAt) | date:'dd/MM/yyyy' }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <hr class="filiacion-divider" />
+
+            @if (inf.tecnicasUtilizadas || inf.instrumentosUtilizados) {
+            <table class="filiacion-table filiacion-table--mt">
+                <tbody>
+                    @if (inf.tecnicasUtilizadas) {
+                    <tr>
+                        <td class="label">Técnicas Utilizadas</td>
+                        <td class="value">{{ inf.tecnicasUtilizadas }}</td>
+                    </tr>
+                    }
+                    @if (inf.instrumentosUtilizados) {
+                    <tr>
+                        <td class="label">Instrumentos utilizados</td>
+                        <td class="value multiline">{{ inf.instrumentosUtilizados }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            }
         </section>
 
-        <!-- ══ DERIVADO A ═════════════════════════════════════════ -->
-        @if (inf.derivadoA) {
+        <!-- II. MOTIVO DE CONSULTA -->
+        @if (inf.motivoConsulta) {
         <section class="doc-section">
-            <h2 class="sec-title">Derivado a</h2>
-            <p class="body-text">{{ inf.derivadoA }}</p>
+            <h2 class="sec-title">II. MOTIVO DE CONSULTA</h2>
+            <p class="body-text multiline">{{ inf.motivoConsulta }}</p>
         </section>
         }
 
-        <!-- ══ DESTINATARIOS ══════════════════════════════════════ -->
-        @if (inf.tipo === 'derivacion_familia' && parents().length) {
+        <!-- III. ANTECEDENTES -->
+        @if (inf.antecedentesFamilia || inf.antecedentesAcademico || inf.antecedentesEscolar ||
+        inf.antecedentesAutopercepcion) {
         <section class="doc-section">
-            <h2 class="sec-title">Destinatarios</h2>
-            <ul class="parents-list">
-                @for (p of parents(); track p.id) {
-                <li>
-                    <strong>{{ p.relacion | titlecase }}:</strong>
-                    {{ parentFullName(p) }}
-                </li>
-                }
-            </ul>
+            <h2 class="sec-title">III. ANTECEDENTES</h2>
+            @if (inf.antecedentesFamilia) {
+            <h3 class="subsec-title">Dinámica familiar</h3>
+            <p class="body-text multiline">{{ inf.antecedentesFamilia }}</p>
+            }
+            @if (inf.antecedentesAcademico) {
+            <h3 class="subsec-title">Intereses académicos</h3>
+            <p class="body-text multiline">{{ inf.antecedentesAcademico }}</p>
+            }
+            @if (inf.antecedentesEscolar) {
+            <h3 class="subsec-title">Trayectoria escolar</h3>
+            <p class="body-text multiline">{{ inf.antecedentesEscolar }}</p>
+            }
+            @if (inf.antecedentesAutopercepcion) {
+            <h3 class="subsec-title">Autopercepción</h3>
+            <p class="body-text multiline">{{ inf.antecedentesAutopercepcion }}</p>
+            }
         </section>
         }
 
-        <!-- ══ MOTIVO ═════════════════════════════════════════════ -->
+        <!-- IV. OBSERVACIONES -->
+        @if (inf.observacionesConducta) {
         <section class="doc-section">
-            <h2 class="sec-title">Motivo de consulta</h2>
-            <p class="body-text multiline">{{ inf.motivo }}</p>
-        </section>
-
-        <!-- ══ ANTECEDENTES ═══════════════════════════════════════ -->
-        @if (inf.antecedentes) {
-        <section class="doc-section">
-            <h2 class="sec-title">Antecedentes</h2>
-            <p class="body-text multiline">{{ inf.antecedentes }}</p>
+            <h2 class="sec-title">IV. OBSERVACIONES GENERALES Y DE CONDUCTA</h2>
+            <p class="body-text multiline">{{ inf.observacionesConducta }}</p>
         </section>
         }
 
-        <!-- ══ OBSERVACIONES ══════════════════════════════════════ -->
+        <!-- V. RESULTADOS -->
+        @if (inf.resultadosCognitiva || inf.resultadosEmocional || inf.resultadosConductual || inf.resultadosSocial) {
         <section class="doc-section">
-            <h2 class="sec-title">Observaciones y hallazgos</h2>
-            <p class="body-text multiline">{{ inf.observaciones }}</p>
-        </section>
-
-        <!-- ══ RECOMENDACIONES ════════════════════════════════════ -->
-        @if (inf.recomendaciones) {
-        <section class="doc-section">
-            <h2 class="sec-title">Recomendaciones</h2>
-            <p class="body-text multiline">{{ inf.recomendaciones }}</p>
+            <h2 class="sec-title">V. RESULTADOS</h2>
+            @if (inf.resultadosCognitiva) {
+            <h3 class="subsec-title">Área Cognitiva</h3>
+            <p class="body-text multiline">{{ inf.resultadosCognitiva }}</p>
+            }
+            @if (inf.resultadosEmocional) {
+            <h3 class="subsec-title">Área Emocional</h3>
+            <p class="body-text multiline">{{ inf.resultadosEmocional }}</p>
+            }
+            @if (inf.resultadosConductual) {
+            <h3 class="subsec-title">Área Conductual</h3>
+            <p class="body-text multiline">{{ inf.resultadosConductual }}</p>
+            }
+            @if (inf.resultadosSocial) {
+            <h3 class="subsec-title">Área Social</h3>
+            <p class="body-text multiline">{{ inf.resultadosSocial }}</p>
+            }
         </section>
         }
 
-        <!-- ══ FIRMA ══════════════════════════════════════════════ -->
+        <!-- VI. ANÁLISIS -->
+        @if (inf.analisisResultados) {
+        <section class="doc-section">
+            <h2 class="sec-title">VI. ANÁLISIS DE LOS RESULTADOS</h2>
+            <p class="body-text multiline">{{ inf.analisisResultados }}</p>
+        </section>
+        }
+
+        <!-- VII. CONCLUSIONES -->
+        @if (inf.conclusiones) {
+        <section class="doc-section">
+            <h2 class="sec-title">VII. CONCLUSIONES</h2>
+            <p class="body-text multiline">{{ inf.conclusiones }}</p>
+        </section>
+        }
+
+        <!-- VIII. RECOMENDACIONES -->
+        @if (inf.recomendacionesInstitucion || inf.recomendacionesFamilia) {
+        <section class="doc-section">
+            <h2 class="sec-title">VIII. RECOMENDACIONES</h2>
+            @if (inf.recomendacionesInstitucion) {
+            <h3 class="subsec-title">Para la Institución Educativa</h3>
+            <p class="body-text multiline">{{ inf.recomendacionesInstitucion }}</p>
+            }
+            @if (inf.recomendacionesFamilia) {
+            <h3 class="subsec-title">Para la Familia</h3>
+            <p class="body-text multiline">{{ inf.recomendacionesFamilia }}</p>
+            }
+        </section>
+        }
+
+        <!-- FIRMA -->
         <footer class="doc-footer">
             <div class="signature-block">
                 @if (firmaUrl()) {
@@ -137,11 +244,17 @@
                 }
                 <div class="firma-line"></div>
                 <p class="firma-name">{{ psicologaFullName() }}</p>
+                <p class="firma-rol">PSICÓLOGA</p>
                 @if (psicologaColegiatura()) {
                 <p class="firma-cpsp">CPsP {{ psicologaColegiatura() }}</p>
                 }
             </div>
         </footer>
+
+        <!-- Nota al pie (solo screen) -->
+        <p class="doc-footnote no-print">
+            "El presente documento tiene carácter informativo y carece de valor legal"
+        </p>
 
     </article>
 </div>

@@ -1,6 +1,4 @@
-// ═══════════════════════════════════════════════════════════════
 // core/models/psychology.ts
-// ═══════════════════════════════════════════════════════════════
 
 export type RecordCategoria =
     | 'conductual' | 'academico' | 'familiar' | 'emocional' | 'otro';
@@ -93,27 +91,40 @@ export interface Docente {
 }
 
 // ── Informes psicológicos ─────────────────────────────────────
-export type InformeTipo =
-    | 'evaluacion'
-    | 'seguimiento'
-    | 'derivacion_familia'
-    | 'derivacion_externa';
-
 export type InformeEstado = 'borrador' | 'finalizado';
 
 export interface InformePsicologico {
     id: string;
     psychologistId: string;
     studentId: string;
-    tipo: InformeTipo;
-    titulo: string;
-    motivo: string;
-    antecedentes: string | null;
-    observaciones: string;
-    recomendaciones: string | null;
-    derivadoA: string | null;
+    // Datos de filiación
+    edadEvaluacion: number | null;
+    motivoConsultaCorto: string | null;
+    referente: string | null;
+    fechaEvaluacionInicio: string | null;
+    fechaEvaluacionFin: string | null;
+    fechaInforme: string | null;
+    tecnicasUtilizadas: string | null;
+    instrumentosUtilizados: string | null;
+    // Cuerpo
+    motivoConsulta: string | null;
+    antecedentesFamilia: string | null;
+    antecedentesAcademico: string | null;
+    antecedentesEscolar: string | null;
+    antecedentesAutopercepcion: string | null;
+    observacionesConducta: string | null;
+    resultadosCognitiva: string | null;
+    resultadosEmocional: string | null;
+    resultadosConductual: string | null;
+    resultadosSocial: string | null;
+    analisisResultados: string | null;
+    conclusiones: string | null;
+    recomendacionesInstitucion: string | null;
+    recomendacionesFamilia: string | null;
+    // Control
     estado: InformeEstado;
     confidencial: boolean;
+    citaId: string | null;
     finalizadoAt: string | null;
     createdAt: string;
     updatedAt: string;
@@ -121,30 +132,35 @@ export interface InformePsicologico {
 
 export interface CreateInformePayload {
     studentId: string;
-    tipo: InformeTipo;
-    titulo: string;
-    motivo: string;
-    antecedentes?: string | null;
-    observaciones: string;
-    recomendaciones?: string | null;
-    derivadoA?: string | null;
+    edadEvaluacion?: number | null;
+    motivoConsultaCorto?: string | null;
+    referente?: string | null;
+    fechaEvaluacionInicio?: string | null;
+    fechaEvaluacionFin?: string | null;
+    fechaInforme?: string | null;
+    tecnicasUtilizadas?: string | null;
+    instrumentosUtilizados?: string | null;
+    motivoConsulta?: string | null;
+    antecedentesFamilia?: string | null;
+    antecedentesAcademico?: string | null;
+    antecedentesEscolar?: string | null;
+    antecedentesAutopercepcion?: string | null;
+    observacionesConducta?: string | null;
+    resultadosCognitiva?: string | null;
+    resultadosEmocional?: string | null;
+    resultadosConductual?: string | null;
+    resultadosSocial?: string | null;
+    analisisResultados?: string | null;
+    conclusiones?: string | null;
+    recomendacionesInstitucion?: string | null;
+    recomendacionesFamilia?: string | null;
     confidencial?: boolean;
     citaId?: string;
 }
 
 export type UpdateInformePayload = Partial<Omit<CreateInformePayload, 'studentId'>>;
 
-export const INFORME_TIPO_LABELS: Record<InformeTipo, string> = {
-    evaluacion: 'Evaluación psicológica',
-    seguimiento: 'Reporte de seguimiento',
-    derivacion_familia: 'Derivación a la familia',
-    derivacion_externa: 'Derivación a especialista externo',
-};
-
 // ── Archivos subidos (fichas, tests, informes externos) ───────
-// 'ficha'   → documentos externos (anamnesis, derivaciones, etc.)
-// 'test'    → resultados de pruebas estandarizadas
-// 'informe' → informes externos subidos (no generados en el sistema)
 export type ArchivoCategoria = 'ficha' | 'test' | 'informe';
 
 export interface ArchivoPsicologico {
@@ -173,4 +189,4 @@ export interface UploadArchivoPayload {
     citaId?: string;
 }
 
-export const ARCHIVO_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+export const ARCHIVO_MAX_BYTES = 10 * 1024 * 1024;

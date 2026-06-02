@@ -1,6 +1,5 @@
 <div class="sd-layout fade-in">
 
-    <!-- ── Volver ────────────────────────────────────────────────── -->
     <div class="sd-back">
         <button mat-button routerLink="../">
             <mat-icon>arrow_back</mat-icon>
@@ -8,7 +7,6 @@
         </button>
     </div>
 
-    <!-- ── Cargando ─────────────────────────────────────────────── -->
     @if (loadingProfile()) {
     <div class="sd-fullstate">
         <mat-spinner diameter="44" />
@@ -18,9 +16,6 @@
 
     @else if (profile(); as p) {
 
-    <!-- ═══════════════════════════════════════════════════════════
-         CABECERA
-    ════════════════════════════════════════════════════════════ -->
     <header class="sd-header">
         <div class="sd-header__identity">
             @if (p.fotoUrl) {
@@ -63,14 +58,9 @@
         </div>
     </header>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         TABS
-    ════════════════════════════════════════════════════════════ -->
     <mat-tab-group class="sd-tabs" animationDuration="150ms" (selectedIndexChange)="onTabChange($event)">
 
-        <!-- ══════════════════════════════════════════════
-           TAB 0 — FICHAS (documentos subidos)
-      ══════════════════════════════════════════════ -->
+        <!-- TAB 0 — FICHAS -->
         <mat-tab>
             <ng-template mat-tab-label>
                 <mat-icon class="sd-tab-icon">folder_special</mat-icon>
@@ -113,9 +103,7 @@
             }
         </mat-tab>
 
-        <!-- ══════════════════════════════════════════════
-           TAB 1 — TESTS (archivos subidos)
-      ══════════════════════════════════════════════ -->
+        <!-- TAB 1 — TESTS -->
         <mat-tab>
             <ng-template mat-tab-label>
                 <mat-icon class="sd-tab-icon">science</mat-icon>
@@ -157,9 +145,7 @@
             }
         </mat-tab>
 
-        <!-- ══════════════════════════════════════════════
-           TAB 2 — INFORMES (generados + subidos)
-      ══════════════════════════════════════════════ -->
+        <!-- TAB 2 — INFORMES -->
         <mat-tab>
             <ng-template mat-tab-label>
                 <mat-icon class="sd-tab-icon">description</mat-icon>
@@ -172,7 +158,6 @@
             @if (tabVisited()[2]) {
             <div class="sd-tab-content">
 
-                <!-- Informes generados en el sistema -->
                 <section class="sd-section">
                     <div class="sd-tab-header">
                         <div>
@@ -199,10 +184,8 @@
                         @for (i of informesGenerados(); track i.id) {
                         <li class="sd-informe-card" [class.is-final]="i.estado === 'finalizado'"
                             [class.is-conf]="i.confidencial">
+
                             <div class="sd-informe-card__chips">
-                                <span class="sd-chip sd-chip--tipo" [attr.data-tipo]="i.tipo">
-                                    {{ tipoLabels[i.tipo] }}
-                                </span>
                                 <span class="sd-chip" [class.sd-chip--final]="i.estado === 'finalizado'"
                                     [class.sd-chip--draft]="i.estado === 'borrador'">
                                     {{ i.estado === 'finalizado' ? 'Finalizado' : 'Borrador' }}
@@ -213,14 +196,19 @@
                                 </span>
                                 }
                             </div>
-                            <h4 class="sd-informe-card__title">{{ i.titulo }}</h4>
+
+                            <h4 class="sd-informe-card__title">
+                                {{ i.motivoConsultaCorto ?? 'Informe psicológico' }}
+                            </h4>
+
                             <p class="sd-informe-card__meta">
                                 <mat-icon>schedule</mat-icon>
                                 {{ (i.finalizadoAt || i.createdAt) | date:'mediumDate' }}
-                                @if (i.derivadoA) {
-                                · Derivado a: <strong>{{ i.derivadoA }}</strong>
+                                @if (i.referente) {
+                                · Referente: <strong>{{ i.referente }}</strong>
                                 }
                             </p>
+
                             <div class="sd-informe-card__actions">
                                 <a mat-icon-button [routerLink]="['/psicologa/informes', i.id, 'print']" target="_blank"
                                     rel="noopener" matTooltip="Ver / Imprimir">
@@ -246,7 +234,6 @@
                     }
                 </section>
 
-                <!-- Informes externos subidos -->
                 <section class="sd-section">
                     <div class="sd-tab-header">
                         <div>
@@ -277,9 +264,7 @@
             }
         </mat-tab>
 
-        <!-- ══════════════════════════════════════════════
-           TAB 3 — CITAS (acordeón)
-      ══════════════════════════════════════════════ -->
+        <!-- TAB 3 — CITAS -->
         <mat-tab>
             <ng-template mat-tab-label>
                 <mat-icon class="sd-tab-icon">calendar_month</mat-icon>
@@ -336,14 +321,12 @@
                             </mat-panel-description>
                         </mat-expansion-panel-header>
 
-                        <!-- Pendiente / Confirmada -->
                         @if (esFuturaOPendiente(cita)) {
                         <div class="sd-cita-body sd-cita-body--pending">
                             <div class="sd-cita-notice">
                                 <mat-icon>info</mat-icon>
                                 <p>El contenido de sesión se habilita tras marcar la cita como
-                                    <strong>realizada</strong>.
-                                </p>
+                                    <strong>realizada</strong>.</p>
                             </div>
                             <div class="sd-cita-meta">
                                 <span><mat-icon>timer</mat-icon>{{ cita.durationMin }} min</span>
@@ -360,7 +343,6 @@
                         </div>
                         }
 
-                        <!-- Cancelada -->
                         @else if (esCancelada(cita)) {
                         <div class="sd-cita-body sd-cita-body--cancelled">
                             <div class="sd-cita-meta">
@@ -370,7 +352,6 @@
                         </div>
                         }
 
-                        <!-- Realizada — sub-tabs -->
                         @else if (cita.estado === 'realizada') {
                         @let detail = getCitaDetail(cita.id);
                         @if (detail.loading) {
@@ -380,7 +361,7 @@
                         } @else {
                         <mat-tab-group class="sd-cita-tabs" animationDuration="100ms">
 
-                            <!-- Sub-tab Anotaciones -->
+                            <!-- Sub-tab: Anotaciones -->
                             <mat-tab>
                                 <ng-template mat-tab-label>
                                     <mat-icon class="sd-subtab-icon">edit_note</mat-icon>
@@ -413,7 +394,6 @@
                                                 <header class="sd-ficha-card__header">
                                                     <span class="sd-chip sd-chip--cat" [attr.data-cat]="r.categoria">{{
                                                         r.categoria }}</span>
-                                               
                                                     <div class="sd-ficha-card__actions">
                                                         <button mat-icon-button (click)="openEditAnotacion(r, cita.id)"
                                                             matTooltip="Editar">
@@ -434,7 +414,7 @@
                                 </div>
                             </mat-tab>
 
-
+                            <!-- Sub-tab: Archivos -->
                             <mat-tab>
                                 <ng-template mat-tab-label>
                                     <mat-icon class="sd-subtab-icon">folder_open</mat-icon>
@@ -483,6 +463,8 @@
                                     }
                                 </div>
                             </mat-tab>
+
+                            <!-- Sub-tab: Informe -->
                             <mat-tab>
                                 <ng-template mat-tab-label>
                                     <mat-icon class="sd-subtab-icon">description</mat-icon>
@@ -500,16 +482,20 @@
                                     } @else {
                                     <div class="sd-session-informe">
                                         <div class="sd-session-informe__chips">
-                                            <span class="sd-chip sd-chip--tipo" [attr.data-tipo]="detail.informe.tipo">
-                                                {{ tipoLabels[detail.informe.tipo] }}
-                                            </span>
                                             <span class="sd-chip"
                                                 [class.sd-chip--final]="detail.informe.estado === 'finalizado'"
                                                 [class.sd-chip--draft]="detail.informe.estado === 'borrador'">
                                                 {{ detail.informe.estado === 'finalizado' ? 'Finalizado' : 'Borrador' }}
                                             </span>
+                                            @if (detail.informe.confidencial) {
+                                            <span class="sd-chip sd-chip--conf">
+                                                <mat-icon>lock</mat-icon>Confidencial
+                                            </span>
+                                            }
                                         </div>
-                                        <h4 class="sd-session-informe__title">{{ detail.informe.titulo }}</h4>
+                                        <h4 class="sd-session-informe__title">
+                                            {{ detail.informe.motivoConsultaCorto ?? 'Informe psicológico' }}
+                                        </h4>
                                         <p class="sd-session-informe__meta">
                                             <mat-icon>schedule</mat-icon>
                                             {{ detail.informe.createdAt | date:'mediumDate' }}
@@ -556,7 +542,6 @@
     }
 
 </div>
-
 
 <ng-template #archivoRow let-a let-tab="tab">
     <li class="sd-file-item" [class.is-conf]="a.confidencial">

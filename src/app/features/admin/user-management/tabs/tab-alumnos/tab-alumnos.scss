@@ -2,161 +2,331 @@
 
 @include admin-table.styles;
 
-// ─── ESTILOS DE LA PÁGINA (Layout) ─────────────────────────────────────────
+:host {
+    --page-max-width: 1600px;
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-.page-container {
-    padding: 24px;
-    max-width: 1600px;
-    margin: 0 auto;
+    // Variables locales del token inclusivo
+    --c-inclusivo: #c026d3;
+    --c-inclusivo-soft: #fdf4ff;
+    --c-inclusivo-line: #f5d0fe;
+    --c-inclusivo-text: #86198f;
 }
 
-.page-header {
+.page-container {
+    padding: 1.5rem;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    @media (min-width: 768px) {
+        padding: 2rem;
+    }
+}
+
+// Estructura adaptativa para el Header corporativo
+.page-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: center;
+
+    @media (min-width: 768px) {
+        grid-template-columns: 1fr auto;
+    }
 
     .header-info {
         h1 {
             color: #0f172a;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            font-size: 1.75rem;
+            letter-spacing: -0.03em;
+            margin: 0;
         }
 
-        .text-muted {
+        .text-muted-desc {
             color: #64748b;
-            margin-top: 4px;
+            font-size: 0.9rem;
+            margin-top: 0.35rem;
         }
     }
 
     .header-actions {
         display: flex;
-        align-items: center;
-        gap: 16px;
-
-        .search-field {
-            width: 320px;
-
-            ::ng-deep .mdc-text-field--outlined {
-                height: 48px;
-            }
-
-            ::ng-deep .mat-mdc-form-field-infix {
-                padding-top: 12px;
-                padding-bottom: 12px;
-            }
-        }
+        justify-content: stretch;
 
         .btn-create {
             height: 48px;
+            width: 100%;
             border-radius: 8px;
-            padding: 0 24px;
+            padding: 0 1.5rem;
             font-weight: 600;
-            letter-spacing: 0.3px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            background: #4f46e5;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15);
 
-            mat-icon {
-                margin-right: 8px;
+            @media (min-width: 480px) {
+                width: auto;
             }
         }
     }
 }
 
+// Panel de Filtros Estilizados
+.filters-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+
+    .filters-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        align-items: center;
+
+        @media (min-width: 640px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (min-width: 1024px) {
+            grid-template-columns: 220px 240px 1fr auto;
+        }
+    }
+
+    .filter-field {
+        width: 100%;
+
+        mat-icon[matPrefix] {
+            color: #94a3b8;
+            margin-right: 8px;
+        }
+    }
+
+    .filter-btns {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+
+        @media (min-width: 640px) {
+            grid-column: span 2;
+        }
+
+        @media (min-width: 1024px) {
+            grid-column: auto;
+            width: auto;
+        }
+
+        .btn-search {
+            flex: 1;
+            height: 48px;
+            border-radius: 8px;
+            font-weight: 600;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+
+            @media (min-width: 1024px) {
+                flex: none;
+                padding: 0 1.25rem;
+            }
+        }
+
+        .btn-clear-filters {
+            color: #64748b;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+        }
+    }
+}
+
+// Barra informativa de conteo y estado
+.results-bar {
+    padding: 0 0.25rem;
+    font-size: 0.85rem;
+    color: #64748b;
+
+    .results-hint {
+        color: #94a3b8;
+    }
+}
+
+// Card unificado que encapsula la tabla de Material
 .table-card {
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    border: 1px solid #e2e8f0;
     overflow: hidden;
 }
 
-.m-0 {
-    margin: 0;
-}
+// Bloque de información del Alumno
+.info-block {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
 
-.fade-in {
-    animation: fadeIn 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+    .name-badge-wrapper {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .email-text {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 0.125rem;
     }
 }
 
-@media (max-width: 768px) {
-    .page-container {
-        padding: 16px;
-    }
+.academic-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
 
-    .page-header {
-        flex-direction: column;
-        align-items: stretch;
-
-        .header-actions {
-            flex-direction: column;
-            align-items: stretch;
-
-            .search-field {
-                width: 100%;
-            }
-        }
+    .seccion-sub {
+        font-size: 0.775rem;
+        color: #94a3b8;
     }
 }
-// ── Inclusivo (fila + chip) ────────────────────────────────────
-// Se usa el mismo token (`--c-inclusivo`) que el modal de
-// creación/edición de alumno. La fila se acentúa con una banda
-// lateral magenta y un fondo muy tenue para no chocar con los
-// estados activo/inactivo.
-:host {
-    --c-inclusivo:        #c026d3;
-    --c-inclusivo-soft:   #fdf4ff;
-    --c-inclusivo-line:   #f5d0fe;
-    --c-inclusivo-text:   #86198f;
+
+// Elementos inyectados dinámicamente en mobile
+.mobile-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+
+    .code-badge-mobile {
+        font-size: 0.65rem;
+        font-weight: 700;
+        background: #eef2ff;
+        color: #4338ca;
+        padding: 1px 5px;
+        border-radius: 4px;
+    }
+
+    .mobile-academic-text {
+        font-size: 0.725rem;
+        font-weight: 500;
+        color: #64748b;
+    }
 }
 
+.text-muted-cell {
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+// Manejo del estado Inclusivo sobre las filas
 .row--inclusivo {
-    background: var(--c-inclusivo-soft);
+    background-color: var(--c-inclusivo-soft) !important;
 
-    > td:first-child {
+    >td.mat-mdc-cell:first-child {
         box-shadow: inset 4px 0 0 var(--c-inclusivo);
     }
 
     &:hover {
-        background: #fbe8ff !important;
+        background-color: #fbe8ff !important;
     }
 }
 
-.chip {
+.chip--inclusivo {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    height: 18px;
-    padding: 0 8px;
-    margin-left: 6px;
-    font-size: .68rem;
+    gap: 0.25rem;
+    height: 20px;
+    padding: 0 0.5rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: .02em;
-    border-radius: 999px;
-    vertical-align: middle;
+    border-radius: 9999px;
+    color: var(--c-inclusivo-text);
+    background: var(--c-inclusivo-soft);
+    border: 1px solid var(--c-inclusivo-line);
 
     mat-icon {
         font-size: 12px;
         width: 12px;
         height: 12px;
     }
+}
 
-    &--inclusivo {
-        color: var(--c-inclusivo-text);
-        background: var(--c-inclusivo-soft);
-        border: 1px solid var(--c-inclusivo-line);
+// Menú contextual flotante
+.users-action-menu {
+    .danger-item {
+        color: #dc2626;
+    }
+
+    .success-item {
+        color: #16a34a;
+    }
+
+    .text-primary-icon {
+        color: #2563eb;
+    }
+}
+
+// Clases utilitarias de visualización condicional (Breakpoints)
+.show-on-mobile {
+    display: none;
+}
+
+.hide-on-mobile {
+    display: table-cell;
+}
+
+.hide-on-tablet {
+    display: table-cell;
+}
+
+@media (max-width: 1024px) {
+    .hide-on-tablet {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .hide-on-mobile {
+        display: none !important;
+    }
+
+    .show-on-mobile {
+        display: flex !important;
+    }
+
+    .users-table td.mat-mdc-cell {
+        padding: 0.875rem 0.5rem;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

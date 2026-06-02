@@ -21,8 +21,7 @@
         <h3>Arrastra los PDFs aquí</h3>
         <p>o haz click para seleccionar (PDF, JPG, PNG)</p>
         <span class="hint">
-            Tip: nombra los archivos con el nombre del alumno
-            (ej. <code>Uturunco_Aaron.pdf</code>) para auto-asignar.
+            Tip: nombra los archivos con el nombre del alumno (ej. <code>Uturunco_Aaron.pdf</code>) para auto-asignar.
         </span>
     </label>
     } @else {
@@ -59,14 +58,14 @@
                     [disabled]="isSubmitting()" />
                 <mat-icon>add</mat-icon> Agregar más
             </label>
-            <button mat-button color="warn" (click)="clearAll()" [disabled]="isSubmitting()">
+            <button mat-button color="warn" class="clear-btn" (click)="clearAll()" [disabled]="isSubmitting()">
                 <mat-icon>delete_sweep</mat-icon> Limpiar
             </button>
         </div>
     </div>
 
     <div class="rows-scroll">
-        <div class="rows">
+        <div class="rows-container">
             @for (row of rows(); track row.id) {
             <article class="row" [class]="classForConfidence(row.confidence) + ' status-' + row.status">
 
@@ -78,10 +77,12 @@
                     </div>
                 </div>
 
-                <mat-icon class="arrow">arrow_forward</mat-icon>
+                <div class="col-arrow">
+                    <mat-icon class="arrow">arrow_forward</mat-icon>
+                </div>
 
                 <div class="col-alumno">
-                    <mat-form-field appearance="outline" class="alumno-select">
+                    <mat-form-field appearance="outline" class="alumno-select" subscriptSizing="dynamic">
                         <mat-icon matPrefix [class]="classForConfidence(row.confidence)">
                             {{ iconForConfidence(row.confidence) }}
                         </mat-icon>
@@ -128,10 +129,12 @@
                     }
                 </div>
 
-                <button class="col-remove" mat-icon-button (click)="removeRow(row.id)"
-                    [disabled]="row.status === 'uploading' || row.status === 'done'" aria-label="Quitar archivo">
-                    <mat-icon>close</mat-icon>
-                </button>
+                <div class="col-remove-btn">
+                    <button class="col-remove" mat-icon-button (click)="removeRow(row.id)"
+                        [disabled]="row.status === 'uploading' || row.status === 'done'" aria-label="Quitar archivo">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
             </article>
             }
         </div>
@@ -142,15 +145,15 @@
         <button mat-button (click)="cancel()" [disabled]="isSubmitting()">
             Cancelar
         </button>
-        
-        <button mat-flat-button color="primary" (click)="submit()" [disabled]="!canSubmit()">
+
+        <button mat-flat-button color="primary" class="submit-btn" (click)="submit()" [disabled]="!canSubmit()">
             @if (isSubmitting()) {
             <mat-spinner diameter="18"></mat-spinner>
-            Subiendo…
-            } @else { <ng-container>
-            <mat-icon>cloud_upload</mat-icon>
-            Subir {{ stats().ready }} libreta{{ stats().ready === 1 ? '' : 's' }}
-            </ng-container> }
+            <span>Subiendo…</span>
+            } @else {<ng-container>
+                <mat-icon>cloud_upload</mat-icon>
+                <span>Subir {{ stats().ready }} libreta{{ stats().ready === 1 ? '' : 's' }}</span>
+            </ng-container>}
         </button>
     </footer>
 </div>

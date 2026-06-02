@@ -64,7 +64,7 @@ export class ExportGradesTab implements OnInit {
       periodo_id: this.filtroPeriodoId || undefined,
       grado_id: this.filtroGradoId || undefined,
       seccion_id: this.filtroSeccionId || undefined
-    };
+    }; 
     this.store.executeSecureDownload('academic_general', format, params);
   }
 }

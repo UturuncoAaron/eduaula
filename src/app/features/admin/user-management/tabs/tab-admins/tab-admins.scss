@@ -2,112 +2,169 @@
 
 @include admin-table.styles;
 
-// ─── ESTILOS DE LA PÁGINA (Layout) ─────────────────────────────────────────
-
-.page-container {
-    padding: 24px;
-    max-width: 1600px;
-    margin: 0 auto;
+:host {
+    --page-max-width: 1440px;
+    --transition-default: all 0.2s ease-in-out;
 }
 
-.page-header {
+.page-container {
+    padding: 1.5rem;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    @media (min-width: 768px) {
+        padding: 2rem;
+    }
+}
+
+// Layout del Header adaptativo (Copia exacta de tu diseño base)
+.page-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: center;
+
+    @media (min-width: 768px) {
+        grid-template-columns: 1fr auto;
+    }
 
     .header-info {
         h1 {
             color: #0f172a;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            font-size: 1.75rem;
+            letter-spacing: -0.03em;
+            margin: 0;
         }
 
-        .text-muted {
+        .text-muted-desc {
             color: #64748b;
-            margin-top: 4px;
+            font-size: 0.9rem;
+            margin-top: 0.35rem;
         }
     }
 
     .header-actions {
         display: flex;
-        align-items: center;
-        gap: 16px;
+        flex-direction: column;
+        gap: 0.875rem;
+
+        @media (min-width: 480px) {
+            flex-direction: row;
+            align-items: center;
+        }
 
         .search-field {
-            width: 320px;
-
-            ::ng-deep .mdc-text-field--outlined {
-                height: 48px;
-            }
-
-            ::ng-deep .mat-mdc-form-field-infix {
-                padding-top: 12px;
-                padding-bottom: 12px;
-            }
+            width: 100%;
+            min-width: 300px;
         }
 
         .btn-create {
             height: 48px;
             border-radius: 8px;
-            padding: 0 24px;
+            padding: 0 1.5rem;
             font-weight: 600;
-            letter-spacing: 0.3px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-
-            mat-icon {
-                margin-right: 8px;
-            }
+            background: #4f46e5; // Tonalidad índigo/azul institucional del botón "Nuevo"
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
     }
 }
 
+// Estructura de la tarjeta contenedora de datos
 .table-card {
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f1f5f9;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
     overflow: hidden;
 }
 
-.m-0 {
-    margin: 0;
+// Ajustes del bloque de información del usuario
+.info-block {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+
+    .email-text {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 0.125rem;
+    }
+}
+
+.empty-hint {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+}
+
+// Elementos adaptativos para resoluciones móviles
+.mobile-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+}
+
+// Clases utilitarias de visualización condicional (Responsive Breakpoints)
+.show-on-mobile {
+    display: none;
+}
+
+.hide-on-mobile {
+    display: table-cell;
+}
+
+@media (max-width: 768px) {
+    .hide-on-mobile {
+        display: none !important;
+    }
+
+    .show-on-mobile {
+        display: flex !important;
+    }
+
+    .users-table {
+        td.mat-mdc-cell {
+            padding: 0.875rem 0.5rem;
+        }
+    }
+}
+
+// Modificadores semánticos para el menú flotante
+.users-action-menu {
+    .danger-item {
+        color: #dc2626;
+    }
+
+    .success-item {
+        color: #16a34a;
+    }
+
+    .text-primary-icon {
+        color: #2563eb;
+    }
 }
 
 .fade-in {
-    animation: fadeIn 0.4s ease-out;
+    animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(4px);
     }
 
     to {
         opacity: 1;
         transform: translateY(0);
-    }
-}
-
-@media (max-width: 768px) {
-    .page-container {
-        padding: 16px;
-    }
-
-    .page-header {
-        flex-direction: column;
-        align-items: stretch;
-
-        .header-actions {
-            flex-direction: column;
-            align-items: stretch;
-
-            .search-field {
-                width: 100%;
-            }
-        }
     }
 }

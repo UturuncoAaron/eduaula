@@ -1,16 +1,18 @@
-import { Component, ViewChild, OnInit, signal, inject } from '@angular/core';
+import { Component, ViewChild, OnInit, signal, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CommonModule } from '@angular/common';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
@@ -22,26 +24,27 @@ import { PermisoUsuarioDialog } from '@shared/components/permiso-usuario-dialog/
 
 export interface DocenteRow {
   id: string;
-  tipo_documento?: string;
-  numero_documento?: string;
+  tipo_documento: 'dni' | 'ce' | 'pasaporte';
+  numero_documento: string;
   nombre: string;
   apellido_paterno: string;
   apellido_materno?: string;
   especialidad?: string;
   titulo_profesional?: string;
-  email?: string;
+  email: string;
   telefono?: string;
   foto_url?: string | null;
-  activo?: boolean;
+  activo: boolean;
 }
 
 @Component({
   selector: 'app-tab-docentes',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     MatTableModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
+    MatButtonModule, MatMenuModule, MatDialogModule, MatDividerModule,
     MatFormFieldModule, MatInputModule, MatTooltipModule,
     UserAvatar,
   ],
@@ -52,29 +55,29 @@ export class TabDocentes implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
-  // ── Búsqueda ──────────────────────────────────────────────────
-  busqueda = new FormControl('');
-
-  // ── Datos ─────────────────────────────────────────────────────
-  loading = signal(true);
+  // ── Controles y Datos Reactivos ──────────────────────────────
+  busqueda = new FormControl('', { nonNullable: true });
+  loading = signal<boolean>(true);
   dataSource = new MatTableDataSource<DocenteRow>([]);
-  displayedColumns = ['documento', 'nombre', 'especialidad', 'estado', 'acciones'];
+  displayedColumns: string[] = ['documento', 'nombre', 'especialidad', 'estado', 'acciones'];
 
-  // ── Paginación server-side ────────────────────────────────────
-  total = signal(0);
-  page = signal(1);
-  pageSize = signal(20);
+  // ── Paginación Server-Side ────────────────────────────────────
+  total = signal<number>(0);
+  page = signal<number>(1);
+  pageSize = signal<number>(20);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   ngOnInit(): void {
     this.loadData();
 
+    // Stream de escucha de busqueda acoplado al destroyRef nativo
     this.busqueda.valueChanges.pipe(
       debounceTime(400),
       distinctUntilChanged(),
-      map(v => v?.trim() ?? ''),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
       this.page.set(1);
       this.loadData();
@@ -82,22 +85,29 @@ export class TabDocentes implements OnInit {
   }
 
   loadData(): void {
-    const q = this.busqueda.value?.trim();
-    const params = new URLSearchParams();
-    if (q && q.length >= 2) params.set('q', q);
-    params.set('page', String(this.page()));
-    params.set('limit', String(this.pageSize()));
+    const q = this.busqueda.value.trim();
+    const params = new URLSearchParams({
+      page: String(this.page()),
+      limit: String(this.pageSize())
+    });
+
+    if (q.length >= 2) {
+      params.set('q', q);
+    }
 
     this.loading.set(true);
-    this.api.get<any>(`admin/users/docentes?${params.toString()}`).subscribe({
-      next: res => {
-        const body = (res as any).data ?? res;
+
+    this.api.get<any>(`admin/users/docentes?${params.toString()}`).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (res) => {
+        const body = res?.data ?? res;
         if (Array.isArray(body)) {
           this.dataSource.data = body;
           this.total.set(body.length);
         } else {
-          this.dataSource.data = body.data ?? [];
-          this.total.set(body.total ?? 0);
+          this.dataSource.data = body?.data ?? [];
+          this.total.set(body?.total ?? 0);
         }
         this.loading.set(false);
       },
@@ -120,66 +130,60 @@ export class TabDocentes implements OnInit {
     this.loadData();
   }
 
-  // ── Acciones ──────────────────────────────────────────────────
+  // ── Diálogos Adaptativos ─────────────────────────────────────
   abrirCrearDocente(): void {
     this.dialog.open(UserDialog, {
-      width: '700px',
+      width: '100%',
+      maxWidth: '700px', // Ocupa todo el ancho en móviles de forma responsiva
       disableClose: true,
       data: { mode: 'create', rol: 'docente' },
-    }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
+    }).afterClosed().pipe(filter(Boolean)).subscribe(() => this.loadData());
   }
 
   editarDocente(row: DocenteRow): void {
     this.dialog.open(UserDialog, {
-      width: '700px',
+      width: '100%',
+      maxWidth: '700px',
       disableClose: true,
       data: {
         mode: 'edit',
         rol: 'docente',
         isSelf: false,
-        user: {
-          id: row.id,
-          rol: 'docente',
-          nombre: row.nombre,
-          apellido_paterno: row.apellido_paterno,
-          apellido_materno: row.apellido_materno ?? '',
-          email: row.email ?? '',
-          telefono: row.telefono ?? '',
-          foto_url: row.foto_url ?? null,
-          tipo_documento: row.tipo_documento ?? 'dni',
-          numero_documento: row.numero_documento ?? '',
-          especialidad: row.especialidad ?? '',
-          titulo_profesional: row.titulo_profesional ?? '',
-        },
+        user: { ...row },
       },
-    }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
+    }).afterClosed().pipe(filter(result => result?.updated)).subscribe(() => this.loadData());
   }
 
   verDetalle(row: DocenteRow): void {
     this.dialog.open(UserDetailDialog, {
-      width: '580px',
+      width: '100%',
+      maxWidth: '580px',
       maxHeight: '90vh',
       autoFocus: false,
       data: { id: row.id, tipo: 'docentes' },
     });
   }
+
   gestionarPermisos(row: DocenteRow): void {
     this.dialog.open(PermisoUsuarioDialog, {
-      width: '480px',
+      width: '100%',
+      maxWidth: '480px',
       autoFocus: false,
       data: {
         id: row.id,
         nombre: row.nombre,
         apellido_paterno: row.apellido_paterno,
-        rol: 'docente',   // ← correcto
+        rol: 'docente',
       },
     });
   }
 
   toggleEstado(row: DocenteRow): void {
     const activo = row.activo ?? true;
+
     this.dialog.open(ConfirmDialog, {
-      width: '380px',
+      width: '100%',
+      maxWidth: '380px',
       data: {
         title: activo ? '¿Desactivar docente?' : '¿Reactivar docente?',
         message: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
@@ -187,15 +191,18 @@ export class TabDocentes implements OnInit {
         cancel: 'Cancelar',
         danger: activo,
       },
-    }).afterClosed().subscribe(ok => {
-      if (!ok) return;
-      const req$ = activo
+    }).afterClosed().pipe(
+      filter(Boolean),
+      switchMap(() => activo
         ? this.api.delete(`admin/users/${row.id}`)
-        : this.api.patch(`admin/users/${row.id}/reactivar`, {});
-      req$.subscribe({
-        next: () => { this.toastr.success('Cambios guardados', 'Éxito'); this.loadData(); },
-        error: () => this.toastr.error('Ocurrió un error, intenta nuevamente', 'Error'),
-      });
+        : this.api.patch(`admin/users/${row.id}/reactivar`, {})
+      )
+    ).subscribe({
+      next: () => {
+        this.toastr.success('Cambios guardados con éxito.', 'Éxito');
+        this.loadData();
+      },
+      error: () => this.toastr.error('Ocurrió un error inesperado, intenta de nuevo.', 'Error'),
     });
   }
 }

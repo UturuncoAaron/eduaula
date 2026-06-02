@@ -1,13 +1,15 @@
-import { Component, ViewChild, OnInit, signal, inject } from '@angular/core';
+import { Component, ViewChild, OnInit, signal, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap} from 'rxjs';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatDivider } from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider';
+import { UpperCasePipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -32,16 +34,16 @@ export interface PsicologaRow {
   email?: string;
   telefono?: string;
   foto_url?: string | null;
-  activo?: boolean;
+  activo: boolean;
 }
 
 @Component({
   selector: 'app-tab-psicologos',
   standalone: true,
   imports: [
-    ReactiveFormsModule,
+    ReactiveFormsModule, UpperCasePipe,
     MatTableModule, MatPaginatorModule, MatIconModule,
-    MatButtonModule, MatMenuModule, MatDialogModule, MatDivider,
+    MatButtonModule, MatMenuModule, MatDialogModule, MatDividerModule,
     MatFormFieldModule, MatInputModule, MatTooltipModule,
     UserAvatar,
   ],
@@ -52,16 +54,19 @@ export class TabPsicologos implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
-  busqueda = new FormControl('');
+  // ── Controles reactivos ───────────────────────────────────────
+  busqueda = new FormControl('', { nonNullable: true });
 
-  loading = signal(true);
+  // ── Estados Basados en Signals ───────────────────────────────
+  loading = signal<boolean>(true);
+  total = signal<number>(0);
+  page = signal<number>(1);
+  pageSize = signal<number>(20);
+
   dataSource = new MatTableDataSource<PsicologaRow>([]);
-  displayedColumns = ['documento', 'nombre', 'especialidad', 'estado', 'acciones'];
-
-  total = signal(0);
-  page = signal(1);
-  pageSize = signal(20);
+  displayedColumns: string[] = ['documento', 'nombre', 'especialidad', 'estado', 'acciones'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -71,7 +76,7 @@ export class TabPsicologos implements OnInit {
     this.busqueda.valueChanges.pipe(
       debounceTime(400),
       distinctUntilChanged(),
-      map(v => v?.trim() ?? ''),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
       this.page.set(1);
       this.loadData();
@@ -79,23 +84,24 @@ export class TabPsicologos implements OnInit {
   }
 
   loadData(): void {
-    const q = this.busqueda.value?.trim();
-    const params = new URLSearchParams();
-    if (q && q.length >= 2) params.set('q', q);
-    params.set('page', String(this.page()));
-    params.set('limit', String(this.pageSize()));
+    const q = this.busqueda.value.trim();
+    const params = new URLSearchParams({
+      page: String(this.page()),
+      limit: String(this.pageSize())
+    });
+
+    if (q.length >= 2) {
+      params.set('q', q);
+    }
 
     this.loading.set(true);
-    this.api.get<any>(`admin/users/psicologos?${params.toString()}`).subscribe({
-      next: res => {
-        const body = (res as any).data ?? res;
-        if (Array.isArray(body)) {
-          this.dataSource.data = body;
-          this.total.set(body.length);
-        } else {
-          this.dataSource.data = body.data ?? [];
-          this.total.set(body.total ?? 0);
-        }
+    this.api.get<any>(`admin/users/psicologos?${params.toString()}`).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (res) => {
+        const body = res?.data ?? res;
+        this.dataSource.data = Array.isArray(body) ? body : (body.data ?? []);
+        this.total.set(Array.isArray(body) ? body.length : (body.total ?? 0));
         this.loading.set(false);
       },
       error: () => {
@@ -117,17 +123,20 @@ export class TabPsicologos implements OnInit {
     this.loadData();
   }
 
+  // ── Orquestación de Diálogos Adaptativos ─────────────────────
   abrirCrearPsicologa(): void {
     this.dialog.open(UserDialog, {
-      width: '700px',
+      width: '100%',
+      maxWidth: '700px',
       disableClose: true,
-      data: { mode: 'create', rol: 'psicologa' },  // ← corregido
-    }).afterClosed().subscribe(ok => { if (ok) this.loadData(); });
+      data: { mode: 'create', rol: 'psicologa' },
+    }).afterClosed().pipe(filter(Boolean)).subscribe(() => this.loadData());
   }
 
   editarPsicologa(row: PsicologaRow): void {
     this.dialog.open(UserDialog, {
-      width: '700px',
+      width: '100%',
+      maxWidth: '700px',
       disableClose: true,
       data: {
         mode: 'edit',
@@ -148,18 +157,23 @@ export class TabPsicologos implements OnInit {
           colegiatura: row.colegiatura ?? '',
         },
       },
-    }).afterClosed().subscribe(result => { if (result?.updated) this.loadData(); });
+    }).afterClosed().pipe(filter(result => result?.updated)).subscribe(() => this.loadData());
   }
+
   verDetalle(row: PsicologaRow): void {
     this.dialog.open(UserDetailDialog, {
-      width: '580px', maxHeight: '90vh', autoFocus: false,
+      width: '100%',
+      maxWidth: '580px',
+      maxHeight: '90vh',
+      autoFocus: false,
       data: { id: row.id, tipo: 'psicologos' },
     });
   }
 
   gestionarPermisos(row: PsicologaRow): void {
     this.dialog.open(PermisoUsuarioDialog, {
-      width: '480px',
+      width: '100%',
+      maxWidth: '480px',
       autoFocus: false,
       data: {
         id: row.id,
@@ -169,26 +183,33 @@ export class TabPsicologos implements OnInit {
       },
     });
   }
+
   toggleEstado(row: PsicologaRow): void {
     const activo = row.activo ?? true;
+    const accion = activo ? 'desactivar' : 'reactivar';
+
     this.dialog.open(ConfirmDialog, {
-      width: '380px',
+      width: '100%',
+      maxWidth: '380px',
       data: {
-        title: activo ? '¿Desactivar cuenta?' : '¿Reactivar cuenta?',
-        message: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
-        confirm: activo ? 'Desactivar' : 'Reactivar',
+        title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} cuenta?`,
+        message: `Estás por ${accion} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
+        confirm: accion.charAt(0).toUpperCase() + accion.slice(1),
         cancel: 'Cancelar',
         danger: activo,
       },
-    }).afterClosed().subscribe(ok => {
-      if (!ok) return;
-      const req$ = activo
+    }).afterClosed().pipe(
+      filter(Boolean),
+      switchMap(() => activo
         ? this.api.delete(`admin/users/${row.id}`)
-        : this.api.patch(`admin/users/${row.id}/reactivar`, {});
-      req$.subscribe({
-        next: () => { this.toastr.success('Cambios guardados', 'Éxito'); this.loadData(); },
-        error: () => this.toastr.error('Error al procesar la solicitud', 'Error'),
-      });
+        : this.api.patch(`admin/users/${row.id}/reactivar`, {})
+      )
+    ).subscribe({
+      next: () => {
+        this.toastr.success('Cambios guardados con éxito.', 'Éxito');
+        this.loadData();
+      },
+      error: () => this.toastr.error('Error al procesar la solicitud del cambio de estado.', 'Error'),
     });
   }
 }
