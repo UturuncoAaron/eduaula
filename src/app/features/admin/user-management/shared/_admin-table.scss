@@ -291,6 +291,20 @@ mat-paginator {
     height: 30px;
     font-size: 11px;
   }
+
+  // Paginador más compacto en móvil
+  mat-paginator {
+    ::ng-deep .mat-mdc-paginator-container {
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 8px 4px;
+      font-size: 12px;
+    }
+
+    ::ng-deep .mat-mdc-paginator-page-size {
+      margin-right: 0;
+    }
+  }
 }
 
 @media (max-width: 480px) {
@@ -299,6 +313,27 @@ mat-paginator {
     .mat-column-codigo {
       display: none;
     }
+  }
+
+  .full-name {
+    font-size: 12.5px;
+  }
+
+  .sub-text {
+    font-size: 11px;
+  }.users-table {
+    .mat-column-documento,
+    .mat-column-codigo {
+      display: none;
+    }
+  }
+
+  .full-name {
+    font-size: 12.5px;
+  }
+
+  .sub-text {
+    font-size: 11px;
   }
 }
 } // end @mixin styles
