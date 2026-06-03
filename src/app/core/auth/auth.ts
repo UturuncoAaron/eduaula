@@ -19,26 +19,20 @@ export class AuthService {
   private _token = signal<string | null>(localStorage.getItem('token'));
   private _passwordChanged = signal<boolean>(this.loadPasswordChanged());
 
-  // ── Readonly signals ──────────────────────────────────────────
   readonly currentUser = this._user.asReadonly();
   readonly token = this._token.asReadonly();
   readonly passwordChanged = this._passwordChanged.asReadonly();
   readonly isLoggedIn = computed(() => !!this._token());
 
-  // ── Roles individuales (uno por rol del backend) ─────────────
   readonly isAlumno = computed(() => this._user()?.rol === 'alumno');
   readonly isPadre = computed(() => this._user()?.rol === 'padre');
   readonly isAdmin = computed(() => this._user()?.rol === 'admin');
   readonly isDocente = computed(() => this._user()?.rol === 'docente');
-  readonly isAuxiliar = computed(() => this._user()?.rol === 'auxiliar');
+  readonly isStaffMember = computed(() => this._user()?.rol === 'staff');
   readonly isPsicologa = computed(() => this._user()?.rol === 'psicologa');
 
-  // ── Macro-rol (alumno | padre | staff) ───────────────────────
-  // `isStaff()` agrupa admin + docente + auxiliar + psicologa.
-  // Úselo para layout/shell. Para granularidad use `MODULO`.
   readonly isStaff = computed(() => isStaffRol(this._user()?.rol));
   readonly macroRol = computed(() => getMacroRol(this._user()?.rol));
-
   readonly needsPasswordChange = computed(() => !this._passwordChanged());
 
   readonly fullName = computed(() => {
@@ -51,7 +45,6 @@ export class AuthService {
     return u ? `${u.nombre[0]}${u.apellido_paterno[0]}`.toUpperCase() : '?';
   });
 
-  // ── Login ─────────────────────────────────────────────────────
   login(payload: LoginPayload) {
     return this.http.post<LoginResponse>(`${this.api}/auth/login`, payload).pipe(
       tap(res => {
@@ -66,16 +59,13 @@ export class AuthService {
       catchError(err => {
         const body = err.error;
         const msg =
-          (typeof body?.message === 'object'
-            ? body?.message?.message
-            : body?.message)
+          (typeof body?.message === 'object' ? body?.message?.message : body?.message)
           ?? 'Error al conectar con el servidor';
         return throwError(() => msg);
       }),
     );
   }
 
-  // ── Cambiar contraseña ────────────────────────────────────────
   changePassword(payload: ChangePasswordPayload) {
     return this.http
       .patch<{ success: boolean; data: { message: string } }>(
@@ -84,11 +74,8 @@ export class AuthService {
       )
       .pipe(
         tap(() => {
-          // Marcar como cambiada en memoria y localStorage
           localStorage.setItem('password_changed', 'true');
           this._passwordChanged.set(true);
-
-          // Actualizar el user en localStorage también
           const user = this._user();
           if (user) {
             const updated = { ...user, password_changed: true };
@@ -99,9 +86,7 @@ export class AuthService {
         catchError(err => {
           const body = err.error;
           const msg =
-            (typeof body?.message === 'object'
-              ? body?.message?.message
-              : body?.message)
+            (typeof body?.message === 'object' ? body?.message?.message : body?.message)
             ?? 'Error al cambiar la contraseña';
           return throwError(() => msg);
         }),
@@ -116,7 +101,6 @@ export class AuthService {
     localStorage.setItem('user', JSON.stringify(updated));
   }
 
-  // ── Logout ────────────────────────────────────────────────────
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -127,7 +111,6 @@ export class AuthService {
     this.router.navigate(['/auth/login']);
   }
 
-  // ── Helpers privados ──────────────────────────────────────────
   private loadUser(): User | null {
     try {
       const s = localStorage.getItem('user');

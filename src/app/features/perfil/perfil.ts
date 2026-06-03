@@ -30,7 +30,7 @@ export class Perfil {
         admin: 'Administrador',
         padre: 'Padre / Tutor',
         psicologa: 'Psicóloga',
-        auxiliar: 'Auxiliar', // 🆕
+        staff: 'Staff',
     };
 
     private roleColors: Record<Rol, string> = {
@@ -39,7 +39,7 @@ export class Perfil {
         admin: '#ef4444',
         padre: '#8b5cf6',
         psicologa: '#0ea5e9',
-        auxiliar: '#14b8a6', // 🆕 teal
+        staff: '#14b8a6',
     };
 
     initials = () => {

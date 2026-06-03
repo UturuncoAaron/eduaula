@@ -1,10 +1,4 @@
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SHARED
-// ─────────────────────────────────────────────────────────────────────────────
-
-export type ReportFormat = 'json' | 'xlsx';
+export type ReportFormat = 'json' | 'xlsx' | 'pdf' | 'csv';
 
 export type EscalaCalificacion = 'AD' | 'A' | 'B' | 'C' | 'Sin notas';
 
@@ -19,15 +13,9 @@ export type EstadoAsistenciaDocente =
     | 'presente'
     | 'tardanza'
     | 'ausente'
-    | 'permiso'
-    | 'licencia'
     | 'sin-registro';
 
 export type CategoriaRendimiento = 'top' | 'normal' | 'riesgo' | 'sin-datos';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// REPORTE MAESTRO DE SECCIÓN
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface SeccionInfo {
     id: string;
@@ -53,19 +41,12 @@ export interface PeriodoInfo {
 export interface SeccionResumenResponse {
     seccion: SeccionInfo;
     periodo: PeriodoInfo;
-    // Tab notas
     ranking: AlumnoRanking[];
     notas_por_curso: SeccionNotasRow[];
-    // Tab asistencia
     resumen_asistencia: ResumenAsistenciaRow[];
     top_inasistentes: TopInasistenteRow[];
-    // Tab tareas
     entregas_por_tarea: EntregasTareaRow[];
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// NOTAS
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface AlumnoRanking {
     alumno_id: string;
@@ -90,10 +71,6 @@ export interface SeccionNotasRow {
     promedio: string | null;
     escala: EscalaCalificacion;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ASISTENCIA ALUMNOS
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface ResumenAsistenciaRow {
     alumno_id: string;
@@ -120,10 +97,6 @@ export interface TopInasistenteRow {
     justificadas: number;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TAREAS
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface EntregasTareaRow {
     tarea_id: string;
     titulo: string;
@@ -139,10 +112,6 @@ export interface EntregasTareaRow {
     porcentaje_entrega: string | null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ASISTENCIA DOCENTES
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface HorarioDelDia {
     horario_id: string;
     curso_id: string;
@@ -156,7 +125,6 @@ export interface HorarioDelDia {
     hora_inicio: string;
     hora_fin: string;
     aula: string | null;
-    // Estado actual (si ya fue registrado hoy)
     asistencia_id: string | null;
     estado_actual: EstadoAsistenciaDocente;
     hora_llegada: string | null;
@@ -218,8 +186,6 @@ export interface ResumenAsistenciaDocente {
     presentes: number;
     tardanzas: number;
     ausentes: number;
-    permisos: number;
-    licencias: number;
     sin_registro: number;
     ausentes_sin_justificacion: number;
     porcentaje_asistencia: string | null;
@@ -235,10 +201,6 @@ export interface AlertaAusenciaDocente {
     clases_sin_cobertura: number;
     ultima_ausencia: string | null;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PARÁMETROS DE FILTRO (para los componentes de UI)
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface FiltroSeccion {
     seccion_id: string;

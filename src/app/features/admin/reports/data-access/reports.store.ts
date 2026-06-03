@@ -47,8 +47,7 @@ export class ReportsStore {
     );
 
     readonly docentesAusentes = computed(
-        () => this.horariosDia().filter((h) =>
-            ['ausente', 'permiso', 'licencia'].includes(h.estado_actual)).length,
+        () => this.horariosDia().filter((h) => h.estado_actual === 'ausente').length,
     );
 
     readonly reporteDiario = signal<AsistenciaDocenteDiaria[]>([]);

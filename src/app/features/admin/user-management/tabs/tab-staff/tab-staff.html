@@ -1,17 +1,16 @@
 <div class="page-container fade-in">
 
-    <!-- ══ HEADER ADAPTATIVO ══════════════════════════════════════════ -->
     <header class="page-header">
         <div class="header-info">
-            <h1>Gestión de Auxiliares</h1>
-            <p class="text-muted-desc">Administra al personal auxiliar de la institución.</p>
+            <h1>Gestión de Personal Staff</h1>
+            <p class="text-muted-desc">Administra al personal de apoyo de la institución.</p>
         </div>
 
         <div class="header-actions">
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
                 <mat-icon matPrefix>search</mat-icon>
-                <mat-label>Buscar docente</mat-label>
-                <input matInput [formControl]="busqueda" placeholder="Buscar auxiliar...">
+                <mat-label>Buscar colaborador</mat-label>
+                <input matInput [formControl]="busqueda" placeholder="Nombre, documento o cargo...">
                 @if (busqueda.value) {
                 <button mat-icon-button matSuffix (click)="limpiarBusqueda()" aria-label="Limpiar búsqueda">
                     <mat-icon>close</mat-icon>
@@ -19,48 +18,46 @@
                 }
             </mat-form-field>
 
-            <button mat-flat-button color="primary" class="btn-create" (click)="abrirCrearAuxiliar()">
+            <button mat-flat-button color="primary" class="btn-create" (click)="abrirCrearStaff()">
                 <mat-icon>person_add</mat-icon>
-                <span>Nuevo Auxiliar</span>
+                <span>Nuevo Staff</span>
             </button>
         </div>
     </header>
 
-    <!-- ══ INDICADOR DE RESULTADOS ACTIVOS ════════════════════════════ -->
     @if (!loading() && total() > 0) {
     <div class="results-bar">
         <span class="results-count">
-            Se encontraron <strong>{{ total() }}</strong> auxiliar{{ total() !== 1 ? 'es' : '' }}
+            Se encontraron <strong>{{ total() }}</strong> miembro{{ total() !== 1 ? 's' : '' }} de staff
         </span>
     </div>
     }
 
-    <!-- ══ TABLA / CONTENEDOR PRINCIPAL ═══════════════════════════════ -->
     <main class="table-card">
         <div class="tab-table-container">
 
             @if (loading()) {
             <div class="loading-state" aria-busy="true">
                 <div class="spinner-ring"></div>
-                <p>Cargando auxiliares...</p>
+                <p>Cargando personal staff...</p>
             </div>
             } @else if (dataSource.data.length === 0) {
             <div class="empty-state">
                 <mat-icon>person_search</mat-icon>
-                <p>No se encontraron auxiliares</p>
+                <p>No se encontró personal staff</p>
                 <span class="empty-hint">
-                    {{ busqueda.value ? 'Intenta con otro nombre, documento o cargo.' : 'Aún no hay auxiliares
-                    registrados en el sistema.' }}
+                    {{ busqueda.value ? 'Intenta con otro nombre, documento o cargo.' : 'Aún no hay personal staff
+                    registrado en el sistema.' }}
                 </span>
             </div>
             } @else {
-            <div class="table-responsive">
+
+            <div class="table-responsive hide-on-mobile">
                 <table mat-table [dataSource]="dataSource" class="users-table">
 
-                    <!-- Columna Documento -->
                     <ng-container matColumnDef="documento">
-                        <th mat-header-cell *matHeaderCellDef class="hide-on-mobile">Documento</th>
-                        <td mat-cell *matCellDef="let row" class="hide-on-mobile">
+                        <th mat-header-cell *matHeaderCellDef>Documento</th>
+                        <td mat-cell *matCellDef="let row">
                             @if (row.numero_documento) {
                             <span class="doc-type-chip">{{ row.tipo_documento | uppercase }}</span>
                             <span class="doc-number">{{ row.numero_documento }}</span>
@@ -70,56 +67,30 @@
                         </td>
                     </ng-container>
 
-                    <!-- Columna Nombre (Estructura igual a la de Docentes) -->
                     <ng-container matColumnDef="nombre">
-                        <th mat-header-cell *matHeaderCellDef>Docente</th>
+                        <th mat-header-cell *matHeaderCellDef>Personal</th>
                         <td mat-cell *matCellDef="let row">
                             <div class="avatar-name">
                                 <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno"
-                                    rol="auxiliar" [fotoUrl]="row.foto_url ?? null" [size]="42" />
+                                    rol="staff" [fotoUrl]="row.foto_url ?? null" [size]="42" />
                                 <div class="info-block">
                                     <span class="full-name">
                                         {{ row.apellido_paterno }} {{ row.apellido_materno ? row.apellido_materno + ','
                                         : ',' }} {{ row.nombre }}
                                     </span>
-                                    <span class="email-text">{{ row.email }}</span>
-
-                                    <!-- Metadata inyectada responsivamente en móviles -->
-                                    <div class="mobile-meta show-on-mobile">
-                                        @if (row.numero_documento) {
-                                        <span class="doc-type-chip">{{ row.tipo_documento | uppercase }}</span>
-                                        <span class="doc-number">{{ row.numero_documento }}</span>
-                                        }
-                                        <span class="mobile-cargo-text">| {{ row.cargo || 'Auxiliar' }}</span>
-                                    </div>
+                                    <span class="email-text">{{ row.email || '—' }}</span>
                                 </div>
                             </div>
                         </td>
                     </ng-container>
 
-                    <!-- Columna Cargo (Mapeada como Especialidad visualmente) -->
                     <ng-container matColumnDef="cargo">
-                        <th mat-header-cell *matHeaderCellDef class="hide-on-mobile">Especialidad</th>
-                        <td mat-cell *matCellDef="let row" class="hide-on-mobile">
-                            {{ row.cargo || 'General' }}
+                        <th mat-header-cell *matHeaderCellDef>Cargo Asignado</th>
+                        <td mat-cell *matCellDef="let row">
+                            <span class="table-cargo-badge">{{ row.cargo || 'Personal de Apoyo' }}</span>
                         </td>
                     </ng-container>
 
-                    <!-- Columna Contrato (Etiqueta de visualización interna) -->
-                    <ng-container matColumnDef="contrato">
-                        <th mat-header-cell *matHeaderCellDef class="hide-on-tablet">Contrato</th>
-                        <td mat-cell *matCellDef="let row" class="hide-on-tablet">
-                            @if (row.tipo_contrato) {
-                            <span class="contrato-badge" [class.contrato-activo]="row.estado_contrato === 'activo'">
-                                {{ row.tipo_contrato | uppercase }}
-                            </span>
-                            } @else {
-                            <span class="text-muted-cell">—</span>
-                            }
-                        </td>
-                    </ng-container>
-
-                    <!-- Columna Estado -->
                     <ng-container matColumnDef="estado">
                         <th mat-header-cell *matHeaderCellDef>Estado</th>
                         <td mat-cell *matCellDef="let row">
@@ -131,7 +102,6 @@
                         </td>
                     </ng-container>
 
-                    <!-- Columna Acciones -->
                     <ng-container matColumnDef="acciones">
                         <th mat-header-cell *matHeaderCellDef class="col-actions"></th>
                         <td mat-cell *matCellDef="let row" class="col-actions">
@@ -148,6 +118,53 @@
                 </table>
             </div>
 
+            <div class="mobile-cards-container show-on-mobile">
+                @for (row of dataSource.data; track row.id) {
+                <div class="staff-mobile-card" [class.card--inactive]="row.activo === false">
+
+                    <div class="card-main-row">
+                        <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno" rol="staff"
+                            [fotoUrl]="row.foto_url ?? null" [size]="46" />
+
+                        <div class="card-info">
+                            <span class="full-name">
+                                {{ row.apellido_paterno }} {{ row.apellido_materno ? row.apellido_materno + ',' : ',' }}
+                                {{ row.nombre }}
+                            </span>
+                            <span class="email-text">{{ row.email || 'Sin correo electrónico' }}</span>
+                        </div>
+
+                        <div class="card-actions">
+                            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }"
+                                class="menu-trigger">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-footer-row">
+                        <div class="badge-group">
+                            <span class="staff-role-badge">
+                                <mat-icon>badge</mat-icon>
+                                <span>{{ row.cargo || 'Personal de Apoyo' }}</span>
+                            </span>
+                            @if (row.numero_documento) {
+                            <span class="doc-badge-mobile"><small>{{ row.tipo_documento | uppercase }}</small> {{
+                                row.numero_documento }}</span>
+                            }
+                        </div>
+
+                        <span class="status-chip" [class.active]="row.activo !== false"
+                            [class.inactive]="row.activo === false">
+                            <span class="status-dot"></span>
+                            {{ row.activo !== false ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </div>
+
+                </div>
+                }
+            </div>
+
             <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageIndex]="page() - 1"
                 [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons />
             }
@@ -155,16 +172,19 @@
     </main>
 </div>
 
-<!-- ══ MENÚ ACCIONES CON UI CONTEXTUAL OPTIMIZADA ══════════════════ -->
 <mat-menu #rowMenu="matMenu" xPosition="before" class="users-action-menu">
     <ng-template matMenuContent let-row="row">
         <button mat-menu-item (click)="verDetalle(row)">
             <mat-icon class="material-symbols-outlined text-primary-icon">visibility</mat-icon>
             <span>Ver detalle</span>
         </button>
-        <button mat-menu-item (click)="editarAuxiliar(row)">
+        <button mat-menu-item (click)="editarStaff(row)">
             <mat-icon class="material-symbols-outlined">edit</mat-icon>
             <span>Editar perfil</span>
+        </button>
+        <button mat-menu-item (click)="gestionarHorario(row)">
+            <mat-icon class="material-symbols-outlined">schedule</mat-icon>
+            <span>Horario laboral</span>
         </button>
         <mat-divider />
         @if (row.activo !== false) {

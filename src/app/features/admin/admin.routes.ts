@@ -61,9 +61,9 @@ export const ADMIN_ROUTES: Routes = [
       import('./user-management/tabs/tab-psicologos/tab-psicologos').then(c => c.TabPsicologos),
   },
   {
-    path: 'usuarios/auxiliares',
+    path: 'usuarios/staff',
     loadComponent: () =>
-      import('./user-management/tabs/tab-auxiliar/tab-auxiliar').then(c => c.TabAuxiliar),
+      import('./user-management/tabs/tab-staff/tab-staff').then(c => c.TabStaff),
   },
 
   // ─── Matrículas ───────────────────────────────────────────────────────────
@@ -113,5 +113,13 @@ export const ADMIN_ROUTES: Routes = [
     path: 'reportes',
     loadComponent: () =>
       import('./reports/reports').then(c => c.Reports),
+  },
+
+  // ─── Asistencia Personal ─────────────────────────────────────────────────
+  {
+    path: 'asistencia-personal',
+    loadComponent: () =>
+      import('./asistencia-personal/asistencia-personal').then(c => c.AsistenciaPersonal),
+    title: 'Asistencia Personal | EduAula',
   },
 ];

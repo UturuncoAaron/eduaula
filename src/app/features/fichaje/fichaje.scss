@@ -1,0 +1,205 @@
+.fichaje-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+    padding: 24px;
+}
+
+.fichaje-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+    transition: transform 0.2s ease;
+}
+
+.fichaje-header {
+    text-align: center;
+    margin-bottom: 32px;
+
+    .school-logo {
+        width: 64px;
+        height: 64px;
+        background: #1e3a5f;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+
+        mat-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+            color: #fff;
+        }
+    }
+
+    h1 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 4px;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin: 0;
+    }
+}
+
+.resultado-panel {
+    border: 2px solid;
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 8px;
+    animation: fadeSlide 0.3s ease;
+
+    .resultado-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+
+        mat-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+        }
+    }
+
+    .resultado-nombre {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 4px;
+
+        &.error-text {
+            color: #ef4444;
+            font-size: 1rem;
+        }
+    }
+
+    .resultado-accion {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 4px 0;
+    }
+
+    .resultado-hora {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 8px 0 4px;
+        letter-spacing: 2px;
+    }
+
+    .resultado-hint {
+        font-size: 0.82rem;
+        color: #64748b;
+        margin: 4px 0 0;
+    }
+}
+
+.reset-bar {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    margin-top: 20px;
+    overflow: hidden;
+
+    .reset-progress {
+        height: 100%;
+        border-radius: 2px;
+        animation: countdown 4s linear forwards;
+    }
+}
+
+.fichaje-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .field-full {
+        width: 100%;
+    }
+}
+
+.btn-fichar {
+    width: 100%;
+    height: 52px;
+    background: #1e3a5f !important;
+    color: #fff !important;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px !important;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    &:disabled {
+        opacity: 0.6;
+    }
+
+    mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+    }
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+.reloj {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    margin-top: 16px;
+    text-align: center;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes countdown {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}

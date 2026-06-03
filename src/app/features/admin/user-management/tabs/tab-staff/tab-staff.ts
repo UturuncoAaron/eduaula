@@ -21,7 +21,7 @@ import { UserDialog } from '../../../../../shared/components/user-dialog/user-di
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { UserDetailDialog } from '../../../user-detail-dialog/user-detail-dialog';
 
-export interface AuxiliarRow {
+export interface StaffRow {
   id: string;
   tipo_documento?: string;
   numero_documento?: string;
@@ -29,10 +29,6 @@ export interface AuxiliarRow {
   apellido_paterno: string;
   apellido_materno?: string;
   cargo?: string;
-  tipo_contrato?: string;
-  estado_contrato?: string;
-  fecha_inicio_contrato?: string | null;
-  fecha_fin_contrato?: string | null;
   email?: string;
   telefono?: string;
   foto_url?: string | null;
@@ -40,7 +36,7 @@ export interface AuxiliarRow {
 }
 
 @Component({
-  selector: 'app-tab-auxiliares',
+  selector: 'app-tab-staff',
   standalone: true,
   imports: [
     ReactiveFormsModule, UpperCasePipe,
@@ -49,26 +45,24 @@ export interface AuxiliarRow {
     MatFormFieldModule, MatInputModule, MatTooltipModule,
     UserAvatar,
   ],
-  templateUrl: './tab-auxiliar.html',
-  styleUrl: './tab-auxiliar.scss',
+  templateUrl: './tab-staff.html',
+  styleUrl: './tab-staff.scss',
 })
-export class TabAuxiliar implements OnInit {
+export class TabStaff implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastService);
   private destroyRef = inject(DestroyRef);
 
-  // ── Controles reactivos ───────────────────────────────────────
   busqueda = new FormControl('', { nonNullable: true });
 
-  // ── Estados Basados en Signals ───────────────────────────────
   loading = signal<boolean>(true);
   total = signal<number>(0);
   page = signal<number>(1);
   pageSize = signal<number>(20);
 
-  dataSource = new MatTableDataSource<AuxiliarRow>([]);
-  displayedColumns: string[] = ['documento', 'nombre', 'cargo', 'contrato', 'estado', 'acciones'];
+  dataSource = new MatTableDataSource<StaffRow>([]);
+  displayedColumns: string[] = ['documento', 'nombre', 'cargo', 'estado', 'acciones'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -89,15 +83,12 @@ export class TabAuxiliar implements OnInit {
     const q = this.busqueda.value.trim();
     const params = new URLSearchParams({
       page: String(this.page()),
-      limit: String(this.pageSize())
+      limit: String(this.pageSize()),
     });
-
-    if (q.length >= 2) {
-      params.set('q', q);
-    }
+    if (q.length >= 2) params.set('q', q);
 
     this.loading.set(true);
-    this.api.get<any>(`admin/users/auxiliares?${params.toString()}`).pipe(
+    this.api.get<any>(`admin/users/staff?${params.toString()}`).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (res) => {
@@ -107,7 +98,7 @@ export class TabAuxiliar implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.toastr.error('Error al cargar la lista de auxiliares', 'Error');
+        this.toastr.error('Error al cargar la lista de personal staff', 'Error');
         this.loading.set(false);
       },
     });
@@ -125,28 +116,27 @@ export class TabAuxiliar implements OnInit {
     this.loadData();
   }
 
-  // ── Orquestación de Diálogos Adaptativos ─────────────────────
-  abrirCrearAuxiliar(): void {
+  abrirCrearStaff(): void {
     this.dialog.open(UserDialog, {
       width: '100%',
       maxWidth: '700px',
       disableClose: true,
-      data: { mode: 'create', rol: 'auxiliar' },
+      data: { mode: 'create', rol: 'staff' },
     }).afterClosed().pipe(filter(Boolean)).subscribe(() => this.loadData());
   }
 
-  editarAuxiliar(row: AuxiliarRow): void {
+  editarStaff(row: StaffRow): void {
     this.dialog.open(UserDialog, {
       width: '100%',
       maxWidth: '700px',
       disableClose: true,
       data: {
         mode: 'edit',
-        rol: 'auxiliar',
+        rol: 'staff',
         isSelf: false,
         user: {
           id: row.id,
-          rol: 'auxiliar',
+          rol: 'staff',
           nombre: row.nombre,
           apellido_paterno: row.apellido_paterno,
           apellido_materno: row.apellido_materno ?? '',
@@ -161,17 +151,17 @@ export class TabAuxiliar implements OnInit {
     }).afterClosed().pipe(filter(result => result?.updated)).subscribe(() => this.loadData());
   }
 
-  verDetalle(row: AuxiliarRow): void {
+  verDetalle(row: StaffRow): void {
     this.dialog.open(UserDetailDialog, {
       width: '100%',
       maxWidth: '580px',
       maxHeight: '90vh',
       autoFocus: false,
-      data: { id: row.id, tipo: 'auxiliares' },
+      data: { id: row.id, tipo: 'staff' },
     });
   }
 
-  toggleEstado(row: AuxiliarRow): void {
+  toggleEstado(row: StaffRow): void {
     const activo = row.activo ?? true;
     const accion = activo ? 'desactivar' : 'reactivar';
 
@@ -179,7 +169,7 @@ export class TabAuxiliar implements OnInit {
       width: '100%',
       maxWidth: '380px',
       data: {
-        title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} auxiliar?`,
+        title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} miembro de staff?`,
         message: `Estás por ${accion} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,
         confirm: accion.charAt(0).toUpperCase() + accion.slice(1),
         cancel: 'Cancelar',
@@ -196,7 +186,22 @@ export class TabAuxiliar implements OnInit {
         this.toastr.success('Cambios guardados con éxito.', 'Éxito');
         this.loadData();
       },
-      error: () => this.toastr.error('Ocurrió un error al procesar el cambio de estado.', 'Error'),
+      error: () => this.toastr.error('Error al procesar el cambio de estado.', 'Error'),
     });
   }
+  async gestionarHorario(row: { id: string; nombre: string; apellido_paterno: string }): Promise<void> {
+    const { HorarioLaboralDialog } = await import(
+      '../../../../../shared/components/horario-laboral-dialog/horario-laboral-dialog'
+    );
+    this.dialog.open(HorarioLaboralDialog, {
+      width: '100%',
+      maxWidth: '480px',
+      disableClose: true,
+      data: {
+        cuenta_id: row.id,
+        nombre: `${row.nombre} ${row.apellido_paterno}`,
+      },
+    });
+  }
+
 }

@@ -127,6 +127,10 @@
             <mat-icon class="material-symbols-outlined">edit</mat-icon>
             <span>Editar perfil</span>
         </button>
+        <button mat-menu-item (click)="gestionarHorario(row)">
+            <mat-icon class="material-symbols-outlined">schedule</mat-icon>
+            <span>Horario laboral</span>
+        </button>
         <mat-divider />
         @if (row.activo !== false) {
         <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">

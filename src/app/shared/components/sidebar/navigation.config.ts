@@ -74,7 +74,7 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
 
-  // ─── Agenda propia (admin, auxiliar) ──────────────────────────────────────
+  // ─── Agenda propia (admin, staff) ─────────────────────────────────────────
   {
     label: 'Mi Agenda', icon: 'event_note',
     modulos: [MODULO.AGENDA_PROPIA],
@@ -87,8 +87,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   // ═══ PSICOLOGÍA ═══════════════════════════════════════════════════════════
   {
-    label: 'Mis Alumnos', icon: 'groups', route: '/psicologa/alumnos',
-    modulos: [MODULO.CASOS], dividerBefore: true,
+    label: 'Mis Alumnos', icon: 'groups', route: '/psicologa/alumnos', modulos: [MODULO.CASOS], dividerBefore: true,
   },
   { label: 'Agenda y Citas', icon: 'event', route: '/psicologa/citas', modulos: [MODULO.CITAS] },
   { label: 'Disponibilidad', icon: 'schedule', route: '/psicologa/disponibilidad', modulos: [MODULO.DISPONIBILIDAD] },
@@ -113,10 +112,16 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Alumnos', icon: 'person', route: '/admin/usuarios/alumnos', modulos: [MODULO.USUARIOS], exactMatch: true },
       { label: 'Padres', icon: 'family_restroom', route: '/admin/usuarios/padres', modulos: [MODULO.USUARIOS], exactMatch: true },
       { label: 'Docentes', icon: 'badge', route: '/admin/usuarios/docentes', modulos: [MODULO.USUARIOS], exactMatch: true },
-      { label: 'Auxiliares', icon: 'support_agent', route: '/admin/usuarios/auxiliares', modulos: [MODULO.USUARIOS], exactMatch: true },
+      { label: 'Staff', icon: 'support_agent', route: '/admin/usuarios/staff', modulos: [MODULO.USUARIOS], exactMatch: true },
       { label: 'Psicología', icon: 'psychology', route: '/admin/usuarios/psicologos', modulos: [MODULO.USUARIOS], exactMatch: true },
       { label: 'Administración', icon: 'admin_panel_settings', route: '/admin/usuarios/admins', modulos: [MODULO.USUARIOS], exactMatch: true },
     ],
+  },
+  {
+    label: 'Asistencia Personal', icon: 'badge',
+    route: '/admin/asistencia-personal',
+    modulos: [MODULO.ASIST_PERSONAL],
+    exactMatch: true,
   },
   {
     label: 'Histórico de Alumnos', icon: 'history_edu',

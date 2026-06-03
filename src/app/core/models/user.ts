@@ -1,5 +1,6 @@
 export type TipoDocumento = 'dni' | 'ce' | 'pasaporte';
-export type Rol = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa' | 'auxiliar';
+export type Rol = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa' | 'staff';
+
 export interface SeccionTutorada {
     id: string;
     nombre: string;

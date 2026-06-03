@@ -1,23 +1,9 @@
-import { Injectable, inject } from '@angular/core';
+import {  inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-export type ReportFormat = 'json' | 'xlsx' | 'pdf';
-export type EscalaCalificacion = 'AD' | 'A' | 'B' | 'C' | 'Sin notas';
-export type EstadoAsistenciaAlumno = 'asistio' | 'falta' | 'tardanza' | 'justificado' | 'sin-registro';
-export type EstadoAsistenciaDocente = 'presente' | 'tardanza' | 'ausente' | 'permiso' | 'licencia' | 'sin-registro';
-export type CategoriaRendimiento = 'top' | 'normal' | 'riesgo' | 'sin-datos';
-
-export interface SeccionResumenResponse {
-  seccion: any;
-  periodo: any;
-  ranking: any[];
-  notas_por_curso: any[];
-  resumen_asistencia: any[];
-  top_inasistentes: any[];
-  entregas_por_tarea: any[];
-}
+import type { SeccionResumenResponse } from '../models/reports';
 
 @Injectable({ providedIn: 'root' })
 export class ReportsService {

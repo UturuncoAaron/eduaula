@@ -1,29 +1,44 @@
-<div class="tab-body">
-    <div class="filters-card">
-        <div class="filters-row">
-            <mat-form-field appearance="outline">
-                <mat-label>Grado</mat-label>
+<div class="tab-body fade-in">
+    <div class="filters-card-panel">
+        <div class="filters-flexible-grid">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-icon matPrefix>school</mat-icon>
+                <mat-label>Grado Escolar</mat-label>
                 <mat-select [(ngModel)]="gradoId" (ngModelChange)="onGradoChange($event)">
-                    <mat-option value="">Seleccione un grado</mat-option>
+                    <mat-option value="">Todos los grados</mat-option>
                     @for (g of grados(); track g.id) {
                     <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-                <mat-label>Sección</mat-label>
-                <mat-select [(ngModel)]="seccionId" [disabled]="!gradoId">
-                    <mat-option value="">Seleccione una sección</mat-option>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-icon matPrefix>layers</mat-icon>
+                <mat-label>Sección Escolar</mat-label>
+                <mat-select [(ngModel)]="seccionId" [disabled]="!gradoId" (ngModelChange)="onSeccionChange($event)">
+                    <mat-option value="">Todas las secciones</mat-option>
                     @for (s of secciones(); track s.id) {
                     <mat-option [value]="s.id">{{ s.nombre }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-                <mat-label>Periodo</mat-label>
-                <mat-select [(ngModel)]="periodoId">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-icon matPrefix>face</mat-icon>
+                <mat-label>Estudiante Específico</mat-label>
+                <mat-select [(ngModel)]="alumnoId" [disabled]="!seccionId">
+                    <mat-option value="">Todos los alumnos</mat-option>
+                    @for (a of alumnosFiltrados(); track a.id) {
+                    <mat-option [value]="a.id">{{ a.apellido_paterno }} {{ a.apellido_materno }}, {{ a.nombre
+                        }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-icon matPrefix>calendar_today</mat-icon>
+                <mat-label>Bimestre Académico</mat-label>
+                <mat-select [(ngModel)]="periodoId" (ngModelChange)="onPeriodoChange($event)">
                     <mat-option value="">Seleccione un periodo</mat-option>
                     @for (p of periodos(); track p.id) {
                     <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
@@ -31,20 +46,35 @@
                 </mat-select>
             </mat-form-field>
 
-            <button mat-flat-button class="btn-search" (click)="cargar()"
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-icon matPrefix>date_range</mat-icon>
+                <mat-label>Semana del Bimestre</mat-label>
+
+                <mat-select [(ngModel)]="semanaFiltro" [disabled]="!periodoId">
+                    <mat-option value="">Consolidado completo</mat-option>
+                    @for (sem of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; track sem) {
+                    <mat-option [value]="sem">Semana {{ sem }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <button mat-flat-button class="btn-execute-analysis" (click)="cargar()"
                 [disabled]="!seccionId || !periodoId || store.seccionLoading() === 'loading'">
-                <mat-icon>query_stats</mat-icon> Analizar Sección
+                <mat-icon>analytics</mat-icon>
+                <span>Procesar Datos</span>
             </button>
         </div>
     </div>
 
     @if (store.seccionLoading() === 'loading') {
-    <mat-progress-bar mode="indeterminate" style="border-radius: 4px;"></mat-progress-bar>
+    <div class="loader-wrapper">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </div>
     }
 
     @if (store.seccionLoading() === 'error') {
-    <div class="empty-state-card error-state">
-        <mat-icon>gpp_bad</mat-icon>
+    <div class="error-slate-box">
+        <mat-icon>warning_amber</mat-icon>
         <p>{{ store.seccionError() }}</p>
     </div>
     }
@@ -55,67 +85,123 @@
     <div class="kpi-dashboard-header">
         <div class="meta-title-block">
             <h2>{{ resumen.seccion.grado }} — {{ resumen.seccion.nombre }}</h2>
-            <p class="sub-indicator"><mat-icon>calendar_today</mat-icon> {{ resumen.periodo.nombre }}</p>
+            <p class="sub-indicator">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ resumen.periodo.nombre }}</span>
+                @if(semanaFiltro) { <strong class="time-pill">Semana {{ semanaFiltro }}</strong> }
+            </p>
         </div>
 
         <div class="kpi-container">
-            <div class="kpi-card">
-                <span class="value">{{ resumen.seccion.total_matriculados }}</span>
-                <span class="label">Matriculados</span>
+            <div class="kpi-card-box total-enrolled">
+                <div class="icon-circle"><mat-icon>groups</mat-icon></div>
+                <div class="data-block">
+                    <span class="value">{{ resumen.seccion.total_matriculados }}</span>
+                    <span class="label">Alumnos Evaluados</span>
+                </div>
             </div>
-            <div class="kpi-card critical-alert">
-                <span class="value">{{ store.alumnosEnRiesgo().length }}</span>
-                <span class="label">En Riesgo</span>
+            <div class="kpi-card-box critical-alert">
+                <div class="icon-circle"><mat-icon>gpp_bad</mat-icon></div>
+                <div class="data-block">
+                    <span class="value">{{ store.alumnosEnRiesgo().length }}</span>
+                    <span class="label">Casos en Riesgo</span>
+                </div>
             </div>
-            <div class="kpi-card efficiency">
-                <span class="value">{{ store.promedioEntregas() ?? '0' }}%</span>
-                <span class="label">Tareas Entregadas</span>
+            <div class="kpi-card-box efficiency">
+                <div class="icon-circle"><mat-icon>task_alt</mat-icon></div>
+                <div class="data-block">
+                    <span class="value">{{ store.promedioEntregas() ?? '0' }}%</span>
+                    <span class="label">Tareas Entregadas</span>
+                </div>
             </div>
         </div>
 
-        <button mat-flat-button class="btn-export-xlsx" (click)="descargarXlsx()" [disabled]="store.downloading()">
-            <mat-icon>ios_share</mat-icon> Exportar Excel
-        </button>
+        <div class="export-suite-panel">
+            <span class="suite-title">Exportación de Actas</span>
+            <div class="buttons-row-flex">
+                <button mat-flat-button class="btn-suite excel" (click)="descargarFormato('xlsx')"
+                    [disabled]="store.downloading()">
+                    <mat-icon>table_view</mat-icon><span>Excel</span>
+                </button>
+                <button mat-flat-button class="btn-suite pdf" (click)="descargarFormato('pdf')"
+                    [disabled]="store.downloading()">
+                    <mat-icon>picture_as_pdf</mat-icon><span>PDF</span>
+                </button>
+                <button mat-flat-button class="btn-suite csv" (click)="descargarFormato('csv')"
+                    [disabled]="store.downloading()">
+                    <mat-icon>data_object</mat-icon><span>CSV</span>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <mat-tab-group class="modern-reports-tabs" animationDuration="200ms">
-        <mat-tab label="Rendimiento General">
-            <div class="table-container-card">
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Orden</th>
-                                <th>Estudiante</th>
-                                <th class="num">Promedio Gral.</th>
-                                <th class="num">Cursos en Riesgo</th>
-                                <th>Condición Académica</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (a of resumen.ranking; track a.alumno_id; let i = $index) {
-                            <tr [class.row-riesgo]="a.categoria === 'riesgo'" [class.row-top]="a.categoria === 'top'">
-                                <td class="rank">{{ i + 1 }}</td>
-                                <td>
-                                    <div class="user-meta-cell">
-                                        <span class="main-text">{{ nombreCompleto(a) }}</span>
-                                        <span class="sub-text">DNI: {{ a.dni }}</span>
-                                    </div>
-                                </td>
-                                <td class="num">{{ a.promedio_general ?? '—' }}</td>
-                                <td class="num">{{ a.cursos_en_riesgo }}</td>
-                                <td>
-                                    <span class="custom-badge" [class]="categoriaChip(a.categoria)">
-                                        {{ a.categoria === 'sin-datos' ? 'Sin Notas' : a.categoria }}
-                                    </span>
-                                </td>
-                            </tr>
-                            }
-                        </tbody>
-                    </table>
+    <div class="workspace-results-area">
+        <div class="table-container-card hide-on-mobile">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">Orden</th>
+                            <th>Estudiante Completo</th>
+                            <th class="num">Promedio General</th>
+                            <th class="num">Cursos en Riesgo</th>
+                            <th style="text-align: center;">Estado Académico</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (a of resumen.ranking; track a.alumno_id; let i = $index) {
+                        <tr [class.row-riesgo]="a.categoria === 'riesgo'" [class.row-top]="a.categoria === 'top'">
+                            <td class="rank-num">{{ i + 1 }}</td>
+                            <td>
+                                <div class="user-meta-cell">
+                                    <span class="main-text">{{ nombreCompleto(a) }}</span>
+                                    <span class="sub-text">Documento Identidad (DNI): {{ a.dni }}</span>
+                                </div>
+                            </td>
+                            <td class="num highlight-cell-bold">{{ a.promedio_general ?? '—' }}</td>
+                            <td class="num critical-text-bold">{{ a.cursos_en_riesgo }}</td>
+                            <td style="text-align: center;">
+                                <span class="custom-badge" [class]="categoriaChip(a.categoria)">
+                                    {{ a.categoria === 'sin-datos' ? 'Sin Registros' : a.categoria }}
+                                </span>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mobile-cards-feed show-on-mobile">
+            @for (a of resumen.ranking; track a.alumno_id; let i = $index) {
+            <div class="report-mobile-card" [class.card-riesgo]="a.categoria === 'riesgo'"
+                [class.card-top]="a.categoria === 'top'">
+                <div class="card-main-header">
+                    <div class="student-identity">
+                        <span class="card-rank-badge">#{{ i + 1 }}</span>
+                        <div class="name-block">
+                            <h4>{{ nombreCompleto(a) }}</h4>
+                            <p>DNI: {{ a.dni }}</p>
+                        </div>
+                    </div>
+                    <span class="custom-badge" [class]="categoriaChip(a.categoria)">
+                        {{ a.categoria === 'sin-datos' ? 'Sin Notas' : a.categoria }}
+                    </span>
+                </div>
+
+                <div class="card-metrics-grid">
+                    <div class="metric-box">
+                        <span class="m-val">{{ a.promedio_general ?? '—' }}</span>
+                        <span class="m-lbl">Promedio Gral.</span>
+                    </div>
+                    <div class="metric-box" [class.danger-active]="a.cursos_en_riesgo > 0">
+                        <span class="m-val">{{ a.cursos_en_riesgo }}</span>
+                        <span class="m-lbl">Cursos en Riesgo</span>
+                    </div>
                 </div>
             </div>
-        </mat-tab>
-    </mat-tab-group>
+            }
+        </div>
+    </div>
     }
 </div>

@@ -51,7 +51,7 @@ export class Navbar implements OnInit {
     admin: 'Administrador',
     padre: 'Padre / Tutor',
     psicologa: 'Psicóloga',
-    auxiliar: 'Auxiliar',
+    staff: 'Staff',
   };
 
   private roleColors: Record<Rol, string> = {
@@ -60,7 +60,7 @@ export class Navbar implements OnInit {
     admin: '#ef4444',
     padre: '#8b5cf6',
     psicologa: '#0ea5e9',
-    auxiliar: '#14b8a6',
+    staff: '#14b8a6',
   };
 
   roleLabel = () => {

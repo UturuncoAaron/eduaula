@@ -10,6 +10,15 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/login-split/login-split').then(c => c.LoginSplit),
   },
+
+  // ═══ QUIOSCO DE FICHAJE — ruta pública, sin auth, sin shell ═══════════════
+  {
+    path: 'fichaje',
+    loadComponent: () =>
+      import('./features/fichaje/fichaje').then(c => c.Fichaje),
+    title: 'Registro de Asistencia | EduAula',
+  },
+
   {
     path: '',
     canActivate: [authGuard],
@@ -99,7 +108,7 @@ export const routes: Routes = [
         title: 'Mi Psicología | EduAula',
       },
 
-      // ═══ ADMIN / AUXILIAR — Agenda propia ════════════════════════════════
+      // ═══ ADMIN / STAFF — Agenda propia ═══════════════════════════════════
       {
         path: 'agenda',
         canActivate: [permissionGuard([MODULO.AGENDA_PROPIA])],

@@ -183,4 +183,19 @@ export class TabAdmins implements OnInit {
       error: () => this.toastr.error('Ocurrió un problema al procesar la solicitud.', 'Error'),
     });
   }
+  async gestionarHorario(row: { id: string; nombre: string; apellido_paterno: string }): Promise<void> {
+    const { HorarioLaboralDialog } = await import(
+      '../../../../../shared/components/horario-laboral-dialog/horario-laboral-dialog'
+    );
+    this.dialog.open(HorarioLaboralDialog, {
+      width: '100%',
+      maxWidth: '480px',
+      disableClose: true,
+      data: {
+        cuenta_id: row.id,
+        nombre: `${row.nombre} ${row.apellido_paterno}`,
+      },
+    });
+  }
+
 }

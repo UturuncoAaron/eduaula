@@ -1,63 +1,131 @@
-<div class="tab-body">
+<div class="tab-body fade-in">
     <mat-tab-group class="modern-reports-tabs" animationDuration="200ms">
-
-        <mat-tab label="Consolidado por Rangos Históricos">
+        <mat-tab label="Consolidado de Asistencia de Personal">
             <div class="tab-body-wrapper" style="padding-top: 1.5rem;">
-                <div class="filters-card">
-                    <div class="filters-row-range">
-                        <mat-form-field appearance="outline">
-                            <mat-label>Fecha de Inicio</mat-label>
+
+                <div class="filters-card-panel">
+                    <div class="filters-row-range-personal">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                            <mat-icon matPrefix>badge</mat-icon>
+                            <mat-label>Filtro por Personal / Colaborador</mat-label>
+                            <mat-select [(ngModel)]="personalId">
+                                <mat-option value="">Todo el Personal (Docentes y Staff)</mat-option>
+                                @for (p of personalLista(); track p.id) {
+                                <mat-option [value]="p.id">[{{ p.rol | uppercase }}] {{ p.apellido_paterno }}, {{
+                                    p.nombre }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                            <mat-icon matPrefix>date_range</mat-icon>
+                            <mat-label>Fecha Inicial</mat-label>
                             <input matInput type="date" [(ngModel)]="rangoInicio" />
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                            <mat-icon matPrefix>event_available</mat-icon>
                             <mat-label>Fecha de Término</mat-label>
                             <input matInput type="date" [(ngModel)]="rangoFin" />
                         </mat-form-field>
 
-                        <button mat-flat-button class="btn-search-range" (click)="cargarResumen()">
-                            <mat-icon>history_toggle_off</mat-icon> Sincronizar Historial
-                        </button>
+                        <div class="action-buttons-flex-suite">
+                            <button mat-flat-button class="btn-sync-history" (click)="cargarResumen()">
+                                <mat-icon>sync_saved_locally</mat-icon><span>Sincronizar Historial</span>
+                            </button>
+
+                            <div class="icon-download-group">
+                                <button mat-icon-button class="btn-download-action excel"
+                                    (click)="descargarReportePersonal('xlsx')" matTooltip="Exportar Excel">
+                                    <mat-icon>table_view</mat-icon>
+                                </button>
+                                <button mat-icon-button class="btn-download-action pdf"
+                                    (click)="descargarReportePersonal('pdf')" matTooltip="Exportar PDF Firmado">
+                                    <mat-icon>picture_as_pdf</mat-icon>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 @if (store.reporteLoading() === 'loading') {
-                <mat-progress-bar mode="indeterminate" style="margin-top: 1rem;"></mat-progress-bar>
+                <div class="loader-wrapper" style="margin-top: 1rem;">
+                    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                </div>
                 }
 
                 @if (store.resumenDocentes().length) {
-                <div class="table-container-card" style="margin-top: 1.5rem;">
-                    <div class="table-wrap">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Docente Evaluado</th>
-                                    <th class="num">Módulos Esperados</th>
-                                    <th class="num">Presente</th>
-                                    <th class="num">Tardanzas</th>
-                                    <th class="num">Ausente</th>
-                                    <th class="num">Efectividad Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (d of store.resumenDocentes(); track d.docente_id) {
-                                <tr [class.row-riesgo]="+(d.porcentaje_asistencia ?? 100) < 80">
-                                    <td>
-                                        <div class="user-meta-cell">
-                                            <span class="main-text">{{ d.docente_nombre }} {{ d.apellido_paterno
-                                                }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="num">{{ d.total_bloques_esperados }}</td>
-                                    <td class="num">{{ d.presentes }}</td>
-                                    <td class="num">{{ d.tardanzas }}</td>
-                                    <td class="num">{{ d.ausentes }}</td>
-                                    <td class="num">{{ d.porcentaje_asistencia ?? '0' }}%</td>
-                                </tr>
-                                }
-                            </tbody>
-                        </table>
+                <div class="workspace-results-area">
+
+                    <div class="table-container-card table-responsive hide-on-mobile">
+                        <div class="table-wrap">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Docente / Colaborador</th>
+                                        <th class="num">Módulos Esperados</th>
+                                        <th class="num">Presente</th>
+                                        <th class="num">Tardanzas</th>
+                                        <th class="num">Ausente</th>
+                                        <th class="num">Cumplimiento Global</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (d of store.resumenDocentes(); track d.docente_id) {
+                                    <tr [class.row-riesgo]="+(d.porcentaje_asistencia ?? 100) < 85">
+                                        <td>
+                                            <div class="user-meta-cell">
+                                                <span class="main-text">{{ d.docente_nombre }} {{ d.apellido_paterno
+                                                    }}</span>
+                                                @if (d.apellido_materno) {
+                                                <span class="main-text" style="margin-left: 4px;">{{ d.apellido_materno
+                                                    }}</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td class="num highlight-cell-bold">{{ d.total_bloques_esperados }}</td>
+                                        <td class="num val-success">{{ d.presentes }}</td>
+                                        <td class="num val-warning">{{ d.tardanzas }}</td>
+                                        <td class="num val-danger">{{ d.ausentes }}</td>
+                                        <td class="num highlight-efficiency">{{ d.porcentaje_asistencia ?? '0' }}%</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+
+                    <div class="mobile-cards-feed show-on-mobile">
+                        @for (d of store.resumenDocentes(); track d.docente_id) {
+                        <div class="report-mobile-card" [class.card-riesgo]="+(d.porcentaje_asistencia ?? 100) < 85">
+                            <div class="card-header-split">
+                                <div class="name-block">
+                                    <h4>{{ d.docente_nombre }} {{ d.apellido_paterno }}</h4>
+                                </div>
+                                <div class="efficiency-pill-badge"
+                                    [class.low-efficiency]="+(d.porcentaje_asistencia ?? 100) < 85">
+                                    {{ d.porcentaje_asistencia ?? '0' }}%
+                                </div>
+                            </div>
+
+                            <div class="attendance-counters-grid">
+                                <div class="counter-item success">
+                                    <span class="c-num">{{ d.presentes }}</span>
+                                    <span class="c-lbl">Pres.</span>
+                                </div>
+                                <div class="counter-item warning">
+                                    <span class="c-num">{{ d.tardanzas }}</span>
+                                    <span class="c-lbl">Tard.</span>
+                                </div>
+                                <div class="counter-item danger">
+                                    <span class="c-num">{{ d.ausentes }}</span>
+                                    <span class="c-lbl">Faltas</span>
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+
                 </div>
                 }
             </div>

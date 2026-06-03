@@ -1,13 +1,14 @@
-<div class="tab-body">
-    <div class="section-hint">
+<div class="tab-body fade-in">
+    <div class="workspace-banner-hint">
         <mat-icon>analytics</mat-icon>
-        <span>Módulo de consolidación de notas. Seleccione los criterios de filtrado y elija el formato de descarga
-            deseado para los reportes institucionales.</span>
+        <span>Módulo de consolidación automatizada de notas del año lectivo. Seleccione los criterios requeridos para
+            procesar el acta consolidada en el formato de descarga administrativa deseado.</span>
     </div>
 
-    <div class="filters-card">
-        <div class="filters-row">
-            <mat-form-field appearance="outline">
+    <div class="filters-card-panel">
+        <div class="filters-row-grid">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-icon matPrefix>school</mat-icon>
                 <mat-label>Grado Escolar</mat-label>
                 <mat-select [(ngModel)]="filtroGradoId" (ngModelChange)="onGradoChange($event)">
                     <mat-option value="">Todos los grados</mat-option>
@@ -17,7 +18,8 @@
                 </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-icon matPrefix>layers</mat-icon>
                 <mat-label>Sección Escolar</mat-label>
                 <mat-select [(ngModel)]="filtroSeccionId" [disabled]="!filtroGradoId">
                     <mat-option value="">Todas las secciones</mat-option>
@@ -27,8 +29,9 @@
                 </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-                <mat-label>Periodo Académico</mat-label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-icon matPrefix>calendar_today</mat-icon>
+                <mat-label>Periodo Académico / Bimestre</mat-label>
                 <mat-select [(ngModel)]="filtroPeriodoId">
                     <mat-option value="">Todos los periodos</mat-option>
                     @for (p of periodos(); track p.id) {
@@ -39,22 +42,34 @@
         </div>
     </div>
 
-    <div class="export-actions-management">
+    <div class="export-management-card">
         <h3>Formatos de Descarga Disponibles</h3>
-        <div class="actions-grid-buttons">
-            <button mat-flat-button class="btn-download excel-theme" (click)="descargarFormato('xlsx')"
+        <div class="actions-download-flex">
+            <button mat-flat-button class="btn-suite-download excel" (click)="descargarFormato('xlsx')"
                 [disabled]="store.downloading()">
-                <mat-icon>table_view</mat-icon> Descargar Excel (.xlsx)
+                <mat-icon>table_view</mat-icon>
+                <div class="btn-text-wrapper">
+                    <span class="m-title">Descargar Formato Excel</span>
+                    <span class="m-sub">Procesamiento interno (.xlsx)</span>
+                </div>
             </button>
 
-            <button mat-flat-button class="btn-download csv-theme" (click)="descargarFormato('csv')"
+            <button mat-flat-button class="btn-suite-download csv" (click)="descargarFormato('csv')"
                 [disabled]="store.downloading()">
-                <mat-icon>description</mat-icon> Descargar Texto (.csv)
+                <mat-icon>description</mat-icon>
+                <div class="btn-text-wrapper">
+                    <span class="m-title">Exportar Formato SIAGIE</span>
+                    <span class="m-sub">Texto plano institucional (.csv)</span>
+                </div>
             </button>
 
-            <button mat-flat-button class="btn-download pdf-theme" (click)="descargarFormato('pdf')"
+            <button mat-flat-button class="btn-suite-download pdf" (click)="descargarFormato('pdf')"
                 [disabled]="store.downloading()">
-                <mat-icon>picture_as_pdf</mat-icon> Descargar Documento (.pdf)
+                <mat-icon>picture_as_pdf</mat-icon>
+                <div class="btn-text-wrapper">
+                    <span class="m-title">Documento Oficial PDF</span>
+                    <span class="m-sub">Acta formal inalterable (.pdf)</span>
+                </div>
             </button>
         </div>
     </div>

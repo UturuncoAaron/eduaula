@@ -4,23 +4,23 @@
 
 :host {
   --page-max-width: 1440px;
-  --transition-smooth: all 0.2s ease-in-out;
+  --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-container {
-  padding: 1.5rem;
+  padding: 1rem;
   max-width: var(--page-max-width);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  
+  gap: 1.25rem;
+
   @media (min-width: 768px) {
     padding: 2rem;
+    gap: 1.5rem;
   }
 }
 
-// Estructura adaptativa para el Header corporativo
 .page-header {
   display: grid;
   grid-template-columns: 1fr;
@@ -35,14 +35,18 @@
     h1 {
       color: #0f172a;
       font-weight: 700;
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       letter-spacing: -0.03em;
       margin: 0;
+
+      @media (min-width: 768px) {
+        font-size: 1.75rem;
+      }
     }
 
     .text-muted-desc {
       color: #64748b;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       margin-top: 0.35rem;
     }
   }
@@ -51,15 +55,20 @@
     display: flex;
     flex-direction: column;
     gap: 0.875rem;
+    width: 100%;
 
     @media (min-width: 480px) {
       flex-direction: row;
       align-items: center;
+      width: auto;
     }
 
     .search-field {
       width: 100%;
-      min-width: 300px;
+
+      @media (min-width: 480px) {
+        min-width: 320px;
+      }
     }
 
     .btn-create {
@@ -67,13 +76,18 @@
       border-radius: 8px;
       padding: 0 1.5rem;
       font-weight: 600;
-      background: #4f46e5; // Color índigo consistente con la jerarquía institucional
+      background: #4f46e5;
       color: #ffffff;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
       box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15);
+      width: 100%;
+
+      @media (min-width: 480px) {
+        width: auto;
+      }
     }
   }
 }
@@ -84,20 +98,23 @@
   color: #64748b;
 }
 
-// Card contenedor principal de la grilla
 .table-card {
   background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
   border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
-// Bloque de información y metadatos del usuario
 .info-block {
   display: flex;
   flex-direction: column;
-  line-height: 1.3;
+  line-height: 1.4;
+
+  .full-name {
+    font-weight: 600;
+    color: #1e293b;
+  }
 
   .email-text {
     font-size: 0.8rem;
@@ -111,16 +128,19 @@
   font-size: 0.85rem;
 }
 
-// Chips de Relación Familiar con Colores Semánticos Premium
 .relacion-chip {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.25rem 0.65rem;
   border-radius: 6px;
-  font-size: 0.775rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   border: 1px solid #e2e8f0;
   background-color: #f8fafc;
   color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 
   &.relacion-padre {
     background-color: #eff6ff;
@@ -147,41 +167,128 @@
   }
 }
 
-// Visualización condicional móvil
-.mobile-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.25rem;
+.users-action-menu {
+  .danger-item {
+    color: #dc2626;
+  }
 
-  .relacion-tag-inline-mobile {
-    font-size: 0.725rem;
-    font-weight: 600;
-    
-    &.relational-padre { color: #2563eb; }
-    &.relational-madre { color: #db2777; }
-    &.relational-apoderado { color: #16a34a; }
-    &.relational-tutor { color: #ea580c; }
+  .success-item {
+    color: #16a34a;
+  }
+
+  .text-primary-icon {
+    color: #2563eb;
   }
 }
 
-.users-action-menu {
-  .danger-item { color: #dc2626; }
-  .success-item { color: #16a34a; }
-  .text-primary-icon { color: #2563eb; }
+.show-on-mobile {
+  display: none !important;
 }
 
-// Utilidades Responsive Nativas coordinadas
-.show-on-mobile { display: none; }
-.hide-on-mobile { display: table-cell; }
+.hide-on-mobile {
+  display: block !important;
+}
 
 @media (max-width: 768px) {
-  .hide-on-mobile { display: none !important; }
-  .show-on-mobile { display: flex !important; }
-  
-  .users-table td.mat-mdc-cell {
-    padding: 0.875rem 0.5rem;
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .show-on-mobile {
+    display: flex !important;
+  }
+
+  .mobile-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem;
+    background-color: #f8fafc;
+  }
+
+  .family-mobile-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01);
+    transition: var(--transition-smooth);
+
+    &.card--inactive {
+      opacity: 0.65;
+      background: #f1f5f9;
+    }
+  }
+
+  .card-main-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+
+    .card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      flex: 1;
+      min-width: 0;
+
+      .full-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .email-text {
+        font-size: 0.775rem;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .card-actions {
+      margin-right: -8px;
+      margin-top: -6px;
+    }
+  }
+
+  .card-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f1f5f9;
+
+    .badge-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .doc-badge-mobile {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #475569;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+
+      small {
+        font-weight: 700;
+        color: #64748b;
+        margin-right: 1px;
+      }
+    }
   }
 }
 
@@ -190,6 +297,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

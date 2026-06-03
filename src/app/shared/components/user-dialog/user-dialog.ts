@@ -16,7 +16,6 @@ import { ApiService } from '../../../core/services/api';
 import { AuthService } from '../../../core/auth/auth';
 import { Rol, User } from '../../../core/models/user';
 
-
 export interface UserDialogData {
   mode: 'create' | 'edit';
   rol: Rol;
@@ -37,7 +36,7 @@ const ROLE_META: Record<Rol, RoleMeta> = {
   docente: { label: 'Docente', icon: 'badge', endpoint: 'admin/users/docentes', color: '#f59e0b' },
   padre: { label: 'Padre / Tutor', icon: 'family_restroom', endpoint: 'admin/users/padres', color: '#8b5cf6' },
   psicologa: { label: 'Psicóloga', icon: 'psychology', endpoint: 'admin/users/psicologos', color: '#0ea5e9' },
-  auxiliar: { label: 'Auxiliar', icon: 'support_agent', endpoint: 'admin/users/auxiliares', color: '#14b8a6' }, // 🆕
+  staff: { label: 'Personal Staff', icon: 'support_agent', endpoint: 'admin/users/staff', color: '#14b8a6' },
 };
 
 @Component({
@@ -103,11 +102,8 @@ export class UserDialog implements OnInit, OnDestroy {
     apellido_paterno: ['', [Validators.required, Validators.maxLength(100)]],
     apellido_materno: ['', Validators.maxLength(100)],
     email: ['', [Validators.email, Validators.maxLength(255)]],
-    // Teléfono celular peruano: empieza con 9 + 8 dígitos (9XXXXXXXX).
     telefono: ['', Validators.pattern(/^9\d{8}$/)],
     fecha_nacimiento: [null as Date | null, this.fechaRequerida ? Validators.required : null],
-
-    // Roles específicos
     especialidad: ['', Validators.maxLength(100)],
     titulo_profesional: ['', Validators.maxLength(100)],
     tipo_contrato: ['contratado'],
@@ -118,8 +114,6 @@ export class UserDialog implements OnInit, OnDestroy {
     cargo: ['', Validators.maxLength(100)],
     colegiatura: ['', Validators.maxLength(50)],
     es_inclusivo: [false],
-
-    // Contraseñas (solo edición)
     current_password: [''],
     new_password: ['', Validators.minLength(8)],
   });
@@ -149,11 +143,8 @@ export class UserDialog implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    this.docSub?.unsubscribe();
-  }
+  ngOnDestroy() { this.docSub?.unsubscribe(); }
 
-  // ─── Validadores Dinámicos ───────────────────────────────────
   private setupDynamicValidators() {
     const docCtrl = this.form.get('numero_documento');
     this.docSub = this.form.get('tipo_documento')?.valueChanges.subscribe(tipo => {
@@ -167,11 +158,9 @@ export class UserDialog implements OnInit, OnDestroy {
       }
       docCtrl?.updateValueAndValidity();
     });
-    // Trigger inicial
     this.form.get('tipo_documento')?.updateValueAndValidity();
   }
 
-  // ─── Photo ───────────────────────────────────────────────────
   onFotoSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
@@ -187,7 +176,6 @@ export class UserDialog implements OnInit, OnDestroy {
 
   removeFoto() { this.fotoFile.set(null); this.fotoPreview.set(null); }
 
-  // ─── Helpers ─────────────────────────────────────────────────
   private toISODate(d: Date | null | undefined): string | null {
     return d ? d.toISOString().split('T')[0] : null;
   }
@@ -199,7 +187,6 @@ export class UserDialog implements OnInit, OnDestroy {
     return 'Error al conectar con el servidor';
   }
 
-  // ─── CREATE ──────────────────────────────────────────────────
   private submitCreate() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
@@ -218,9 +205,7 @@ export class UserDialog implements OnInit, OnDestroy {
     };
 
     const extras: Record<Rol, Record<string, unknown>> = {
-      alumno: {
-         inclusivo: !!v.es_inclusivo,
-      },
+      alumno: { inclusivo: !!v.es_inclusivo },
       docente: {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.titulo_profesional?.trim() && { titulo_profesional: v.titulo_profesional }),
@@ -235,13 +220,7 @@ export class UserDialog implements OnInit, OnDestroy {
         ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
         ...(v.colegiatura?.trim() && { colegiatura: v.colegiatura }),
       },
-      auxiliar: {
-        ...(v.cargo?.trim() && { cargo: v.cargo }),
-        tipo_contrato: v.tipo_contrato,
-        estado_contrato: v.estado_contrato,
-        ...(v.fecha_inicio_contrato && { fecha_inicio_contrato: this.toISODate(v.fecha_inicio_contrato as Date) }),
-        ...(v.fecha_fin_contrato && { fecha_fin_contrato: this.toISODate(v.fecha_fin_contrato as Date) }),
-      },
+      staff: { ...(v.cargo?.trim() && { cargo: v.cargo }) },
     };
 
     this.api.post(ROLE_META[this.data.rol].endpoint, { ...base, ...extras[this.data.rol] }).subscribe({
@@ -257,7 +236,6 @@ export class UserDialog implements OnInit, OnDestroy {
     });
   }
 
-  // ─── EDIT ────────────────────────────────────────────────────
   private async submitEdit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const v = this.form.value;
@@ -272,7 +250,6 @@ export class UserDialog implements OnInit, OnDestroy {
     this.success.set(false);
 
     try {
-      // 1. Foto (Solo si isSelf es true)
       if (this.isSelf && this.fotoFile()) {
         const fd = new FormData();
         fd.append('foto', this.fotoFile()!);
@@ -284,7 +261,6 @@ export class UserDialog implements OnInit, OnDestroy {
         }
       }
 
-      // 2. PUT perfil
       const endpoint = this.isSelf ? 'users/me' : `admin/users/${this.data.user!.id}`;
 
       const payload: Record<string, any> = {

@@ -86,7 +86,6 @@ export class TabCitas {
   readonly esPsicologa = computed(() => this.rol() === 'psicologa');
   readonly esDocente = computed(() => this.rol() === 'docente');
   readonly esAdmin = computed(() => this.rol() === 'admin');
-  readonly esAuxiliar = computed(() => this.rol() === 'auxiliar');
   readonly esPadre = computed(() => this.rol() === 'padre');
   readonly esAlumno = computed(() => this.rol() === 'alumno');
 

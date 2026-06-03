@@ -64,6 +64,7 @@ export const MODULO = {
   COMUNICADOS_ADMIN: 'comunicados',
   PERMISOS: 'permisos',
   HISTORICO_ALUMNOS: 'historico_alumnos',
+  ASIST_PERSONAL: 'asist_personal',
 } as const;
 
 export type Modulo = (typeof MODULO)[keyof typeof MODULO];

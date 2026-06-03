@@ -10,10 +10,10 @@ export type AppointmentEstado =
 
 export type AppointmentStatus = AppointmentEstado;
 
-export type RoleWithAvailability = 'psicologa' | 'docente' | 'admin' | 'auxiliar';
+export type RoleWithAvailability = 'psicologa' | 'docente' | 'admin';
 
 export const ROLES_WITH_AVAILABILITY: readonly RoleWithAvailability[] = [
-    'psicologa', 'docente', 'admin', 'auxiliar',
+    'psicologa', 'docente', 'admin', 
 ] as const;
 
 export function hasAvailability(rol: string | undefined): boolean {
@@ -25,7 +25,7 @@ export type DiaSemana =
     | 'jueves' | 'viernes' | 'sabado';
 
 export type AppointmentRole =
-    | 'psicologa' | 'docente' | 'admin' | 'auxiliar' | 'padre';
+    | 'psicologa' | 'docente' | 'admin' | 'staff' | 'padre';
 
 export interface AppointmentRoleRule {
     role: AppointmentRole;
@@ -98,8 +98,8 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         directBooking: false,
         label: 'Administrador',
     },
-    auxiliar: {
-        role: 'auxiliar',
+    staff: {
+        role: 'staff',
         fixedDurationMin: 15,
         maxDurationMin: 15,
         slotMinutes: 15,
@@ -108,7 +108,7 @@ export const APPOINTMENT_RULES: Record<AppointmentRole, AppointmentRoleRule> = {
         allowedDays: WEEK_FULL,
         defaultHours: { start: '08:00', end: '15:30' },
         directBooking: false,
-        label: 'Auxiliar',
+        label: 'Staff',
     },
     padre: {
         role: 'padre',
@@ -128,7 +128,7 @@ export function ruleForRol(rol: string): AppointmentRoleRule | null {
     if (rol === 'admin') return APPOINTMENT_RULES.admin;
     if (rol === 'psicologa') return APPOINTMENT_RULES.psicologa;
     if (rol === 'docente') return APPOINTMENT_RULES.docente;
-    if (rol === 'auxiliar') return APPOINTMENT_RULES.auxiliar;
+    if (rol === 'staff') return APPOINTMENT_RULES.staff;
     if (rol === 'padre') return APPOINTMENT_RULES.padre;
     return null;
 }

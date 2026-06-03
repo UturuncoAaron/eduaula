@@ -9,8 +9,8 @@
         <div class="header-actions">
             <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
                 <mat-icon matPrefix>search</mat-icon>
-                <mat-label>Buscar docente</mat-label>
-                <input matInput [formControl]="busqueda" placeholder="Buscar padre o tutor...">
+                <mat-label>Buscar familiar</mat-label>
+                <input matInput [formControl]="busqueda" placeholder="Buscar padre, madre o tutor...">
                 @if (busqueda.value) {
                 <button mat-icon-button matSuffix (click)="limpiarBusqueda()" aria-label="Limpiar búsqueda">
                     <mat-icon>close</mat-icon>
@@ -51,12 +51,13 @@
                 </span>
             </div>
             } @else {
-            <div class="table-responsive">
+
+            <div class="table-responsive hide-on-mobile">
                 <table mat-table [dataSource]="dataSource" class="users-table">
 
                     <ng-container matColumnDef="documento">
-                        <th mat-header-cell *matHeaderCellDef class="hide-on-mobile">Documento</th>
-                        <td mat-cell *matCellDef="let row" class="hide-on-mobile">
+                        <th mat-header-cell *matHeaderCellDef>Documento</th>
+                        <td mat-cell *matCellDef="let row">
                             @if (row.numero_documento) {
                             <span class="doc-type-chip">{{ row.tipo_documento | uppercase }}</span>
                             <span class="doc-number">{{ row.numero_documento }}</span>
@@ -67,7 +68,7 @@
                     </ng-container>
 
                     <ng-container matColumnDef="nombre">
-                        <th mat-header-cell *matHeaderCellDef>Docente</th>
+                        <th mat-header-cell *matHeaderCellDef>Familiar</th>
                         <td mat-cell *matCellDef="let row">
                             <div class="avatar-name">
                                 <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno"
@@ -78,24 +79,14 @@
                                         : ',' }} {{ row.nombre }}
                                     </span>
                                     <span class="email-text">{{ row.email || row.telefono || '—' }}</span>
-
-                                    <div class="mobile-meta show-on-mobile">
-                                        @if (row.numero_documento) {
-                                        <span class="doc-type-chip">{{ row.tipo_documento | uppercase }}</span>
-                                        <span class="doc-number">{{ row.numero_documento }}</span>
-                                        }
-                                        <span class="relacion-tag-inline-mobile relational-{{ row.relacion }}">
-                                            • {{ relacionLabel[row.relacion] || row.relacion }}
-                                        </span>
-                                    </div>
                                 </div>
                             </div>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="relacion">
-                        <th mat-header-cell *matHeaderCellDef class="hide-on-mobile">Especialidad</th>
-                        <td mat-cell *matCellDef="let row" class="hide-on-mobile">
+                        <th mat-header-cell *matHeaderCellDef>Parentesco</th>
+                        <td mat-cell *matCellDef="let row">
                             <span class="relacion-chip relacion-{{ row.relacion }}">
                                 {{ relacionLabel[row.relacion] || row.relacion }}
                             </span>
@@ -127,6 +118,53 @@
                     <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
                         [class.inactive-row]="row.activo === false"></tr>
                 </table>
+            </div>
+
+            <div class="mobile-cards-container show-on-mobile">
+                @for (row of dataSource.data; track row.id) {
+                <div class="family-mobile-card" [class.card--inactive]="row.activo === false">
+
+                    <div class="card-main-row">
+                        <app-user-avatar [nombre]="row.nombre" [apellidoPaterno]="row.apellido_paterno" rol="padre"
+                            [fotoUrl]="row.foto_url ?? null" [size]="46" />
+
+                        <div class="card-info">
+                            <span class="full-name">
+                                {{ row.apellido_paterno }} {{ row.apellido_materno ? row.apellido_materno + ',' : ',' }}
+                                {{ row.nombre }}
+                            </span>
+                            <span class="email-text">{{ row.email || row.telefono || 'Sin contacto' }}</span>
+                        </div>
+
+                        <div class="card-actions">
+                            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }"
+                                class="menu-trigger">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-footer-row">
+                        <div class="badge-group">
+                            <span class="relacion-chip relacion-{{ row.relacion }}">
+                                {{ relacionLabel[row.relacion] || row.relacion }}
+                            </span>
+                            @if (row.numero_documento) {
+                            <span class="doc-badge-mobile"><small>{{ row.tipo_documento | uppercase }}</small> {{
+                                row.numero_documento }}</span>
+                            }
+                        </div>
+
+                        <span class="status-chip" [class.active]="row.activo !== false"
+                            [class.inactive]="row.activo === false">
+                            <span class="status-dot"></span>
+                            {{ row.activo !== false ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </div>
+
+                </div>
+                }
+                <!-- Cierre del contenedor de tarjetas móviles -->
             </div>
 
             <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageIndex]="page() - 1"

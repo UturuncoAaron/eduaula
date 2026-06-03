@@ -1,0 +1,208 @@
+<div class="page-container fade-in">
+    <header class="page-header">
+        <div class="header-info">
+            <h1>Asistencia del Personal</h1>
+            <p class="text-muted-desc">Historial de fichajes del personal docente y administrativo.</p>
+        </div>
+
+        <div class="header-actions">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
+                <mat-label>Fecha de Consulta</mat-label>
+                <mat-icon matPrefix>calendar_today</mat-icon>
+                <input matInput [matDatepicker]="dp" [formControl]="fechaFiltro" placeholder="DD/MM/AAAA" />
+                <mat-datepicker-toggle matIconSuffix [for]="dp" />
+                <mat-datepicker #dp />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="estado-field">
+                <mat-label>Estado</mat-label>
+                <mat-select [formControl]="estadoFiltro">
+                    <mat-option value="">Todos los estados</mat-option>
+                    <mat-option value="presente">Presente</mat-option>
+                    <mat-option value="tardanza">Tardanza</mat-option>
+                    <mat-option value="falto">Falta</mat-option>
+                    <mat-option value="justificado">Justificado</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            @if (hayFiltrosActivos()) {
+            <button mat-flat-button color="warn" (click)="limpiarFiltros()" class="btn-clear">
+                <mat-icon>filter_alt_off</mat-icon>
+                <span>Limpiar Filtros</span>
+            </button>
+            }
+        </div>
+    </header>
+
+    @if (!loading() && total() > 0) {
+    <div class="results-bar">
+        <span class="results-count">
+            Se encontraron <strong>{{ total() }}</strong> registros de asistencia
+        </span>
+    </div>
+    }
+
+    <main class="table-card">
+        <div class="tab-table-container">
+            @if (loading()) {
+            <div class="loading-state" aria-busy="true">
+                <div class="spinner-ring"></div>
+                <p>Procesando registros de fichaje...</p>
+            </div>
+            } @else if (dataSource.data.length === 0) {
+            <div class="empty-state">
+                <mat-icon>badge</mat-icon>
+                <p>No hay marcaciones para la fecha seleccionada</p>
+                <span class="empty-hint">Modifique los filtros o elija un día laboral distinto.</span>
+            </div>
+            } @else {
+
+            <div class="table-responsive hide-on-mobile">
+                <table mat-table [dataSource]="dataSource" class="users-table">
+                    <ng-container matColumnDef="nombre">
+                        <th mat-header-cell *matHeaderCellDef>Colaborador</th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="user-meta-cell">
+                                <span class="main-text">{{ row.nombre_completo }}</span>
+                                <span class="sub-text">Cód. Acceso: {{ row.codigo_acceso }}</span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="rol">
+                        <th mat-header-cell *matHeaderCellDef>Rol</th>
+                        <td mat-cell *matCellDef="let row">
+                            <span class="rol-chip {{ row.rol }}">{{ rolLabel(row.rol) }}</span>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="fecha">
+                        <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                        <td mat-cell *matCellDef="let row">
+                            {{ row.fecha | date:'dd/MM/yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="entrada">
+                        <th mat-header-cell *matHeaderCellDef>Marcación Entrada</th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="hora-block">
+                                <span class="hora-valor">{{ row.hora_entrada ?? '—' }}</span>
+                                @if (row.hora_entrada_esperada) {
+                                <span class="hora-esperada">esp. {{ row.hora_entrada_esperada }}</span>
+                                }
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="salida">
+                        <th mat-header-cell *matHeaderCellDef>Marcación Salida</th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="hora-block">
+                                <span class="hora-valor">{{ row.hora_salida ?? '—' }}</span>
+                                @if (row.hora_salida_esperada) {
+                                <span class="hora-esperada">esp. {{ row.hora_salida_esperada }}</span>
+                                }
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="estado">
+                        <th mat-header-cell *matHeaderCellDef>Estado</th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="status-cell-wrapper">
+                                <span class="estado-chip" [style.background]="estadoColor[row.estado] + '15'"
+                                    [style.color]="estadoColor[row.estado]"
+                                    [style.border]="'1px solid ' + estadoColor[row.estado] + '30'">
+                                    {{ estadoLabel[row.estado] }}
+                                </span>
+                                @if (row.editado_por) {
+                                <mat-icon class="edited-icon" matTooltip="Modificado por Dirección">edit_note</mat-icon>
+                                }
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="acciones">
+                        <th mat-header-cell *matHeaderCellDef class="col-actions"></th>
+                        <td mat-cell *matCellDef="let row" class="col-actions">
+                            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }"
+                                class="menu-trigger">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+                </table>
+            </div>
+
+            <div class="mobile-cards-container show-on-mobile">
+                @for (row of dataSource.data; track row.id) {
+                <div class="attendance-mobile-card" [style.border-left]="'4px solid ' + estadoColor[row.estado]">
+
+                    <div class="card-main-row">
+                        <div class="card-user-info">
+                            <h4>{{ row.nombre_completo }}</h4>
+                            <div class="badges-row-flex">
+                                <span class="rol-chip {{ row.rol }}">{{ rolLabel(row.rol) }}</span>
+                                <span class="card-code-badge">{{ row.codigo_acceso }}</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button mat-icon-button [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ row: row }"
+                                class="menu-trigger">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-time-grid">
+                        <div class="time-box">
+                            <span class="t-lbl"><mat-icon>login</mat-icon> Entrada</span>
+                            <span class="t-val">{{ row.hora_entrada ?? '—' }}</span>
+                            @if (row.hora_entrada_esperada) {
+                            <span class="t-exp">esp. {{ row.hora_entrada_esperada }}</span>
+                            }
+                        </div>
+                        <div class="time-box">
+                            <span class="t-lbl"><mat-icon>logout</mat-icon> Salida</span>
+                            <span class="t-val">{{ row.hora_salida ?? '—' }}</span>
+                            @if (row.hora_salida_esperada) {
+                            <span class="t-exp">esp. {{ row.hora_salida_esperada }}</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card-footer-status">
+                        <span class="date-text"><mat-icon>event</mat-icon> {{ row.fecha | date:'dd/MM/yyyy' }}</span>
+                        <div class="status-pill-wrapper">
+                            <span class="estado-chip" [style.background]="estadoColor[row.estado] + '15'"
+                                [style.color]="estadoColor[row.estado]">
+                                {{ estadoLabel[row.estado] }}
+                            </span>
+                            @if (row.editado_por) {
+                            <mat-icon class="edited-icon">edit_note</mat-icon>
+                            }
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+
+            <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageIndex]="page() - 1"
+                [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)" showFirstLastButtons />
+            }
+        </div>
+    </main>
+</div>
+
+<mat-menu #rowMenu="matMenu" xPosition="before" class="users-action-menu">
+    <ng-template matMenuContent let-row="row">
+        <button mat-menu-item (click)="editarEstado(row)">
+            <mat-icon class="material-symbols-outlined">edit_note</mat-icon>
+            <span>Editar registro académico</span>
+        </button>
+    </ng-template>
+</mat-menu>

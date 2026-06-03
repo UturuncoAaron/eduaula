@@ -1,7 +1,7 @@
 import { Component, ViewChild, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, switchMap} from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
@@ -212,4 +212,19 @@ export class TabPsicologos implements OnInit {
       error: () => this.toastr.error('Error al procesar la solicitud del cambio de estado.', 'Error'),
     });
   }
+  async gestionarHorario(row: { id: string; nombre: string; apellido_paterno: string }): Promise<void> {
+    const { HorarioLaboralDialog } = await import(
+      '../../../../../shared/components/horario-laboral-dialog/horario-laboral-dialog'
+    );
+    this.dialog.open(HorarioLaboralDialog, {
+      width: '100%',
+      maxWidth: '480px',
+      disableClose: true,
+      data: {
+        cuenta_id: row.id,
+        nombre: `${row.nombre} ${row.apellido_paterno}`,
+      },
+    });
+  }
+
 }

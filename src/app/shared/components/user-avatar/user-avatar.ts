@@ -1,7 +1,7 @@
 import { Component, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export type AvatarRole = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa' | 'auxiliar';
+export type AvatarRole = 'alumno' | 'docente' | 'admin' | 'padre' | 'psicologa' | 'staff';
 
 const ROLE_COLORS: Record<AvatarRole, string> = {
   alumno: '#10b981',
@@ -9,7 +9,7 @@ const ROLE_COLORS: Record<AvatarRole, string> = {
   admin: '#ef4444',
   padre: '#8b5cf6',
   psicologa: '#0ea5e9',
-  auxiliar: '#14b8a6',
+  staff: '#14b8a6',
 };
 
 @Component({
@@ -37,11 +37,7 @@ const ROLE_COLORS: Record<AvatarRole, string> = {
       font-weight: 600;
       flex-shrink: 0;
       overflow: hidden;
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+      img { width: 100%; height: 100%; object-fit: cover; }
     }
   `],
 })

@@ -1,0 +1,97 @@
+<div class="fichaje-wrapper">
+
+    <div class="fichaje-card" [class.has-result]="estado() !== 'idle' && estado() !== 'loading'">
+
+        <!-- ── Logo / Título ─────────────────────────────────────────────── -->
+        <div class="fichaje-header">
+            <div class="school-logo">
+                <mat-icon>school</mat-icon>
+            </div>
+            <h1>Control de Asistencia</h1>
+            <p class="subtitle">I.E. Juan Pablo Vizcardo y Guzmán</p>
+        </div>
+
+        <!-- ── Resultado ─────────────────────────────────────────────────── -->
+        @if (estado() !== 'idle' && estado() !== 'loading') {
+        <div class="resultado-panel" [style.border-color]="colorEstado()" [@fadeSlide]>
+
+            <div class="resultado-icon" [style.background]="colorEstado() + '18'" [style.color]="colorEstado()">
+                <mat-icon>{{ iconoEstado() }}</mat-icon>
+            </div>
+
+            @if (estado() === 'error') {
+            <p class="resultado-nombre error-text">{{ errorMsg() }}</p>
+            } @else {
+            <p class="resultado-nombre">{{ resultado()?.nombre }}</p>
+
+            @if (estado() === 'entrada') {
+            <p class="resultado-accion" [style.color]="colorEstado()">Entrada registrada</p>
+            <p class="resultado-hora">{{ resultado()?.hora }}</p>
+            }
+
+            @if (estado() === 'tardanza') {
+            <p class="resultado-accion" [style.color]="colorEstado()">Tardanza registrada</p>
+            <p class="resultado-hora">{{ resultado()?.hora }}</p>
+            <p class="resultado-hint">Hora esperada: {{ resultado()?.hora_esperada }}</p>
+            }
+
+            @if (estado() === 'salida') {
+            <p class="resultado-accion" [style.color]="colorEstado()">Salida registrada</p>
+            <p class="resultado-hora">{{ resultado()?.hora }}</p>
+            }
+
+            @if (estado() === 'ya_completo') {
+            <p class="resultado-accion" [style.color]="colorEstado()">Jornada completa</p>
+            <p class="resultado-hint">
+                Entrada: {{ resultado()?.hora_entrada }} · Salida: {{ resultado()?.hora_salida }}
+            </p>
+            }
+            }
+
+            <div class="reset-bar">
+                <div class="reset-progress" [style.background]="colorEstado()"></div>
+            </div>
+        </div>
+        }
+
+        <!-- ── Formulario ────────────────────────────────────────────────── -->
+        @if (estado() === 'idle' || estado() === 'loading') {
+        <form [formGroup]="form" (ngSubmit)="submit()" class="fichaje-form" autocomplete="off">
+
+            <mat-form-field appearance="outline" class="field-full">
+                <mat-label>Código de acceso</mat-label>
+                <mat-icon matPrefix>badge</mat-icon>
+                <input matInput formControlName="codigo_acceso" placeholder="Ej. DOC-12345678" autocomplete="off"
+                    [attr.disabled]="estado() === 'loading' ? true : null" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-full">
+                <mat-label>Contraseña</mat-label>
+                <mat-icon matPrefix>lock</mat-icon>
+                <input matInput formControlName="password" [type]="showPassword() ? 'text' : 'password'"
+                    autocomplete="current-password" [attr.disabled]="estado() === 'loading' ? true : null" />
+                <button mat-icon-button matSuffix type="button" (click)="showPassword.set(!showPassword())">
+                    <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+            </mat-form-field>
+
+            <button mat-flat-button type="submit" class="btn-fichar"
+                [disabled]="form.invalid || estado() === 'loading'">
+                @if (estado() === 'loading') {
+                <span class="spinner"></span>
+                <span>Procesando...</span>
+                } @else {<ng-container>
+                    <mat-icon>fingerprint</mat-icon>
+                    <span>Registrar asistencia</span>
+                </ng-container>}
+            </button>
+
+        </form>
+        }
+
+    </div>
+
+    <!-- ── Reloj ──────────────────────────────────────────────────────── -->
+    <p class="reloj">{{ estado() === 'idle' || estado() === 'loading' ? '' : '' }}</p>
+
+</div>
