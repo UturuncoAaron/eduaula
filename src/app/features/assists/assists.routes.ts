@@ -34,11 +34,4 @@ export const ASSISTS_ROUTES: Routes = [
             import('./asistencia-curso/asistencia-curso-detail/asistencia-curso-detail')
                 .then(c => c.AsistenciaCursoDetail),
     },
-
-    {
-        path: 'docentes',
-        loadComponent: () =>
-            import('./asistencia-docentes/asistencia-docentes')
-                .then(c => c.AsistenciaDocentes),
-    },
 ];

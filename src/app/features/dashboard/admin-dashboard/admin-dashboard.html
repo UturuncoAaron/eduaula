@@ -2,7 +2,7 @@
 
     <header class="welcome-banner">
         <div class="banner-content">
-            <h1 class="greeting">¡Bienvenido, Administrador!</h1>
+            <h1 class="greeting">¡Bienvenido, Señor Director!</h1>
             <p class="subtitle">Resumen general del sistema al día de hoy.</p>
         </div>
         <div class="banner-decoration" aria-hidden="true">
@@ -56,10 +56,10 @@
         <div class="stat-card teal">
             <div class="icon-wrapper"><mat-icon>support_agent</mat-icon></div>
             <div class="stat-info">
-                <span class="lbl">Auxiliares</span>
+                <span class="lbl">Personal de apoyo</span>
                 <span class="num">
                     @if (loading()) { <span class="skeleton"></span> }
-                    @else { {{ data()?.contadores?.totalAuxiliares ?? '—' }} }
+                    @else { {{ data()?.contadores?.totalStaff ?? '—' }} }
                 </span>
             </div>
         </div>

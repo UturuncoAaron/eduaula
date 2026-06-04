@@ -10,7 +10,7 @@ interface Contadores {
   totalAlumnos: number;
   totalDocentes: number;
   totalPadres: number;
-  totalAuxiliares: number;
+  totalStaff: number;
 }
 
 interface AlertaOperativa {

@@ -24,28 +24,27 @@ interface ComunicadoItem {
   fecha: string;
 }
 
-interface AuxiliarDashboardData {
+interface StaffDashboardData {
   seccionesHoy: SeccionAsistenciaItem[];
   comunicados: ComunicadoItem[];
 }
 
 @Component({
-  selector: 'app-auxiliar-dashboard',
+  selector: 'app-staff-dashboard',
   standalone: true,
-  imports: [MatIconModule, RouterLink,DatePipe],
-  templateUrl: './auxiliar-dashboard.html',
-  styleUrl: './auxiliar-dashboard.scss',
+  imports: [MatIconModule, RouterLink, DatePipe],
+  templateUrl: './staff-dashboard.html',
+  styleUrl: './staff-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AuxiliarDashboard implements OnInit {
+export class StaffDashboard implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
 
-  dashboardData = signal<AuxiliarDashboardData | null>(null);
+  dashboardData = signal<StaffDashboardData | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
 
-  // Contadores derivados de las secciones — sin queries extra
   readonly totalFaltas = computed(() =>
     this.dashboardData()?.seccionesHoy
       .reduce((acc, s) => acc + s.totalFaltas, 0) ?? 0,
@@ -67,7 +66,7 @@ export class AuxiliarDashboard implements OnInit {
   );
 
   ngOnInit() {
-    this.api.get<AuxiliarDashboardData>('dashboard/resumen').subscribe({
+    this.api.get<StaffDashboardData>('dashboard/resumen').subscribe({
       next: res => {
         this.dashboardData.set(res.data);
         this.loading.set(false);

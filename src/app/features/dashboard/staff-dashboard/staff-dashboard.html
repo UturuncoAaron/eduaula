@@ -3,7 +3,7 @@
     <header class="welcome-banner">
         <div class="banner-content">
             <h1 class="greeting">
-                ¡Hola, {{ auth.currentUser()?.apellido_paterno ?? 'Auxiliar' }}!
+                ¡Hola, {{ auth.currentUser()?.apellido_paterno ?? 'Staff' }}!
             </h1>
             <p class="subtitle">Registra la asistencia general de los alumnos.</p>
         </div>
@@ -27,7 +27,6 @@
 
     } @else if (dashboardData(); as data) {
 
-    <!-- STATS DEL DÍA — derivados del backend, sin hardcode -->
     <div class="stats-grid">
         <div class="stat-card green">
             <div class="icon-wrapper"><mat-icon>check_circle</mat-icon></div>
@@ -64,7 +63,6 @@
 
     <div class="dashboard-grid">
 
-        <!-- COLUMNA IZQUIERDA: secciones del día -->
         <section class="main-column">
             <div class="section-header">
                 <h2 class="section-title">Secciones de hoy</h2>
@@ -112,10 +110,8 @@
             </div>
         </section>
 
-        <!-- COLUMNA DERECHA: acceso rápido + comunicados -->
         <aside class="side-column">
 
-            <!-- ACCIÓN PRINCIPAL -->
             <a class="action-card primary" routerLink="/asistencia/general/scan">
                 <div class="action-icon">
                     <mat-icon>qr_code_scanner</mat-icon>
@@ -127,18 +123,6 @@
                 <mat-icon class="arrow">chevron_right</mat-icon>
             </a>
 
-            <a class="action-card" routerLink="/asistencia/docentes">
-                <div class="action-icon">
-                    <mat-icon>badge</mat-icon>
-                </div>
-                <div class="action-info">
-                    <h3>Asistencia de Docentes</h3>
-                    <p>Registra la asistencia del personal docente de hoy</p>
-                </div>
-                <mat-icon class="arrow">chevron_right</mat-icon>
-            </a>
-
-            <!-- COMUNICADOS -->
             <section class="widget-panel">
                 <div class="widget-header">
                     <h2>Comunicados</h2>

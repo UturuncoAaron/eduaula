@@ -10,11 +10,11 @@ export const DASHBOARD_ROUTES: Routes = [
     redirectTo: () => {
       const rol = inject(AuthService).currentUser()?.rol ?? '';
       const map: Record<string, string> = {
-        alumno:    '/dashboard/alumno',
-        docente:   '/dashboard/docente',
-        admin:     '/dashboard/admin',
-        padre:     '/dashboard/padre',
-        auxiliar:  '/dashboard/auxiliar',
+        alumno: '/dashboard/alumno',
+        docente: '/dashboard/docente',
+        admin: '/dashboard/admin',
+        padre: '/dashboard/padre',
+        staff: '/dashboard/staff',
         psicologa: '/dashboard/psicologa',
       };
       return map[rol] ?? '/auth/login';
@@ -53,11 +53,11 @@ export const DASHBOARD_ROUTES: Routes = [
     title: 'Mi dashboard | EduAula',
   },
   {
-    path: 'auxiliar',
-    canActivate: [roleGuard(['auxiliar'])],
+    path: 'staff',
+    canActivate: [roleGuard(['staff'])],
     loadComponent: () =>
-      import('./auxiliar-dashboard/auxiliar-dashboard')
-        .then(c => c.AuxiliarDashboard),
+      import('./staff-dashboard/staff-dashboard')
+        .then(c => c.StaffDashboard),
     title: 'Mi dashboard | EduAula',
   },
   {
