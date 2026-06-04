@@ -12,15 +12,20 @@
   margin: 0 auto;
 }
 
-/* ─── Topbar ────────────────────────────────────────────────── */
+/* ─── Topbar Responsiva ────────────────────────────────────── */
 .topbar {
   display: flex;
   align-items: center;
   gap: .75rem;
-  padding: .25rem 0 1rem;
+  padding: .5rem 0 1.25rem;
+  flex-wrap: wrap; // Permite bajar los botones si no hay espacio
 }
 
-.title-block { flex: 1; min-width: 0; }
+.title-block { 
+  flex: 1; 
+  min-width: 200px; // Evita que el título se aplaste demasiado
+}
+
 .eyebrow {
   margin: 0;
   font-size: .7rem;
@@ -29,6 +34,7 @@
   color: rgba(0, 0, 0, .55);
   font-weight: 600;
 }
+
 .title {
   margin: .15rem 0 0;
   font-size: 1.4rem;
@@ -37,7 +43,9 @@
   display: flex;
   align-items: center;
   gap: .6rem;
+  flex-wrap: wrap;
 }
+
 .grade-chip {
   font-size: .72rem;
   font-weight: 600;
@@ -52,6 +60,19 @@
   display: flex;
   align-items: center;
   gap: .5rem;
+  flex-wrap: wrap; // Los botones se acomodan elegantemente en móviles
+
+  @media (max-width: 600px) {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: .5rem;
+
+    button {
+      flex: 1;
+      min-width: 105px; // Balance equilibrado para botones en móviles
+      font-size: 0.8rem;
+    }
+  }
 }
 
 .dirty-badge {
@@ -63,6 +84,12 @@
   color: #b45309;
   padding: .25rem .6rem;
   border-radius: 999px;
+  
+  @media (max-width: 600px) {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 4px;
+  }
 }
 
 /* ─── States ────────────────────────────────────────────────── */
@@ -94,14 +121,15 @@
 }
 
 .hint {
-  margin: 0 0 .65rem;
+  margin: 0 0 1rem;
   font-size: .82rem;
   color: rgba(0,0,0,.6);
+  line-height: 1.4;
 }
 
 /* ─── Legend ────────────────────────────────────────────────── */
 .legend {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   background: #fff;
   border-radius: 12px;
   border: 1px solid rgba(0,0,0,.06);

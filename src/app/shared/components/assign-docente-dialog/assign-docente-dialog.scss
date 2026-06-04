@@ -1,7 +1,8 @@
 :host {
     display: block;
-    min-width: 480px;
+    width: 100%;
     max-width: 540px;
+    box-sizing: border-box;
 }
 
 // ── Header ─────────────────────────────────────────────
@@ -64,6 +65,7 @@
     max-height: 60vh;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 .search-field {
@@ -124,8 +126,8 @@
     width: 100%;
     font: inherit;
     position: relative;
+    box-sizing: border-box;
 
-    // app-user-avatar viene con su propio shadow leve
     app-user-avatar {
         flex-shrink: 0;
     }
@@ -332,23 +334,63 @@
 
 // ── Footer ─────────────────────────────────────────────
 .dialog-actions {
-    padding: 14px 24px !important;
-    gap: 8px;
+    padding: 16px 24px !important;
+    gap: 12px;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
 
     button {
-        min-width: 110px;
-        display: inline-flex;
+        min-width: 120px;
+        height: 40px !important; 
+        display: inline-flex !important;
         align-items: center;
-        gap: 4px;
+        justify-content: center;
+        gap: 8px !important;
+        box-sizing: border-box;
 
         mat-icon {
             font-size: 18px;
             width: 18px;
             height: 18px;
+            margin: 0 !important; 
         }
 
         .btn-label {
             line-height: 1;
+            white-space: nowrap;
+        }
+    }
+}
+// ── Responsive ─────────────────────────────────────────
+@media (max-width: 520px) {
+    .dialog-header {
+        padding: 16px 16px 12px;
+        gap: 10px;
+        
+        .header-icon {
+            width: 38px;
+            height: 38px;
+            mat-icon { font-size: 20px; width: 20px; height: 20px; }
+        }
+        h2 { font-size: 1.05rem; }
+    }
+
+    .dialog-content {
+        padding: 12px 16px 8px !important;
+    }
+
+    .dialog-actions {
+        padding: 14px 16px !important;
+        display: flex !important;
+        flex-direction: row !important; 
+        gap: 10px;
+        
+        button {
+            flex: 1; 
+            min-width: 0; 
+            padding: 0 8px !important; 
+            font-size: 0.85rem !important;
         }
     }
 }

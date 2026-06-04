@@ -63,7 +63,6 @@ export class TabAlumnos implements OnInit {
   private toastr = inject(ToastService);
   private destroyRef = inject(DestroyRef);
 
-  // ── Filtros y Estructura Académica ───────────────────────────
   grados = signal<GradeLevel[]>([]);
   secciones = signal<Section[]>([]);
   loadingFiltros = signal<boolean>(true);
@@ -72,7 +71,6 @@ export class TabAlumnos implements OnInit {
   seccionFiltro = new FormControl<string | null>(null);
   busqueda = new FormControl('', { nonNullable: true });
 
-  // Derivación computada reactiva (Signals) para filtrado local instantáneo de secciones
   seccionesFiltradas = computed(() => {
     const gId = this.gradoFiltro.value;
     return gId
@@ -80,12 +78,10 @@ export class TabAlumnos implements OnInit {
       : this.secciones();
   });
 
-  // ── Datos de la Tabla ─────────────────────────────────────────
   loading = signal<boolean>(true);
   dataSource = new MatTableDataSource<AlumnoRow>([]);
   displayedColumns: string[] = ['codigo', 'documento', 'nombre', 'grado', 'nacimiento', 'telefono', 'estado', 'acciones'];
 
-  // ── Paginación Server-Side ────────────────────────────────────
   total = signal<number>(0);
   page = signal<number>(1);
   pageSize = signal<number>(20);
@@ -119,7 +115,6 @@ export class TabAlumnos implements OnInit {
   }
 
   private setupReactiveStreams(): void {
-    // Resetea la sección y la página al permutar el grado de interés
     this.gradoFiltro.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
@@ -128,7 +123,6 @@ export class TabAlumnos implements OnInit {
       this.loadData();
     });
 
-    // Escucha de escritura con debounce controlado
     this.busqueda.valueChanges.pipe(
       debounceTime(400),
       distinctUntilChanged(),
@@ -195,21 +189,24 @@ export class TabAlumnos implements OnInit {
     this.loadData();
   }
 
-  // ── Orquestación de Diálogos Adaptativos ─────────────────────
   abrirCrearAlumno(): void {
     this.dialog.open(UserDialog, {
-      width: '100%',
-      maxWidth: '650px',
+      width: '90vw',
+      maxWidth: '520px',
       disableClose: true,
+      autoFocus: false,
+      panelClass: 'custom-modal-panel',
       data: { mode: 'create', rol: 'alumno' },
     }).afterClosed().pipe(filter(Boolean)).subscribe(() => this.loadData());
   }
 
   editarAlumno(row: AlumnoRow): void {
     this.dialog.open(UserDialog, {
-      width: '100%',
-      maxWidth: '700px',
+      width: '90vw',
+      maxWidth: '520px',
       disableClose: true,
+      autoFocus: false,
+      panelClass: 'custom-modal-panel',
       data: {
         mode: 'edit',
         rol: 'alumno',
@@ -233,9 +230,9 @@ export class TabAlumnos implements OnInit {
 
   verDetalle(row: AlumnoRow): void {
     this.dialog.open(UserDetailDialog, {
-      width: '100%',
-      maxWidth: '580px',
-      maxHeight: '90vh',
+      width: '90vw',
+      maxWidth: '520px',
+      maxHeight: '85vh',
       autoFocus: false,
       data: { id: row.id, tipo: 'alumnos' },
     });
@@ -245,8 +242,8 @@ export class TabAlumnos implements OnInit {
     const activo = row.activo ?? true;
 
     this.dialog.open(ConfirmDialog, {
-      width: '100%',
-      maxWidth: '380px',
+      width: '85vw',
+      maxWidth: '360px',
       data: {
         title: activo ? '¿Desactivar alumno?' : '¿Reactivar alumno?',
         message: `Estás por ${activo ? 'desactivar' : 'reactivar'} la cuenta de ${row.nombre} ${row.apellido_paterno}.`,

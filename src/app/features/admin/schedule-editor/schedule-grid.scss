@@ -3,18 +3,20 @@
 :host {
   display: block;
   width: 100%;
+  overflow: hidden; 
 }
 
-$col-min: 140px;
-$hour-col-width: 100px;
-$row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_MIN)
+$col-min: 130px; // Reducido levemente para mejorar legibilidad en vistas compactas
+$hour-col-width: 75px; // Optimizado para pantallas pequeñas sin perder legibilidad
+$row-tick: 48px;
 
 .sg-wrap {
   width: 100%;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   background: #fff;
-  overflow: hidden;
+  overflow-x: auto; // Activa el desplazamiento horizontal responsivo
+  -webkit-overflow-scrolling: touch; // Desplazamiento suave inercial en iOS
 }
 
 .sg-header {
@@ -22,9 +24,10 @@ $row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_M
   grid-template-columns: $hour-col-width repeat(5, minmax($col-min, 1fr));
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
+  min-width: calc(#{$hour-col-width} + (#{$col-min} * 5)); // Asegura consistencia del ancho
 
   >div {
-    padding: 10px 12px;
+    padding: 10px 8px;
     border-right: 1px solid #e5e7eb;
     font-weight: 600;
     color: #374151;
@@ -37,15 +40,20 @@ $row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_M
 
   .sg-cell-hour {
     background: #f3f4f6;
+    position: sticky;
+    left: 0;
+    z-index: 10; // Mantiene la esquina fija al hacer scroll horizontal
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
   }
 
   .sg-day-head {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    justify-content: center;
 
     .sg-day-long {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
 
     .sg-day-short {
@@ -71,6 +79,7 @@ $row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_M
   display: grid;
   grid-template-columns: $hour-col-width repeat(5, minmax($col-min, 1fr));
   min-height: var(--col-h);
+  min-width: calc(#{$hour-col-width} + (#{$col-min} * 5));
 }
 
 .sg-hours-col {
@@ -78,16 +87,21 @@ $row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_M
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
+  position: sticky;
+  left: 0;
+  z-index: 9; // Columna de horas fija al desplazar los días horizontalmente
+  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
 
   .sg-hour-row {
     height: $row-tick;
     box-sizing: border-box;
     border-bottom: 1px solid #f1f5f9;
-    padding: 4px 8px;
+    padding: 4px 6px;
     display: flex;
     align-items: flex-start;
+    justify-content: center;
     color: #6b7280;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -101,24 +115,22 @@ $row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_M
   padding: 0;
   cursor: crosshair;
   text-align: left;
+  box-sizing: border-box;
 
   &:last-child {
     border-right: none;
   }
 
-  // Hover sutil para mostrar la zona clickable
   &:hover {
     background: #fcfcfd;
   }
 
-  // Guías horarias (cada 30 min)
   .sg-grid-line {
     height: $row-tick;
     border-bottom: 1px dashed #eef2f7;
     box-sizing: border-box;
     pointer-events: none;
 
-    // Cada segunda línea (cada hora) más oscura
     &:nth-child(odd) {
       border-bottom-color: #e5e7eb;
       border-bottom-style: solid;
@@ -133,21 +145,20 @@ $row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_M
   right: 4px;
   border: none;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 5px 6px;
   color: #fff;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   align-items: flex-start;
   text-align: left;
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   z-index: 2;
+  box-sizing: border-box;
 
-  // Texto siempre con buen contraste sobre el color del curso.
-  // Se aplica un velo oscuro semi-transparente al fondo del slot.
   background-blend-mode: normal;
 
   &:hover {
@@ -161,8 +172,8 @@ $row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_M
     position: absolute;
     top: 4px;
     right: 4px;
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: #fbbf24;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
@@ -170,32 +181,32 @@ $row-tick: 48px; // 30 min × 1.6 px/min ≈ 48px (mantener en sync con PX_PER_M
 
   .sg-slot-title {
     font-weight: 600;
-    font-size: 0.84rem;
-    line-height: 1.15;
+    font-size: 0.8rem;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
   }
 
   .sg-slot-time {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     opacity: 0.92;
     font-variant-numeric: tabular-nums;
   }
 
   .sg-slot-room {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     opacity: 0.9;
     display: inline-flex;
     align-items: center;
     gap: 2px;
 
     mat-icon {
-      font-size: 0.85rem;
-      width: 0.85rem;
-      height: 0.85rem;
+      font-size: 0.8rem;
+      width: 0.8rem;
+      height: 0.8rem;
     }
   }
 }

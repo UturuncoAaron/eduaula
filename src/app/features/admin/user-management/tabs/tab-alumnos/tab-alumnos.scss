@@ -5,12 +5,25 @@
 :host {
     --page-max-width: 1600px;
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-    // Variables locales del token inclusivo
     --c-inclusivo: #c026d3;
     --c-inclusivo-soft: #fdf4ff;
     --c-inclusivo-line: #f5d0fe;
     --c-inclusivo-text: #86198f;
+}
+
+:global(.custom-modal-panel) {
+    width: 90vw !important;
+    max-width: 520px !important;
+    min-width: 280px !important;
+    margin: 0 auto !important;
+
+    mat-dialog-container {
+        padding: 0 !important;
+        border-radius: 16px !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    }
 }
 
 .page-container {
@@ -27,7 +40,6 @@
     }
 }
 
-// Layout del Encabezado
 .page-header {
     display: grid;
     grid-template-columns: 1fr;
@@ -81,7 +93,6 @@
     }
 }
 
-// Filtros
 .filters-card {
     background: #ffffff;
     border-radius: 12px;
@@ -171,7 +182,6 @@
     overflow: hidden;
 }
 
-// Estilos de Fila e Información Interna (Desktop)
 .info-block {
     display: flex;
     flex-direction: column;
@@ -211,7 +221,6 @@
     font-size: 0.85rem;
 }
 
-// Fila Inclusiva Desktop
 .row--inclusivo {
     background-color: var(--c-inclusivo-soft) !important;
 
@@ -254,9 +263,6 @@
     }
 }
 
-// =================================================================
-// ARCHITECTURA MÓVIL TOTALMENTE INDEPENDIENTE (A PRUEBA DE FALLOS)
-// =================================================================
 .show-on-mobile {
     display: none !important;
 }
@@ -292,7 +298,6 @@
         background-color: #f8fafc;
     }
 
-    // Estilo Tarjeta Individual (Limpio y Espaciado como una App Nativa)
     .student-card {
         background: #ffffff;
         border-radius: 12px;
@@ -315,7 +320,6 @@
         }
     }
 
-    // Primera Fila de la Tarjeta (Avatar, Nombre, Acciones)
     .card-main-row {
         display: flex;
         align-items: center;
@@ -327,7 +331,7 @@
             flex-direction: column;
             gap: 0.15rem;
             flex: 1;
-            min-width: 0; // Previene desborde de texto
+            min-width: 0;
 
             .full-name {
                 font-size: 0.95rem;
@@ -345,7 +349,6 @@
         }
     }
 
-    // Segunda Fila de la Tarjeta (Badges e Identificadores)
     .card-badges-row {
         display: flex;
         align-items: center;
@@ -377,7 +380,6 @@
         }
     }
 
-    // Tercera Fila de la Tarjeta (Footer informativo)
     .card-footer-row {
         display: flex;
         align-items: center;
@@ -404,6 +406,135 @@
     }
 }
 
+.modal-layout-wrapper {
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    width: 100%;
+
+    .modal-custom-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+
+        @media (min-width: 480px) {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .header-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            .badge-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 34px;
+                height: 34px;
+                background-color: #f0fdf4;
+                color: #15803d;
+                border-radius: 8px;
+
+                mat-icon {
+                    font-size: 18px;
+                    width: 18px;
+                    height: 18px;
+                }
+            }
+
+            .title-meta {
+                display: flex;
+                flex-direction: column;
+                h2 {
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: #64748b;
+                    margin: 0;
+                    letter-spacing: 0.05em;
+                }
+                p {
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: #0f172a;
+                    margin: 0;
+                }
+            }
+        }
+    }
+
+    .modal-custom-body {
+        padding: 1rem !important;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        max-height: 60vh;
+        overflow-y: auto;
+
+        @media (min-width: 480px) {
+            padding: 1.5rem !important;
+            gap: 1rem;
+        }
+
+        .form-grid-inner {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.25rem;
+
+            @media (min-width: 480px) {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .span-full {
+                grid-column: 1 / -1;
+            }
+        }
+
+        :deep(.mat-mdc-text-field-wrapper) {
+            background-color: #f8fafc !important;
+            &:hover {
+                background-color: #f1f5f9 !important;
+            }
+        }
+    }
+
+    .modal-custom-actions {
+        padding: 0.85rem 1rem !important;
+        border-top: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+
+        @media (min-width: 480px) {
+            padding: 1rem 1.5rem !important;
+            gap: 0.75rem;
+        }
+
+        button {
+            padding: 0 1rem;
+            height: 40px;
+            font-size: 0.875rem;
+        }
+
+        .btn-close-modal {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .btn-submit-modal {
+            background-color: #16a34a;
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+    }
+}
+
 .fade-in {
     animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -413,7 +544,6 @@
         opacity: 0;
         transform: translateY(6px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);

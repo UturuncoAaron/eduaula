@@ -1,7 +1,4 @@
 // ── Tokens locales ───────────────────────────────────────────────────────────
-// Todos referenciados a las variables de Material / CSS custom properties
-// para que funcionen en light y dark mode automáticamente.
-
 $primary:       #5c6bc0;
 $primary-light: #ede7f6;
 $primary-dark:  #3949ab;
@@ -16,14 +13,12 @@ $radius-lg:     14px;
 $transition:    0.14s ease;
 
 // ── Header ───────────────────────────────────────────────────────────────────
-
 .dialog-header {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 20px 20px 0;
 }
-
 .header-icon {
   width: 40px;
   height: 40px;
@@ -33,7 +28,6 @@ $transition:    0.14s ease;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-
   mat-icon {
     color: $primary;
     font-size: 20px;
@@ -41,11 +35,9 @@ $transition:    0.14s ease;
     height: 20px;
   }
 }
-
 .header-text {
   flex: 1;
   min-width: 0;
-
   h2 {
     margin: 0;
     font-size: 16px;
@@ -54,36 +46,31 @@ $transition:    0.14s ease;
     line-height: 1.3;
   }
 }
-
 .header-subtitle {
   margin: 2px 0 0;
   font-size: 12px;
   color: #757575;
   font-weight: 400;
 }
-
 .close-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   flex-shrink: 0;
-
   mat-icon {
     font-size: 18px;
     color: #9e9e9e;
   }
-
   &:hover mat-icon {
     color: #424242;
   }
 }
 
 // ── Body ─────────────────────────────────────────────────────────────────────
-
 .dialog-body {
   width: 100%;
-  min-width: 460px;
   max-width: 560px;
+  box-sizing: border-box;
   padding: 16px 20px !important;
   display: flex;
   flex-direction: column;
@@ -93,7 +80,6 @@ $transition:    0.14s ease;
 }
 
 // ── Search ───────────────────────────────────────────────────────────────────
-
 .search-wrap {
   display: flex;
   align-items: center;
@@ -103,18 +89,15 @@ $transition:    0.14s ease;
   border-radius: $radius-md;
   padding: 8px 12px;
   transition: border-color $transition, box-shadow $transition;
-
   &:focus-within {
     border-color: $primary;
     box-shadow: 0 0 0 3px rgba($primary, 0.08);
     background: #fff;
   }
-
   &.active {
     background: #fff;
   }
 }
-
 .search-icon {
   color: #9e9e9e;
   font-size: 18px;
@@ -122,12 +105,10 @@ $transition:    0.14s ease;
   height: 18px;
   flex-shrink: 0;
   transition: color $transition;
-
   .search-wrap:focus-within & {
     color: $primary;
   }
 }
-
 .search-wrap input {
   flex: 1;
   border: none;
@@ -136,12 +117,10 @@ $transition:    0.14s ease;
   font-size: 14px;
   color: #212121;
   font-family: inherit;
-
   &::placeholder {
     color: #bdbdbd;
   }
 }
-
 .clear-btn {
   display: flex;
   align-items: center;
@@ -155,21 +134,18 @@ $transition:    0.14s ease;
   padding: 0;
   flex-shrink: 0;
   transition: background $transition;
-
   mat-icon {
     font-size: 13px;
     width: 13px;
     height: 13px;
     color: #757575;
   }
-
   &:hover {
     background: #bdbdbd;
   }
 }
 
 // ── States ───────────────────────────────────────────────────────────────────
-
 .state-wrap {
   display: flex;
   flex-direction: column;
@@ -178,8 +154,6 @@ $transition:    0.14s ease;
   padding: 32px 16px;
   gap: 10px;
 }
-
-// Custom spinner (sin depender de mat-spinner para mejor control visual)
 .spinner-ring {
   width: 32px;
   height: 32px;
@@ -188,17 +162,14 @@ $transition:    0.14s ease;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
-
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
 .state-label {
   margin: 0;
   font-size: 13px;
   color: #9e9e9e;
 }
-
 .empty-icon-wrap {
   width: 48px;
   height: 48px;
@@ -207,7 +178,6 @@ $transition:    0.14s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-
   mat-icon {
     font-size: 24px;
     width: 24px;
@@ -215,7 +185,6 @@ $transition:    0.14s ease;
     color: #bdbdbd;
   }
 }
-
 .link-btn {
   background: none;
   border: none;
@@ -225,20 +194,17 @@ $transition:    0.14s ease;
   padding: 4px 8px;
   border-radius: $radius-sm;
   font-family: inherit;
-
   &:hover {
     background: $primary-light;
   }
 }
 
 // ── List meta ────────────────────────────────────────────────────────────────
-
 .list-meta {
   display: flex;
   align-items: center;
   padding: 0 2px;
 }
-
 .list-count {
   font-size: 11px;
   font-weight: 500;
@@ -248,7 +214,6 @@ $transition:    0.14s ease;
 }
 
 // ── Docente list ─────────────────────────────────────────────────────────────
-
 .docente-list {
   display: flex;
   flex-direction: column;
@@ -256,11 +221,8 @@ $transition:    0.14s ease;
   overflow-y: auto;
   max-height: calc(60vh - 160px);
   padding-right: 2px;
-
-  // Scrollbar estilizado
   scrollbar-width: thin;
   scrollbar-color: #e0e0e0 transparent;
-
   &::-webkit-scrollbar {
     width: 4px;
   }
@@ -274,7 +236,6 @@ $transition:    0.14s ease;
 }
 
 // ── Docente row ──────────────────────────────────────────────────────────────
-
 .docente-row {
   display: flex;
   align-items: center;
@@ -289,34 +250,24 @@ $transition:    0.14s ease;
   font-family: inherit;
   transition: background $transition, border-color $transition;
   position: relative;
-
   &:hover {
     background: #f8f8fc;
     border-color: #e8e8f0;
   }
-
-  // Estado: seleccionado
   &.selected {
     background: $primary-light;
     border-color: rgba($primary, 0.3);
-
     .name { color: $primary-dark; }
   }
-
-  // Estado: ya es tutor de otra sección
   &.warn {
     &:hover { background: $warn-light; }
-
     &.selected {
       background: $warn-light;
       border-color: $warn-border;
     }
   }
-
-  // Estado: tutor actual de esta sección
   &.current {
     &:hover { background: $current-light; }
-
     &.selected {
       background: $current-light;
       border-color: rgba($current, 0.35);
@@ -325,7 +276,6 @@ $transition:    0.14s ease;
 }
 
 // ── Avatar ───────────────────────────────────────────────────────────────────
-
 .avatar {
   width: 38px;
   height: 38px;
@@ -339,18 +289,15 @@ $transition:    0.14s ease;
   font-size: 13px;
   flex-shrink: 0;
   letter-spacing: 0.5px;
-
   &--warn {
     background: linear-gradient(135deg, #ffb74d, $warn);
   }
-
   &--current {
     background: linear-gradient(135deg, #4db6ac, $current);
   }
 }
 
 // ── Info ─────────────────────────────────────────────────────────────────────
-
 .info {
   flex: 1;
   display: flex;
@@ -358,7 +305,6 @@ $transition:    0.14s ease;
   gap: 3px;
   min-width: 0;
 }
-
 .name {
   font-weight: 500;
   font-size: 13.5px;
@@ -370,7 +316,6 @@ $transition:    0.14s ease;
 }
 
 // ── Tags ─────────────────────────────────────────────────────────────────────
-
 .tag {
   display: inline-flex;
   align-items: center;
@@ -380,19 +325,16 @@ $transition:    0.14s ease;
   padding: 2px 7px 2px 4px;
   border-radius: 20px;
   width: fit-content;
-
   mat-icon {
     font-size: 12px;
     width: 12px;
     height: 12px;
   }
-
   &--warn {
     background: #fff3e0;
     color: $warn;
     border: 1px solid #ffcc80;
   }
-
   &--current {
     background: #e0f2f1;
     color: $current;
@@ -401,21 +343,18 @@ $transition:    0.14s ease;
 }
 
 // ── Row indicator (radio / check) ────────────────────────────────────────────
-
 .row-indicator {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .check-icon {
   color: $primary;
   font-size: 20px;
   width: 20px;
   height: 20px;
 }
-
 .radio-ring {
   display: block;
   width: 18px;
@@ -423,28 +362,25 @@ $transition:    0.14s ease;
   border-radius: 50%;
   border: 1.5px solid #d0d0d8;
   transition: border-color $transition;
-
   .docente-row:hover & {
     border-color: $primary;
   }
 }
 
 // ── Footer ───────────────────────────────────────────────────────────────────
-
 .dialog-footer {
   display: flex !important;
   align-items: center;
   justify-content: space-between !important;
   padding: 12px 20px 16px !important;
   border-top: 1px solid #f0f0f5;
-  gap: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-
 .footer-left {
   display: flex;
   align-items: center;
 }
-
 .footer-right {
   display: flex;
   align-items: center;
@@ -452,39 +388,33 @@ $transition:    0.14s ease;
 }
 
 // ── Buttons ──────────────────────────────────────────────────────────────────
-
 .btn-remove {
   font-size: 13px !important;
   color: #e53935 !important;
   border-radius: $radius-sm !important;
   padding: 0 10px !important;
   height: 34px !important;
-
   mat-icon {
     font-size: 16px;
     width: 16px;
     height: 16px;
     margin-right: 4px;
   }
-
   &:hover {
     background: #ffebee !important;
   }
 }
-
 .btn-cancel {
   font-size: 13px !important;
   color: #757575 !important;
   border-radius: $radius-sm !important;
   height: 34px !important;
   padding: 0 14px !important;
-
   &:hover {
     background: #f5f5f5 !important;
     color: #424242 !important;
   }
 }
-
 .btn-assign {
   font-size: 13px !important;
   font-weight: 600 !important;
@@ -498,29 +428,23 @@ $transition:    0.14s ease;
   gap: 6px !important;
   letter-spacing: 0.2px;
   transition: background $transition, transform $transition !important;
-
   mat-icon {
     font-size: 16px;
     width: 16px;
     height: 16px;
   }
-
   &:hover:not([disabled]) {
     background: $primary-dark !important;
     transform: translateY(-1px);
   }
-
   &:active:not([disabled]) {
     transform: translateY(0);
   }
-
   &[disabled] {
     background: #e0e0e0 !important;
     color: #bdbdbd !important;
   }
 }
-
-// Spinner inline en botón guardar
 .btn-spinner {
   display: inline-block;
   width: 14px;
@@ -533,26 +457,38 @@ $transition:    0.14s ease;
 }
 
 // ── Responsive ───────────────────────────────────────────────────────────────
-
 @media (max-width: 599px) {
   .dialog-body {
-    min-width: calc(100vw - 48px);
     max-width: 100%;
+    padding: 12px 16px !important;
   }
-
+  
   .dialog-footer {
-    flex-direction: column-reverse;
-    align-items: stretch;
-
-    .footer-left,
-    .footer-right {
-      justify-content: center;
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 10px;
+    
+    .footer-left {
       width: 100%;
+      justify-content: center;
+      
+      .btn-remove {
+        width: 100%;
+        justify-content: center;
+      }
     }
-
-    .btn-assign {
-      justify-content: center;
+    
+    .footer-right {
       width: 100%;
+      flex-direction: row;
+      gap: 8px;
+      
+      .btn-cancel, 
+      .btn-assign {
+        flex: 1;
+        justify-content: center;
+        width: 100%;
+      }
     }
   }
 }

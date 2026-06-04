@@ -97,7 +97,6 @@
             </div>
             } @else {
 
-            <!-- ================= VISTA DESKTOP (TABLA INTACTA) ================= -->
             <div class="table-responsive hide-on-mobile">
                 <table mat-table [dataSource]="dataSource" class="users-table">
 
@@ -203,7 +202,6 @@
                 </table>
             </div>
 
-            <!-- ================= VISTA MÓVIL (TARJETAS REALES LIMPIAS) ================= -->
             <div class="mobile-cards-container show-on-mobile">
                 @for (row of dataSource.data; track row.id) {
                 <div class="student-card" [class.card--inactive]="row.activo === false"
