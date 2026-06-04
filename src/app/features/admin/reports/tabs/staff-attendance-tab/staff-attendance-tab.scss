@@ -102,7 +102,7 @@
             background: #ffffff;
             color: shared.$c-slate-700;
             border: 1px solid shared.$c-border;
-            transition: all 0.15s steps(4);
+            transition: all 0.15s ease;
 
             &.excel {
                 color: shared.$c-success;
@@ -123,6 +123,18 @@
             }
         }
     }
+}
+
+.role-badge-tag.staff {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    letter-spacing: 0.03em;
+    background: #f0fdf4;
+    color: #166534;
 }
 
 .val-success {

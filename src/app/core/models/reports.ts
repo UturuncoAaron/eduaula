@@ -1,3 +1,5 @@
+import { Period } from './academic';
+
 export type ReportFormat = 'json' | 'xlsx' | 'pdf' | 'csv';
 
 export type EscalaCalificacion = 'AD' | 'A' | 'B' | 'C' | 'Sin notas';
@@ -12,7 +14,8 @@ export type EstadoAsistenciaAlumno =
 export type EstadoAsistenciaDocente =
     | 'presente'
     | 'tardanza'
-    | 'ausente'
+    | 'falto'
+    | 'justificado'
     | 'sin-registro';
 
 export type CategoriaRendimiento = 'top' | 'normal' | 'riesgo' | 'sin-datos';
@@ -28,15 +31,7 @@ export interface SeccionInfo {
     total_matriculados: number;
 }
 
-export interface PeriodoInfo {
-    id: string;
-    nombre: string;
-    anio: number;
-    bimestre: number;
-    fecha_inicio: string;
-    fecha_fin: string;
-    activo: boolean;
-}
+export interface PeriodoInfo extends Period { }
 
 export interface SeccionResumenResponse {
     seccion: SeccionInfo;
@@ -67,7 +62,7 @@ export interface SeccionNotasRow {
     nombre: string;
     curso_id: string;
     curso: string;
-    total_notas: number;
+    total_notes: number;
     promedio: string | null;
     escala: EscalaCalificacion;
 }
@@ -185,9 +180,10 @@ export interface ResumenAsistenciaDocente {
     total_bloques_esperados: number;
     presentes: number;
     tardanzas: number;
-    ausentes: number;
+    faltos: number;
+    justificados: number;
     sin_registro: number;
-    ausentes_sin_justificacion: number;
+    faltos_sin_justificacion: number;
     porcentaje_asistencia: string | null;
 }
 
@@ -211,4 +207,18 @@ export interface FiltroSeccion {
 export interface FiltroRangoFechas {
     fecha_inicio: string;
     fecha_fin: string;
+}
+
+export interface ResumenAsistenciaStaff {
+    staff_id: string;
+    cargo: string;
+    staff_nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string | null;
+    total_esperados: number;
+    presentes: number;
+    tardanzas: number;
+    faltos: number;
+    justificados: number;
+    porcentaje_asistencia: string | null;
 }

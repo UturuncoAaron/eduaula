@@ -1,10 +1,56 @@
 @use '../../_shared/reports-styles' as shared;
 
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tab-body {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.workspace-banner-hint {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background-color: rgba(shared.$c-primary, 0.05); // CORREGIDO: Remoto $c-paleBlue cambiado por mezcla del primario oficial
+  border: 1px solid rgb(shared.$c-primary, 0.15);
+  padding: 1rem;
+  border-radius: 12px;
+  color: shared.$c-slate-700;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+  box-sizing: border-box;
+
+  mat-icon {
+    color: shared.$c-primary;
+    flex-shrink: 0;
+  }
+}
+
+.filters-card-panel {
+  background: #ffffff;
+  border: 1px solid shared.$c-border;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01);
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .filters-row-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.25rem;
   align-items: center;
+
+  mat-form-field {
+    width: 100%;
+  }
 
   @media (min-width: shared.$bp-md) {
     grid-template-columns: repeat(3, 1fr);
@@ -24,7 +70,7 @@
     margin: 0 0 1.25rem 0;
     font-size: 0.85rem;
     font-weight: 700;
-    color: shared.$c-slate-900;
+    color: shared.$c-slate-700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -42,6 +88,7 @@
   }
 }
 
+/* Botonera estática de descarga instantánea */
 .btn-suite-download {
   flex: 1;
   height: 64px;
@@ -53,7 +100,9 @@
   padding: 0 1.5rem !important;
   gap: 1rem;
   width: 100%;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+  border: none;
+  cursor: pointer;
 
   mat-icon {
     font-size: 26px;
@@ -82,32 +131,16 @@
     }
   }
 
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
-
   &.excel {
     background-color: shared.$c-success !important;
-
-    &:hover {
-      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25);
-    }
   }
 
   &.csv {
     background-color: shared.$c-slate-700 !important;
-
-    &:hover {
-      box-shadow: 0 6px 16px rgba(51, 65, 85, 0.25);
-    }
   }
 
   &.pdf {
     background-color: shared.$c-danger !important;
-
-    &:hover {
-      box-shadow: 0 6px 16px rgba(220, 38, 38, 0.25);
-    }
   }
 
   &:disabled {

@@ -54,6 +54,7 @@ export class ExportGradesTab implements OnInit {
     this.filtroSeccionId = '';
     this.secciones.set([]);
     if (!gradoId) return;
+
     this.api.get<ListaItem[]>(`academic/secciones?gradoId=${gradoId}`).subscribe({
       next: (r: any) => this.secciones.set(r?.data ?? r ?? [])
     });
@@ -64,7 +65,7 @@ export class ExportGradesTab implements OnInit {
       periodo_id: this.filtroPeriodoId || undefined,
       grado_id: this.filtroGradoId || undefined,
       seccion_id: this.filtroSeccionId || undefined
-    }; 
+    };
     this.store.executeSecureDownload('academic_general', format, params);
   }
 }

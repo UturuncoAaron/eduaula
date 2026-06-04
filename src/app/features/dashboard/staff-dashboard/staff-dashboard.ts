@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth';
 import { ApiService } from '../../../core/services/api';
 import { DatePipe } from '@angular/common';
+import { MODULO } from '../../../core/auth/modulos';
 
 interface SeccionAsistenciaItem {
   seccionId: string;
@@ -44,6 +45,10 @@ export class StaffDashboard implements OnInit {
   dashboardData = signal<StaffDashboardData | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
+
+  readonly tieneAsistencia = computed(() =>
+    this.auth.currentUser()?.modulos?.includes(MODULO.ASIST_GENERAL) ?? false,
+  );
 
   readonly totalFaltas = computed(() =>
     this.dashboardData()?.seccionesHoy

@@ -13,6 +13,8 @@ import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../../../core/services/api';
 import { ReportsStore } from '../../data-access/reports.store';
 import { categoriaChip, escalaChip, nombreCompleto } from '../../_shared/chips.util';
+import { Period } from '../../../../../core/models/academic';
+
 
 interface ListaItem { id: string; nombre: string; }
 interface AlumnoDropdown { id: string; nombre: string; apellido_paterno: string; apellido_materno: string; }
@@ -22,8 +24,15 @@ interface AlumnoDropdown { id: string; nombre: string; apellido_paterno: string;
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule, FormsModule, MatFormFieldModule, MatSelectModule,
-    MatButtonModule, MatIconModule, MatTabsModule, MatProgressBarModule, MatTooltipModule
+    CommonModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTabsModule,
+    MatProgressBarModule,
+    MatTooltipModule
   ],
   templateUrl: './section-report-tab.html',
   styleUrl: './section-report-tab.scss'
@@ -35,13 +44,13 @@ export class SectionReportTab implements OnInit {
 
   readonly grados = signal<ListaItem[]>([]);
   readonly secciones = signal<ListaItem[]>([]);
-  readonly periodos = signal<ListaItem[]>([]);
+  readonly periodos = signal<Period[]>([]);
   readonly alumnosFiltrados = signal<AlumnoDropdown[]>([]);
 
   gradoId = '';
   seccionId = '';
   alumnoId = '';
-  periodoId = '';
+  filtroPeriodoId: number | null = null; // Mantiene consistencia con la clave numérica de la BD
   semanaFiltro = '';
 
   readonly seccionCargada = computed(() => this.store.seccionLoading() === 'success' && !!this.store.seccionResumen());
@@ -49,11 +58,27 @@ export class SectionReportTab implements OnInit {
   readonly categoriaChip = categoriaChip;
   readonly escalaChip = escalaChip;
 
+  // Calcula las semanas lectivas reales basándose en los parámetros de fecha del periodo seleccionado
+  readonly semanasDinamicas = computed<number[]>(() => {
+    const activeId = this.filtroPeriodoId;
+    if (!activeId) return [];
+
+    const p = this.periodos().find(item => item.id === activeId);
+    if (!p || !p.fecha_inicio || !p.fecha_fin) return [];
+
+    const inicio = new Date(p.fecha_inicio);
+    const fin = new Date(p.fecha_fin);
+    const diferenciaDias = Math.floor((fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+
+    const totalSemanas = Math.ceil(diferenciaDias / 7) || 1;
+    return Array.from({ length: totalSemanas }, (_, i) => i + 1);
+  });
+
   ngOnInit(): void {
     this.api.get<ListaItem[]>('academic/grados').subscribe({
       next: (r: any) => this.grados.set(r?.data ?? r ?? [])
     });
-    this.api.get<ListaItem[]>('academic/periodos').subscribe({
+    this.api.get<Period[]>('academic/periodos').subscribe({
       next: (r: any) => this.periodos.set(r?.data ?? r ?? [])
     });
   }
@@ -80,31 +105,30 @@ export class SectionReportTab implements OnInit {
     });
   }
 
-  onPeriodoChange(periodoId: string): void {
-    this.periodoId = periodoId;
+  onPeriodoChange(periodoId: number | null): void {
+    this.filtroPeriodoId = periodoId;
     this.semanaFiltro = '';
   }
 
   cargar(): void {
-    if (!this.periodoId) {
+    if (!this.filtroPeriodoId) {
       this.toastr.error('Debe seleccionar al menos el Periodo Académico', 'Faltan Parámetros');
       return;
     }
-    // Firma nativa segura mapeando strings directos o queries encapsuladas
-    this.store.loadSeccionResumen(this.seccionId, this.periodoId);
+    this.store.loadSeccionResumen(this.seccionId, String(this.filtroPeriodoId));
   }
 
   descargarFormato(formato: 'xlsx' | 'pdf' | 'csv'): void {
-    if (!this.periodoId) return;
+    if (!this.filtroPeriodoId) return;
 
     if (formato === 'xlsx') {
-      this.store.downloadXlsx(this.seccionId, this.periodoId);
+      this.store.downloadXlsx(this.seccionId, String(this.filtroPeriodoId));
     } else if (formato === 'pdf') {
-      this.store.downloadPdf(this.seccionId, this.periodoId);
+      this.store.downloadPdf(this.seccionId, String(this.filtroPeriodoId));
     } else {
       this.store.executeSecureDownload('section_summary', 'csv', {
         seccion_id: this.seccionId,
-        periodo_id: this.periodoId
+        periodo_id: String(this.filtroPeriodoId)
       });
     }
   }

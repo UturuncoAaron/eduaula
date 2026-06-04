@@ -203,5 +203,21 @@ export class TabStaff implements OnInit {
       },
     });
   }
+  async gestionarPermisos(row: StaffRow): Promise<void> {
+    const { PermisoUsuarioDialog } = await import(
+      '../../../../../shared/components/permiso-usuario-dialog/permiso-usuario-dialog'
+    );
+    this.dialog.open(PermisoUsuarioDialog, {
+      width: '100%',
+      maxWidth: '500px',
+      autoFocus: false,
+      data: {
+        id: row.id,
+        nombre: row.nombre,
+        apellido_paterno: row.apellido_paterno,
+        rol: 'staff',
+      },
+    });
+  }
 
 }

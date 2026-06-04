@@ -186,6 +186,10 @@
             <mat-icon class="material-symbols-outlined">schedule</mat-icon>
             <span>Horario laboral</span>
         </button>
+        <button mat-menu-item (click)="gestionarPermisos(row)">
+            <mat-icon class="material-symbols-outlined">admin_panel_settings</mat-icon>
+            <span>Gestionar permisos</span>
+        </button>
         <mat-divider />
         @if (row.activo !== false) {
         <button mat-menu-item (click)="toggleEstado(row)" class="danger-item">

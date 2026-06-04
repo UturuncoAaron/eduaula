@@ -13,15 +13,16 @@ import { ReportsStore } from '../../data-access/reports.store';
 import { ReportsService } from '@core/services/reports';
 import { ApiService } from '../../../../../core/services/api';
 
-interface DocenteColaborador {
+interface StaffColaborador {
   id: string;
   nombre: string;
   apellido_paterno: string;
-  rol: string;
+  apellido_materno: string | null;
+  cargo: string;
 }
 
 @Component({
-  selector: 'app-teacher-attendance-tab',
+  selector: 'app-staff-attendance-tab',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -35,34 +36,36 @@ interface DocenteColaborador {
     MatProgressBarModule,
     MatTooltipModule
   ],
-  templateUrl: './teacher-attendance-tab.html',
-  styleUrl: './teacher-attendance-tab.scss'
+  templateUrl: './staff-attendance-tab.html',
+  styleUrl: './staff-attendance-tab.scss'
 })
-export class TeacherAttendanceTab implements OnInit {
+export class StaffAttendanceTab implements OnInit {
   private svc = inject(ReportsService);
   private api = inject(ApiService);
   readonly store = inject(ReportsStore);
 
-  readonly personalLista = signal<DocenteColaborador[]>([]);
+  readonly staffLista = signal<StaffColaborador[]>([]);
 
   personalId = '';
   rangoInicio = this.primerDiaMes();
   rangoFin = new Date().toISOString().slice(0, 10);
 
   ngOnInit(): void {
-    // Apunta de manera específica al canal que filtra solo docentes activos
-    this.api.get<DocenteColaborador[]>('users/teachers-attendance-list').subscribe({
-      next: (r: any) => this.personalLista.set(r?.data ?? r ?? [])
+    this.api.get<StaffColaborador[]>('users/staff-attendance-list').subscribe({
+      next: (r: any) => this.staffLista.set(r?.data ?? r ?? [])
     });
   }
 
   cargarResumen(): void {
-    this.store.loadResumenDocentes(this.rangoInicio, this.rangoFin);
+    // Si tienes implementado el método dinámico en el store
+    if (this.store.loadResumenStaff) {
+      this.store.loadResumenStaff(this.rangoInicio, this.rangoFin);
+    }
   }
 
-  descargarReportePersonal(formato: 'xlsx' | 'pdf'): void {
+  descargarReporteStaff(formato: 'xlsx' | 'pdf'): void {
     this.svc.downloadConsolidatedReport({
-      scope: 'teacher_attendance_range',
+      scope: 'staff_attendance_range',
       format: formato,
       cuenta_id: this.personalId || undefined,
       fecha_inicio: this.rangoInicio,
@@ -72,7 +75,7 @@ export class TeacherAttendanceTab implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `reporte_asistencia_docentes.${formato}`;
+        a.download = `reporte_asistencia_staff.${formato}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

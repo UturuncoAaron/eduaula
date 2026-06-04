@@ -31,6 +31,12 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.TUTORIA], exactMatch: true,
   },
 
+  // ─── Asistencia General (docente-tutor con sección + staff con permiso) ───
+  // {
+  //   label: 'Asistencia General', icon: 'fact_check', route: '/asistencia/general',
+  //   modulos: [MODULO.ASIST_GENERAL], dividerBefore: false,
+  // },
+
   // ─── Comunicados ──────────────────────────────────────────────────────────
   {
     label: 'Comunicados', icon: 'campaign', route: '/comunicados',
@@ -43,7 +49,7 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.LIBRETAS_PADRE_ACCESO],
   },
 
-  // ─── Reportes ─────────────────────────────────────────────────────────────
+  // ─── Reportes (docente/staff con permiso) ─────────────────────────────────
   {
     label: 'Reportes', icon: 'bar_chart', route: '/reportes',
     modulos: [MODULO.REPORTES_ACCESO],

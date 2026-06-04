@@ -1,4 +1,4 @@
-import {  inject } from '@angular/core';
+import { inject } from '@angular/core';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
@@ -76,5 +76,19 @@ export class ReportsService {
       params: httpParams,
       responseType: 'blob'
     });
+  }
+  getResumenStaff(fechaInicio: string, fechaFin: string, anio?: number): Observable<any[]> {
+    let httpParams = new HttpParams()
+      .set('scope', 'staff_attendance_range')
+      .set('format', 'json')
+      .set('fecha_inicio', fechaInicio)
+      .set('fecha_fin', fechaFin);
+
+    if (anio) {
+      httpParams = httpParams.set('anio', String(anio));
+    }
+
+    return this.http.get<any>(`${environment.apiUrl}/admin/reports/consolidated`, { params: httpParams })
+      .pipe(map(r => r.data ?? r));
   }
 }

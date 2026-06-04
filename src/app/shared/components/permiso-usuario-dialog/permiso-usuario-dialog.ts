@@ -76,6 +76,18 @@ const PERMISOS_POR_ROL: Record<string, PermisoItem[]> = {
       descripcion: 'Acceso al tab de reportes de todos los alumnos.',
     },
   ],
+  staff: [
+    {
+      modulo: 'asistencias_general', accion: 'registrar',
+      label: 'Registrar asistencia general',
+      descripcion: 'Permite tomar la asistencia diaria de alumnos por sección y usar el escáner QR.',
+    },
+    {
+      modulo: 'reportes', accion: 'ver_todos',
+      label: 'Ver reportes globales',
+      descripcion: 'Acceso al módulo de reportes de todos los alumnos.',
+    },
+  ],
 };
 
 @Component({

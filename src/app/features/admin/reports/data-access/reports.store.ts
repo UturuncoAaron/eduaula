@@ -7,6 +7,7 @@ import type {
     AlertaAusenciaDocente,
     RegistrarBulkDto,
     BulkResult,
+    ResumenAsistenciaStaff
 } from '../../../../core/models/reports';
 import { ReportsService } from '@core/services/reports';
 
@@ -26,14 +27,14 @@ export class ReportsStore {
     readonly filtroAnio = signal<number | undefined>(undefined);
 
     readonly alumnosEnRiesgo = computed(() =>
-        this.seccionResumen()?.ranking.filter((a) => a.categoria === 'riesgo') ?? [],
+        this.seccionResumen()?.ranking.filter((a) => a.categoria === 'riesgo') ?? []
     );
 
     readonly promedioEntregas = computed(() => {
         const tareas = this.seccionResumen()?.entregas_por_tarea ?? [];
         if (!tareas.length) return null;
         const sum = tareas.reduce(
-            (acc, t) => acc + (parseFloat(t.porcentaje_entrega ?? '0') || 0), 0,
+            (acc, t) => acc + (parseFloat(t.porcentaje_entrega ?? '0') || 0), 0
         );
         return (sum / tareas.length).toFixed(1);
     });
@@ -43,16 +44,18 @@ export class ReportsStore {
     readonly horariosLoading = signal<LoadingState>('idle');
 
     readonly bloquesPendientes = computed(
-        () => this.horariosDia().filter((h) => h.estado_actual === 'sin-registro').length,
+        () => this.horariosDia().filter((h) => h.estado_actual === 'sin-registro').length
     );
 
     readonly docentesAusentes = computed(
-        () => this.horariosDia().filter((h) => h.estado_actual === 'ausente').length,
+        () => this.horariosDia().filter((h) => h.estado_actual === 'falto').length,
     );
 
     readonly reporteDiario = signal<AsistenciaDocenteDiaria[]>([]);
     readonly resumenDocentes = signal<ResumenAsistenciaDocente[]>([]);
     readonly alertasDocentes = signal<AlertaAusenciaDocente[]>([]);
+
+    readonly resumenStaff = signal<ResumenAsistenciaStaff[]>([]);
     readonly reporteLoading = signal<LoadingState>('idle');
 
     readonly downloading = signal(false);
@@ -74,7 +77,7 @@ export class ReportsStore {
             error: (err) => {
                 this.seccionError.set(err?.error?.message ?? 'Error al cargar el reporte');
                 this.seccionLoading.set('error');
-            },
+            }
         });
     }
 
@@ -83,13 +86,13 @@ export class ReportsStore {
         this.horariosLoading.set('loading');
         this.svc.getHorariosDia(fecha).subscribe({
             next: (data) => { this.horariosDia.set(data); this.horariosLoading.set('success'); },
-            error: () => this.horariosLoading.set('error'),
+            error: () => this.horariosLoading.set('error')
         });
     }
 
     actualizarHorarioLocal(horarioId: string, cambios: Partial<HorarioDelDia>): void {
         this.horariosDia.update((lista) =>
-            lista.map((h) => (h.horario_id === horarioId ? { ...h, ...cambios } : h)),
+            lista.map((h) => (h.horario_id === horarioId ? { ...h, ...cambios } : h))
         );
     }
 
@@ -103,7 +106,7 @@ export class ReportsStore {
         this.reporteLoading.set('loading');
         this.svc.getReporteDiarioDocentes(fecha).subscribe({
             next: (d) => { this.reporteDiario.set(d); this.reporteLoading.set('success'); },
-            error: () => this.reporteLoading.set('error'),
+            error: () => this.reporteLoading.set('error')
         });
     }
 
@@ -111,13 +114,21 @@ export class ReportsStore {
         this.reporteLoading.set('loading');
         this.svc.getResumenDocentes(fi, ff, anio).subscribe({
             next: (d) => { this.resumenDocentes.set(d); this.reporteLoading.set('success'); },
-            error: () => this.reporteLoading.set('error'),
+            error: () => this.reporteLoading.set('error')
+        });
+    }
+
+    loadResumenStaff(fi: string, ff: string, anio?: number): void {
+        this.reporteLoading.set('loading');
+        this.svc.getResumenStaff(fi, ff, anio).subscribe({
+            next: (d) => { this.resumenStaff.set(d); this.reporteLoading.set('success'); },
+            error: () => this.reporteLoading.set('error')
         });
     }
 
     loadAlertas(fi: string, ff: string): void {
         this.svc.getAlertasDocentes(fi, ff).subscribe({
-            next: (d) => this.alertasDocentes.set(d),
+            next: (d) => this.alertasDocentes.set(d)
         });
     }
 

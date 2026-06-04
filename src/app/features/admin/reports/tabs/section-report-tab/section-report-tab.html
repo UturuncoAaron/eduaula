@@ -1,4 +1,4 @@
-<div class="tab-body fade-in">
+<div class="tab-body">
     <div class="filters-card-panel">
         <div class="filters-flexible-grid">
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -38,8 +38,8 @@
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-icon matPrefix>calendar_today</mat-icon>
                 <mat-label>Bimestre Académico</mat-label>
-                <mat-select [(ngModel)]="periodoId" (ngModelChange)="onPeriodoChange($event)">
-                    <mat-option value="">Seleccione un periodo</mat-option>
+                <mat-select [(ngModel)]="filtroPeriodoId" (ngModelChange)="onPeriodoChange($event)">
+                    <mat-option [value]="null">Seleccione un periodo</mat-option>
                     @for (p of periodos(); track p.id) {
                     <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
                     }
@@ -49,17 +49,16 @@
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-icon matPrefix>date_range</mat-icon>
                 <mat-label>Semana del Bimestre</mat-label>
-
-                <mat-select [(ngModel)]="semanaFiltro" [disabled]="!periodoId">
+                <mat-select [(ngModel)]="semanaFiltro" [disabled]="!filtroPeriodoId || semanasDinamicas().length === 0">
                     <mat-option value="">Consolidado completo</mat-option>
-                    @for (sem of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; track sem) {
+                    @for (sem of semanasDinamicas(); track sem) {
                     <mat-option [value]="sem">Semana {{ sem }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
 
             <button mat-flat-button class="btn-execute-analysis" (click)="cargar()"
-                [disabled]="!seccionId || !periodoId || store.seccionLoading() === 'loading'">
+                [disabled]="!seccionId || !filtroPeriodoId || store.seccionLoading() === 'loading'">
                 <mat-icon>analytics</mat-icon>
                 <span>Procesar Datos</span>
             </button>
@@ -155,7 +154,7 @@
                             <td>
                                 <div class="user-meta-cell">
                                     <span class="main-text">{{ nombreCompleto(a) }}</span>
-                                    <span class="sub-text">Documento Identidad (DNI): {{ a.dni }}</span>
+                                    <span class="sub-text">DNI: {{ a.dni }}</span>
                                 </div>
                             </td>
                             <td class="num highlight-cell-bold">{{ a.promedio_general ?? '—' }}</td>

@@ -3,12 +3,13 @@
         <div class="filters-row-range-personal">
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-icon matPrefix>badge</mat-icon>
-                <mat-label>Filtrar por Docente / Colaborador</mat-label>
+                <mat-label>Filtrar por Personal de Soporte</mat-label>
                 <mat-select [(ngModel)]="personalId">
-                    <mat-option value="">Todos los Docentes Activos</mat-option>
-                    @for (p of personalLista(); track p.id) {
+                    <mat-option value="">Todo el Personal de Soporte (Staff)</mat-option>
+                    @for (p of staffLista(); track p.id) {
                     <mat-option [value]="p.id">
-                        {{ p.apellido_paterno }}, {{ p.nombre }}
+                        [{{ p.cargo | uppercase }}] {{ p.apellido_paterno }} {{ p.apellido_materno ?? '' }}, {{ p.nombre
+                        }}
                     </mat-option>
                     }
                 </mat-select>
@@ -33,11 +34,11 @@
                 </button>
 
                 <div class="icon-download-group">
-                    <button mat-icon-button class="btn-download-action excel" (click)="descargarReportePersonal('xlsx')"
+                    <button mat-icon-button class="btn-download-action excel" (click)="descargarReporteStaff('xlsx')"
                         matTooltip="Exportar Excel (.xlsx)">
                         <mat-icon>table_view</mat-icon>
                     </button>
-                    <button mat-icon-button class="btn-download-action pdf" (click)="descargarReportePersonal('pdf')"
+                    <button mat-icon-button class="btn-download-action pdf" (click)="descargarReporteStaff('pdf')"
                         matTooltip="Exportar Acta PDF">
                         <mat-icon>picture_as_pdf</mat-icon>
                     </button>
@@ -52,37 +53,40 @@
     </div>
     }
 
-    @if (store.resumenDocentes().length) {
+    @if (store.resumenStaff().length > 0) {
     <div class="workspace-results-area">
         <div class="table-container-card table-responsive hide-on-mobile">
             <div class="table-wrap">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Docente / Colaborador</th>
-                            <th class="num">Módulos Esperados</th>
+                            <th>Colaborador</th>
+                            <th>Cargo / Función</th>
+                            <th class="num">Días Esperados</th>
                             <th class="num">Presente</th>
                             <th class="num">Tardanzas</th>
-                            <th class="num">Ausente</th>
+                            <th class="num">Faltas</th>
                             <th class="num">Cumplimiento Global</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for (d of store.resumenDocentes(); track d.docente_id) {
-                        <tr [class.row-riesgo]="+(d.porcentaje_asistencia ?? 100) < 85">
+                        @for (s of store.resumenStaff(); track s.staff_id) {
+                        <tr [class.row-riesgo]="+(s.porcentaje_asistencia ?? 100) < 85">
                             <td>
                                 <div class="user-meta-cell">
-                                    <span class="main-text">{{ d.docente_nombre }} {{ d.apellido_paterno }}</span>
-                                    @if (d.apellido_materno) {
-                                    <span class="main-text" style="margin-left: 4px;">{{ d.apellido_materno }}</span>
-                                    }
+                                    <span class="main-text">
+                                        {{ s.apellido_paterno }} {{ s.apellido_materno ?? '' }}, {{ s.staff_nombre }}
+                                    </span>
                                 </div>
                             </td>
-                            <td class="num highlight-cell-bold">{{ d.total_bloques_esperados }}</td>
-                            <td class="num val-success">{{ d.presentes }}</td>
-                            <td class="num val-warning">{{ d.tardanzas }}</td>
-                            <td class="num val-danger">{{ d.ausentes }}</td>
-                            <td class="num highlight-efficiency">{{ d.porcentaje_asistencia ?? '0' }}%</td>
+                            <td>
+                                <span class="role-badge-tag staff">{{ s.cargo }}</span>
+                            </td>
+                            <td class="num highlight-cell-bold">{{ s.total_esperados }}</td>
+                            <td class="num val-success">{{ s.presentes }}</td>
+                            <td class="num val-warning">{{ s.tardanzas }}</td>
+                            <td class="num val-danger">{{ s.faltos }}</td>
+                            <td class="num highlight-efficiency">{{ s.porcentaje_asistencia ?? '0' }}%</td>
                         </tr>
                         }
                     </tbody>
@@ -91,28 +95,29 @@
         </div>
 
         <div class="mobile-cards-feed show-on-mobile">
-            @for (d of store.resumenDocentes(); track d.docente_id) {
-            <div class="report-mobile-card" [class.card-riesgo]="+(d.porcentaje_asistencia ?? 100) < 85">
+            @for (s of store.resumenStaff(); track s.staff_id) {
+            <div class="report-mobile-card" [class.card-riesgo]="+(s.porcentaje_asistencia ?? 100) < 85">
                 <div class="card-header-split">
                     <div class="name-block">
-                        <h4>{{ d.docente_nombre }} {{ d.apellido_paterno }}</h4>
+                        <h4>{{ s.apellido_paterno }}, {{ s.staff_nombre }}</h4>
+                        <span class="role-badge-tag staff" style="margin-top: 4px;">{{ s.cargo }}</span>
                     </div>
-                    <div class="efficiency-pill-badge" [class.low-efficiency]="+(d.porcentaje_asistencia ?? 100) < 85">
-                        {{ d.porcentaje_asistencia ?? '0' }}%
+                    <div class="efficiency-pill-badge" [class.low-efficiency]="+(s.porcentaje_asistencia ?? 100) < 85">
+                        {{ s.porcentaje_asistencia ?? '0' }}%
                     </div>
                 </div>
 
                 <div class="attendance-counters-grid">
                     <div class="counter-item success">
-                        <span class="c-num">{{ d.presentes }}</span>
+                        <span class="c-num">{{ s.presentes }}</span>
                         <span class="c-lbl">Pres.</span>
                     </div>
                     <div class="counter-item warning">
-                        <span class="c-num">{{ d.tardanzas }}</span>
+                        <span class="c-num">{{ s.tardanzas }}</span>
                         <span class="c-lbl">Tard.</span>
                     </div>
                     <div class="counter-item danger">
-                        <span class="c-num">{{ d.ausentes }}</span>
+                        <span class="c-num">{{ s.faltos }}</span>
                         <span class="c-lbl">Faltas</span>
                     </div>
                 </div>

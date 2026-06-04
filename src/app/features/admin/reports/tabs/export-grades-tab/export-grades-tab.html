@@ -1,4 +1,4 @@
-<div class="tab-body fade-in">
+<div class="tab-body">
     <div class="workspace-banner-hint">
         <mat-icon>analytics</mat-icon>
         <span>Módulo de consolidación automatizada de notas del año lectivo. Seleccione los criterios requeridos para
@@ -7,6 +7,7 @@
 
     <div class="filters-card-panel">
         <div class="filters-row-grid">
+            <!-- Grado Escolar -->
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-icon matPrefix>school</mat-icon>
                 <mat-label>Grado Escolar</mat-label>
@@ -18,6 +19,7 @@
                 </mat-select>
             </mat-form-field>
 
+            <!-- Sección Escolar -->
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-icon matPrefix>layers</mat-icon>
                 <mat-label>Sección Escolar</mat-label>
@@ -29,6 +31,7 @@
                 </mat-select>
             </mat-form-field>
 
+            <!-- Periodo Académico / Bimestre -->
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-icon matPrefix>calendar_today</mat-icon>
                 <mat-label>Periodo Académico / Bimestre</mat-label>
@@ -42,6 +45,7 @@
         </div>
     </div>
 
+    <!-- Panel de Descargas Unificado -->
     <div class="export-management-card">
         <h3>Formatos de Descarga Disponibles</h3>
         <div class="actions-download-flex">

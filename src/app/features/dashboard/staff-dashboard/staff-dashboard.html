@@ -5,7 +5,11 @@
             <h1 class="greeting">
                 ¡Hola, {{ auth.currentUser()?.apellido_paterno ?? 'Staff' }}!
             </h1>
+            @if (tieneAsistencia()) {
             <p class="subtitle">Registra la asistencia general de los alumnos.</p>
+            } @else {
+            <p class="subtitle">Bienvenido al panel de staff.</p>
+            }
         </div>
         <div class="banner-decoration" aria-hidden="true">
             <mat-icon>support_agent</mat-icon>
@@ -27,6 +31,7 @@
 
     } @else if (dashboardData(); as data) {
 
+    @if (tieneAsistencia()) {
     <div class="stats-grid">
         <div class="stat-card green">
             <div class="icon-wrapper"><mat-icon>check_circle</mat-icon></div>
@@ -35,7 +40,6 @@
                 <span class="stat-num">{{ seccionesRegistradas() }}</span>
             </div>
         </div>
-
         <div class="stat-card orange">
             <div class="icon-wrapper"><mat-icon>pending_actions</mat-icon></div>
             <div class="stat-info">
@@ -43,7 +47,6 @@
                 <span class="stat-num">{{ seccionesPendientes() }}</span>
             </div>
         </div>
-
         <div class="stat-card red">
             <div class="icon-wrapper"><mat-icon>person_off</mat-icon></div>
             <div class="stat-info">
@@ -51,7 +54,6 @@
                 <span class="stat-num">{{ totalFaltas() }}</span>
             </div>
         </div>
-
         <div class="stat-card blue">
             <div class="icon-wrapper"><mat-icon>schedule</mat-icon></div>
             <div class="stat-info">
@@ -60,14 +62,15 @@
             </div>
         </div>
     </div>
+    }
 
     <div class="dashboard-grid">
 
+        @if (tieneAsistencia()) {
         <section class="main-column">
             <div class="section-header">
                 <h2 class="section-title">Secciones de hoy</h2>
             </div>
-
             <div class="secciones-list">
                 @for (seccion of data.seccionesHoy; track seccion.seccionId) {
                 <div class="seccion-item" [class.registrada]="seccion.registrada">
@@ -109,9 +112,11 @@
                 }
             </div>
         </section>
+        }
 
         <aside class="side-column">
 
+            @if (tieneAsistencia()) {
             <a class="action-card primary" routerLink="/asistencia/general/scan">
                 <div class="action-icon">
                     <mat-icon>qr_code_scanner</mat-icon>
@@ -122,6 +127,7 @@
                 </div>
                 <mat-icon class="arrow">chevron_right</mat-icon>
             </a>
+            }
 
             <section class="widget-panel">
                 <div class="widget-header">
