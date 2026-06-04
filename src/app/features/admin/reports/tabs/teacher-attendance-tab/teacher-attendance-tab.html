@@ -81,7 +81,7 @@
                             <td class="num highlight-cell-bold">{{ d.total_bloques_esperados }}</td>
                             <td class="num val-success">{{ d.presentes }}</td>
                             <td class="num val-warning">{{ d.tardanzas }}</td>
-                            <td class="num val-danger">{{ d.ausentes }}</td>
+                            <td class="num val-danger">{{ d.faltos }}</td>
                             <td class="num highlight-efficiency">{{ d.porcentaje_asistencia ?? '0' }}%</td>
                         </tr>
                         }
@@ -112,7 +112,7 @@
                         <span class="c-lbl">Tard.</span>
                     </div>
                     <div class="counter-item danger">
-                        <span class="c-num">{{ d.ausentes }}</span>
+                        <span class="c-num">{{ d.faltos }}</span>
                         <span class="c-lbl">Faltas</span>
                     </div>
                 </div>
