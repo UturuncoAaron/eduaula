@@ -1,7 +1,6 @@
 import { Period } from './academic';
 
 export type ReportFormat = 'json' | 'xlsx' | 'pdf' | 'csv';
-
 export type EscalaCalificacion = 'AD' | 'A' | 'B' | 'C' | 'Sin notas';
 
 export type EstadoAsistenciaAlumno =
@@ -37,7 +36,7 @@ export interface SeccionResumenResponse {
     seccion: SeccionInfo;
     periodo: PeriodoInfo;
     ranking: AlumnoRanking[];
-    notas_por_curso: SeccionNotasRow[];
+    notes_por_curso: SeccionNotasRow[];
     resumen_asistencia: ResumenAsistenciaRow[];
     top_inasistentes: TopInasistenteRow[];
     entregas_por_tarea: EntregasTareaRow[];
@@ -46,9 +45,7 @@ export interface SeccionResumenResponse {
 export interface AlumnoRanking {
     alumno_id: string;
     dni: string;
-    apellido_paterno: string;
-    apellido_materno: string | null;
-    nombre: string;
+    alumno_nombre: string;
     promedio_general: string | null;
     cursos_en_riesgo: number;
     categoria: CategoriaRendimiento;
@@ -57,9 +54,7 @@ export interface AlumnoRanking {
 export interface SeccionNotasRow {
     alumno_id: string;
     dni: string;
-    apellido_paterno: string;
-    apellido_materno: string | null;
-    nombre: string;
+    alumno_nombre: string;
     curso_id: string;
     curso: string;
     total_notes: number;
@@ -70,9 +65,7 @@ export interface SeccionNotasRow {
 export interface ResumenAsistenciaRow {
     alumno_id: string;
     dni: string;
-    apellido_paterno: string;
-    apellido_materno: string | null;
-    nombre: string;
+    alumno_nombre: string;
     dias_registrados: number;
     asistencias: number;
     tardanzas: number;
@@ -84,9 +77,7 @@ export interface ResumenAsistenciaRow {
 export interface TopInasistenteRow {
     alumno_id: string;
     dni: string;
-    apellido_paterno: string;
-    apellido_materno: string | null;
-    nombre: string;
+    alumno_nombre: string;
     faltas: number;
     tardanzas: number;
     justificadas: number;

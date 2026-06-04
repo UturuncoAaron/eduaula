@@ -1,15 +1,13 @@
-import { inject } from '@angular/core';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { SeccionResumenResponse } from '../models/reports';
 
 @Injectable({ providedIn: 'root' })
 export class ReportsService {
   private http = inject(HttpClient);
 
-  getSeccionResumen(seccionId: string, periodoId: string, umbral = 11, anio?: number): Observable<SeccionResumenResponse> {
+  getSeccionResumen(seccionId: string, periodoId: string, umbral = 11, anio?: number): Observable<any> {
     let httpParams = new HttpParams()
       .set('scope', 'section_summary')
       .set('format', 'json')
@@ -21,31 +19,33 @@ export class ReportsService {
       httpParams = httpParams.set('anio', String(anio));
     }
 
-    return this.http.get<SeccionResumenResponse>(`${environment.apiUrl}/admin/reports/consolidated`, { params: httpParams });
+    return this.http.get<any>(`${environment.apiUrl}/admin/reports/consolidated`, { params: httpParams });
   }
 
   getHorariosDia(fecha: string): Observable<any[]> {
     const httpParams = new HttpParams().set('fecha', fecha);
-    return this.http.get<any>(`${environment.apiUrl}/reports/docentes/horarios-dia`, { params: httpParams }).pipe(map(r => r.data ?? r));
+    return this.http.get<any>(`${environment.apiUrl}/admin/reports/docentes/horarios-dia`, { params: httpParams })
+      .pipe(map((r: any) => r.data ?? r));
   }
 
   registrarAsistenciaDocente(dto: any): Observable<{ id: string }> {
-    return this.http.post<any>(`${environment.apiUrl}/reports/docentes/registrar`, dto).pipe(map(r => r.data ?? r));
+    return this.http.post<any>(`${environment.apiUrl}/admin/reports/docentes/registrar`, dto)
+      .pipe(map((r: any) => r.data ?? r));
   }
 
   registrarAsistenciaBulk(dto: any): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/reports/docentes/registrar/bulk`, dto).pipe(map(r => r.data ?? r));
+    return this.http.post<any>(`${environment.apiUrl}/admin/reports/docentes/registrar/bulk`, dto)
+      .pipe(map((r: any) => r.data ?? r));
   }
 
   getReporteDiarioDocentes(fecha: string): Observable<any[]> {
     const httpParams = new HttpParams().set('fecha', fecha);
-    return this.http.get<any>(`${environment.apiUrl}/reports/docentes/diario`, { params: httpParams }).pipe(map(r => r.data ?? r));
+    return this.http.get<any>(`${environment.apiUrl}/admin/reports/docentes/diario`, { params: httpParams })
+      .pipe(map((r: any) => r.data ?? r));
   }
 
   getResumenDocentes(fechaInicio: string, fechaFin: string, anio?: number): Observable<any[]> {
     let httpParams = new HttpParams()
-      .set('scope', 'teacher_attendance_range')
-      .set('format', 'json')
       .set('fecha_inicio', fechaInicio)
       .set('fecha_fin', fechaFin);
 
@@ -53,7 +53,8 @@ export class ReportsService {
       httpParams = httpParams.set('anio', String(anio));
     }
 
-    return this.http.get<any>(`${environment.apiUrl}/admin/reports/consolidated`, { params: httpParams }).pipe(map(r => r.data ?? r));
+    return this.http.get<any[]>(`${environment.apiUrl}/admin/reports/attendance/teachers`, { params: httpParams })
+      .pipe(map((r: any) => r.data ?? r));
   }
 
   getAlertasDocentes(fechaInicio: string, fechaFin: string, limit = 10): Observable<any[]> {
@@ -61,7 +62,8 @@ export class ReportsService {
       .set('fecha_inicio', fechaInicio)
       .set('fecha_fin', fechaFin)
       .set('limit', String(limit));
-    return this.http.get<any>(`${environment.apiUrl}/reports/docentes/alertas`, { params: httpParams }).pipe(map(r => r.data ?? r));
+    return this.http.get<any>(`${environment.apiUrl}/admin/reports/docentes/alertas`, { params: httpParams })
+      .pipe(map((r: any) => r.data ?? r));
   }
 
   downloadConsolidatedReport(params: any): Observable<Blob> {
@@ -77,10 +79,9 @@ export class ReportsService {
       responseType: 'blob'
     });
   }
+
   getResumenStaff(fechaInicio: string, fechaFin: string, anio?: number): Observable<any[]> {
     let httpParams = new HttpParams()
-      .set('scope', 'staff_attendance_range')
-      .set('format', 'json')
       .set('fecha_inicio', fechaInicio)
       .set('fecha_fin', fechaFin);
 
@@ -88,7 +89,7 @@ export class ReportsService {
       httpParams = httpParams.set('anio', String(anio));
     }
 
-    return this.http.get<any>(`${environment.apiUrl}/admin/reports/consolidated`, { params: httpParams })
-      .pipe(map(r => r.data ?? r));
+    return this.http.get<any[]>(`${environment.apiUrl}/admin/reports/attendance/staff`, { params: httpParams })
+      .pipe(map((r: any) => r.data ?? r));
   }
 }

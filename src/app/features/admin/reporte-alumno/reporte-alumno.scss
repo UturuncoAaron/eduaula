@@ -12,18 +12,15 @@
 .report-toolbar {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 12px;
     margin-bottom: 20px;
+}
 
-    // Excel button styling
-    button[color="primary"] {
-        mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-            margin-right: 4px;
-        }
-    }
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .state-card {
@@ -49,8 +46,6 @@
     color: #991b1b;
     background: #fef2f2;
 }
-
-// No .report-page card — content flows directly inside .report-shell
 
 .report-header,
 .student-card,
@@ -286,7 +281,6 @@ a {
     text-decoration: none;
 }
 
-// Placeholder shown while lazy sections are loading
 .section-placeholder {
     display: flex;
     align-items: center;
@@ -300,9 +294,13 @@ a {
         padding: 12px;
     }
 
-    .report-header,
     .report-toolbar {
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar-actions {
+        justify-content: flex-end;
     }
 
     .generated {
@@ -313,5 +311,15 @@ a {
     .detail-grid,
     .report-section--split {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .toolbar-actions {
+        flex-direction: column;
+
+        button {
+            width: 100%;
+        }
     }
 }

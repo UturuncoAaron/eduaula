@@ -1,92 +1,95 @@
-<div class="tab-body">
-    <div class="filters-card-panel">
-        <div class="filters-row-range-personal">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>badge</mat-icon>
-                <mat-label>Filtrar por Personal de Soporte</mat-label>
-                <mat-select [(ngModel)]="personalId">
-                    <mat-option value="">Todo el Personal de Soporte (Staff)</mat-option>
-                    @for (p of staffLista(); track p.id) {
-                    <mat-option [value]="p.id">
-                        [{{ p.cargo | uppercase }}] {{ p.apellido_paterno }} {{ p.apellido_materno ?? '' }}, {{ p.nombre
-                        }}
-                    </mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
+<div class="report-workspace-wrapper">
 
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>date_range</mat-icon>
-                <mat-label>Fecha Inicial</mat-label>
-                <input matInput type="date" [(ngModel)]="rangoInicio" />
-            </mat-form-field>
+    <div class="control-panel-card">
+        <div class="panel-layout-flex">
 
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>event_available</mat-icon>
-                <mat-label>Fecha de Término</mat-label>
-                <input matInput type="date" [(ngModel)]="rangoFin" />
-            </mat-form-field>
+            <div class="inputs-fluid-group">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-large">
+                    <mat-icon matPrefix>badge</mat-icon>
+                    <mat-label>Filtrar por Personal de Soporte</mat-label>
+                    <mat-select [(ngModel)]="personalId">
+                        <mat-option value="">Todo el Personal de Soporte (Staff)</mat-option>
+                        @for (p of staffLista(); track p.id) {
+                        <mat-option [value]="p.id">
+                            [{{ p.cargo | uppercase }}] {{ p.apellido_paterno }} {{ p.apellido_materno ?? '' }}, {{
+                            p.nombre }}
+                        </mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
 
-            <div class="action-buttons-flex-suite">
-                <button mat-flat-button class="btn-sync-history" (click)="cargarResumen()">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
+                    <mat-icon matPrefix>date_range</mat-icon>
+                    <mat-label>Fecha Inicial</mat-label>
+                    <input matInput type="date" [(ngModel)]="rangoInicio" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
+                    <mat-icon matPrefix>event_available</mat-icon>
+                    <mat-label>Fecha de Término</mat-label>
+                    <input matInput type="date" [(ngModel)]="rangoFin" />
+                </mat-form-field>
+            </div>
+
+            <div class="actions-fluid-group">
+                <button mat-flat-button class="btn-action-primary" (click)="cargarResumen()">
                     <mat-icon>sync_saved_locally</mat-icon>
                     <span>Sincronizar Historial</span>
                 </button>
 
-                <div class="icon-download-group">
-                    <button mat-icon-button class="btn-download-action excel" (click)="descargarReporteStaff('xlsx')"
-                        matTooltip="Exportar Excel (.xlsx)">
+                <div class="export-buttons-pack">
+                    <button mat-icon-button class="btn-export excel" (click)="descargarReporteStaff('xlsx')"
+                        matTooltip="Exportar Excel">
                         <mat-icon>table_view</mat-icon>
                     </button>
-                    <button mat-icon-button class="btn-download-action pdf" (click)="descargarReporteStaff('pdf')"
-                        matTooltip="Exportar Acta PDF">
+                    <button mat-icon-button class="btn-export pdf" (click)="descargarReporteStaff('pdf')"
+                        matTooltip="Exportar PDF">
                         <mat-icon>picture_as_pdf</mat-icon>
                     </button>
                 </div>
             </div>
+
         </div>
     </div>
 
     @if (store.reporteLoading() === 'loading') {
-    <div class="loader-wrapper" style="margin-top: 1rem;">
+    <div class="loader-container">
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </div>
     }
 
     @if (store.resumenStaff().length > 0) {
-    <div class="workspace-results-area">
-        <div class="table-container-card table-responsive hide-on-mobile">
-            <div class="table-wrap">
-                <table class="data-table">
+    <div class="results-layout-area">
+        <div class="desktop-table-view">
+            <div class="table-scroll-container">
+                <table class="premium-data-table">
                     <thead>
                         <tr>
                             <th>Colaborador</th>
                             <th>Cargo / Función</th>
-                            <th class="num">Días Esperados</th>
-                            <th class="num">Presente</th>
-                            <th class="num">Tardanzas</th>
-                            <th class="num">Faltas</th>
-                            <th class="num">Cumplimiento Global</th>
+                            <th class="cell-num">Días Esperados</th>
+                            <th class="cell-num">Presente</th>
+                            <th class="cell-num">Tardanzas</th>
+                            <th class="cell-num">Faltas</th>
+                            <th class="cell-num">Cumplimiento Global</th>
                         </tr>
                     </thead>
                     <tbody>
                         @for (s of store.resumenStaff(); track s.staff_id) {
-                        <tr [class.row-riesgo]="+(s.porcentaje_asistencia ?? 100) < 85">
+                        <tr [class.is-critical]="+(s.porcentaje_asistencia ?? 100) < 85">
                             <td>
-                                <div class="user-meta-cell">
-                                    <span class="main-text">
-                                        {{ s.apellido_paterno }} {{ s.apellido_materno ?? '' }}, {{ s.staff_nombre }}
-                                    </span>
+                                <div class="identity-meta-box">
+                                    <span class="text-main">{{ s.staff_nombre }}</span>
                                 </div>
                             </td>
                             <td>
                                 <span class="role-badge-tag staff">{{ s.cargo }}</span>
                             </td>
-                            <td class="num highlight-cell-bold">{{ s.total_esperados }}</td>
-                            <td class="num val-success">{{ s.presentes }}</td>
-                            <td class="num val-warning">{{ s.tardanzas }}</td>
-                            <td class="num val-danger">{{ s.faltos }}</td>
-                            <td class="num highlight-efficiency">{{ s.porcentaje_asistencia ?? '0' }}%</td>
+                            <td class="cell-num weight-bold">{{ s.total_esperados }}</td>
+                            <td class="cell-num status-success">{{ s.presentes }}</td>
+                            <td class="cell-num status-warning">{{ s.tardanzas }}</td>
+                            <td class="cell-num status-danger">{{ s.faltos }}</td>
+                            <td class="cell-num column-efficiency-badge">{{ s.porcentaje_asistencia ?? '0' }}%</td>
                         </tr>
                         }
                     </tbody>
@@ -94,31 +97,30 @@
             </div>
         </div>
 
-        <div class="mobile-cards-feed show-on-mobile">
+        <div class="mobile-feed-view">
             @for (s of store.resumenStaff(); track s.staff_id) {
-            <div class="report-mobile-card" [class.card-riesgo]="+(s.porcentaje_asistencia ?? 100) < 85">
-                <div class="card-header-split">
-                    <div class="name-block">
-                        <h4>{{ s.apellido_paterno }}, {{ s.staff_nombre }}</h4>
+            <div class="dynamic-feed-card" [class.is-critical]="+(s.porcentaje_asistencia ?? 100) < 85">
+                <div class="feed-card-header">
+                    <div class="feed-identity-block">
+                        <span class="feed-student-name">{{ s.staff_nombre }}</span>
                         <span class="role-badge-tag staff" style="margin-top: 4px;">{{ s.cargo }}</span>
                     </div>
-                    <div class="efficiency-pill-badge" [class.low-efficiency]="+(s.porcentaje_asistencia ?? 100) < 85">
+                    <span class="feed-efficiency-tag" [class.lowhidden]="+(s.porcentaje_asistencia ?? 100) < 85">
                         {{ s.porcentaje_asistencia ?? '0' }}%
-                    </div>
+                    </span>
                 </div>
-
-                <div class="attendance-counters-grid">
-                    <div class="counter-item success">
-                        <span class="c-num">{{ s.presentes }}</span>
-                        <span class="c-lbl">Pres.</span>
+                <div class="feed-metrics-grid">
+                    <div class="metric-pill success">
+                        <span class="value">{{ s.presentes }}</span>
+                        <span class="label">Pres.</span>
                     </div>
-                    <div class="counter-item warning">
-                        <span class="c-num">{{ s.tardanzas }}</span>
-                        <span class="c-lbl">Tard.</span>
+                    <div class="metric-pill warning">
+                        <span class="value">{{ s.tardanzas }}</span>
+                        <span class="label">Tard.</span>
                     </div>
-                    <div class="counter-item danger">
-                        <span class="c-num">{{ s.faltos }}</span>
-                        <span class="c-lbl">Faltas</span>
+                    <div class="metric-pill danger">
+                        <span class="value">{{ s.faltos }}</span>
+                        <span class="label">Faltas</span>
                     </div>
                 </div>
             </div>
@@ -126,4 +128,5 @@
         </div>
     </div>
     }
+
 </div>

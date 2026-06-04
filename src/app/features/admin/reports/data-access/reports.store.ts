@@ -106,23 +106,49 @@ export class ReportsStore {
         this.reporteLoading.set('loading');
         this.svc.getReporteDiarioDocentes(fecha).subscribe({
             next: (d) => { this.reporteDiario.set(d); this.reporteLoading.set('success'); },
-            error: () => this.reporteLoading.set('error')
+            error: () => { this.reporteDiario.set([]); this.reporteLoading.set('error'); }
         });
     }
 
     loadResumenDocentes(fi: string, ff: string, anio?: number): void {
         this.reporteLoading.set('loading');
         this.svc.getResumenDocentes(fi, ff, anio).subscribe({
-            next: (d) => { this.resumenDocentes.set(d); this.reporteLoading.set('success'); },
-            error: () => this.reporteLoading.set('error')
+            next: (d) => {
+                if (Array.isArray(d)) {
+                    this.resumenDocentes.set(d);
+                    this.reporteLoading.set('success');
+                } else {
+                    console.warn('getResumenDocentes no retornó un Array:', d);
+                    this.resumenDocentes.set([]);
+                    this.reporteLoading.set('error');
+                }
+            },
+            error: (err) => {
+                console.error('Error HTTP en loadResumenDocentes:', err);
+                this.resumenDocentes.set([]);
+                this.reporteLoading.set('error');
+            }
         });
     }
 
     loadResumenStaff(fi: string, ff: string, anio?: number): void {
         this.reporteLoading.set('loading');
         this.svc.getResumenStaff(fi, ff, anio).subscribe({
-            next: (d) => { this.resumenStaff.set(d); this.reporteLoading.set('success'); },
-            error: () => this.reporteLoading.set('error')
+            next: (d) => {
+                if (Array.isArray(d)) {
+                    this.resumenStaff.set(d);
+                    this.reporteLoading.set('success');
+                } else {
+                    console.warn('getResumenStaff no retornó un Array:', d);
+                    this.resumenStaff.set([]);
+                    this.reporteLoading.set('error');
+                }
+            },
+            error: (err) => {
+                console.error('Error HTTP en loadResumenStaff:', err);
+                this.resumenStaff.set([]);
+                this.reporteLoading.set('error');
+            }
         });
     }
 

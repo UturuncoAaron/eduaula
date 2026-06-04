@@ -6,7 +6,10 @@
   box-sizing: border-box;
 }
 
-.tab-body {
+.report-workspace-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   width: 100%;
   box-sizing: border-box;
 }
@@ -15,45 +18,67 @@
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
-  background-color: rgba(shared.$c-primary, 0.05); // CORREGIDO: Remoto $c-paleBlue cambiado por mezcla del primario oficial
-  border: 1px solid rgb(shared.$c-primary, 0.15);
-  padding: 1rem;
-  border-radius: 12px;
+  background-color: rgba(shared.$c-primary, 0.04);
+  border: 1px solid rgba(shared.$c-primary, 0.12);
+  padding: 1.1rem 1.35rem;
+  border-radius: 14px;
   color: shared.$c-slate-700;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  margin-bottom: 1.25rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
   box-sizing: border-box;
+  width: 100%;
 
   mat-icon {
     color: shared.$c-primary;
     flex-shrink: 0;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
   }
 }
 
-.filters-card-panel {
+.control-panel-card {
   background: #ffffff;
   border: 1px solid shared.$c-border;
-  border-radius: 14px;
-  padding: 1.25rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.015);
   width: 100%;
   box-sizing: border-box;
 }
 
-.filters-row-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+.panel-layout-flex {
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem;
-  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.inputs-fluid-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
 
   mat-form-field {
     width: 100%;
   }
 
-  @media (min-width: shared.$bp-md) {
-    grid-template-columns: repeat(3, 1fr);
+  @media (min-width: shared.$bp-sm) {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .field-grow-large {
+    flex: 1.5 1 260px;
+  }
+
+  .field-grow-medium {
+    flex: 1 1 200px;
   }
 }
 
@@ -62,17 +87,19 @@
   border: 1px solid shared.$c-border;
   border-radius: 16px;
   padding: 1.5rem;
-  margin-top: 1.5rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.015);
   box-sizing: border-box;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 
-  h3 {
-    margin: 0 0 1.25rem 0;
-    font-size: 0.85rem;
+  .suite-title {
+    font-size: 0.75rem;
     font-weight: 700;
-    color: shared.$c-slate-700;
+    color: shared.$c-slate-500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
   }
 }
 
@@ -81,18 +108,18 @@
   flex-direction: column;
   gap: 1rem;
   width: 100%;
+  box-sizing: border-box;
 
-  @media (min-width: shared.$bp-lg) {
+  @media (min-width: shared.$bp-md) {
     flex-direction: row;
-    align-items: center;
+    flex-wrap: wrap;
   }
 }
 
-/* Botonera estática de descarga instantánea */
 .btn-suite-download {
-  flex: 1;
-  height: 64px;
-  border-radius: 12px !important;
+  flex: 1 1 260px;
+  height: 68px;
+  border-radius: 14px !important;
   color: #ffffff !important;
   display: inline-flex;
   align-items: center;
@@ -103,6 +130,7 @@
   box-sizing: border-box;
   border: none;
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   mat-icon {
     font-size: 26px;
@@ -116,7 +144,8 @@
     flex-direction: column;
     align-items: flex-start;
     text-align: left;
-    line-height: 1.2;
+    line-height: 1.25;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 
     .m-title {
       font-size: 0.95rem;
@@ -133,19 +162,32 @@
 
   &.excel {
     background-color: shared.$c-success !important;
+
+    &:hover {
+      background-color: #15803d !important;
+    }
   }
 
   &.csv {
     background-color: shared.$c-slate-700 !important;
+
+    &:hover {
+      background-color: #475569 !important;
+    }
   }
 
   &.pdf {
     background-color: shared.$c-danger !important;
+
+    &:hover {
+      background-color: #b91c1c !important;
+    }
   }
 
   &:disabled {
     background-color: #e2e8f0 !important;
     color: #94a3b8 !important;
     cursor: not-allowed;
+    opacity: 0.6;
   }
 }

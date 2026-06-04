@@ -51,13 +51,12 @@ export class StaffAttendanceTab implements OnInit {
   rangoFin = new Date().toISOString().slice(0, 10);
 
   ngOnInit(): void {
-    this.api.get<StaffColaborador[]>('users/staff-attendance-list').subscribe({
+    this.api.get<StaffColaborador[]>('admin/users/staff?limit=100').subscribe({
       next: (r: any) => this.staffLista.set(r?.data ?? r ?? [])
     });
   }
 
   cargarResumen(): void {
-    // Si tienes implementado el método dinámico en el store
     if (this.store.loadResumenStaff) {
       this.store.loadResumenStaff(this.rangoInicio, this.rangoFin);
     }

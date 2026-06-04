@@ -1,7 +1,4 @@
-import {
-    Component, Input, OnChanges, SimpleChanges,
-    inject, signal,
-} from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -15,6 +12,7 @@ import { UserAvatar } from '../../../../../shared/components/user-avatar/user-av
 export interface HistoricoFiltros {
     grado_id: string | null;
     seccion_id: string | null;
+    periodo_id: string | null;
 }
 
 interface AlumnoHistoricoRow {
@@ -36,10 +34,7 @@ interface AlumnoHistoricoRow {
 
 interface HistoricoAlumnosResponse {
     data: AlumnoHistoricoRow[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+    total: number; page: number; limit: number; totalPages: number;
 }
 
 type CondicionKey = 'pendiente' | 'aprobado' | 'desaprobado' | 'retirado';
@@ -67,7 +62,7 @@ export class TablaAlumnosHistorico implements OnChanges {
     private readonly router = inject(Router);
 
     @Input() anio: number | null = null;
-    @Input() filtros: HistoricoFiltros = { grado_id: null, seccion_id: null };
+    @Input() filtros: HistoricoFiltros = { grado_id: null, seccion_id: null, periodo_id: null };
 
     loading = signal(false);
     total = signal(0);
@@ -75,19 +70,12 @@ export class TablaAlumnosHistorico implements OnChanges {
     pageSize = signal(20);
 
     dataSource = new MatTableDataSource<AlumnoHistoricoRow>([]);
-    displayedColumns = [
-        'codigo', 'documento', 'nombre',
-        'grado', 'condicion', 'ingreso', 'acciones',
-    ];
-
-    // ── Helpers de condición ──────────────────────────────────
-    readonly condicionConfig = CONDICION_CONFIG;
+    displayedColumns = ['codigo', 'documento', 'nombre', 'grado', 'condicion', 'ingreso', 'acciones'];
 
     getCondicion(key: string | null) {
         return key ? (CONDICION_CONFIG[key as CondicionKey] ?? null) : null;
     }
 
-    // ── Lifecycle ─────────────────────────────────────────────
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['anio'] || changes['filtros']) {
             this.page.set(1);
@@ -96,22 +84,19 @@ export class TablaAlumnosHistorico implements OnChanges {
         }
     }
 
-    // ── Paginación ────────────────────────────────────────────
     onPageChange(e: PageEvent): void {
         this.page.set(e.pageIndex + 1);
         this.pageSize.set(e.pageSize);
         this.load();
     }
 
-    // ── Navegación ────────────────────────────────────────────
     verReporte(row: AlumnoHistoricoRow): void {
-        this.router.navigate(
-            ['/admin/historico/reporte', row.id],
-            { queryParams: this.anio ? { anio: this.anio } : undefined },
-        );
+        const qp: Record<string, any> = {};
+        if (this.anio) qp['anio'] = this.anio;
+        if (this.filtros.periodo_id) qp['periodo_id'] = this.filtros.periodo_id;
+        this.router.navigate(['/admin/historico/reporte', row.id], { queryParams: qp });
     }
 
-    // ── Carga ─────────────────────────────────────────────────
     private load(): void {
         if (this.anio == null) return;
 
@@ -124,19 +109,14 @@ export class TablaAlumnosHistorico implements OnChanges {
         else if (this.filtros.grado_id) params.set('grado_id', this.filtros.grado_id);
 
         this.loading.set(true);
-        this.api.get<HistoricoAlumnosResponse>(
-            `admin/historico/alumnos?${params.toString()}`
-        ).subscribe({
+        this.api.get<HistoricoAlumnosResponse>(`admin/historico/alumnos?${params.toString()}`).subscribe({
             next: (res) => {
                 const body = res.data;
                 this.dataSource.data = body?.data ?? [];
                 this.total.set(body?.total ?? 0);
                 this.loading.set(false);
             },
-            error: () => {
-                this.reset();
-                this.loading.set(false);
-            },
+            error: () => { this.reset(); this.loading.set(false); },
         });
     }
 

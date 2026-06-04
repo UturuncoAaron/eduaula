@@ -50,8 +50,7 @@ export class TeacherAttendanceTab implements OnInit {
   rangoFin = new Date().toISOString().slice(0, 10);
 
   ngOnInit(): void {
-    // Apunta de manera específica al canal que filtra solo docentes activos
-    this.api.get<DocenteColaborador[]>('users/teachers-attendance-list').subscribe({
+    this.api.get<DocenteColaborador[]>('admin/users/docentes?limit=100').subscribe({
       next: (r: any) => this.personalLista.set(r?.data ?? r ?? [])
     });
   }
@@ -61,13 +60,15 @@ export class TeacherAttendanceTab implements OnInit {
   }
 
   descargarReportePersonal(formato: 'xlsx' | 'pdf'): void {
-    this.svc.downloadConsolidatedReport({
+    const extraParams = {
       scope: 'teacher_attendance_range',
       format: formato,
-      cuenta_id: this.personalId || undefined,
       fecha_inicio: this.rangoInicio,
-      fecha_fin: this.rangoFin
-    }).subscribe({
+      fecha_fin: this.rangoFin,
+      ...(this.personalId && { cuenta_id: this.personalId })
+    };
+
+    this.svc.downloadConsolidatedReport(extraParams).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

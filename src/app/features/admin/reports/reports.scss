@@ -13,9 +13,10 @@
   gap: 1rem;
   box-sizing: border-box;
   padding: 1rem;
+  background-color: #f8fafc;
 
   @media (min-width: shared.$bp-md) {
-    padding: 2rem;
+    padding: 1.5rem 2rem;
     gap: 1.5rem;
   }
 }
@@ -24,101 +25,113 @@
   width: 100%;
   display: block;
   box-sizing: border-box;
-  border-bottom: 1px solid shared.$c-border;
-  padding-bottom: 1rem;
 }
 
-/* Sistema de Distribución Maestro-Detalle Responsivo */
-.reports-layout-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+.reports-control-bar {
   width: 100%;
-  align-items: start;
+  box-sizing: border-box;
+  overflow-x: auto;
+  scrollbar-width: none;
 
-  @media (min-width: shared.$bp-md) {
-    grid-template-columns: 280px 1fr;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
-/* Contenedor del Menú Lateral */
-.reports-sidebar-nav {
-  width: 100%;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  box-sizing: border-box;
-  padding: 0.5rem;
-  border: 1px solid shared.$c-border;
-}
-
-.modern-nav-list {
-  padding: 0 !important;
+.segmented-control-nav {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  padding: 0.35rem;
+  background-color: #f1f5f9;
+  border-radius: 14px;
+  border: 1px solid shared.$c-border;
+  min-width: max-content;
+  width: 100%;
 }
 
-/* Estilo del Botón de Opción Nativo */
-.nav-item-btn {
-  width: 100%;
-  border-radius: 8px !important;
-  margin: 0 !important;
-  color: shared.$c-slate-500 !important;
-  background: transparent;
+.control-tab-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 42px;
+  padding: 0 1.25rem;
+  border-radius: 10px;
   border: none;
-  transition: background 0.15s steps(4), color 0.15s steps(4);
+  background: transparent;
+  color: shared.$c-slate-500;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   mat-icon {
-    color: shared.$c-slate-500; // CORREGIDO: Inexistente $c-slate-400 cambiado a $c-slate-500
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: shared.$c-slate-500;
+    transition: color 0.2s ease;
   }
 
-  /* Estado Seleccionado Oficial (Estilo EduAula) */
   &.is-active {
-    background-color: rgb(shared.$c-primary, 0.06) !important;
-    color: shared.$c-primary !important;
+    background-color: #ffffff;
+    color: shared.$c-primary;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
 
     mat-icon {
-      color: shared.$c-primary !important;
+      color: shared.$c-primary;
     }
 
-    .nav-title {
-      font-weight: 700;
+    span {
+      font-weight: 600;
     }
   }
 
   &:hover:not(.is-active) {
-    background-color: shared.$c-bg-muted !important; // CORREGIDO: Inexistente $c-gray50 cambiado a $c-bg-muted
-    color: shared.$c-primary !important;
+    background-color: rgba(255, 255, 255, 0.5);
+    color: shared.$c-slate-900;
+
+    mat-icon {
+      color: shared.$c-slate-900;
+    }
   }
 }
 
-.nav-title {
-  font-family: 'Inter', system-ui, sans-serif;
+.reports-viewport-canvas {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.canvas-pane-fade {
+  width: 100%;
+  box-sizing: border-box;
+  animation: canvasPaneReady 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.loading-canvas-placeholder {
+  width: 100%;
+  padding: 6rem 2rem;
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: -0.01em;
-}
-
-/* Panel de Contenido Derecho */
-.reports-content-pane {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.pane-wrapper {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.loading-placeholder {
-  padding: 4rem 2rem;
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
   color: shared.$c-slate-500;
-  background: shared.$c-bg-muted; // CORREGIDO: Inexistente $c-gray50 cambiado a $c-bg-muted
-  border-radius: 12px;
-  border: 1px dashed shared.$c-border;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid shared.$c-border;
+  box-sizing: border-box;
+}
+
+@keyframes canvasPaneReady {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

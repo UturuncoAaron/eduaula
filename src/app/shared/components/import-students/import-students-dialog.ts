@@ -11,7 +11,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
 
-interface Seccion { id: string; nombre: string; grado?: { nombre: string } }
+interface Seccion {
+  id: string;
+  nombre: string;
+  capacidad: number;
+  grado_nombre: string;
+  grado_orden: number;
+}
 interface ImportError { fila: number; numero_documento: string; motivo: string }
 interface ImportResult {
   total: number;

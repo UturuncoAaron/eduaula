@@ -1,53 +1,54 @@
-<div class="tab-body">
+<div class="report-workspace-wrapper">
+
     <div class="workspace-banner-hint">
         <mat-icon>analytics</mat-icon>
         <span>Módulo de consolidación automatizada de notas del año lectivo. Seleccione los criterios requeridos para
             procesar el acta consolidada en el formato de descarga administrativa deseado.</span>
     </div>
 
-    <div class="filters-card-panel">
-        <div class="filters-row-grid">
-            <!-- Grado Escolar -->
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>school</mat-icon>
-                <mat-label>Grado Escolar</mat-label>
-                <mat-select [(ngModel)]="filtroGradoId" (ngModelChange)="onGradoChange($event)">
-                    <mat-option value="">Todos los grados</mat-option>
-                    @for (g of grados(); track g.id) {
-                    <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
+    <div class="control-panel-card">
+        <div class="panel-layout-flex">
 
-            <!-- Sección Escolar -->
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>layers</mat-icon>
-                <mat-label>Sección Escolar</mat-label>
-                <mat-select [(ngModel)]="filtroSeccionId" [disabled]="!filtroGradoId">
-                    <mat-option value="">Todas las secciones</mat-option>
-                    @for (s of secciones(); track s.id) {
-                    <mat-option [value]="s.id">{{ s.nombre }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
+            <div class="inputs-fluid-group">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-medium">
+                    <mat-icon matPrefix>school</mat-icon>
+                    <mat-label>Grado Escolar</mat-label>
+                    <mat-select [(ngModel)]="filtroGradoId" (ngModelChange)="onGradoChange($event)">
+                        <mat-option value="">Todos los grados</mat-option>
+                        @for (g of grados(); track g.id) {
+                        <mat-option [value]="g.id">{{ g.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
 
-            <!-- Periodo Académico / Bimestre -->
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>calendar_today</mat-icon>
-                <mat-label>Periodo Académico / Bimestre</mat-label>
-                <mat-select [(ngModel)]="filtroPeriodoId">
-                    <mat-option value="">Todos los periodos</mat-option>
-                    @for (p of periodos(); track p.id) {
-                    <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-medium">
+                    <mat-icon matPrefix>layers</mat-icon>
+                    <mat-label>Sección Escolar</mat-label>
+                    <mat-select [(ngModel)]="filtroSeccionId" [disabled]="!filtroGradoId">
+                        <mat-option value="">Todas las secciones</mat-option>
+                        @for (s of secciones(); track s.id) {
+                        <mat-option [value]="s.id">{{ s.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-large">
+                    <mat-icon matPrefix>calendar_today</mat-icon>
+                    <mat-label>Periodo Académico / Bimestre</mat-label>
+                    <mat-select [(ngModel)]="filtroPeriodoId">
+                        <mat-option value="">Todos los periodos</mat-option>
+                        @for (p of periodos(); track p.id) {
+                        <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
         </div>
     </div>
 
-    <!-- Panel de Descargas Unificado -->
     <div class="export-management-card">
-        <h3>Formatos de Descarga Disponibles</h3>
+        <span class="suite-title">Formatos de Descarga Disponibles</span>
         <div class="actions-download-flex">
             <button mat-flat-button class="btn-suite-download excel" (click)="descargarFormato('xlsx')"
                 [disabled]="store.downloading()">
@@ -77,4 +78,5 @@
             </button>
         </div>
     </div>
+
 </div>

@@ -12,9 +12,8 @@ import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../../../core/services/api';
 import { ReportsStore } from '../../data-access/reports.store';
-import { categoriaChip, escalaChip, nombreCompleto } from '../../_shared/chips.util';
+import { categoriaChip, escalaChip } from '../../_shared/chips.util';
 import { Period } from '../../../../../core/models/academic';
-
 
 interface ListaItem { id: string; nombre: string; }
 interface AlumnoDropdown { id: string; nombre: string; apellido_paterno: string; apellido_materno: string; }
@@ -50,15 +49,13 @@ export class SectionReportTab implements OnInit {
   gradoId = '';
   seccionId = '';
   alumnoId = '';
-  filtroPeriodoId: number | null = null; // Mantiene consistencia con la clave numérica de la BD
+  filtroPeriodoId: number | null = null;
   semanaFiltro = '';
 
   readonly seccionCargada = computed(() => this.store.seccionLoading() === 'success' && !!this.store.seccionResumen());
-  readonly nombreCompleto = nombreCompleto;
   readonly categoriaChip = categoriaChip;
   readonly escalaChip = escalaChip;
 
-  // Calcula las semanas lectivas reales basándose en los parámetros de fecha del periodo seleccionado
   readonly semanasDinamicas = computed<number[]>(() => {
     const activeId = this.filtroPeriodoId;
     if (!activeId) return [];

@@ -1,88 +1,90 @@
-<div class="tab-body">
-    <div class="filters-card-panel">
-        <div class="filters-row-range-personal">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>badge</mat-icon>
-                <mat-label>Filtrar por Docente / Colaborador</mat-label>
-                <mat-select [(ngModel)]="personalId">
-                    <mat-option value="">Todos los Docentes Activos</mat-option>
-                    @for (p of personalLista(); track p.id) {
-                    <mat-option [value]="p.id">
-                        {{ p.apellido_paterno }}, {{ p.nombre }}
-                    </mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
+<div class="report-workspace-wrapper">
 
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>date_range</mat-icon>
-                <mat-label>Fecha Inicial</mat-label>
-                <input matInput type="date" [(ngModel)]="rangoInicio" />
-            </mat-form-field>
+    <div class="control-panel-card">
+        <div class="panel-layout-flex">
 
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-icon matPrefix>event_available</mat-icon>
-                <mat-label>Fecha de Término</mat-label>
-                <input matInput type="date" [(ngModel)]="rangoFin" />
-            </mat-form-field>
+            <div class="inputs-fluid-group">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-large">
+                    <mat-icon matPrefix>badge</mat-icon>
+                    <mat-label>Colaborador / Docente</mat-label>
+                    <mat-select [(ngModel)]="personalId">
+                        <mat-option value="">Todos los Docentes Activos</mat-option>
+                        @for (p of personalLista(); track p.id) {
+                        <mat-option [value]="p.id">
+                            {{ p.apellido_paterno }}, {{ p.nombre }}
+                        </mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
 
-            <div class="action-buttons-flex-suite">
-                <button mat-flat-button class="btn-sync-history" (click)="cargarResumen()">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
+                    <mat-icon matPrefix>date_range</mat-icon>
+                    <mat-label>Fecha Inicial</mat-label>
+                    <input matInput type="date" [(ngModel)]="rangoInicio" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
+                    <mat-icon matPrefix>event_available</mat-icon>
+                    <mat-label>Fecha de Término</mat-label>
+                    <input matInput type="date" [(ngModel)]="rangoFin" />
+                </mat-form-field>
+            </div>
+
+            <div class="actions-fluid-group">
+                <button mat-flat-button class="btn-action-primary" (click)="cargarResumen()">
                     <mat-icon>sync_saved_locally</mat-icon>
                     <span>Sincronizar Historial</span>
                 </button>
 
-                <div class="icon-download-group">
-                    <button mat-icon-button class="btn-download-action excel" (click)="descargarReportePersonal('xlsx')"
-                        matTooltip="Exportar Excel (.xlsx)">
+                <div class="export-buttons-pack">
+                    <button mat-icon-button class="btn-export excel" (click)="descargarReportePersonal('xlsx')"
+                        matTooltip="Exportar Excel">
                         <mat-icon>table_view</mat-icon>
                     </button>
-                    <button mat-icon-button class="btn-download-action pdf" (click)="descargarReportePersonal('pdf')"
-                        matTooltip="Exportar Acta PDF">
+                    <button mat-icon-button class="btn-export pdf" (click)="descargarReportePersonal('pdf')"
+                        matTooltip="Exportar PDF">
                         <mat-icon>picture_as_pdf</mat-icon>
                     </button>
                 </div>
             </div>
+
         </div>
     </div>
 
     @if (store.reporteLoading() === 'loading') {
-    <div class="loader-wrapper" style="margin-top: 1rem;">
+    <div class="loader-container">
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </div>
     }
 
     @if (store.resumenDocentes().length) {
-    <div class="workspace-results-area">
-        <div class="table-container-card table-responsive hide-on-mobile">
-            <div class="table-wrap">
-                <table class="data-table">
+    <div class="results-layout-area">
+        <div class="desktop-table-view">
+            <div class="table-scroll-container">
+                <table class="premium-data-table">
                     <thead>
                         <tr>
                             <th>Docente / Colaborador</th>
-                            <th class="num">Módulos Esperados</th>
-                            <th class="num">Presente</th>
-                            <th class="num">Tardanzas</th>
-                            <th class="num">Ausente</th>
-                            <th class="num">Cumplimiento Global</th>
+                            <th class="cell-num">Módulos Esperados</th>
+                            <th class="cell-num">Presente</th>
+                            <th class="cell-num">Tardanzas</th>
+                            <th class="cell-num">Ausente</th>
+                            <th class="cell-num">Cumplimiento Global</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for (d of store.resumenDocentes(); track d.docente_id) {
-                        <tr [class.row-riesgo]="+(d.porcentaje_asistencia ?? 100) < 85">
+                        @for (d of $any(store.resumenDocentes()); track d.docente_id) {
+                        <tr [class.is-critical]="+(d.porcentaje_asistencia ?? 100) < 85">
                             <td>
-                                <div class="user-meta-cell">
-                                    <span class="main-text">{{ d.docente_nombre }} {{ d.apellido_paterno }}</span>
-                                    @if (d.apellido_materno) {
-                                    <span class="main-text" style="margin-left: 4px;">{{ d.apellido_materno }}</span>
-                                    }
+                                <div class="identity-meta-box">
+                                    <span class="text-main">{{ d.docente_nombre }}</span>
                                 </div>
                             </td>
-                            <td class="num highlight-cell-bold">{{ d.total_bloques_esperados }}</td>
-                            <td class="num val-success">{{ d.presentes }}</td>
-                            <td class="num val-warning">{{ d.tardanzas }}</td>
-                            <td class="num val-danger">{{ d.faltos }}</td>
-                            <td class="num highlight-efficiency">{{ d.porcentaje_asistencia ?? '0' }}%</td>
+                            <td class="cell-num weight-bold">{{ d.total_bloques_esperados }}</td>
+                            <td class="cell-num status-success">{{ d.presentes }}</td>
+                            <td class="cell-num status-warning">{{ d.tardanzas }}</td>
+                            <td class="cell-num status-danger">{{ d.faltos }}</td>
+                            <td class="cell-num column-efficiency-badge">{{ d.porcentaje_asistencia ?? '0' }}%</td>
                         </tr>
                         }
                     </tbody>
@@ -90,30 +92,27 @@
             </div>
         </div>
 
-        <div class="mobile-cards-feed show-on-mobile">
-            @for (d of store.resumenDocentes(); track d.docente_id) {
-            <div class="report-mobile-card" [class.card-riesgo]="+(d.porcentaje_asistencia ?? 100) < 85">
-                <div class="card-header-split">
-                    <div class="name-block">
-                        <h4>{{ d.docente_nombre }} {{ d.apellido_paterno }}</h4>
-                    </div>
-                    <div class="efficiency-pill-badge" [class.low-efficiency]="+(d.porcentaje_asistencia ?? 100) < 85">
+        <div class="mobile-feed-view">
+            @for (d of $any(store.resumenDocentes()); track d.docente_id) {
+            <div class="dynamic-feed-card" [class.is-critical]="+(d.porcentaje_asistencia ?? 100) < 85">
+                <div class="feed-card-header">
+                    <span class="feed-student-name">{{ d.docente_nombre }}</span>
+                    <span class="feed-efficiency-tag" [class.low]="+(d.porcentaje_asistencia ?? 100) < 85">
                         {{ d.porcentaje_asistencia ?? '0' }}%
-                    </div>
+                    </span>
                 </div>
-
-                <div class="attendance-counters-grid">
-                    <div class="counter-item success">
-                        <span class="c-num">{{ d.presentes }}</span>
-                        <span class="c-lbl">Pres.</span>
+                <div class="feed-metrics-grid">
+                    <div class="metric-pill success">
+                        <span class="value">{{ d.presentes }}</span>
+                        <span class="label">Pres.</span>
                     </div>
-                    <div class="counter-item warning">
-                        <span class="c-num">{{ d.tardanzas }}</span>
-                        <span class="c-lbl">Tard.</span>
+                    <div class="metric-pill warning">
+                        <span class="value">{{ d.tardanzas }}</span>
+                        <span class="label">Tard.</span>
                     </div>
-                    <div class="counter-item danger">
-                        <span class="c-num">{{ d.faltos }}</span>
-                        <span class="c-lbl">Faltas</span>
+                    <div class="metric-pill danger">
+                        <span class="value">{{ d.faltos }}</span>
+                        <span class="label">Faltas</span>
                     </div>
                 </div>
             </div>
@@ -121,4 +120,5 @@
         </div>
     </div>
     }
+
 </div>

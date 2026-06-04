@@ -1,74 +1,74 @@
 <div class="workspace-main-container">
+
     <header class="workspace-header-layout">
         <app-page-header title="Centro de Control de Reportes"
-            subtitle="Consolidados institucionales de notas y asistencia" />
+            subtitle="Consolidados institucionales de notas, rendimiento escolar y control de asistencia" />
     </header>
 
-    <main class="reports-layout-grid">
-        <nav class="reports-sidebar-nav" aria-label="Opciones de reportes">
-            <mat-nav-list class="modern-nav-list">
-                <button mat-list-item class="nav-item-btn" [class.is-active]="reporteActivo() === 'grades'"
-                    (click)="cambiarReporte('grades')">
-                    <mat-icon matListItemIcon>menu_book</mat-icon>
-                    <span matListItemTitle class="nav-title">Exportar Notas</span>
-                </button>
+    <div class="reports-control-bar">
+        <div class="segmented-control-nav" role="tablist" aria-label="Menú de Reportes Institucionales">
+            <button class="control-tab-item" [class.is-active]="reporteActivo() === 'grades'"
+                (click)="cambiarReporte('grades')" role="tab">
+                <mat-icon>menu_book</mat-icon>
+                <span>Exportar Notas</span>
+            </button>
 
-                <button mat-list-item class="nav-item-btn" [class.is-active]="reporteActivo() === 'sections'"
-                    (click)="cambiarReporte('sections')">
-                    <mat-icon matListItemIcon>analytics</mat-icon>
-                    <span matListItemTitle class="nav-title">Reporte por Sección</span>
-                </button>
+            <button class="control-tab-item" [class.is-active]="reporteActivo() === 'sections'"
+                (click)="cambiarReporte('sections')" role="tab">
+                <mat-icon>analytics</mat-icon>
+                <span>Reporte por Sección</span>
+            </button>
 
-                <button mat-list-item class="nav-item-btn" [class.is-active]="reporteActivo() === 'teachers'"
-                    (click)="cambiarReporte('teachers')">
-                    <mat-icon matListItemIcon>badge</mat-icon>
-                    <span matListItemTitle class="nav-title">Asistencia Docentes</span>
-                </button>
+            <button class="control-tab-item" [class.is-active]="reporteActivo() === 'teachers'"
+                (click)="cambiarReporte('teachers')" role="tab">
+                <mat-icon>badge</mat-icon>
+                <span>Asistencia Docentes</span>
+            </button>
 
-                <button mat-list-item class="nav-item-btn" [class.is-active]="reporteActivo() === 'staff'"
-                    (click)="cambiarReporte('staff')">
-                    <mat-icon matListItemIcon>engineering</mat-icon>
-                    <span matListItemTitle class="nav-title">Asistencia Staff</span>
-                </button>
-            </mat-nav-list>
-        </nav>
+            <button class="control-tab-item" [class.is-active]="reporteActivo() === 'staff'"
+                (click)="cambiarReporte('staff')" role="tab">
+                <mat-icon>engineering</mat-icon>
+                <span>Asistencia Staff</span>
+            </button>
+        </div>
+    </div>
 
-        <section class="reports-content-pane" aria-live="polite">
-            @if (reporteActivo() === 'grades') {
-            <div class="pane-wrapper">
-                <app-export-grades-tab />
-            </div>
+    <main class="reports-viewport-canvas">
+        @if (reporteActivo() === 'grades') {
+        <div class="canvas-pane-fade">
+            <app-export-grades-tab />
+        </div>
+        }
+
+        @if (reporteActivo() === 'sections') {
+        <div class="canvas-pane-fade">
+            @defer (on idle) {
+            <app-section-report-tab />
+            } @placeholder {
+            <div class="loading-canvas-placeholder">Sincronizando métricas de sección...</div>
             }
+        </div>
+        }
 
-            @if (reporteActivo() === 'sections') {
-            <div class="pane-wrapper">
-                @defer (on idle) {
-                <app-section-report-tab />
-                } @placeholder {
-                <div class="loading-placeholder">Cargando componentes de sección...</div>
-                }
-            </div>
+        @if (reporteActivo() === 'teachers') {
+        <div class="canvas-pane-fade">
+            @defer (on idle) {
+            <app-teacher-attendance-tab />
+            } @placeholder {
+            <div class="loading-canvas-placeholder">Compilando historial docente...</div>
             }
+        </div>
+        }
 
-            @if (reporteActivo() === 'teachers') {
-            <div class="pane-wrapper">
-                @defer (on idle) {
-                <app-teacher-attendance-tab />
-                } @placeholder {
-                <div class="loading-placeholder">Cargando control docente...</div>
-                }
-            </div>
+        @if (reporteActivo() === 'staff') {
+        <div class="canvas-pane-fade">
+            @defer (on idle) {
+            <app-staff-attendance-tab />
+            } @placeholder {
+            <div class="loading-canvas-placeholder">Conectando con la jornada laboral de soporte...</div>
             }
-
-            @if (reporteActivo() === 'staff') {
-            <div class="pane-wrapper">
-                @defer (on idle) {
-                <app-staff-attendance-tab />
-                } @placeholder {
-                <div class="loading-placeholder">Cargando control de staff administrativo...</div>
-                }
-            </div>
-            }
-        </section>
+        </div>
+        }
     </main>
+
 </div>

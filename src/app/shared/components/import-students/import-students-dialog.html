@@ -37,7 +37,7 @@
                 <mat-select formControlName="seccion_id">
                     @for (s of secciones(); track s.id) {
                     <mat-option [value]="s.id">
-                        {{ s.grado?.nombre ?? '' }} — Sección {{ s.nombre }}
+                        {{ s.grado_nombre }} — Sección {{ s.nombre }}
                     </mat-option>
                     }
                 </mat-select>
