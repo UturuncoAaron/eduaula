@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,10 +13,11 @@ import { ReportsStore } from '../../data-access/reports.store';
 import { ReportsService } from '@core/services/reports';
 import { ApiService } from '../../../../../core/services/api';
 
-interface DocenteColaborador {
+interface PersonalItem {
   id: string;
   nombre: string;
   apellido_paterno: string;
+  apellido_materno: string | null;
   rol: string;
 }
 
@@ -25,15 +26,9 @@ interface DocenteColaborador {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressBarModule,
-    MatTooltipModule
+    CommonModule, FormsModule, MatFormFieldModule, MatInputModule,
+    MatSelectModule, MatButtonModule, MatIconModule,
+    MatProgressBarModule, MatTooltipModule
   ],
   templateUrl: './teacher-attendance-tab.html',
   styleUrl: './teacher-attendance-tab.scss'
@@ -41,34 +36,40 @@ interface DocenteColaborador {
 export class TeacherAttendanceTab implements OnInit {
   private svc = inject(ReportsService);
   private api = inject(ApiService);
+  private cdr = inject(ChangeDetectorRef);
   readonly store = inject(ReportsStore);
 
-  readonly personalLista = signal<DocenteColaborador[]>([]);
+  readonly personalLista = signal<PersonalItem[]>([]);
 
   personalId = '';
   rangoInicio = this.primerDiaMes();
   rangoFin = new Date().toISOString().slice(0, 10);
 
   ngOnInit(): void {
-    this.api.get<DocenteColaborador[]>('admin/users/docentes?limit=100').subscribe({
-      next: (r: any) => this.personalLista.set(r?.data ?? r ?? [])
+    this.api.get<PersonalItem[]>('admin/users/docentes?limit=200').subscribe({
+      next: (r: any) => {
+        const lista = (r?.data ?? r ?? []) as PersonalItem[];
+        this.personalLista.set(
+          Array.isArray(lista)
+            ? lista.map(p => ({ ...p, rol: 'docente' }))
+            : []
+        );
+        this.cdr.markForCheck();
+      }
     });
   }
 
   cargarResumen(): void {
-    this.store.loadResumenDocentes(this.rangoInicio, this.rangoFin);
+    this.store.loadResumenDocentes(this.rangoInicio, this.rangoFin, this.personalId || undefined);
   }
-
   descargarReportePersonal(formato: 'xlsx' | 'pdf'): void {
-    const extraParams = {
+    this.svc.downloadConsolidatedReport({
       scope: 'teacher_attendance_range',
       format: formato,
       fecha_inicio: this.rangoInicio,
       fecha_fin: this.rangoFin,
       ...(this.personalId && { cuenta_id: this.personalId })
-    };
-
-    this.svc.downloadConsolidatedReport(extraParams).subscribe({
+    }).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

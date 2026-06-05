@@ -1,4 +1,7 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component, inject, signal, computed,
+  OnInit, ChangeDetectionStrategy, OnDestroy
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -31,12 +34,12 @@ interface RoleMeta {
 }
 
 const ROLE_META: Record<Rol, RoleMeta> = {
-  admin: { label: 'Administrador', icon: 'admin_panel_settings', endpoint: 'admin/users/admins', color: '#ef4444' },
-  alumno: { label: 'Alumno', icon: 'school', endpoint: 'admin/users/alumnos', color: '#10b981' },
-  docente: { label: 'Docente', icon: 'badge', endpoint: 'admin/users/docentes', color: '#f59e0b' },
-  padre: { label: 'Padre / Tutor', icon: 'family_restroom', endpoint: 'admin/users/padres', color: '#8b5cf6' },
-  psicologa: { label: 'Psicóloga', icon: 'psychology', endpoint: 'admin/users/psicologos', color: '#0ea5e9' },
-  staff: { label: 'Personal Staff', icon: 'support_agent', endpoint: 'admin/users/staff', color: '#14b8a6' },
+  admin: { label: 'Administrador', icon: 'shield_person', endpoint: 'admin/users/admins', color: '#6366f1' },
+  alumno: { label: 'Estudiante', icon: 'school', endpoint: 'admin/users/alumnos', color: '#0ea5e9' },
+  docente: { label: 'Docente', icon: 'co_present', endpoint: 'admin/users/docentes', color: '#10b981' },
+  padre: { label: 'Familiar / Apoderado', icon: 'supervised_user_circle', endpoint: 'admin/users/padres', color: '#8b5cf6' },
+  psicologa: { label: 'Psicología', icon: 'psychology', endpoint: 'admin/users/psicologos', color: '#ec4899' },
+  staff: { label: 'Personal Administrativo', icon: 'badge', endpoint: 'admin/users/staff', color: '#f59e0b' },
 };
 
 @Component({
@@ -47,63 +50,61 @@ const ROLE_META: Record<Rol, RoleMeta> = {
     MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButtonModule, MatIconModule,
     MatDatepickerModule, MatNativeDateModule,
-    MatCheckboxModule,
-    MatDialogModule,
+    MatCheckboxModule, MatDialogModule
   ],
   templateUrl: './user-dialog.html',
   styleUrl: './user-dialog.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserDialog implements OnInit, OnDestroy {
-  private fb = inject(FormBuilder);
-  private api = inject(ApiService);
-  private auth = inject(AuthService);
-  private toastr = inject(ToastService);
-  private dialogRef = inject(MatDialogRef<UserDialog>);
+  private readonly fb = inject(FormBuilder);
+  private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
+  private readonly toastr = inject(ToastService);
+  private readonly dialogRef = inject(MatDialogRef<UserDialog>);
 
-  data = inject<UserDialogData>(MAT_DIALOG_DATA);
+  readonly data = inject<UserDialogData>(MAT_DIALOG_DATA);
 
   readonly isEdit = this.data.mode === 'edit';
   readonly isCreate = this.data.mode === 'create';
   readonly isSelf = this.data.isSelf ?? false;
-
-  busy = signal(false);
-  success = signal(false);
-  error = signal('');
-
-  fotoFile = signal<File | null>(null);
-  fotoPreview = signal<string | null>(null);
-
-  showCurrent = signal(false);
-  showNew = signal(false);
-
-  roleMeta = computed<RoleMeta>(() => ROLE_META[this.data.rol]);
   readonly fechaRequerida = this.data.rol === 'alumno';
-  esContratado = computed(() => this.form.get('tipo_contrato')?.value === 'contratado');
 
-  initials = computed(() => {
+  readonly busy = signal(false);
+  readonly success = signal(false);
+  readonly error = signal('');
+
+  readonly fotoFile = signal<File | null>(null);
+  readonly fotoPreview = signal<string | null>(null);
+
+  readonly showCurrent = signal(false);
+  readonly showNew = signal(false);
+
+  readonly roleMeta = computed<RoleMeta>(() => ROLE_META[this.data.rol]);
+  readonly esContratado = computed(() => this.form.get('tipo_contrato')?.value === 'contratado');
+
+  readonly initials = computed(() => {
     const u = this.data.user;
-    if (!u) return 'N';
-    return ((u.nombre?.charAt(0) ?? '') + (u.apellido_paterno?.charAt(0) ?? '')).toUpperCase() || 'U';
+    if (!u) return 'U';
+    return `${u.nombre?.charAt(0) ?? ''}${u.apellido_paterno?.charAt(0) ?? ''}`.toUpperCase() || 'U';
   });
 
-  progressWidth = computed(() => {
+  readonly progressWidth = computed(() => {
     const c = this.form.controls;
-    const req = [c['tipo_documento'], c['numero_documento'], c['nombre'], c['apellido_paterno']];
-    const opt = [c['apellido_materno'], c['email'], c['telefono']];
-    const filledReq = req.filter(x => x.value?.toString().trim()).length;
-    const filledOpt = opt.filter(x => x.value?.toString().trim()).length;
-    return `${Math.round((filledReq / req.length) * 70 + (filledOpt / opt.length) * 30)}%`;
+    const fieldsToTrack = [c.tipo_documento, c.numero_documento, c.nombre, c.apellido_paterno, c.email];
+    const filled = fieldsToTrack.filter(ctrl => ctrl.value?.toString().trim()).length;
+    return `${Math.round((filled / fieldsToTrack.length) * 100)}%`;
   });
 
-  form = this.fb.group({
+  readonly form = this.fb.group({
     tipo_documento: ['dni', Validators.required],
     numero_documento: ['', [Validators.required]],
-    nombre: ['', [Validators.required, Validators.maxLength(100)]],
-    apellido_paterno: ['', [Validators.required, Validators.maxLength(100)]],
-    apellido_materno: ['', Validators.maxLength(100)],
-    email: ['', [Validators.email, Validators.maxLength(255)]],
-    telefono: ['', Validators.pattern(/^9\d{8}$/)],
-    fecha_nacimiento: [null as Date | null, this.fechaRequerida ? Validators.required : null],
+    nombre: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/)]],
+    apellido_paterno: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/)]],
+    apellido_materno: ['', [Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
+    telefono: ['', [Validators.required, Validators.pattern(/^9\d{8}$/)]],
+    fecha_nacimiento: [null as Date | null],
     especialidad: ['', Validators.maxLength(100)],
     titulo_profesional: ['', Validators.maxLength(100)],
     tipo_contrato: ['contratado'],
@@ -115,16 +116,33 @@ export class UserDialog implements OnInit, OnDestroy {
     colegiatura: ['', Validators.maxLength(50)],
     es_inclusivo: [false],
     current_password: [''],
-    new_password: ['', Validators.minLength(8)],
+    new_password: ['', [Validators.minLength(8)]],
   });
 
   private docSub?: Subscription;
+  private passSub?: Subscription;
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.setupDynamicValidators();
+    this.initializeFormValues();
+  }
+
+  ngOnDestroy(): void {
+    this.docSub?.unsubscribe();
+    this.passSub?.unsubscribe();
+  }
+
+  private initializeFormValues(): void {
+    if (this.fechaRequerida) {
+      this.form.get('fecha_nacimiento')?.setValidators([Validators.required]);
+    }
 
     if (this.isEdit && this.data.user) {
       const u = this.data.user;
+
+      // Intentar extraer la fecha de nacimiento usando múltiples fuentes comunes de payloads
+      const rawFechaNacimiento = u.fecha_nacimiento || (u as any).fechaNacimiento || (u as any).birthdate || null;
+
       this.form.patchValue({
         tipo_documento: u.tipo_documento ?? 'dni',
         numero_documento: u.numero_documento ?? '',
@@ -136,16 +154,48 @@ export class UserDialog implements OnInit, OnDestroy {
         especialidad: u.especialidad ?? '',
         titulo_profesional: (u as any).titulo_profesional ?? '',
         colegiatura: u.colegiatura ?? '',
-        cargo: u.cargo ?? '',
         relacion: u.relacion_familiar ?? '',
         es_inclusivo: u.inclusivo ?? false,
+        fecha_nacimiento: this.parseBackendDate(rawFechaNacimiento)
       });
+
+      // Mapear cargos institucionales para Staff y Admins de forma explícita
+      if (this.data.rol === 'staff' || this.data.rol === 'admin') {
+        const cargoValor = u.cargo || (u as any).puesto || '';
+        this.form.get('cargo')?.setValue(cargoValor);
+      }
+
+      this.form.updateValueAndValidity();
     }
   }
 
-  ngOnDestroy() { this.docSub?.unsubscribe(); }
+  /**
+   * Parsea de forma estricta cualquier valor de fecha del backend a un objeto Date nativo localmente habitable.
+   */
+  private parseBackendDate(dateValue: any): Date | null {
+    if (!dateValue) return null;
+    if (dateValue instanceof Date) return isNaN(dateValue.getTime()) ? null : dateValue;
 
-  private setupDynamicValidators() {
+    // Tratamiento para cadenas con formato "YYYY-MM-DD" para evitar desajustes horarios
+    const cleanStr = dateValue.toString().split('T')[0].trim();
+    const parts = cleanStr.split('-');
+
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Base 0 en JS
+      const day = parseInt(parts[2], 10);
+
+      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+        return new Date(year, month, day);
+      }
+    }
+
+    // Si viene con otro formato estándar, recurrir al motor nativo de parsing
+    const timestamp = Date.parse(dateValue);
+    return !isNaN(timestamp) ? new Date(timestamp) : null;
+  }
+
+  private setupDynamicValidators(): void {
     const docCtrl = this.form.get('numero_documento');
     this.docSub = this.form.get('tipo_documento')?.valueChanges.subscribe(tipo => {
       docCtrl?.clearValidators();
@@ -158,14 +208,27 @@ export class UserDialog implements OnInit, OnDestroy {
       }
       docCtrl?.updateValueAndValidity();
     });
+
+    if (this.isSelf) {
+      const currentPassCtrl = this.form.get('current_password');
+      this.passSub = this.form.get('new_password')?.valueChanges.subscribe(newPass => {
+        if (newPass && newPass.trim().length > 0) {
+          currentPassCtrl?.setValidators([Validators.required]);
+        } else {
+          currentPassCtrl?.clearValidators();
+        }
+        currentPassCtrl?.updateValueAndValidity();
+      });
+    }
+
     this.form.get('tipo_documento')?.updateValueAndValidity();
   }
 
-  onFotoSelected(event: Event) {
+  onFotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      this.toastr.error('La imagen supera los 2 MB.', 'Archivo demasiado grande');
+      this.toastr.error('La imagen de perfil supera el límite de 2 MB permitido.', 'Archivo excedido');
       return;
     }
     this.fotoFile.set(file);
@@ -174,20 +237,27 @@ export class UserDialog implements OnInit, OnDestroy {
     reader.readAsDataURL(file);
   }
 
-  removeFoto() { this.fotoFile.set(null); this.fotoPreview.set(null); }
+  removeFoto(): void {
+    this.fotoFile.set(null);
+    this.fotoPreview.set(null);
+  }
 
   private toISODate(d: Date | null | undefined): string | null {
-    return d ? d.toISOString().split('T')[0] : null;
+    if (!d) return null;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private extractError(e: any): string {
     const b = e?.error;
     if (typeof b?.message === 'string') return b.message;
     if (Array.isArray(b?.message)) return b.message.join(', ');
-    return 'Error al conectar con el servidor';
+    return 'Error interno en la comunicación con el servidor institucional';
   }
 
-  private submitCreate() {
+  private submitCreate(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
     this.busy.set(true);
@@ -196,41 +266,41 @@ export class UserDialog implements OnInit, OnDestroy {
     const base: Record<string, unknown> = {
       tipo_documento: v.tipo_documento,
       numero_documento: v.numero_documento,
-      nombre: v.nombre,
-      apellido_paterno: v.apellido_paterno,
-      ...(v.apellido_materno?.trim() && { apellido_materno: v.apellido_materno }),
-      ...(v.email?.trim() && { email: v.email }),
-      ...(v.telefono?.trim() && { telefono: v.telefono }),
+      nombre: v.nombre?.trim(),
+      apellido_paterno: v.apellido_paterno?.trim(),
+      ...(v.apellido_materno?.trim() && { apellido_materno: v.apellido_materno.trim() }),
+      email: v.email?.trim().toLowerCase(),
+      telefono: v.telefono?.trim(),
       ...(v.fecha_nacimiento && { fecha_nacimiento: this.toISODate(v.fecha_nacimiento as Date) }),
     };
 
     const extras: Record<Rol, Record<string, unknown>> = {
       alumno: { inclusivo: !!v.es_inclusivo },
       docente: {
-        ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
-        ...(v.titulo_profesional?.trim() && { titulo_profesional: v.titulo_profesional }),
+        ...(v.especialidad?.trim() && { especialidad: v.especialidad.trim() }),
+        ...(v.titulo_profesional?.trim() && { titulo_profesional: v.titulo_profesional.trim() }),
         tipo_contrato: v.tipo_contrato,
         estado_contrato: v.estado_contrato,
         ...(v.fecha_inicio_contrato && { fecha_inicio_contrato: this.toISODate(v.fecha_inicio_contrato as Date) }),
         ...(v.fecha_fin_contrato && { fecha_fin_contrato: this.toISODate(v.fecha_fin_contrato as Date) }),
       },
       padre: { relacion: v.relacion },
-      admin: { ...(v.cargo?.trim() && { cargo: v.cargo }) },
+      admin: { ...(v.cargo?.trim() && { cargo: v.cargo.trim() }) },
       psicologa: {
-        ...(v.especialidad?.trim() && { especialidad: v.especialidad }),
-        ...(v.colegiatura?.trim() && { colegiatura: v.colegiatura }),
+        ...(v.especialidad?.trim() && { especialidad: v.especialidad.trim() }),
+        ...(v.colegiatura?.trim() && { colegiatura: v.colegiatura.trim() }),
       },
-      staff: { ...(v.cargo?.trim() && { cargo: v.cargo }) },
+      staff: { ...(v.cargo?.trim() && { cargo: v.cargo.trim() }) },
     };
 
     this.api.post(ROLE_META[this.data.rol].endpoint, { ...base, ...extras[this.data.rol] }).subscribe({
       next: () => {
-        this.toastr.success('Usuario registrado correctamente', '¡Éxito!');
+        this.toastr.success('Usuario registrado correctamente con las credenciales base', '¡Éxito!');
         this.dialogRef.close(true);
         this.busy.set(false);
       },
       error: err => {
-        this.toastr.error(this.extractError(err), 'Error');
+        this.toastr.error(this.extractError(err), 'Error de Registro');
         this.busy.set(false);
       },
     });
@@ -239,11 +309,6 @@ export class UserDialog implements OnInit, OnDestroy {
   private async submitEdit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const v = this.form.value;
-
-    if (this.isSelf && v.new_password && !v.current_password) {
-      const msg = 'Ingresa tu contraseña actual para autorizar el cambio.';
-      this.error.set(msg); this.toastr.error(msg, 'Requerido'); return;
-    }
 
     this.busy.set(true);
     this.error.set('');
@@ -264,17 +329,18 @@ export class UserDialog implements OnInit, OnDestroy {
       const endpoint = this.isSelf ? 'users/me' : `admin/users/${this.data.user!.id}`;
 
       const payload: Record<string, any> = {
-        nombre: v.nombre,
-        apellido_paterno: v.apellido_paterno,
-        apellido_materno: v.apellido_materno || null,
-        telefono: v.telefono || null,
-        email: v.email || null,
+        nombre: v.nombre?.trim(),
+        apellido_paterno: v.apellido_paterno?.trim(),
+        apellido_materno: v.apellido_materno?.trim() || null,
+        telefono: v.telefono?.trim(),
+        email: v.email?.trim().toLowerCase(),
+        fecha_nacimiento: v.fecha_nacimiento ? this.toISODate(v.fecha_nacimiento as Date) : null
       };
 
-      if (v.especialidad) payload['especialidad'] = v.especialidad;
-      if (v.titulo_profesional) payload['titulo_profesional'] = v.titulo_profesional;
-      if (v.colegiatura) payload['colegiatura'] = v.colegiatura;
-      if (v.cargo) payload['cargo'] = v.cargo;
+      if (v.especialidad) payload['especialidad'] = v.especialidad.trim();
+      if (v.titulo_profesional) payload['titulo_profesional'] = v.titulo_profesional.trim();
+      if (v.colegiatura) payload['colegiatura'] = v.colegiatura.trim();
+      if (v.cargo) payload['cargo'] = v.cargo.trim();
       if (v.relacion) payload['relacion'] = v.relacion;
       if (this.data.rol === 'alumno') payload['inclusivo'] = !!v.es_inclusivo;
 
@@ -283,7 +349,7 @@ export class UserDialog implements OnInit, OnDestroy {
         payload['numero_documento'] = v.numero_documento;
       }
 
-      if (v.new_password) {
+      if (v.new_password?.trim()) {
         payload['new_password'] = v.new_password;
         if (this.isSelf) payload['current_password'] = v.current_password;
       }
@@ -295,25 +361,25 @@ export class UserDialog implements OnInit, OnDestroy {
           nombre: v.nombre!,
           apellido_paterno: v.apellido_paterno!,
           apellido_materno: v.apellido_materno || null,
-          telefono: v.telefono || null,
-          email: v.email || null,
+          telefono: v.telefono!,
+          email: v.email!,
         });
       }
 
       this.busy.set(false);
       this.success.set(true);
-      this.toastr.success('Perfil actualizado correctamente.', '¡Éxito!');
-      setTimeout(() => this.dialogRef.close({ updated: true }), 1200);
+      this.toastr.success('Cambios aplicados de forma segura sobre la cuenta.', '¡Éxito!');
+      setTimeout(() => this.dialogRef.close({ updated: true }), 1000);
 
     } catch (e: any) {
       const msg = this.extractError(e);
       this.busy.set(false);
       this.error.set(msg);
-      this.toastr.error(msg, 'Error');
+      this.toastr.error(msg, 'Error de Guardado');
     }
   }
 
-  submit() {
+  submit(): void {
     if (this.isCreate) this.submitCreate();
     else this.submitEdit();
   }

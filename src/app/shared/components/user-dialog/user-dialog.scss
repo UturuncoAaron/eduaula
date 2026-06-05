@@ -1,49 +1,50 @@
-// ─── Variables & Mixins ─────────────────────────────────────────
-$border-color: #e2e8f0;
-$bg-light: #f8fafc;
-$text-main: #0f172a;
-$text-muted: #64748b;
-$transition: 0.2s ease-in-out;
+// ── Variables del Sistema de Diseño Avanzado ─────────────────────
+$font-family: 'Inter', system-ui, -apple-system, sans-serif;
+$color-bg-base: #ffffff;
+$color-border-smooth: #f1f5f9;
+$color-border-field: #cbd5e1;
+$color-text-main: #0f172a;
+$color-text-muted: #475569;
+$radius-squircle: 20px;
+$radius-fields: 10px;
+$shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
 
 .dialog-container {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: #ffffff;
-    font-family: 'Inter', 'Roboto', sans-serif;
+    background: $color-bg-base;
+    font-family: $font-family;
+    color: $color-text-main;
 }
 
-// ─── Header Moderno ─────────────────────────────────────────────
+// ── Header Corporativo ──────────────────────────────────────────
 .dialog-header {
+    padding: 24px 32px;
     background: #ffffff;
-    border-bottom: 1px solid $border-color;
+    border-bottom: 1px solid #f1f5f9;
     position: relative;
-}
-
-.dialog-header-modern {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 24px;
+    flex-direction: column;
+    gap: 16px;
+
+    .header-main {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
 }
 
-.header-main {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-// Avatar (Edición)
-.user-avatar {
-    width: 72px;
-    height: 72px;
-    border-radius: 16px; // Cuadrado redondeado (Squircle) moderno
+.avatar-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: $radius-squircle;
     position: relative;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.08);
 
     img {
         width: 100%;
@@ -51,29 +52,27 @@ $transition: 0.2s ease-in-out;
         object-fit: cover;
     }
 
-    .avatar-letters {
-        font-size: 26px;
+    .avatar-initials {
+        font-size: 28px;
         font-weight: 700;
         color: #ffffff;
         letter-spacing: -0.5px;
     }
 
-    .avatar-upload {
+    .avatar-overlay {
         position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(15, 23, 42, 0.75);
         display: flex;
         align-items: center;
         justify-content: center;
         opacity: 0;
-        transition: opacity $transition;
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
         color: #ffffff;
 
         mat-icon {
-            font-size: 24px;
-            width: 24px;
-            height: 24px;
+            font-size: 22px;
         }
 
         &:hover {
@@ -82,120 +81,76 @@ $transition: 0.2s ease-in-out;
     }
 }
 
-// Icono (Creación)
-.create-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
+.icon-avatar-badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
 
     mat-icon {
-        font-size: 30px;
-        width: 30px;
-        height: 30px;
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
     }
 }
 
-// Información del usuario
-.user-info {
+.header-titles {
     display: flex;
     flex-direction: column;
     gap: 4px;
 
-    .role-badge {
+    .meta-tag {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         padding: 4px 10px;
-        border-radius: 8px;
-        font-size: 11.5px;
+        border-radius: 6px;
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
-        align-self: flex-start;
+        letter-spacing: 0.5px;
+        width: fit-content;
 
         mat-icon {
-            font-size: 14px;
-            width: 14px;
-            height: 14px;
+            font-size: 13px;
+            width: 13px;
+            height: 13px;
         }
     }
 
-    .eyebrow {
-        margin: 0 0 2px 0;
-        font-size: 12px;
-        font-weight: 600;
-        color: $text-muted;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .user-name {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 700;
-        color: $text-main;
+    .main-title {
+        margin: 4px 0 0 0;
+        font-size: 22px;
+        font-weight: 800;
+        color: $color-text-main;
         letter-spacing: -0.5px;
         line-height: 1.2;
     }
 
-    .user-subtitle {
+    .subtitle-desc {
         margin: 0;
-        font-size: 13.5px;
-        color: $text-muted;
-    }
-
-    .file-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 2px 8px;
-        border-radius: 6px;
-        margin-top: 4px;
-        background: #f1f5f9;
-        border: 1px solid #cbd5e1;
-        font-size: 11px;
-        color: #334155;
-        align-self: flex-start;
-
-        button {
-            background: none;
-            border: none;
-            padding: 0;
-            display: flex;
-            cursor: pointer;
-            color: #ef4444;
-
-            mat-icon {
-                font-size: 12px;
-                width: 12px;
-                height: 12px;
-            }
-        }
+        font-size: 13px;
+        color: $color-text-muted;
     }
 }
 
-// Botón de Cerrar (X)
-.close-btn {
+.action-close-circle {
     position: absolute;
-
     top: 24px;
     right: 24px;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     border: none;
-    background: #f1f5f9;
-    color: #64748b;
+    background: #f8fafc;
+    color: #94a3b8;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all $transition;
-    flex-shrink: 0;
-    z-index: 100;
+    transition: all 0.2s ease;
 
     mat-icon {
         font-size: 18px;
@@ -204,28 +159,30 @@ $transition: 0.2s ease-in-out;
     }
 
     &:hover {
-        background: #e2e8f0;
-        color: #0f172a;
+        background: #f1f5f9;
+        color: $color-text-main;
     }
 }
 
-.progress-strip {
+.progress-bar-container {
     height: 4px;
-    background: $bg-light;
+    background: #f1f5f9;
     width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
 
-    .progress-fill {
+    .progress-bar-indicator {
         height: 100%;
-        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 0 2px 2px 0;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 }
 
-// ─── Body y Formularios ─────────────────────────────────────────
-.dialog-body {
-    padding: 0 !important;
-    max-height: 65vh !important;
+// ── Cuerpo del Diálogo Scrollable ───────────────────────────────
+.dialog-content-scroll {
+    padding: 32px !important;
+    max-height: 60vh !important;
     overflow-y: auto;
+    background: #fafbfe;
 
     &::-webkit-scrollbar {
         width: 6px;
@@ -241,64 +198,46 @@ $transition: 0.2s ease-in-out;
     }
 }
 
-.modern-form {
+.layout-stack-form {
     display: flex;
     flex-direction: column;
-    padding: 24px;
-    gap: 32px; // Separación elegante entre secciones
+    gap: 28px;
 }
 
-.form-section {
+.form-fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 16px;
 
-    .section-title {
+    .fieldset-legend {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin: 0;
-        font-size: 15px;
-        font-weight: 600;
-        color: $text-main;
-        padding-bottom: 8px;
-        border-bottom: 1px solid $border-color;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
 
         mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
         }
     }
-
-    .section-hint {
-        margin: -8px 0 8px 0;
-        font-size: 12.5px;
-        color: $text-muted;
-    }
 }
 
-.security-section {
-    background: #fafafa;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px dashed #cbd5e1;
-
-    .section-title {
-        border-bottom: none;
-        padding-bottom: 0;
-        margin-bottom: 4px;
-    }
-}
-
-// ─── Grids ──────────────────────────────────────────────────────
-.grid-2 {
+// ── Grids de Estructuración Simétrica ──────────────────────────
+.form-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
 }
 
-.grid-3 {
+.form-grid-3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
@@ -308,185 +247,227 @@ $transition: 0.2s ease-in-out;
     width: 100%;
 }
 
-.col-span-2 {
+.col-span-full {
     grid-column: span 2;
 }
 
-@media (max-width: 640px) {
+// Secciones dinámicas contextuales
+.dynamic-role-section {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
 
-    .grid-2,
-    .grid-3 {
-        grid-template-columns: 1fr;
+.security-wrapper {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 14px;
+    border: 1px dashed #cbd5e1;
+
+    .fieldset-legend {
+        color: #475569;
     }
 
-    .col-span-2 {
-        grid-column: span 1;
-    }
-
-    .header-main {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .user-info .role-badge,
-    .user-info .file-badge {
-        align-self: center;
+    .fieldset-hint-text {
+        margin: -8px 0 8px 0;
+        font-size: 12.5px;
+        color: #64748b;
     }
 }
 
-// ─── Angular Material Overrides ─────────────────────────────────
+// ── Inclusión Educativa (Card Box Style) ──────────────────────
+.toggle-card-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    transition: all 0.2s ease;
+
+    .toggle-card-label {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: $color-text-main;
+    }
+
+    .toggle-card-hint {
+        margin: 0;
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.5;
+        padding-left: 28px;
+    }
+
+    &--active {
+        background: #fdf4ff;
+        border-color: #f5d0fe;
+
+        .toggle-card-label {
+            color: #86198f;
+        }
+    }
+}
+
+// ── Overrides a Capa de Controles Material ──────────────────────
 mat-form-field {
     width: 100%;
 
     ::ng-deep .mat-mdc-text-field-wrapper {
         background-color: #ffffff !important;
+        border-radius: $radius-fields !important;
+        transition: box-shadow 0.15s ease;
     }
 
     ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-        padding: 0;
+        padding: 0 4px;
         margin-top: 4px;
+        font-size: 11.5px;
     }
 }
 
-// ─── Alertas ────────────────────────────────────────────────────
-.status-alert {
+.form-prefix-icon {
+    color: #94a3b8;
+    margin-right: 8px;
+}
+
+// ── Banners de Estado ───────────────────────────────────────────
+.feedback-banner {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    border-radius: 8px;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: $radius-fields;
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight: 600;
+    line-height: 1.4;
 
     mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
     }
 }
 
-.alert-error {
+.error-banner {
     background: #fef2f2;
     color: #b91c1c;
     border: 1px solid #fecaca;
 }
 
-.alert-success {
+.success-banner {
     background: #f0fdf4;
     color: #15803d;
     border: 1px solid #bbf7d0;
 }
 
-// ─── Footer ─────────────────────────────────────────────────────
-.dialog-footer {
-    padding: 16px 24px !important;
+// ── Footer y Botoneras Simétricas ──────────────────────────────
+.dialog-actions-footer {
+    padding: 20px 32px !important;
     background: #ffffff;
-    border-top: 1px solid $border-color;
+    border-top: 1px solid #f1f5f9;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    margin-bottom: 0;
+    margin: 0 !important;
 
-    .btn-cancel {
-        color: #475569;
-        font-weight: 500;
+    .btn-secondary-custom {
+        color: #64748b;
+        font-weight: 600;
+        padding: 0 20px;
+        height: 44px;
+        border-radius: $radius-fields;
 
         &:hover {
-            background: #f1f5f9;
+            background: #f8fafc;
         }
     }
 
-    .btn-submit {
-        display: flex;
+    .btn-primary-custom {
+        display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 0 24px;
-        border-radius: 8px;
+        gap: 8px;
+        padding: 0 26px;
+        height: 44px;
+        border-radius: $radius-fields;
         font-weight: 600;
         color: #ffffff;
-        transition: filter $transition, transform $transition;
+        transition: all 0.2s ease;
 
         mat-icon {
             font-size: 18px;
             width: 18px;
             height: 18px;
-            margin-right: 4px;
         }
 
         &:hover:not([disabled]) {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
+            filter: brightness(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         &[disabled] {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
         }
     }
 }
 
-// Spinner
-.spinner {
+// Loader Lineal Animado para botones
+.custom-loader-spinner {
     width: 16px;
     height: 16px;
-    margin-right: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2.5px solid rgba(255, 255, 255, 0.25);
     border-top-color: #ffffff;
     border-radius: 50%;
-    animation: spin 0.6s linear infinite;
+    animation: rotationForce 0.6s linear infinite;
 }
 
-@keyframes spin {
+@keyframes rotationForce {
     to {
         transform: rotate(360deg);
     }
 }
-// ── Inclusivo toggle (rol = alumno) ────────────────────────────
-// Se distingue al alumno con NEE en todo el sistema usando el
-// token `--c-inclusivo`. Aquí controlamos la versión "tarjeta" del
-// checkbox dentro del modal; la versión "fila" de tabla está en
-// `tab-alumnos.scss`.
-.inclusivo-toggle {
-    --c-inclusivo:        #c026d3;
-    --c-inclusivo-soft:   #fdf4ff;
-    --c-inclusivo-line:   #f5d0fe;
-    --c-inclusivo-text:   #86198f;
 
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    background: #f8fafc;
-    border: 1.5px solid #e2e8f0;
-    cursor: pointer;
-    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+// ── Tratamiento Responsive (Mobile Friendly) ───────────────────
+@media (max-width: 768px) {
+    .dialog-header {
+        padding: 20px 24px;
 
-    &:hover {
-        border-color: #cbd5e1;
+        .header-main {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 14px;
+        }
     }
 
-    &__label {
-        font-size: .92rem;
-        font-weight: 600;
-        color: #0f172a;
+    .action-close-circle {
+        top: 16px;
+        right: 16px;
     }
 
-    &__hint {
-        font-size: .78rem;
-        color: #64748b;
-        line-height: 1.4;
-        padding-left: 30px;
+    .dialog-content-scroll {
+        padding: 20px !important;
     }
 
-    &--on {
-        background: var(--c-inclusivo-soft);
-        border-color: var(--c-inclusivo-line);
-        box-shadow: 0 0 0 1px var(--c-inclusivo-line);
+    .form-grid-2,
+    .form-grid-3 {
+        grid-template-columns: 1fr;
+    }
 
-        .inclusivo-toggle__label {
-            color: var(--c-inclusivo-text);
+    .col-span-full {
+        grid-column: span 1;
+    }
+
+    .dialog-actions-footer {
+        padding: 16px 24px !important;
+        flex-direction: column-reverse;
+
+        button {
+            width: 100%;
+            height: 46px;
         }
     }
 }

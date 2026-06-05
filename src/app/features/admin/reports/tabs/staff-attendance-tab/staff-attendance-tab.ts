@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,7 +13,7 @@ import { ReportsStore } from '../../data-access/reports.store';
 import { ReportsService } from '@core/services/reports';
 import { ApiService } from '../../../../../core/services/api';
 
-interface StaffColaborador {
+interface StaffItem {
   id: string;
   nombre: string;
   apellido_paterno: string;
@@ -26,15 +26,9 @@ interface StaffColaborador {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressBarModule,
-    MatTooltipModule
+    CommonModule, FormsModule, MatFormFieldModule, MatInputModule,
+    MatSelectModule, MatButtonModule, MatIconModule,
+    MatProgressBarModule, MatTooltipModule
   ],
   templateUrl: './staff-attendance-tab.html',
   styleUrl: './staff-attendance-tab.scss'
@@ -42,33 +36,36 @@ interface StaffColaborador {
 export class StaffAttendanceTab implements OnInit {
   private svc = inject(ReportsService);
   private api = inject(ApiService);
+  private cdr = inject(ChangeDetectorRef);
   readonly store = inject(ReportsStore);
 
-  readonly staffLista = signal<StaffColaborador[]>([]);
+  readonly staffLista = signal<StaffItem[]>([]);
 
   personalId = '';
   rangoInicio = this.primerDiaMes();
   rangoFin = new Date().toISOString().slice(0, 10);
 
   ngOnInit(): void {
-    this.api.get<StaffColaborador[]>('admin/users/staff?limit=100').subscribe({
-      next: (r: any) => this.staffLista.set(r?.data ?? r ?? [])
+    this.api.get<StaffItem[]>('admin/users/staff?limit=200').subscribe({
+      next: (r: any) => {
+        const lista = r?.data ?? r ?? [];
+        this.staffLista.set(Array.isArray(lista) ? lista : []);
+        this.cdr.markForCheck();
+      }
     });
   }
 
   cargarResumen(): void {
-    if (this.store.loadResumenStaff) {
-      this.store.loadResumenStaff(this.rangoInicio, this.rangoFin);
-    }
+    this.store.loadResumenStaff(this.rangoInicio, this.rangoFin, this.personalId || undefined);
   }
 
   descargarReporteStaff(formato: 'xlsx' | 'pdf'): void {
     this.svc.downloadConsolidatedReport({
       scope: 'staff_attendance_range',
       format: formato,
-      cuenta_id: this.personalId || undefined,
       fecha_inicio: this.rangoInicio,
-      fecha_fin: this.rangoFin
+      fecha_fin: this.rangoFin,
+      ...(this.personalId && { cuenta_id: this.personalId })
     }).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);

@@ -1,312 +1,318 @@
 <div class="dialog-container">
 
-    <!-- ══ HEADER ════════════════════════════════════════════════ -->
-    <div class="dialog-header">
+    <!-- HEADER CORPORATIVO -->
+    <header class="dialog-header">
+        <div class="header-main">
 
-        <!-- EDIT MODE -->
-        @if (isEdit) {
-        <div class="dialog-header-modern">
-            <div class="header-main">
-                <div class="user-avatar" [style.background]="roleMeta().color">
-                    @if (fotoPreview() || data.user?.foto_url) {
-                    <img [src]="fotoPreview() || data.user!.foto_url!" alt="foto" />
-                    } @else {
-                    <span class="avatar-letters">{{ initials() }}</span>
-                    }
-
-                    @if (isSelf) {
-                    <label class="avatar-upload" matTooltip="Cambiar foto de perfil">
-                        <mat-icon>photo_camera</mat-icon>
-                        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onFotoSelected($event)"
-                            hidden />
-                    </label>
-                    }
-                </div>
-
-                <div class="user-info">
-                    <div class="role-badge" [style.background]="roleMeta().color + '15'"
-                        [style.color]="roleMeta().color">
-                        <mat-icon>{{ roleMeta().icon }}</mat-icon> {{ roleMeta().label }}
-                    </div>
-                    <h2 class="user-name">{{ data.user?.nombre }} {{ data.user?.apellido_paterno }}</h2>
-                    <p class="user-subtitle">Actualización de perfil</p>
-
-                    @if (fotoFile() && isSelf) {
-                    <span class="file-badge">
-                        <mat-icon>image</mat-icon> {{ fotoFile()!.name }}
-                        <button type="button" (click)="removeFoto()"><mat-icon>close</mat-icon></button>
-                    </span>
-                    }
-                </div>
+            @if (isEdit) {
+            <div class="avatar-wrapper" [style.background]="roleMeta().color">
+                @if (fotoPreview() || data.user?.foto_url) {
+                <img [src]="fotoPreview() || data.user!.foto_url!" alt="Fotografía de Perfil" />
+                } @else {
+                <span class="avatar-initials">{{ initials() }}</span>
+                }
+                @if (isSelf) {
+                <label class="avatar-overlay" matTooltip="Subir imagen (.png, .jpg)">
+                    <mat-icon>camera_enhance</mat-icon>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onFotoSelected($event)"
+                        hidden />
+                </label>
+                }
             </div>
-            <button class="close-btn" mat-dialog-close tabindex="-1"><mat-icon>close</mat-icon></button>
-        </div>
-        }
+            } @else {
+            <div class="icon-avatar-badge" [style.background]="roleMeta().color + '12'"
+                [style.color]="roleMeta().color">
+                <mat-icon>{{ roleMeta().icon }}</mat-icon>
+            </div>
+            }
 
-        <!-- CREATE MODE -->
+            <div class="header-titles">
+                <div class="meta-tag" [style.background]="roleMeta().color + '15'" [style.color]="roleMeta().color">
+                    <mat-icon class="raw-icon">{{ roleMeta().icon }}</mat-icon>
+                    <span>{{ roleMeta().label }}</span>
+                </div>
+                <h2 class="main-title">
+                    {{ isCreate ? 'Nuevo Registro' : (data.user?.nombre + ' ' + data.user?.apellido_paterno) }}
+                </h2>
+                <p class="subtitle-desc">
+                    {{ isCreate ? 'Completa los accesos institucionales obligatorios' : 'Modificación segura de ficha técnica' }}
+                </p>
+            </div>
+        </div>
+
+        <button class="action-close-circle" mat-dialog-close aria-label="Cerrar ventana">
+            <mat-icon>close</mat-icon>
+        </button>
+
         @if (isCreate) {
-        <div class="dialog-header-modern">
-            <div class="header-main">
-                <div class="create-icon" [style.background]="roleMeta().color + '15'" [style.color]="roleMeta().color">
-                    <mat-icon>{{ roleMeta().icon }}</mat-icon>
-                </div>
-                <div class="user-info">
-                    <p class="eyebrow">Crear nuevo registro</p>
-                    <h2 class="user-name">{{ roleMeta().label }}</h2>
-                </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-indicator" [style.width]="progressWidth()" [style.background]="roleMeta().color">
             </div>
-            <button class="close-btn" mat-dialog-close tabindex="-1"><mat-icon>close</mat-icon></button>
-        </div>
-        <div class="progress-strip">
-            <div class="progress-fill" [style.width]="progressWidth()" [style.background]="roleMeta().color"></div>
         </div>
         }
-    </div>
+    </header>
 
-    <!-- ══ CONTENT ═══════════════════════════════════════════════ -->
-    <mat-dialog-content class="dialog-body">
-        <form [formGroup]="form" class="modern-form">
+    <!-- FORM BODY SCROLLABLE -->
+    <mat-dialog-content class="dialog-content-scroll">
+        <form [formGroup]="form" class="layout-stack-form">
 
-            <!-- 01 IDENTIDAD -->
+            <!-- SECCIÓN: IDENTIFICACIÓN -->
             @if (isCreate || !isSelf) {
-            <div class="form-section">
-                <h3 class="section-title">
-                    <mat-icon [style.color]="roleMeta().color">badge</mat-icon> Identidad y acceso
-                </h3>
-                @if(isCreate) { <p class="section-hint">El número de documento será utilizado como la contraseña inicial
-                    del usuario.</p> }
+            <fieldset class="form-fieldset">
+                <legend class="fieldset-legend" [style.color]="roleMeta().color">
+                    <mat-icon>fingerprint</mat-icon> Identificación Oficial
+                </legend>
 
-                <div class="grid-2">
+                <div class="form-grid-2">
                     <mat-form-field appearance="outline">
-                        <mat-label>Tipo de documento</mat-label>
+                        <mat-label>Tipo de Documento</mat-label>
                         <mat-select formControlName="tipo_documento">
-                            <mat-option value="dni">DNI</mat-option>
+                            <mat-option value="dni">DNI (Persona Natural)</mat-option>
                             <mat-option value="ce">Carné de Extranjería (CE)</mat-option>
-                            <mat-option value="pasaporte">Pasaporte</mat-option>
+                            <mat-option value="pasaporte">Pasaporte Internacional</mat-option>
                         </mat-select>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
-                        <mat-label>Número de documento</mat-label>
-                        <input matInput formControlName="numero_documento" placeholder="Ingresa el documento"
-                            [attr.maxlength]="form.get('tipo_documento')?.value === 'dni' ? 8 : 20" />
-
-                        @if (form.controls['numero_documento'].invalid && form.controls['numero_documento'].touched) {
-                        @if (form.controls['numero_documento'].hasError('required')) { <mat-error>Requerido</mat-error>
-                        }
-                        @if (form.controls['numero_documento'].hasError('pattern') && form.get('tipo_documento')?.value
-                        === 'dni') { <mat-error>Debe tener exactamente 8 números</mat-error> }
-                        @if (form.controls['numero_documento'].hasError('pattern') && form.get('tipo_documento')?.value
-                        === 'ce') { <mat-error>Debe tener entre 9 y 12 caracteres</mat-error> }
+                        <mat-label>Número de Documento</mat-label>
+                        <input matInput formControlName="numero_documento" placeholder="Ej. 74839201" />
+                        @if (form.controls.numero_documento.invalid && form.controls.numero_documento.touched) {
+                        <mat-error>Documento requerido o con formato no válido</mat-error>
                         }
                     </mat-form-field>
                 </div>
-            </div>
+            </fieldset>
             }
 
-            <!-- 02 DATOS PERSONALES -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <mat-icon [style.color]="roleMeta().color">person</mat-icon> Datos personales
-                </h3>
+            <!-- SECCIÓN: GENERALES -->
+            <fieldset class="form-fieldset">
+                <legend class="fieldset-legend" [style.color]="roleMeta().color">
+                    <mat-icon>account_box</mat-icon> Datos Generales
+                </legend>
 
-                <div class="grid-3">
+                <div class="form-grid-3">
                     <mat-form-field appearance="outline">
                         <mat-label>Nombres</mat-label>
-                        <input matInput formControlName="nombre" placeholder="Ej. Juan Carlos" maxlength="100" />
-                        @if (form.controls['nombre'].invalid && form.controls['nombre'].touched) {
+                        <input matInput formControlName="nombre" placeholder="Ej. Carlos Alberto" />
+                        @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
                         <mat-error>Requerido</mat-error> }
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
-                        <mat-label>Apellido paterno</mat-label>
-                        <input matInput formControlName="apellido_paterno" placeholder="Ej. Pérez" maxlength="100" />
-                        @if (form.controls['apellido_paterno'].invalid && form.controls['apellido_paterno'].touched) {
+                        <mat-label>Apellido Paterno</mat-label>
+                        <input matInput formControlName="apellido_paterno" placeholder="Ej. Mendoza" />
+                        @if (form.controls.apellido_paterno.invalid && form.controls.apellido_paterno.touched) {
                         <mat-error>Requerido</mat-error> }
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
-                        <mat-label>Apellido materno</mat-label>
-                        <input matInput formControlName="apellido_materno" placeholder="Opcional" maxlength="100" />
+                        <mat-label>Apellido Materno</mat-label>
+                        <input matInput formControlName="apellido_materno" placeholder="Ej. Alva" />
                     </mat-form-field>
                 </div>
 
-                <div class="grid-2">
+                <div class="form-grid-3">
                     <mat-form-field appearance="outline">
-                        <mat-label>Correo electrónico</mat-label>
-                        <mat-icon matPrefix>alternate_email</mat-icon>
-                        <input matInput formControlName="email" type="email" placeholder="correo@ejemplo.com"
-                            maxlength="100" />
-                        @if (form.controls['email'].hasError('email')) { <mat-error>Correo inválido</mat-error> }
+                        <mat-label>Correo Electrónico</mat-label>
+                        <mat-icon matPrefix class="form-prefix-icon">mail</mat-icon>
+                        <input matInput formControlName="email" type="email" placeholder="ejemplo@eduaula.edu.pe" />
+                        @if (form.controls.email.invalid && form.controls.email.touched) { <mat-error>Email
+                            obligatorio</mat-error> }
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
-                        <mat-label>Teléfono (Celular)</mat-label>
-                        <mat-icon matPrefix>smartphone</mat-icon>
-                        <input matInput formControlName="telefono" placeholder="9XXXXXXXX" maxlength="9" />
-                        @if (form.controls['telefono'].hasError('pattern')) {
-                        <mat-error>Debe empezar con 9 y tener 9 dígitos (ej. 987654321)</mat-error>
-                        }
+                        <mat-label>Teléfono Móvil</mat-label>
+                        <mat-icon matPrefix class="form-prefix-icon">phone_android</mat-icon>
+                        <input matInput formControlName="telefono" placeholder="987654321" maxLength="9" />
+                        @if (form.controls.telefono.invalid && form.controls.telefono.touched) { <mat-error>Requerido (9
+                            dígitos)</mat-error> }
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
-                        <mat-label>Fecha de nacimiento {{ fechaRequerida ? '*' : '' }}</mat-label>
-                        <mat-icon matPrefix>cake</mat-icon>
-                        <input matInput [matDatepicker]="dp" formControlName="fecha_nacimiento"
+                        <mat-label>Fecha de Nacimiento {{ fechaRequerida ? '*' : '' }}</mat-label>
+                        <mat-icon matPrefix class="form-prefix-icon">calendar_today</mat-icon>
+                        <input matInput [matDatepicker]="pickerNacimiento" formControlName="fecha_nacimiento"
                             placeholder="DD/MM/AAAA" />
-                        <mat-datepicker-toggle matIconSuffix [for]="dp" />
-                        <mat-datepicker #dp />
-                        @if (form.controls['fecha_nacimiento'].invalid && form.controls['fecha_nacimiento'].touched) {
-                        <mat-error>Requerido</mat-error> }
+                        <mat-datepicker-toggle matIconSuffix [for]="pickerNacimiento"></mat-datepicker-toggle>
+                        <mat-datepicker #pickerNacimiento></mat-datepicker>
+                        @if (form.controls.fecha_nacimiento.invalid && form.controls.fecha_nacimiento.touched) {
+                        <mat-error>Requerido para Alumnos</mat-error> }
                     </mat-form-field>
                 </div>
-            </div>
+            </fieldset>
 
-            <!-- 03 CAMPOS POR ROL -->
+            <!-- SECCIÓN CONTEXTUAL POR ROLES -->
+            <!-- DOCENTE -->
             @if (data.rol === 'docente') {
-            <div class="form-section">
-                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">work</mat-icon> Información
-                    profesional</h3>
-                <div class="grid-2">
-                    <mat-form-field appearance="outline"><mat-label>Especialidad</mat-label><input matInput
-                            formControlName="especialidad" placeholder="Ej. Matemática" /></mat-form-field>
-                    <mat-form-field appearance="outline"><mat-label>Título profesional</mat-label><input matInput
-                            formControlName="titulo_profesional" placeholder="Ej. Lic. en Educación" /></mat-form-field>
-                    <mat-form-field appearance="outline"><mat-label>Tipo de contrato</mat-label><mat-select
-                            formControlName="tipo_contrato"><mat-option
-                                value="contratado">Contratado</mat-option><mat-option
-                                value="nombrado">Nombrado</mat-option></mat-select></mat-form-field>
-                    <mat-form-field appearance="outline"><mat-label>Estado</mat-label><mat-select
-                            formControlName="estado_contrato"><mat-option value="activo">Activo</mat-option><mat-option
-                                value="inactivo">Inactivo</mat-option><mat-option
-                                value="pendiente">Pendiente</mat-option></mat-select></mat-form-field>
-                    <mat-form-field appearance="outline"><mat-label>Inicio de contrato</mat-label><input matInput
-                            [matDatepicker]="dpI" formControlName="fecha_inicio_contrato"
-                            placeholder="DD/MM/AAAA" /><mat-datepicker-toggle matIconSuffix
-                            [for]="dpI" /><mat-datepicker #dpI /></mat-form-field>
-                    @if (esContratado()) { <mat-form-field appearance="outline"><mat-label>Fin de
-                            contrato</mat-label><input matInput [matDatepicker]="dpF"
-                            formControlName="fecha_fin_contrato" placeholder="DD/MM/AAAA" /><mat-datepicker-toggle
-                            matIconSuffix [for]="dpF" /><mat-datepicker #dpF /></mat-form-field> }
+            <fieldset class="form-fieldset dynamic-role-section">
+                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>business_center</mat-icon>
+                    Configuración de Contrato Docente</legend>
+                <div class="form-grid-2">
+                    <mat-form-field appearance="outline"><mat-label>Especialidad Principal</mat-label><input matInput
+                            formControlName="especialidad" placeholder="Ciencias / Computación" /></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Título Profesional</mat-label><input matInput
+                            formControlName="titulo_profesional"
+                            placeholder="Licenciado en Educación" /></mat-form-field>
                 </div>
-            </div>
+                <div class="form-grid-2">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Régimen Laboral</mat-label>
+                        <mat-select formControlName="tipo_contrato">
+                            <mat-option value="contratado">Contratado Plazo Fijo</mat-option>
+                            <mat-option value="nombrado">Nombrado Permanente</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Estado Operativo</mat-label>
+                        <mat-select formControlName="estado_contrato">
+                            <mat-option value="activo">Activo Regular</mat-option>
+                            <mat-option value="inactivo">Licencia / Inactivo</mat-option>
+                            <mat-option value="pendiente">Pendiente Firma</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="form-grid-2">
+                    <mat-form-field appearance="outline"><mat-label>Fecha Inicio Contrato</mat-label><input matInput
+                            [matDatepicker]="pickerIni" formControlName="fecha_inicio_contrato" /><mat-datepicker-toggle
+                            matIconSuffix [for]="pickerIni"></mat-datepicker-toggle><mat-datepicker
+                            #pickerIni></mat-datepicker></mat-form-field>
+                    @if (esContratado()) {
+                    <mat-form-field appearance="outline"><mat-label>Fecha Fin Contrato</mat-label><input matInput
+                            [matDatepicker]="pickerFin" formControlName="fecha_fin_contrato" /><mat-datepicker-toggle
+                            matIconSuffix [for]="pickerFin"></mat-datepicker-toggle><mat-datepicker
+                            #pickerFin></mat-datepicker></mat-form-field>
+                    }
+                </div>
+            </fieldset>
             }
 
+            <!-- ALUMNO -->
             @if (data.rol === 'alumno') {
-            <div class="form-section">
-                <h3 class="section-title">
-                    <mat-icon [style.color]="roleMeta().color">accessibility_new</mat-icon>
-                    Inclusión educativa
-                </h3>
-                <div class="inclusivo-toggle" [class.inclusivo-toggle--on]="form.controls.es_inclusivo.value">
+            <fieldset class="form-fieldset dynamic-role-section">
+                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>accessibility</mat-icon>
+                    Ajustes del Alumno</legend>
+                <div class="toggle-card-box" [class.toggle-card-box--active]="form.controls.es_inclusivo.value">
                     <mat-checkbox formControlName="es_inclusivo" color="primary">
-                        <span class="inclusivo-toggle__label">Estudiante inclusivo</span>
+                        <span class="toggle-card-label">Estudiante Inclusivo / Necesidades Educativas Especiales
+                            (NEE)</span>
                     </mat-checkbox>
-                    <span class="inclusivo-toggle__hint">
-                        Marca esta opción si el alumno tiene necesidades educativas especiales (NEE),
-                        adaptaciones curriculares o requiere apoyo personalizado. Se distinguirá
-                        visualmente en las tablas y listados.
-                    </span>
+                    <p class="toggle-card-hint">Active este token de inclusión para configurar alertas de adaptaciones
+                        curriculares en los registros y libretas del docente.</p>
                 </div>
-            </div>
+            </fieldset>
             }
 
+            <!-- PADRE / APODERADO -->
             @if (data.rol === 'padre') {
-            <div class="form-section">
-                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">diversity_1</mat-icon> Vínculo
-                    familiar</h3>
+            <fieldset class="form-fieldset dynamic-role-section">
+                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>family_restroom</mat-icon>
+                    Vinculación Familiar</legend>
                 <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Relación con el alumno</mat-label>
+                    <mat-label>Parentesco / Relación Con Estudiantes</mat-label>
                     <mat-select formControlName="relacion">
-                        <mat-option value="padre">Padre</mat-option>
-                        <mat-option value="madre">Madre</mat-option>
-                        <mat-option value="tutor">Tutor Legal</mat-option>
-                        <mat-option value="apoderado">Apoderado</mat-option>
+                        <mat-option value="padre">Padre de Familia</mat-option>
+                        <mat-option value="madre">Madre de Familia</mat-option>
+                        <mat-option value="tutor">Tutor Legal Designado</mat-option>
+                        <mat-option value="apoderado">Apoderado Autorizado</mat-option>
                     </mat-select>
-                    @if (form.controls['relacion'].invalid && form.controls['relacion'].touched) {
-                    <mat-error>Requerido</mat-error> }
+                    @if (form.controls.relacion.invalid && form.controls.relacion.touched) { <mat-error>Parentesco
+                        requerido</mat-error> }
                 </mat-form-field>
-            </div>
+            </fieldset>
             }
 
-            @if (data.rol === 'admin') {
-            <div class="form-section">
-                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">corporate_fare</mat-icon> Cargo
-                    institucional</h3>
+            <!-- STAFF ADMINISTRATIVO O ADMINISTRADORES (BUG CARGO SOLUCIONADO) -->
+            @if (data.rol === 'staff' || data.rol === 'admin') {
+            <fieldset class="form-fieldset dynamic-role-section">
+                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>corporate_fare</mat-icon>
+                    Estructura Organizacional</legend>
                 <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Cargo o Puesto</mat-label>
-                    <input matInput formControlName="cargo" placeholder="Ej. Director Académico" />
+                    <mat-label>Cargo o Puesto Institucional</mat-label>
+                    <input matInput formControlName="cargo"
+                        placeholder="Ej. Auxiliar de Sistemas / Coordinador Académico" />
                 </mat-form-field>
-            </div>
+            </fieldset>
             }
 
+            <!-- PSICÓLOGA -->
             @if (data.rol === 'psicologa') {
-            <div class="form-section">
-                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">health_and_safety</mat-icon> Datos
-                    clínicos</h3>
-                <div class="grid-2">
-                    <mat-form-field appearance="outline"><mat-label>Especialidad</mat-label><input matInput
-                            formControlName="especialidad" placeholder="Ej. Psicología Clínica" /></mat-form-field>
-                    <mat-form-field appearance="outline"><mat-label>N° Colegiatura (CPSP)</mat-label><input matInput
-                            formControlName="colegiatura" placeholder="Ej. 12345" /></mat-form-field>
+            <fieldset class="form-fieldset dynamic-role-section">
+                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>medical_services</mat-icon>
+                    Acreditación Sanitaria</legend>
+                <div class="form-grid-2">
+                    <mat-form-field appearance="outline"><mat-label>Especialidad Psicológica</mat-label><input matInput
+                            formControlName="especialidad" placeholder="Ej. Educativa o Infantil" /></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Número de Colegiatura Oficial
+                            (CPSP)</mat-label><input matInput formControlName="colegiatura"
+                            placeholder="Ej. CPSP-28341" /></mat-form-field>
                 </div>
-            </div>
+            </fieldset>
             }
 
-            <!-- 04 SEGURIDAD (Solo edición) -->
+            <!-- SEGURIDAD Y ACCESOS (SOLO EDICIÓN) -->
             @if (isEdit) {
-            <div class="form-section security-section">
-                <h3 class="section-title"><mat-icon [style.color]="roleMeta().color">security</mat-icon> Seguridad de
-                    cuenta</h3>
-                <p class="section-hint">Opcional. Deja los campos vacíos si no deseas cambiar la contraseña.</p>
+            <fieldset class="form-fieldset security-wrapper">
+                <legend class="fieldset-legend"><mat-icon>lock</mat-icon> Control de Credenciales</legend>
+                <p class="fieldset-hint-text">Deje los campos en blanco si desea preservar la clave actual del usuario.
+                </p>
 
-                <div class="grid-2">
+                <div class="form-grid-2">
                     @if (isSelf) {
                     <mat-form-field appearance="outline">
-                        <mat-label>Contraseña actual</mat-label>
-                        <input matInput [type]="showCurrent() ? 'text' : 'password'" formControlName="current_password"
-                            placeholder="Tu contraseña actual" />
+                        <mat-label>Contraseña Actual</mat-label>
+                        <input matInput [type]="showCurrent() ? 'text' : 'password'"
+                            formControlName="current_password" />
                         <button mat-icon-button matSuffix type="button" (click)="showCurrent.set(!showCurrent())">
                             <mat-icon>{{ showCurrent() ? 'visibility_off' : 'visibility' }}</mat-icon>
                         </button>
+                        @if (form.controls.current_password.invalid && form.controls.current_password.touched) {
+                        <mat-error>Contraseña actual obligatoria para autorizar cambios</mat-error>
+                        }
                     </mat-form-field>
                     }
 
-                    <mat-form-field appearance="outline" [class.col-span-2]="!isSelf">
-                        <mat-label>Nueva contraseña</mat-label>
+                    <mat-form-field appearance="outline" [class.col-span-full]="!isSelf">
+                        <mat-label>Nueva Contraseña</mat-label>
                         <input matInput [type]="showNew() ? 'text' : 'password'" formControlName="new_password"
                             placeholder="Mínimo 8 caracteres" />
                         <button mat-icon-button matSuffix type="button" (click)="showNew.set(!showNew())">
                             <mat-icon>{{ showNew() ? 'visibility_off' : 'visibility' }}</mat-icon>
                         </button>
-                        @if (form.controls['new_password'].hasError('minlength')) { <mat-error>Mínimo 8
+                        @if (form.controls.new_password.hasError('minlength')) { <mat-error>La clave debe tener mínimo 8
                             caracteres</mat-error> }
                     </mat-form-field>
                 </div>
-            </div>
+            </fieldset>
             }
 
-            <!-- Alertas de estado -->
-            @if (error()) { <div class="status-alert alert-error"><mat-icon>error_outline</mat-icon> {{ error() }}</div>
+            <!-- BANNER DINÁMICO DE FEEDBACK -->
+            @if (error()) {
+            <div class="feedback-banner error-banner">
+                <mat-icon>gpp_bad</mat-icon> <span>{{ error() }}</span>
+            </div>
             }
-            @if (success()) { <div class="status-alert alert-success"><mat-icon>check_circle</mat-icon> Perfil guardado
-                exitosamente.</div> }
+            @if (success()) {
+            <div class="feedback-banner success-banner">
+                <mat-icon>verified</mat-icon> <span>Ficha de usuario procesada con éxito. Guardando...</span>
+            </div>
+            }
 
         </form>
     </mat-dialog-content>
 
-    <!-- ══ FOOTER ════════════════════════════════════════════════ -->
-    <mat-dialog-actions class="dialog-footer">
-        <button mat-button mat-dialog-close [disabled]="busy()" class="btn-cancel">Cancelar</button>
-        <button mat-flat-button (click)="submit()" [disabled]="busy()" class="btn-submit"
+    <!-- ACCIONES FOOTER -->
+    <mat-dialog-actions class="dialog-actions-footer">
+        <button mat-button mat-dialog-close [disabled]="busy()" class="btn-secondary-custom">Cancelar</button>
+        <button mat-flat-button (click)="submit()" [disabled]="busy() || success()" class="btn-primary-custom"
             [style.background]="roleMeta().color">
             @if (busy()) {
-            <span class="spinner"></span>
-            }
-            @if (!busy()) {
-            <mat-icon>{{ isCreate ? 'person_add' : 'save' }}</mat-icon>
-            }
-            <span>{{ busy() ? 'Procesando...' : (isCreate ? 'Crear usuario' : 'Guardar cambios') }}</span>
+            <span class="custom-loader-spinner"></span>
+            <span>Procesando...</span>
+            } @else { <ng-container>
+                <mat-icon>{{ isCreate ? 'person_add' : 'check_circle' }}</mat-icon>
+                <span>{{ isCreate ? 'Registrar Usuario' : 'Confirmar Cambios' }}</span>
+            </ng-container>}
         </button>
     </mat-dialog-actions>
+
 </div>

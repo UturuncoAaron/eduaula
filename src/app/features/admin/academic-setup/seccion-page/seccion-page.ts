@@ -56,7 +56,9 @@ export class SeccionPage implements OnInit {
   loadingCursos = signal(false);
   activeTab = signal<Tab>('alumnos');
 
+  // Reactividad de Búsqueda de Alumnos
   alumnoSearch = new FormControl('');
+  searchQuery = signal(''); // <- NUEVO: Signal para manejar el criterio de búsqueda de forma reactiva
   alumnoPage = signal(0);
   alumnoPageSize = signal(10);
 
@@ -68,7 +70,8 @@ export class SeccionPage implements OnInit {
   );
 
   alumnosFiltrados = computed(() => {
-    const q = this.alumnoSearch.value?.toLowerCase().trim() ?? '';
+    // CORRECCIÓN: Ahora depende de un Signal nativo. Cuando searchQuery cambia, el computed se recalcula al instante.
+    const q = this.searchQuery();
     return this.alumnos().filter(a =>
       !q || `${a.nombre} ${a.apellido_paterno} ${a.codigo_estudiante}`
         .toLowerCase().includes(q),
@@ -117,9 +120,21 @@ export class SeccionPage implements OnInit {
       },
     });
 
+    // CORRECCIÓN: El pipeline asíncrono actualiza el Signal de búsqueda y resetea la página en orden
     this.alumnoSearch.valueChanges.pipe(
-      debounceTime(200), distinctUntilChanged(),
-    ).subscribe(() => this.alumnoPage.set(0));
+      debounceTime(200),
+      distinctUntilChanged(),
+    ).subscribe(value => {
+      this.searchQuery.set(value?.toLowerCase().trim() ?? '');
+      this.alumnoPage.set(0);
+    });
+  }
+
+  // Interfáz para limpiar buscador de forma manual
+  limpiarBuscador(): void {
+    this.alumnoSearch.setValue('');
+    this.searchQuery.set('');
+    this.alumnoPage.set(0);
   }
 
   // ── Loaders ───────────────────────────────────────────────
@@ -137,8 +152,7 @@ export class SeccionPage implements OnInit {
   }
 
   private reloadAlumnos(): void {
-    this.alumnoSearch.setValue('', { emitEvent: false });
-    this.alumnoPage.set(0);
+    this.limpiarBuscador();
     this.store.invalidateRoster(this.seccionId());
     this.store.rosterRaw$<any>(this.seccionId()).subscribe({
       next: r => this.alumnos.set(this.mapAlumnos(r ?? [])),
@@ -350,6 +364,7 @@ export class SeccionPage implements OnInit {
       },
     });
   }
+
   async agregarCurso(): Promise<void> {
     const { AddCourseDialog } = await import(
       '../../../../shared/components/add-course-dialog/add-course-dialog'

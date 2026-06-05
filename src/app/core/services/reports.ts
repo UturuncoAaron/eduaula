@@ -44,18 +44,15 @@ export class ReportsService {
       .pipe(map((r: any) => r.data ?? r));
   }
 
-  getResumenDocentes(fechaInicio: string, fechaFin: string, anio?: number): Observable<any[]> {
+  getResumenDocentes(fechaInicio: string, fechaFin: string, cuentaId?: string): Observable<any[]> {
     let httpParams = new HttpParams()
       .set('fecha_inicio', fechaInicio)
       .set('fecha_fin', fechaFin);
-
-    if (anio) {
-      httpParams = httpParams.set('anio', String(anio));
-    }
-
-    return this.http.get<any[]>(`${environment.apiUrl}/admin/reports/attendance/teachers`, { params: httpParams })
+    if (cuentaId) httpParams = httpParams.set('cuenta_id', cuentaId);
+    return this.http.get<any[]>(`${environment.apiUrl}/reports/asistencias/teachers`, { params: httpParams })
       .pipe(map((r: any) => r.data ?? r));
   }
+
 
   getAlertasDocentes(fechaInicio: string, fechaFin: string, limit = 10): Observable<any[]> {
     const httpParams = new HttpParams()
@@ -80,16 +77,12 @@ export class ReportsService {
     });
   }
 
-  getResumenStaff(fechaInicio: string, fechaFin: string, anio?: number): Observable<any[]> {
+  getResumenStaff(fechaInicio: string, fechaFin: string, cuentaId?: string): Observable<any[]> {
     let httpParams = new HttpParams()
       .set('fecha_inicio', fechaInicio)
       .set('fecha_fin', fechaFin);
-
-    if (anio) {
-      httpParams = httpParams.set('anio', String(anio));
-    }
-
-    return this.http.get<any[]>(`${environment.apiUrl}/admin/reports/attendance/staff`, { params: httpParams })
+    if (cuentaId) httpParams = httpParams.set('cuenta_id', cuentaId);
+    return this.http.get<any[]>(`${environment.apiUrl}/reports/asistencias/staff`, { params: httpParams })
       .pipe(map((r: any) => r.data ?? r));
   }
 }

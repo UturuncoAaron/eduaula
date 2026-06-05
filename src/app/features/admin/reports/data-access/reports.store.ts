@@ -110,42 +110,37 @@ export class ReportsStore {
         });
     }
 
-    loadResumenDocentes(fi: string, ff: string, anio?: number): void {
+    loadResumenDocentes(fi: string, ff: string, cuentaId?: string): void {
         this.reporteLoading.set('loading');
-        this.svc.getResumenDocentes(fi, ff, anio).subscribe({
+        this.svc.getResumenDocentes(fi, ff, cuentaId).subscribe({
             next: (d) => {
                 if (Array.isArray(d)) {
                     this.resumenDocentes.set(d);
                     this.reporteLoading.set('success');
                 } else {
-                    console.warn('getResumenDocentes no retornó un Array:', d);
                     this.resumenDocentes.set([]);
                     this.reporteLoading.set('error');
                 }
             },
-            error: (err) => {
-                console.error('Error HTTP en loadResumenDocentes:', err);
+            error: () => {
                 this.resumenDocentes.set([]);
                 this.reporteLoading.set('error');
             }
         });
     }
-
-    loadResumenStaff(fi: string, ff: string, anio?: number): void {
+    loadResumenStaff(fi: string, ff: string, cuentaId?: string): void {
         this.reporteLoading.set('loading');
-        this.svc.getResumenStaff(fi, ff, anio).subscribe({
+        this.svc.getResumenStaff(fi, ff, cuentaId).subscribe({
             next: (d) => {
                 if (Array.isArray(d)) {
                     this.resumenStaff.set(d);
                     this.reporteLoading.set('success');
                 } else {
-                    console.warn('getResumenStaff no retornó un Array:', d);
                     this.resumenStaff.set([]);
                     this.reporteLoading.set('error');
                 }
             },
-            error: (err) => {
-                console.error('Error HTTP en loadResumenStaff:', err);
+            error: () => {
                 this.resumenStaff.set([]);
                 this.reporteLoading.set('error');
             }
