@@ -1,0 +1,278 @@
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- VISTA ALUMNO                                              -->
+<!-- ══════════════════════════════════════════════════════════ -->
+@if (auth.isAlumno()) {
+<div class="tab-body">
+    @if (loading()) {
+    <div class="custom-loader-wrapper">
+        <p class="loader-text">Cargando calificaciones...</p>
+    </div>
+    } @else if (bimestresAgrupados().length === 0) {
+    <div class="empty-state">
+        <div class="empty-icon"><mat-icon>grade</mat-icon></div>
+        <h3>Sin calificaciones aún</h3>
+        <p>No hay notas registradas para este curso.</p>
+    </div>
+    } @else {
+    <mat-accordion class="bim-accordion" multi>
+        @for (bim of bimestresAgrupados(); track bim.bimestre) {
+        <mat-expansion-panel class="bim-panel" [expanded]="true">
+            <mat-expansion-panel-header collapsedHeight="60px" expandedHeight="60px">
+                <mat-panel-title>
+                    <div class="bim-title">
+                        <span class="bim-badge">B{{ bim.bimestre }}</span>
+                        <span class="bim-nombre">{{ bim.periodoNombre }}</span>
+                    </div>
+                </mat-panel-title>
+                <mat-panel-description>
+                    <span class="nota-count">{{ bim.notas.length }} actividades</span>
+                    <app-grade-badge [nota]="bim.promedio" />
+                </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="actividades">
+                @for (n of bim.notas; track n.id) {
+                <div class="actividad-row">
+                    <div class="act-icon-wrap">
+                        <mat-icon>{{ TIPO_ICON[n.tipo] }}</mat-icon>
+                    </div>
+                    <div class="act-info">
+                        <div class="act-head">
+                            <span class="act-titulo">{{ n.titulo }}</span>
+                            <span class="act-tipo">{{ TIPO_LABEL[n.tipo] }}</span>
+                        </div>
+                        @if (n.fecha || n.observaciones) {
+                        <div class="act-meta">
+                            @if (n.fecha) { <span><mat-icon>event</mat-icon>{{ n.fecha }}</span> }
+                            @if (n.observaciones) {
+                            <span class="act-obs" [matTooltip]="n.observaciones">
+                                <mat-icon>chat</mat-icon>{{ n.observaciones }}
+                            </span>
+                            }
+                        </div>
+                        }
+                    </div>
+                    <div class="act-grade">
+                        <span class="nota-num">{{ n.nota ?? '—' }}</span>
+                        <app-grade-badge [nota]="n.nota" />
+                    </div>
+                </div>
+                }
+            </div>
+        </mat-expansion-panel>
+        }
+    </mat-accordion>
+    }
+</div>
+}
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- VISTA DOCENTE / ADMIN                                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+@else {
+<div class="reg-wrapper">
+
+    <!-- Toolbar bimestre + Nueva actividad -->
+    <div class="toolbar">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="bim-field">
+            <mat-label>Bimestre</mat-label>
+            <mat-select [ngModel]="periodoId()" (ngModelChange)="onPeriodoChange($event)"
+                [disabled]="periodoService.activos().length <= 1">
+                @for (p of periodoService.activos(); track p.id) {
+                <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
+                }
+                @if (periodoService.activos().length === 0) {
+                <mat-option [value]="periodoId()" disabled>Sin bimestres activos</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        @if (periodoService.activos().length === 1) {
+        <span class="bim-hint"><mat-icon>lock</mat-icon> Único bimestre activo</span>
+        }
+
+        <div class="spacer"></div>
+
+        @if (hasAlumnos() && vistaActividad() === null) {
+        <button mat-flat-button color="primary" class="btn-new" (click)="newActividad()">
+            <mat-icon>add</mat-icon> Nueva actividad
+        </button>
+        }
+    </div>
+
+    @if (loading()) {
+    <div class="loading-center"><mat-spinner diameter="40" /></div>
+    } @else if (!hasAlumnos()) {
+    <div class="empty-state">
+        <div class="empty-icon"><mat-icon>people</mat-icon></div>
+        <h3>Sin alumnos</h3>
+        <p>No hay alumnos matriculados para el periodo seleccionado.</p>
+    </div>
+    } @else {
+
+    <!-- Banner del curso -->
+    <div class="course-banner">
+        <div class="banner-icon"><mat-icon>menu_book</mat-icon></div>
+        <div class="banner-info">
+            <p>
+                <mat-icon>calendar_today</mat-icon>
+                {{ periodoService.activos()[0]?.bimestre }}er Bimestre ·
+                {{ filas().length }} alumnos ·
+                {{ actividades().length }} actividades
+            </p>
+        </div>
+    </div>
+
+    <!-- VISTA 1: Lista de actividades -->
+    @if (vistaActividad() === null) {
+    @if (!hasActividades()) {
+    <div class="no-actividades">
+        <div class="ico-wrap"><mat-icon>fact_check</mat-icon></div>
+        <h3>Sin actividades aún</h3>
+        <p>Creá tu primera actividad para empezar a registrar notas.</p>
+        <button mat-flat-button color="primary" (click)="newActividad()">
+            <mat-icon>add</mat-icon> Crear primera actividad
+        </button>
+    </div>
+    } @else {
+    <section class="acts-section">
+        <header class="section-header">
+            <h3>Actividades del bimestre</h3>
+            <span class="section-hint">Click en cualquier fila para editar las notas</span>
+        </header>
+        <div class="acts-list">
+            @for (act of actividadesConStats(); track act.titulo) {
+            <article class="act-card" [style.--act-color]="TIPO_COLOR[act.tipo]" (click)="abrirEditor(act)" tabindex="0"
+                (keydown.enter)="abrirEditor(act)">
+                <div class="act-icon">
+                    <mat-icon>{{ TIPO_ICON[act.tipo] }}</mat-icon>
+                </div>
+                <div class="act-main">
+                    <div class="act-row1">
+                        <span class="act-titulo">{{ act.titulo }}</span>
+                        <span class="act-tipo">{{ TIPO_LABEL[act.tipo] }}</span>
+                    </div>
+                    <div class="act-row2">
+                        @if (act.fecha) { <span class="act-meta"><mat-icon>event</mat-icon>{{ act.fecha }}</span> }
+                        <span class="act-meta"><mat-icon>checklist</mat-icon>{{ act.conNota }}/{{ act.total }} con
+                            nota</span>
+                    </div>
+                </div>
+                <div class="act-stats">
+                    <span class="stat-label">Promedio</span>
+                    <span class="stat-value"
+                        [style.color]="act.promedio && act.promedio >= 11 ? '#2e7d32' : act.promedio !== null ? '#d32f2f' : 'inherit'">
+                        {{ act.promedio ?? '—' }}
+                    </span>
+                </div>
+                <div class="act-actions">
+                    <button mat-icon-button color="primary" matTooltip="Editar notas"
+                        (click)="abrirEditor(act); $event.stopPropagation()">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button [matMenuTriggerFor]="actMenu" (click)="$event.stopPropagation()">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #actMenu="matMenu">
+                        <button mat-menu-item (click)="deleteActividad(act.titulo, $event)">
+                            <mat-icon color="warn">delete</mat-icon>
+                            <span>Eliminar actividad</span>
+                        </button>
+                    </mat-menu>
+                </div>
+            </article>
+            }
+        </div>
+    </section>
+    }
+    }
+
+    <!-- VISTA 2: Editor de notas de una actividad -->
+    @else {
+    <section class="editor-section">
+        <header class="editor-header" [class.is-dirty]="hasPendingChanges()"
+            [style.--act-color]="TIPO_COLOR[vistaActividad()!.tipo]">
+            <button mat-icon-button (click)="volverALista()" class="back-btn" matTooltip="Volver">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div class="editor-icon">
+                <mat-icon>{{ TIPO_ICON[vistaActividad()!.tipo] }}</mat-icon>
+            </div>
+            <div class="editor-text">
+                <span class="editor-tipo">{{ TIPO_LABEL[vistaActividad()!.tipo] }}</span>
+                <h3>{{ vistaActividad()!.titulo }}</h3>
+            </div>
+            <div class="editor-actions">
+                @if (hasPendingChanges()) {
+                <span class="pending-badge">
+                    <mat-icon>edit</mat-icon>
+                    <strong>{{ pendingCount() }}</strong>
+                    <span class="pending-text">{{ pendingCount() === 1 ? 'cambio' : 'cambios' }}</span>
+                </span>
+                <button mat-stroked-button (click)="descartarCambios()" [disabled]="savingBulk()">
+                    <mat-icon>undo</mat-icon><span class="btn-text">Descartar</span>
+                </button>
+                <button mat-flat-button color="primary" class="btn-save" (click)="guardarCambios()"
+                    [disabled]="savingBulk()">
+                    @if (savingBulk()) {
+                    <mat-progress-spinner diameter="18" mode="indeterminate" />
+                    <span>Guardando…</span>
+                    } @else {
+                    <ng-container><mat-icon>save</mat-icon><span>Guardar cambios</span></ng-container>
+                    }
+                </button>
+                }
+                <button mat-stroked-button color="warn" (click)="deleteActividad(vistaActividad()!.titulo)"
+                    [disabled]="savingBulk()">
+                    <mat-icon>delete</mat-icon><span class="btn-text">Eliminar</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="editor-card">
+            <table class="editor-table">
+                <thead>
+                    <tr>
+                        <th class="th-num">#</th>
+                        <th class="th-alumno">Alumno</th>
+                        <th class="th-nota">Nota</th>
+                        <th class="th-escala">Escala</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of filas(); track row.alumno_id; let i = $index) {
+                    <tr [class.row-dirty]="isCellDirty(row, vistaActividad()!.titulo)">
+                        <td class="td-num">{{ i + 1 }}</td>
+                        <td class="td-alumno">
+                            <div class="alumno-cell">
+                                <app-user-avatar [nombre]="row.alumno.nombre"
+                                    [apellidoPaterno]="row.alumno.apellido_paterno" [rol]="'alumno'" [size]="36" />
+                                <div class="alumno-text">
+                                    <span class="alumno-name">{{ alumnoFullName(row) }}</span>
+                                    @if (row.codigo_estudiante) {
+                                    <span class="alumno-cod">{{ row.codigo_estudiante }}</span>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td class="td-nota">
+                            <input class="grade-input" [class.is-dirty]="isCellDirty(row, vistaActividad()!.titulo)"
+                                type="number" min="0" max="20" step="0.5" inputmode="decimal" placeholder="—"
+                                [value]="cellNota(row, vistaActividad()!.titulo) ?? ''"
+                                (input)="onCellInput(row, vistaActividad()!.titulo, $any($event.target).value)"
+                                (keydown.enter)="$any($event.target).blur()" />
+                        </td>
+                        <td class="td-escala">
+                            <app-grade-badge [nota]="cellNota(row, vistaActividad()!.titulo)" />
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+    }
+
+    }
+</div>
+}

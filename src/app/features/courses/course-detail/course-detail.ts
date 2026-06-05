@@ -72,25 +72,8 @@ export class CourseDetail implements OnInit {
     if (this.auth.isDocente() || this.auth.isAdmin()) {
       base.push({ path: 'asistencia', label: 'Asistencia', icon: 'fact_check' });
     }
+    base.push({ path: 'calificaciones', label: 'Calificaciones', icon: 'star' });
     return base;
-  });
-
-  readonly calificacionesQueryParams = computed(() => {
-    const c = this.course();
-    if (!c) return null;
-    const p = this.periodoSvc.all().find(x => x.anio === c.anio && x.activo);
-    return {
-      cursoId: c.id,
-      cursoNombre: c.nombre,
-      bimestre: p?.bimestre ?? 1,
-      periodoId: p?.id ?? null,
-    };
-  });
-
-  readonly misNotasQueryParams = computed(() => {
-    const c = this.course();
-    if (!c) return null;
-    return { cursoId: c.id };
   });
 
   constructor() {
@@ -99,7 +82,6 @@ export class CourseDetail implements OnInit {
       const periodos = this.periodoSvc.all();
       if (!c || !periodos.length) return;
       if (this.bimReady()) return;
-
       const activo = periodos.find(x => x.anio === c.anio && x.activo);
       if (activo) this.bimFiltro.set(activo.bimestre);
       this.bimReady.set(true);
@@ -118,11 +100,7 @@ export class CourseDetail implements OnInit {
 
     this.store.course$(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(c => {
-        if (c) {
-          this.course.set(c);
-        }
-      });
+      .subscribe(c => { if (c) this.course.set(c); });
 
     this.store.semanas$(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -133,9 +111,6 @@ export class CourseDetail implements OnInit {
       });
   }
 
-  setBimestre(bimestre: number | null): void {
-    this.bimFiltro.set(bimestre);
-  }
-
+  setBimestre(bimestre: number | null): void { this.bimFiltro.set(bimestre); }
   goBack(): void { this.location.back(); }
 }

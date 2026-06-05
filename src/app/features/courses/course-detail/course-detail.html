@@ -1,18 +1,15 @@
 <div class="page-container" [style.--course-color]="course()?.color || '#2563eb'">
 
-    <!-- Cabecera Expandida con Sincronización de Título Coor -->
     <header class="course-header-banner">
         <div class="banner-inner-content">
             <button mat-icon-button class="btn-back-nav" (click)="goBack()" matTooltip="Volver a mis cursos">
                 <mat-icon>arrow_back</mat-icon>
             </button>
             <div class="header-main-titles">
-                <!-- CORREGIDO: Respaldo de renderizado inmediato si el signal cambia -->
                 <h1>{{ course()?.nombre || 'Cargando asignatura...' }}</h1>
                 @if (course()?.descripcion) {
                 <p class="course-description-text">{{ course()?.descripcion }}</p>
                 }
-
                 <div class="metadata-chips-group">
                     <span class="custom-meta-chip">
                         <mat-icon>school</mat-icon>
@@ -39,7 +36,6 @@
         </div>
     </header>
 
-    <!-- Barra de Navegación por Tabs con Iconos Separados -->
     <nav class="tabs-navigation-bar" mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false"
         mat-align-tabs="start">
         @for (tab of tabs(); track tab.path) {
@@ -49,29 +45,14 @@
             <span class="tab-label-text">{{ tab.label }}</span>
         </a>
         }
-        @if (auth.isDocente() && calificacionesQueryParams(); as qp) {
-        <a mat-tab-link [routerLink]="['/notas', 'registrar']" [queryParams]="qp" routerLinkActive
-            #rlaCal="routerLinkActive" [active]="rlaCal.isActive">
-            <mat-icon class="tab-icon-spaced">star</mat-icon>
-            <span class="tab-label-text">Calificaciones</span>
-        </a>
-        }
-        @if (auth.isAlumno() && misNotasQueryParams(); as qp) {
-        <a mat-tab-link [routerLink]="['/notas']" [queryParams]="qp" routerLinkActive #rlaMis="routerLinkActive"
-            [active]="rlaMis.isActive">
-            <mat-icon class="tab-icon-spaced">star</mat-icon>
-            <span class="tab-label-text">Calificaciones</span>
-        </a>
-        }
     </nav>
 
-    <!-- Selector de Bimestres -->
     @if (bimestresDisponibles().length > 1 && bimReady()) {
     <div class="bimestre-filter-container">
         <span class="filter-caption">Filtrar Bimestre:</span>
         <div class="chips-flex-wrapper">
-            <button type="button" class="action-chip-btn" [class.active]="bimFiltro.bimestre() === null" (click
-                Ram)="setBimestre(null)">
+            <button type="button" class="action-chip-btn" [class.active]="bimFiltro.bimestre() === null"
+                (click)="setBimestre(null)">
                 Todos los periodos
             </button>
             @for (bim of bimestresDisponibles(); track bim) {
