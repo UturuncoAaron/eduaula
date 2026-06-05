@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,12 +13,11 @@ import { ReportsStore } from '../../data-access/reports.store';
 import { ReportsService } from '@core/services/reports';
 import { ApiService } from '../../../../../core/services/api';
 
-interface PersonalItem {
+interface DocenteItem {
   id: string;
   nombre: string;
   apellido_paterno: string;
   apellido_materno: string | null;
-  rol: string;
 }
 
 @Component({
@@ -26,9 +25,16 @@ interface PersonalItem {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule, FormsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIconModule,
-    MatProgressBarModule, MatTooltipModule
+    CommonModule,
+    DatePipe,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatTooltipModule,
   ],
   templateUrl: './teacher-attendance-tab.html',
   styleUrl: './teacher-attendance-tab.scss'
@@ -39,21 +45,18 @@ export class TeacherAttendanceTab implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   readonly store = inject(ReportsStore);
 
-  readonly personalLista = signal<PersonalItem[]>([]);
+  readonly personalLista = signal<DocenteItem[]>([]);
 
   personalId = '';
   rangoInicio = this.primerDiaMes();
   rangoFin = new Date().toISOString().slice(0, 10);
 
   ngOnInit(): void {
-    this.api.get<PersonalItem[]>('admin/users/docentes?limit=200').subscribe({
+    this.api.get<any>('admin/users/docentes?limit=200').subscribe({
       next: (r: any) => {
-        const lista = (r?.data ?? r ?? []) as PersonalItem[];
-        this.personalLista.set(
-          Array.isArray(lista)
-            ? lista.map(p => ({ ...p, rol: 'docente' }))
-            : []
-        );
+        const raw = r?.data ?? r ?? [];
+        const lista = Array.isArray(raw) ? raw : (raw?.data ?? []);
+        this.personalLista.set(lista);
         this.cdr.markForCheck();
       }
     });
@@ -62,7 +65,8 @@ export class TeacherAttendanceTab implements OnInit {
   cargarResumen(): void {
     this.store.loadResumenDocentes(this.rangoInicio, this.rangoFin, this.personalId || undefined);
   }
-  descargarReportePersonal(formato: 'xlsx' | 'pdf'): void {
+
+  descargarReporte(formato: 'xlsx' | 'pdf'): void {
     this.svc.downloadConsolidatedReport({
       scope: 'teacher_attendance_range',
       format: formato,
@@ -70,17 +74,19 @@ export class TeacherAttendanceTab implements OnInit {
       fecha_fin: this.rangoFin,
       ...(this.personalId && { cuenta_id: this.personalId })
     }).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `reporte_asistencia_docentes.${formato}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }
+      next: (blob: Blob) => this.triggerDownload(blob, `asistencia_docentes_${this.rangoInicio}_${this.rangoFin}.${formato}`)
     });
+  }
+
+  private triggerDownload(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   }
 
   private primerDiaMes(): string {

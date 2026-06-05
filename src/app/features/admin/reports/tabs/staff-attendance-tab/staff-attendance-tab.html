@@ -1,132 +1,174 @@
 <div class="report-workspace-wrapper">
 
-    <div class="control-panel-card">
-        <div class="panel-layout-flex">
+  <div class="control-panel-card">
+    <div class="panel-layout-flex">
 
-            <div class="inputs-fluid-group">
-                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-large">
-                    <mat-icon matPrefix>badge</mat-icon>
-                    <mat-label>Filtrar por Personal de Soporte</mat-label>
-                    <mat-select [(ngModel)]="personalId">
-                        <mat-option value="">Todo el Personal de Soporte (Staff)</mat-option>
-                        @for (p of staffLista(); track p.id) {
-                        <mat-option [value]="p.id">
-                            [{{ p.cargo | uppercase }}] {{ p.apellido_paterno }} {{ p.apellido_materno ?? '' }}, {{
-                            p.nombre }}
-                        </mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
-                    <mat-icon matPrefix>date_range</mat-icon>
-                    <mat-label>Fecha Inicial</mat-label>
-                    <input matInput type="date" [(ngModel)]="rangoInicio" />
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
-                    <mat-icon matPrefix>event_available</mat-icon>
-                    <mat-label>Fecha de Término</mat-label>
-                    <input matInput type="date" [(ngModel)]="rangoFin" />
-                </mat-form-field>
-            </div>
-
-            <div class="actions-fluid-group">
-                <button mat-flat-button class="btn-action-primary" (click)="cargarResumen()">
-                    <mat-icon>sync_saved_locally</mat-icon>
-                    <span>Sincronizar Historial</span>
-                </button>
-
-                <div class="export-buttons-pack">
-                    <button mat-icon-button class="btn-export excel" (click)="descargarReporteStaff('xlsx')"
-                        matTooltip="Exportar Excel">
-                        <mat-icon>table_view</mat-icon>
-                    </button>
-                    <button mat-icon-button class="btn-export pdf" (click)="descargarReporteStaff('pdf')"
-                        matTooltip="Exportar PDF">
-                        <mat-icon>picture_as_pdf</mat-icon>
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    @if (store.reporteLoading() === 'loading') {
-    <div class="loader-container">
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </div>
-    }
-
-    @if (store.resumenStaff().length > 0) {
-    <div class="results-layout-area">
-        <div class="desktop-table-view">
-            <div class="table-scroll-container">
-                <table class="premium-data-table">
-                    <thead>
-                        <tr>
-                            <th>Colaborador</th>
-                            <th>Cargo / Función</th>
-                            <th class="cell-num">Días Esperados</th>
-                            <th class="cell-num">Presente</th>
-                            <th class="cell-num">Tardanzas</th>
-                            <th class="cell-num">Faltas</th>
-                            <th class="cell-num">Cumplimiento Global</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (s of store.resumenStaff(); track s.staff_id) {
-                        <tr [class.is-critical]="+(s.porcentaje_asistencia ?? 100) < 85">
-                            <td>
-                                <div class="identity-meta-box">
-                                    <span class="text-main">{{ s.staff_nombre }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="role-badge-tag staff">{{ s.cargo }}</span>
-                            </td>
-                            <td class="cell-num weight-bold">{{ s.total_esperados }}</td>
-                            <td class="cell-num status-success">{{ s.presentes }}</td>
-                            <td class="cell-num status-warning">{{ s.tardanzas }}</td>
-                            <td class="cell-num status-danger">{{ s.faltos }}</td>
-                            <td class="cell-num column-efficiency-badge">{{ s.porcentaje_asistencia ?? '0' }}%</td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="mobile-feed-view">
-            @for (s of store.resumenStaff(); track s.staff_id) {
-            <div class="dynamic-feed-card" [class.is-critical]="+(s.porcentaje_asistencia ?? 100) < 85">
-                <div class="feed-card-header">
-                    <div class="feed-identity-block">
-                        <span class="feed-student-name">{{ s.staff_nombre }}</span>
-                        <span class="role-badge-tag staff" style="margin-top: 4px;">{{ s.cargo }}</span>
-                    </div>
-                    <span class="feed-efficiency-tag" [class.lowhidden]="+(s.porcentaje_asistencia ?? 100) < 85">
-                        {{ s.porcentaje_asistencia ?? '0' }}%
-                    </span>
-                </div>
-                <div class="feed-metrics-grid">
-                    <div class="metric-pill success">
-                        <span class="value">{{ s.presentes }}</span>
-                        <span class="label">Pres.</span>
-                    </div>
-                    <div class="metric-pill warning">
-                        <span class="value">{{ s.tardanzas }}</span>
-                        <span class="label">Tard.</span>
-                    </div>
-                    <div class="metric-pill danger">
-                        <span class="value">{{ s.faltos }}</span>
-                        <span class="label">Faltas</span>
-                    </div>
-                </div>
-            </div>
+      <div class="inputs-fluid-group">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-large">
+          <mat-icon matPrefix>engineering</mat-icon>
+          <mat-label>Personal de Apoyo</mat-label>
+          <mat-select [(ngModel)]="personalId">
+            <mat-option value="">Todo el Personal de Apoyo</mat-option>
+            @for (p of staffLista(); track p.id) {
+              <mat-option [value]="p.id">
+                [{{ p.cargo | uppercase }}] {{ p.apellido_paterno }} {{ p.apellido_materno ?? '' }}, {{ p.nombre }}
+              </mat-option>
             }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
+          <mat-icon matPrefix>date_range</mat-icon>
+          <mat-label>Fecha Inicial</mat-label>
+          <input matInput type="date" [(ngModel)]="rangoInicio" [max]="rangoFin" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
+          <mat-icon matPrefix>event_available</mat-icon>
+          <mat-label>Fecha de Término</mat-label>
+          <input matInput type="date" [(ngModel)]="rangoFin" [min]="rangoInicio" />
+        </mat-form-field>
+      </div>
+
+      <div class="actions-fluid-group">
+        <button mat-flat-button class="btn-action-primary" (click)="cargarResumen()"
+          [disabled]="store.reporteLoading() === 'loading'">
+          <mat-icon>sync</mat-icon>
+          <span>Sincronizar</span>
+        </button>
+
+        <div class="export-buttons-pack">
+          <button mat-icon-button class="btn-export excel"
+            (click)="descargarReporte('xlsx')"
+            [disabled]="store.reporteLoading() === 'loading'"
+            matTooltip="Exportar Excel">
+            <mat-icon>table_view</mat-icon>
+          </button>
+          <button mat-icon-button class="btn-export pdf"
+            (click)="descargarReporte('pdf')"
+            [disabled]="store.reporteLoading() === 'loading'"
+            matTooltip="Exportar PDF">
+            <mat-icon>picture_as_pdf</mat-icon>
+          </button>
         </div>
+      </div>
+
     </div>
-    }
+  </div>
+
+  @if (store.reporteLoading() === 'loading') {
+    <div class="loader-container">
+      <mat-progress-bar mode="indeterminate" />
+    </div>
+  }
+
+  @if (store.reporteLoading() === 'error') {
+    <div class="estado-vacio error">
+      <mat-icon>warning_amber</mat-icon>
+      <span>Error al cargar los datos. Verifica el rango de fechas e intenta nuevamente.</span>
+    </div>
+  }
+
+  @if (store.resumenStaff().length > 0) {
+    <div class="resultados-header">
+      <span class="resultados-label">
+        <mat-icon>engineering</mat-icon>
+        {{ store.resumenStaff().length }} colaborador{{ store.resumenStaff().length !== 1 ? 'es' : '' }} en el período
+      </span>
+      <span class="rango-label">{{ rangoInicio | date:'dd/MM/yyyy' }} — {{ rangoFin | date:'dd/MM/yyyy' }}</span>
+    </div>
+
+    <div class="results-layout-area">
+      <div class="desktop-table-view">
+        <div class="table-scroll-container">
+          <table class="premium-data-table">
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Cargo</th>
+                <th class="cell-num">Días Esp.</th>
+                <th class="cell-num">Presente</th>
+                <th class="cell-num">Tardanzas</th>
+                <th class="cell-num">Faltas</th>
+                <th class="cell-num">Justificados</th>
+                <th class="cell-center">Cumplimiento</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of store.resumenStaff(); track s.staff_id) {
+                <tr [class.is-critical]="+(s.porcentaje_asistencia ?? 100) < 85">
+                  <td>
+                    <div class="identity-meta-box">
+                      <span class="text-main">{{ s.staff_nombre }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="cargo-badge">{{ s.cargo }}</span>
+                  </td>
+                  <td class="cell-num weight-bold">{{ s.total_esperados }}</td>
+                  <td class="cell-num status-success">{{ s.presentes }}</td>
+                  <td class="cell-num status-warning">{{ s.tardanzas }}</td>
+                  <td class="cell-num status-danger">{{ s.faltos }}</td>
+                  <td class="cell-num status-info">{{ s.justificados }}</td>
+                  <td class="cell-center">
+                    <span class="efficiency-chip"
+                      [class.high]="+(s.porcentaje_asistencia ?? 0) >= 90"
+                      [class.mid]="+(s.porcentaje_asistencia ?? 0) >= 75 && +(s.porcentaje_asistencia ?? 0) < 90"
+                      [class.low]="+(s.porcentaje_asistencia ?? 0) < 75">
+                      {{ s.porcentaje_asistencia ?? '0' }}%
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mobile-feed-view">
+        @for (s of store.resumenStaff(); track s.staff_id) {
+          <div class="dynamic-feed-card" [class.is-critical]="+(s.porcentaje_asistencia ?? 100) < 85">
+            <div class="feed-card-header">
+              <div class="feed-identity-block">
+                <span class="feed-student-name">{{ s.staff_nombre }}</span>
+                <span class="cargo-badge" style="margin-top: 4px;">{{ s.cargo }}</span>
+              </div>
+              <span class="efficiency-chip"
+                [class.high]="+(s.porcentaje_asistencia ?? 0) >= 90"
+                [class.mid]="+(s.porcentaje_asistencia ?? 0) >= 75 && +(s.porcentaje_asistencia ?? 0) < 90"
+                [class.low]="+(s.porcentaje_asistencia ?? 0) < 75">
+                {{ s.porcentaje_asistencia ?? '0' }}%
+              </span>
+            </div>
+            <div class="feed-metrics-grid">
+              <div class="metric-pill success">
+                <span class="value">{{ s.presentes }}</span>
+                <span class="label">Pres.</span>
+              </div>
+              <div class="metric-pill warning">
+                <span class="value">{{ s.tardanzas }}</span>
+                <span class="label">Tard.</span>
+              </div>
+              <div class="metric-pill danger">
+                <span class="value">{{ s.faltos }}</span>
+                <span class="label">Faltas</span>
+              </div>
+              <div class="metric-pill info">
+                <span class="value">{{ s.justificados }}</span>
+                <span class="label">Just.</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (store.reporteLoading() === 'success' && store.resumenStaff().length === 0) {
+    <div class="estado-vacio">
+      <mat-icon>search_off</mat-icon>
+      <span>No se encontraron registros para el rango seleccionado.</span>
+    </div>
+  }
 
 </div>

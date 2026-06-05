@@ -1,67 +1,64 @@
-// ── DESIGN TOKENS ──────────────────────────────────────────────
+// ── DESIGN TOKENS INTEGRADOS ──────────────────────────────────
 :host {
-    --udd-pad-x: 28px;
-
-    --udd-text: #0f172a;
-    --udd-muted: #64748b;
-    --udd-soft: #94a3b8;
+    --udd-pad-x: 32px;
+    --udd-text: #1e293b;
+    --udd-muted: #475569;
+    --udd-soft: #64748b;
     --udd-border: #e2e8f0;
     --udd-divider: #f1f5f9;
     --udd-surface: #ffffff;
-    --udd-surface-alt: #f8fafc;
+    --udd-surface-alt: #fafafa;
 
-    --udd-success-bg: #ecfdf5;
-    --udd-success-text: #047857;
-    --udd-success-dot: #10b981;
+    --udd-success-bg: #dcfce7;
+    --udd-success-text: #15803d;
+    --udd-success-dot: #16a34a;
 
     --udd-info-bg: #eff6ff;
     --udd-info-text: #1d4ed8;
 
-    --udd-warning-bg: #fff7ed;
-    --udd-warning-text: #c2410c;
+    --udd-warning-bg: #fef3c7;
+    --udd-warning-text: #b45309;
 
-    --udd-radius-lg: 20px;
-    --udd-radius-md: 12px;
-    --udd-radius-sm: 8px;
-
-    --udd-trans: .18s ease;
+    --udd-radius-lg: 16px;
+    --udd-radius-md: 10px;
+    --udd-radius-sm: 6px;
+    --udd-trans: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
     display: block;
+    background-color: transparent;
 }
 
-// ── ROOT ───────────────────────────────────────────────────────
+// ── COMPONENTE MAIN ───────────────────────────────────────────
 .udd {
-    width: 580px;
+    width: 600px;
     max-width: 100%;
     border-radius: var(--udd-radius-lg);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: var(--udd-surface);
-    font-family: inherit;
     color: var(--udd-text);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-// ── HEADER ─────────────────────────────────────────────────────
+// ── HEADER COMPONENT ──────────────────────────────────────────
 .udd__header {
     position: relative;
-    padding: 28px var(--udd-pad-x) 22px;
+    padding: 32px var(--udd-pad-x) 24px;
     border-bottom: 1px solid var(--udd-divider);
-
-    // Tinte sutil basado en el rol del usuario
     background:
         radial-gradient(circle at 0% 0%,
-            color-mix(in srgb, var(--role-color) 14%, transparent) 0%,
-            transparent 60%),
+            color-mix(in srgb, var(--role-color, #6366f1) 8%, transparent) 0%,
+            transparent 65%),
         var(--udd-surface);
 }
 
 .udd__close {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 32px;
-    height: 32px;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
     border: 1px solid var(--udd-border);
     border-radius: var(--udd-radius-sm);
     background: var(--udd-surface);
@@ -69,11 +66,13 @@
     cursor: pointer;
     display: grid;
     place-items: center;
-    transition: background-color var(--udd-trans), color var(--udd-trans);
+    transition: var(--udd-trans);
+    z-index: 5;
 
     &:hover {
-        background: var(--udd-surface-alt);
+        background: var(--udd-divider);
         color: var(--udd-text);
+        border-color: var(--udd-soft);
     }
 
     &:focus-visible {
@@ -82,25 +81,28 @@
     }
 
     mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
     }
 }
 
 .udd__hero {
     display: flex;
     align-items: center;
-    gap: 18px;
-    padding-right: 44px;
+    gap: 20px;
+    padding-right: 24px;
 }
 
 .udd__avatar {
     position: relative;
     flex-shrink: 0;
-    padding: 3px;
+    padding: 4px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--role-color) 18%, transparent);
+    background: color-mix(in srgb, var(--role-color, #6366f1) 12%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .udd__status {
@@ -110,8 +112,8 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    border: 2px solid var(--udd-surface);
-    box-shadow: 0 0 0 1px var(--udd-border);
+    border: 2.5px solid var(--udd-surface);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
     &.is-active {
         background: var(--udd-success-dot);
@@ -127,48 +129,48 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .udd__role {
     display: inline-flex;
     align-items: center;
     align-self: flex-start;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 999px;
-    letter-spacing: .4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    background: color-mix(in srgb, var(--role-color) 14%, transparent);
-    color: var(--role-color);
+    background: color-mix(in srgb, var(--role-color, #6366f1) 12%, transparent);
+    color: var(--role-color, #6366f1);
 }
 
 .udd__name {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
-    margin: 2px 0 0;
+    margin: 0;
     color: var(--udd-text);
-    line-height: 1.25;
-    letter-spacing: -.2px;
-    white-space: nowrap;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .udd__contact {
     list-style: none;
-    margin: 4px 0 0;
+    margin: 2px 0 0;
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 14px;
+    gap: 6px 16px;
 
     li {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
-        font-size: 12.5px;
+        gap: 6px;
+        font-size: 13px;
         color: var(--udd-muted);
         min-width: 0;
 
@@ -180,25 +182,25 @@
 
         mat-icon {
             flex-shrink: 0;
-            font-size: 14px;
-            width: 14px;
-            height: 14px;
+            font-size: 15px;
+            width: 15px;
+            height: 15px;
             color: var(--udd-soft);
         }
     }
 }
 
-// ── BODY ───────────────────────────────────────────────────────
+// ── BODY SCROLL LAYER ─────────────────────────────────────────
 .udd__body {
-    padding: 20px var(--udd-pad-x) 8px;
+    padding: 24px var(--udd-pad-x);
     overflow-y: auto;
-    max-height: 56vh;
+    max-height: 50vh;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 22px;
 
     &::-webkit-scrollbar {
-        width: 4px;
+        width: 5px;
     }
 
     &::-webkit-scrollbar-track {
@@ -207,33 +209,44 @@
 
     &::-webkit-scrollbar-thumb {
         background: var(--udd-border);
-        border-radius: 999px;
+        border-radius: 10px;
+
+        &:hover {
+            background: var(--udd-soft);
+        }
     }
 }
 
 .udd__section {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .udd__section-title {
     margin: 0;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: .8px;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--udd-soft);
 }
 
 .udd__card {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px 20px;
-    padding: 16px 18px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 24px;
+    padding: 18px 20px;
     border: 1px solid var(--udd-border);
     border-radius: var(--udd-radius-md);
     background: var(--udd-surface-alt);
+
+    &--stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px 18px;
+    }
 }
 
 .udd__field {
@@ -251,19 +264,18 @@
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .4px;
+    letter-spacing: 0.02em;
     color: var(--udd-soft);
 }
 
 .udd__val {
-    font-size: 13.5px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--udd-text);
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
-    min-width: 0;
 }
 
 .udd__val-text {
@@ -273,25 +285,95 @@
 }
 
 .udd__val--mono {
-    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
-    font-size: 13px;
-    letter-spacing: .2px;
+    font-family: 'Fira Code', 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    font-weight: 500;
 }
 
-// ── CHIPS ──────────────────────────────────────────────────────
+// ── VÍNCULOS INTERNOS (ALUMNOS ↔ PADRES) ─────────────────────
+.udd__nested-row {
+    background-color: var(--udd-surface);
+    border: 1px solid var(--udd-border);
+    border-radius: var(--udd-radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.udd__nested-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--udd-text);
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: var(--udd-soft);
+    }
+
+    .udd__nested-name {
+        font-weight: 600;
+        font-size: 13.5px;
+    }
+}
+
+.udd__nested-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 26px;
+    font-size: 12px;
+    color: var(--udd-soft);
+
+    strong {
+        color: var(--udd-muted);
+        font-weight: 600;
+    }
+
+    .divider-dot {
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background-color: var(--udd-border);
+    }
+}
+
+.udd__empty-nested {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 6px;
+    color: var(--udd-soft);
+
+    mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+    }
+
+    p {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 500;
+    }
+}
+
+// ── CHIPS & PILLS UTILITIES ──────────────────────────────────
 .chip {
     display: inline-flex;
     align-items: center;
     font-size: 10px;
     font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 6px;
-    letter-spacing: .5px;
-    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
 
     &--muted {
-        background: var(--udd-divider);
-        color: #475569;
+        background: #e2e8f0;
+        color: #334155;
     }
 
     &--info {
@@ -300,22 +382,20 @@
     }
 }
 
-// ── PILLS ──────────────────────────────────────────────────────
 .pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 999px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 30px;
 
     &__dot {
         width: 6px;
         height: 6px;
         border-radius: 50%;
         background: currentColor;
-        opacity: .85;
     }
 
     &--success {
@@ -324,8 +404,8 @@
     }
 
     &--neutral {
-        background: var(--udd-surface-alt);
-        color: var(--udd-soft);
+        background: #e2e8f0;
+        color: #475569;
     }
 
     &--info {
@@ -339,52 +419,54 @@
     }
 }
 
-// ── FOOTER ─────────────────────────────────────────────────────
+// ── FOOTER LAYOUT ─────────────────────────────────────────────
 .udd__footer {
-    padding: 14px var(--udd-pad-x);
-    border-top: 1px solid var(--udd-divider);
+    padding: 16px var(--udd-pad-x);
+    border-top: 1px solid var(--udd-border);
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
     background: var(--udd-surface-alt);
 }
 
 .udd__btn-close {
-    font-size: 13px !important;
+    height: 38px;
+    padding: 0 16px !important;
+    font-size: 13.5px !important;
     font-weight: 600 !important;
-    color: var(--udd-muted) !important;
+    color: #475569 !important;
+    background: #ffffff !important;
+    border: 1px solid var(--udd-border) !important;
     border-radius: var(--udd-radius-sm) !important;
+    transition: var(--udd-trans) !important;
 
     &:hover {
         background: var(--udd-divider) !important;
+        color: var(--udd-text) !important;
+        border-color: var(--udd-soft) !important;
     }
 }
 
-// ── SKELETON ───────────────────────────────────────────────────
+// ── SKELETON LAYER ────────────────────────────────────────────
 @keyframes udd-shimmer {
     0% {
-        background-position: -400px 0;
+        background-position: -300px 0;
     }
 
     100% {
-        background-position: 400px 0;
+        background-position: 300px 0;
     }
 }
 
 .sk {
-    background: linear-gradient(90deg,
-            var(--udd-divider) 25%,
-            var(--udd-border) 50%,
-            var(--udd-divider) 75%);
-    background-size: 800px 100%;
-    animation: udd-shimmer 1.4s infinite;
-    border-radius: var(--udd-radius-sm);
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 600px 100%;
+    animation: udd-shimmer 1.5s infinite linear;
+    border-radius: 4px;
 
     &--avatar {
         width: 76px;
         height: 76px;
         border-radius: 50%;
-        flex-shrink: 0;
     }
 
     &--line {
@@ -392,12 +474,12 @@
     }
 
     &--block {
-        height: 56px;
+        height: 64px;
         border-radius: var(--udd-radius-md);
     }
 
     &--short {
-        width: 60%;
+        width: 55%;
     }
 
     &--w30 {
@@ -416,7 +498,7 @@
 .udd__hero--skeleton {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
 }
 
 .sk__lines {
@@ -426,41 +508,53 @@
     gap: 8px;
 }
 
-// ── RESPONSIVE ─────────────────────────────────────────────────
-@media (max-width: 540px) {
+// ── MEDIA QUERIES (ELÁSTICO RESPONSIVO) ──────────────────────
+@media (max-width: 640px) {
     :host {
-        --udd-pad-x: 18px;
+        --udd-pad-x: 20px;
     }
 
     .udd {
-        width: 100%;
-        border-radius: 16px;
+        border-radius: 0;
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
     }
 
     .udd__header {
-        padding: 22px 18px 18px;
+        padding: 24px var(--udd-pad-x) 20px;
+    }
+
+    .udd__close {
+        top: 16px;
+        right: 16px;
     }
 
     .udd__hero {
         flex-direction: column;
         align-items: flex-start;
-        gap: 14px;
+        gap: 16px;
         padding-right: 0;
     }
 
     .udd__name {
-        font-size: 18px;
+        font-size: 19px;
         white-space: normal;
     }
 
     .udd__card {
         grid-template-columns: 1fr;
-        padding: 14px 16px;
-        gap: 12px;
+        gap: 14px;
+        padding: 16px;
     }
 
     .udd__body {
-        max-height: 60vh;
+        max-height: calc(100vh - 210px);
+    }
+
+    .udd__nested-meta {
+        padding-left: 0;
+        margin-top: 2px;
     }
 }
 
@@ -468,11 +562,12 @@
 
     .udd__close,
     .pill,
-    .chip {
-        transition: none;
+    .chip,
+    .udd__btn-close {
+        transition: none !important;
     }
 
     .sk {
-        animation: none;
+        animation: none !important;
     }
 }

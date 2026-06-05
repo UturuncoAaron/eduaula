@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,11 +12,10 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { ToastService } from 'ngx-toastr-notifier';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { ToastService } from 'ngx-toastr-notifier';
 import { ApiService } from '../../../core/services/api';
-import { Course } from '../../../core/models/course';
 import { TaskService, CreateTaskPayload } from '../data-access/task.store';
 
 type TaskKind = 'archivo' | 'interactiva';
@@ -27,6 +27,22 @@ export interface TaskCreateData {
 }
 
 type TaskCreateInput = string | TaskCreateData | null;
+
+interface PeriodoActivo {
+  id: string;
+  nombre: string;
+  anio: number;
+  bimestre: number;
+  activo: boolean;
+}
+
+interface SemanaResumen {
+  semana: number;
+  bimestre: number;
+  oculta: boolean;
+  descripcion: string | null;
+  config_id: string | null;
+}
 
 @Component({
   selector: 'app-task-create',
@@ -57,25 +73,17 @@ export class TaskCreate implements OnInit {
     return typeof this.dialogData === 'string' ? this.dialogData : this.dialogData.courseId;
   }
 
-  private get prefillBimestre(): number | null {
-    return this.dialogData && typeof this.dialogData !== 'string'
-      ? this.dialogData.bimestre ?? null : null;
-  }
-
-  private get prefillSemana(): number | null {
-    return this.dialogData && typeof this.dialogData !== 'string'
-      ? this.dialogData.semana ?? null : null;
-  }
-
   loading = signal(false);
   uploading = signal(false);
-  courses = signal<Course[]>([]);
-
+  iniciando = signal(true);
   kind = signal<TaskKind>('archivo');
   archivoReferencia = signal<File | null>(null);
+  totalPuntos = signal(0);
+
+  periodoActivo = signal<PeriodoActivo | null>(null);
+  semanasFiltradas = signal<SemanaResumen[]>([]);
 
   form = this.fb.group({
-    curso_id: ['', Validators.required],
     titulo: ['', [Validators.required, Validators.minLength(3)]],
     descripcion: [''],
     fecha_entrega: [null as Date | null, Validators.required],
@@ -83,25 +91,44 @@ export class TaskCreate implements OnInit {
     puntos_max: [20, [Validators.required, Validators.min(1), Validators.max(20)]],
     permite_archivo: [true],
     permite_texto: [true],
-    bimestre: [null as number | null],
     semana: [null as number | null],
     preguntas: this.fb.array([]),
   });
 
   ngOnInit() {
     const cursoId = this.prefillCourseId;
-    if (cursoId) {
-      this.form.patchValue({
-        curso_id: cursoId,
-        bimestre: this.prefillBimestre,
-        semana: this.prefillSemana,
-      });
-    } else {
-      this.api.get<Course[]>('courses').subscribe({
-        next: r => this.courses.set(r.data),
-        error: () => this.courses.set([]),
-      });
+    if (!cursoId) {
+      this.iniciando.set(false);
+      return;
     }
+
+    forkJoin({
+      periodo: this.api.get<PeriodoActivo>('academic/periodos/activo'),
+      semanas: this.api.get<SemanaResumen[]>(`courses/${cursoId}/semanas`),
+    }).subscribe({
+      next: ({ periodo, semanas }) => {
+        const p = periodo.data;
+        this.periodoActivo.set(p);
+
+        const filtradas = p
+          ? semanas.data.filter(s => s.bimestre === p.bimestre && !s.oculta)
+          : [];
+        this.semanasFiltradas.set(filtradas);
+
+        const dialogBimestre = this.dialogData && typeof this.dialogData !== 'string'
+          ? this.dialogData.semana ?? null : null;
+        const semanaPreset = dialogBimestre ?? null;
+        if (semanaPreset && filtradas.some(s => s.semana === semanaPreset)) {
+          this.form.patchValue({ semana: semanaPreset });
+        }
+
+        this.iniciando.set(false);
+      },
+      error: () => {
+        this.toastr.error('Error al cargar datos del curso', 'Error');
+        this.iniciando.set(false);
+      },
+    });
   }
 
   get isDialog(): boolean { return !!this.dialogRef; }
@@ -124,28 +151,49 @@ export class TaskCreate implements OnInit {
     return arr ? ((arr.at(oi) as FormGroup) ?? null) : null;
   }
 
+  private redistribuirPuntos() {
+    const n = this.preguntasArray.length;
+    if (n === 0) { this.totalPuntos.set(0); return; }
+    const base = Math.floor(20 / n);
+    const resto = 20 - base * n;
+    this.preguntasArray.controls.forEach((ctrl, i) => {
+      (ctrl as FormGroup).get('puntos')?.setValue(i === 0 ? base + resto : base, { emitEvent: false });
+    });
+    this.recalcularTotal();
+  }
+
+  recalcularTotal() {
+    const total = this.preguntasArray.controls.reduce(
+      (acc, ctrl) => acc + (Number((ctrl as FormGroup).get('puntos')?.value) || 0), 0,
+    );
+    this.totalPuntos.set(total);
+  }
+
   selectKind(k: TaskKind) {
     this.kind.set(k);
-    if (k === 'interactiva' && this.preguntasArray.length === 0) {
-      this.addPregunta();
-    }
+    if (k === 'interactiva' && this.preguntasArray.length === 0) this.addPregunta();
   }
 
   addPregunta() {
-    this.preguntasArray.push(this.fb.group({
+    const group = this.fb.group({
       enunciado: ['', Validators.required],
       tipo: ['multiple'],
-      puntos: [1, [Validators.required, Validators.min(1)]],
+      puntos: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
       opciones: this.fb.array([
-        this.newOpcion(''),
-        this.newOpcion(''),
-        this.newOpcion(''),
-        this.newOpcion(''),
+        this.newOpcion(''), this.newOpcion(''),
+        this.newOpcion(''), this.newOpcion(''),
       ]),
-    }));
+    });
+    group.get('puntos')?.valueChanges.subscribe(() => this.recalcularTotal());
+    this.preguntasArray.push(group);
+    this.redistribuirPuntos();
   }
 
-  removePregunta(i: number) { this.preguntasArray.removeAt(i); }
+  removePregunta(i: number) {
+    this.preguntasArray.removeAt(i);
+    this.redistribuirPuntos();
+  }
+
   addOpcion(pi: number) { this.getOpcionesArray(pi)?.push(this.newOpcion('')); }
   removeOpcion(pi: number, oi: number) { this.getOpcionesArray(pi)?.removeAt(oi); }
 
@@ -153,18 +201,15 @@ export class TaskCreate implements OnInit {
     const grupo = this.getPreguntaGroup(pi);
     const opciones = this.getOpcionesArray(pi);
     if (!grupo || !opciones) return;
-    const tipo = grupo.value.tipo;
     opciones.clear();
+    const tipo = grupo.value.tipo;
     if (tipo === 'verdadero_falso') {
       opciones.push(this.newOpcion('Verdadero', true));
       opciones.push(this.newOpcion('Falso', false));
     } else if (tipo === 'corta') {
       opciones.push(this.newOpcion('', true));
     } else {
-      opciones.push(this.newOpcion(''));
-      opciones.push(this.newOpcion(''));
-      opciones.push(this.newOpcion(''));
-      opciones.push(this.newOpcion(''));
+      [0, 1, 2, 3].forEach(() => opciones.push(this.newOpcion('')));
     }
   }
 
@@ -180,9 +225,7 @@ export class TaskCreate implements OnInit {
     this.archivoReferencia.set(input.files?.[0] ?? null);
   }
 
-  clearFile() {
-    this.archivoReferencia.set(null);
-  }
+  clearFile() { this.archivoReferencia.set(null); }
 
   private buildDateTime(fecha: Date, hora: string): string {
     const [h, m] = hora.split(':');
@@ -198,31 +241,43 @@ export class TaskCreate implements OnInit {
 
   submit() {
     if (this.loading()) return;
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      setTimeout(() => {
+        const firstError = document.querySelector('.mat-mdc-form-field.ng-invalid');
+        firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+      this.toastr.error('Completa todos los campos requeridos', 'Error');
+      return;
+    }
     const v = this.form.value;
-
     const isInteractiva = this.kind() === 'interactiva';
 
     if (isInteractiva && this.preguntasArray.length === 0) {
-      this.toastr.success('Agrega al menos una pregunta', '�xito');
+      this.toastr.error('Agrega al menos una pregunta', 'Error');
+      return;
+    }
+    if (isInteractiva && this.totalPuntos() !== 20) {
+      this.toastr.error(`Los puntos deben sumar 20. Total actual: ${this.totalPuntos()}`, 'Error');
       return;
     }
     if (!isInteractiva && !v.permite_archivo && !v.permite_texto) {
-      this.toastr.success('Selecciona al menos un método de entrega (archivo o texto)', '�xito');
+      this.toastr.error('Selecciona al menos un método de entrega', 'Error');
       return;
     }
 
     this.loading.set(true);
+    const cursoId = this.prefillCourseId ?? '';
 
     const payload: CreateTaskPayload = {
       titulo: v.titulo!,
       instrucciones: (v.descripcion ?? '').trim() || undefined,
       fecha_limite: this.buildDateTime(v.fecha_entrega!, v.hora_entrega!),
-      puntos_max: v.puntos_max!,
+      puntos_max: isInteractiva ? 20 : v.puntos_max!,
       permite_alternativas: isInteractiva,
       permite_archivo: isInteractiva ? false : !!v.permite_archivo,
       permite_texto: isInteractiva ? false : !!v.permite_texto,
-      bimestre: v.bimestre ?? null,
+      bimestre: this.periodoActivo()?.bimestre ?? null,
       semana: v.semana ?? null,
     };
 
@@ -242,20 +297,15 @@ export class TaskCreate implements OnInit {
       });
     }
 
-    const cursoId = this.prefillCourseId ?? v.curso_id ?? '';
-
     this.taskSvc.createTask(cursoId, payload).subscribe({
       next: r => {
         const task = r.data;
         const file = this.archivoReferencia();
-        if (!isInteractiva && file && task?.id) {
-          this.uploadReferenceFile(task.id, file);
-        } else {
-          this.finishSuccess();
-        }
+        if (!isInteractiva && file && task?.id) this.uploadReferenceFile(task.id, file);
+        else this.finishSuccess();
       },
       error: () => {
-        this.toastr.success('Error al crear la tarea', '�xito');
+        this.toastr.error('Error al crear la tarea', 'Error');
         this.loading.set(false);
       },
     });
@@ -264,13 +314,10 @@ export class TaskCreate implements OnInit {
   private uploadReferenceFile(taskId: string, file: File) {
     this.uploading.set(true);
     this.taskSvc.uploadEnunciado(taskId, file).subscribe({
-      next: () => {
-        this.uploading.set(false);
-        this.finishSuccess();
-      },
+      next: () => { this.uploading.set(false); this.finishSuccess(); },
       error: () => {
         this.uploading.set(false);
-        this.toastr.success('Tarea creada, pero falló la subida del archivo de referencia', '�xito');
+        this.toastr.error('Tarea creada, pero falló la subida del archivo', 'Advertencia');
         this.finishSuccess();
       },
     });
@@ -278,7 +325,7 @@ export class TaskCreate implements OnInit {
 
   private finishSuccess() {
     this.loading.set(false);
-    this.toastr.success('Tarea creada correctamente', '�xito');
+    this.toastr.success('Tarea creada correctamente', 'Éxito');
     if (this.dialogRef) this.dialogRef.close(true);
     else this.router.navigate(['/tareas']);
   }

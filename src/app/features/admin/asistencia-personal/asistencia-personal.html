@@ -1,12 +1,13 @@
 <div class="page-container fade-in">
+
     <header class="page-header">
         <div class="header-info">
             <h1>Asistencia del Personal</h1>
-            <p class="text-muted-desc">Historial de fichajes del personal docente y administrativo.</p>
+            <p class="text-muted-desc">Historial y control de fichajes del personal docente y administrativo.</p>
         </div>
 
         <div class="header-actions">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
                 <mat-label>Fecha de Consulta</mat-label>
                 <mat-icon matPrefix>calendar_today</mat-icon>
                 <input matInput [matDatepicker]="dp" [formControl]="fechaFiltro" placeholder="DD/MM/AAAA" />
@@ -14,8 +15,8 @@
                 <mat-datepicker #dp />
             </mat-form-field>
 
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="estado-field">
-                <mat-label>Estado</mat-label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
+                <mat-label>Estado de Marcación</mat-label>
                 <mat-select [formControl]="estadoFiltro">
                     <mat-option value="">Todos los estados</mat-option>
                     <mat-option value="presente">Presente</mat-option>
@@ -25,25 +26,32 @@
                 </mat-select>
             </mat-form-field>
 
-            @if (hayFiltrosActivos()) {
-            <button mat-flat-button color="warn" (click)="limpiarFiltros()" class="btn-clear">
-                <mat-icon>filter_alt_off</mat-icon>
-                <span>Limpiar Filtros</span>
-            </button>
-            }
+            <div class="action-buttons-group">
+                <button mat-flat-button [matMenuTriggerFor]="exportMenu" [disabled]="descargando()" class="btn-export">
+                    <mat-icon>download</mat-icon>
+                    <span>Exportar</span>
+                </button>
+
+                @if (hayFiltrosActivos()) {
+                <button mat-stroked-button color="warn" (click)="limpiarFiltros()" class="btn-clear"
+                    matTooltip="Restablecer filtros">
+                    <mat-icon>filter_alt_off</mat-icon>
+                    <span class="hide-on-tablet">Limpiar</span>
+                </button>
+                }
+            </div>
         </div>
     </header>
 
     @if (!loading() && total() > 0) {
     <div class="results-bar">
-        <span class="results-count">
-            Se encontraron <strong>{{ total() }}</strong> registros de asistencia
-        </span>
+        <span>Se encontraron <strong>{{ total() }}</strong> registros de asistencia para el día seleccionado.</span>
     </div>
     }
 
     <main class="table-card">
         <div class="tab-table-container">
+
             @if (loading()) {
             <div class="loading-state" aria-busy="true">
                 <div class="spinner-ring"></div>
@@ -51,20 +59,23 @@
             </div>
             } @else if (dataSource.data.length === 0) {
             <div class="empty-state">
-                <mat-icon>badge</mat-icon>
-                <p>No hay marcaciones para la fecha seleccionada</p>
-                <span class="empty-hint">Modifique los filtros o elija un día laboral distinto.</span>
+                <div class="empty-icon-wrapper">
+                    <mat-icon>assignment_late</mat-icon>
+                </div>
+                <h3>Sin marcaciones registradas</h3>
+                <p class="empty-hint">Modifique los filtros superiores o elija un día laboral distinto para auditar.</p>
             </div>
             } @else {
 
             <div class="table-responsive hide-on-mobile">
                 <table mat-table [dataSource]="dataSource" class="users-table">
+
                     <ng-container matColumnDef="nombre">
                         <th mat-header-cell *matHeaderCellDef>Colaborador</th>
                         <td mat-cell *matCellDef="let row">
                             <div class="user-meta-cell">
                                 <span class="main-text">{{ row.nombre_completo }}</span>
-                                <span class="sub-text">Cód. Acceso: {{ row.codigo_acceso }}</span>
+                                <span class="sub-text">Cód. Acceso: <code>{{ row.codigo_acceso }}</code></span>
                             </div>
                         </td>
                     </ng-container>
@@ -79,29 +90,31 @@
                     <ng-container matColumnDef="fecha">
                         <th mat-header-cell *matHeaderCellDef>Fecha</th>
                         <td mat-cell *matCellDef="let row">
-                            {{ row.fecha | date:'dd/MM/yyyy' }}
+                            <span class="date-display-text">{{ row.fecha | date:'dd/MM/yyyy' }}</span>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="entrada">
-                        <th mat-header-cell *matHeaderCellDef>Marcación Entrada</th>
+                        <th mat-header-cell *matHeaderCellDef>Entrada</th>
                         <td mat-cell *matCellDef="let row">
                             <div class="hora-block">
-                                <span class="hora-valor">{{ row.hora_entrada ?? '—' }}</span>
+                                <span class="hora-valor" [class.text-muted]="!row.hora_entrada">{{ row.hora_entrada ??
+                                    '— : —' }}</span>
                                 @if (row.hora_entrada_esperada) {
-                                <span class="hora-esperada">esp. {{ row.hora_entrada_esperada }}</span>
+                                <span class="hora-esperada">Horario: {{ row.hora_entrada_esperada }}</span>
                                 }
                             </div>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="salida">
-                        <th mat-header-cell *matHeaderCellDef>Marcación Salida</th>
+                        <th mat-header-cell *matHeaderCellDef>Salida</th>
                         <td mat-cell *matCellDef="let row">
                             <div class="hora-block">
-                                <span class="hora-valor">{{ row.hora_salida ?? '—' }}</span>
+                                <span class="hora-valor" [class.text-muted]="!row.hora_salida">{{ row.hora_salida ?? '—
+                                    : —' }}</span>
                                 @if (row.hora_salida_esperada) {
-                                <span class="hora-esperada">esp. {{ row.hora_salida_esperada }}</span>
+                                <span class="hora-esperada">Horario: {{ row.hora_salida_esperada }}</span>
                                 }
                             </div>
                         </td>
@@ -111,13 +124,13 @@
                         <th mat-header-cell *matHeaderCellDef>Estado</th>
                         <td mat-cell *matCellDef="let row">
                             <div class="status-cell-wrapper">
-                                <span class="estado-chip" [style.background]="estadoColor[row.estado] + '15'"
-                                    [style.color]="estadoColor[row.estado]"
-                                    [style.border]="'1px solid ' + estadoColor[row.estado] + '30'">
+                                <span class="estado-chip status-{{row.estado}}">
+                                    <span class="status-dot"></span>
                                     {{ estadoLabel[row.estado] }}
                                 </span>
                                 @if (row.editado_por) {
-                                <mat-icon class="edited-icon" matTooltip="Modificado por Dirección">edit_note</mat-icon>
+                                <mat-icon class="edited-icon"
+                                    matTooltip="Modificado manualmente por Dirección">edit_note</mat-icon>
                                 }
                             </div>
                         </td>
@@ -140,14 +153,13 @@
 
             <div class="mobile-cards-container show-on-mobile">
                 @for (row of dataSource.data; track row.id) {
-                <div class="attendance-mobile-card" [style.border-left]="'4px solid ' + estadoColor[row.estado]">
-
+                <div class="attendance-mobile-card border-{{row.estado}}">
                     <div class="card-main-row">
                         <div class="card-user-info">
                             <h4>{{ row.nombre_completo }}</h4>
                             <div class="badges-row-flex">
                                 <span class="rol-chip {{ row.rol }}">{{ rolLabel(row.rol) }}</span>
-                                <span class="card-code-badge">{{ row.codigo_acceso }}</span>
+                                <span class="card-code-badge">ID: {{ row.codigo_acceso }}</span>
                             </div>
                         </div>
                         <div class="card-actions">
@@ -161,16 +173,18 @@
                     <div class="card-time-grid">
                         <div class="time-box">
                             <span class="t-lbl"><mat-icon>login</mat-icon> Entrada</span>
-                            <span class="t-val">{{ row.hora_entrada ?? '—' }}</span>
+                            <span class="t-val" [class.text-muted]="!row.hora_entrada">{{ row.hora_entrada ?? '— : —'
+                                }}</span>
                             @if (row.hora_entrada_esperada) {
-                            <span class="t-exp">esp. {{ row.hora_entrada_esperada }}</span>
+                            <span class="t-exp">Est. {{ row.hora_entrada_esperada }}</span>
                             }
                         </div>
                         <div class="time-box">
                             <span class="t-lbl"><mat-icon>logout</mat-icon> Salida</span>
-                            <span class="t-val">{{ row.hora_salida ?? '—' }}</span>
+                            <span class="t-val" [class.text-muted]="!row.hora_salida">{{ row.hora_salida ?? '— : —'
+                                }}</span>
                             @if (row.hora_salida_esperada) {
-                            <span class="t-exp">esp. {{ row.hora_salida_esperada }}</span>
+                            <span class="t-exp">Est. {{ row.hora_salida_esperada }}</span>
                             }
                         </div>
                     </div>
@@ -178,8 +192,8 @@
                     <div class="card-footer-status">
                         <span class="date-text"><mat-icon>event</mat-icon> {{ row.fecha | date:'dd/MM/yyyy' }}</span>
                         <div class="status-pill-wrapper">
-                            <span class="estado-chip" [style.background]="estadoColor[row.estado] + '15'"
-                                [style.color]="estadoColor[row.estado]">
+                            <span class="estado-chip status-{{row.estado}}">
+                                <span class="status-dot"></span>
                                 {{ estadoLabel[row.estado] }}
                             </span>
                             @if (row.editado_por) {
@@ -198,11 +212,33 @@
     </main>
 </div>
 
+<mat-menu #exportMenu="matMenu" xPosition="before" class="premium-export-menu">
+    <div class="menu-section-title">Reporte de Docentes</div>
+    <button mat-menu-item (click)="descargar('teacher_attendance_range', 'xlsx')">
+        <mat-icon style="color: #10b981">table_view</mat-icon>
+        <span>Exportar a MS Excel</span>
+    </button>
+    <button mat-menu-item (click)="descargar('teacher_attendance_range', 'pdf')">
+        <mat-icon style="color: #ef4444">picture_as_pdf</mat-icon>
+        <span>Exportar a Documento PDF</span>
+    </button>
+    <mat-divider />
+    <div class="menu-section-title">Reporte de Personal Administrativo</div>
+    <button mat-menu-item (click)="descargar('staff_attendance_range', 'xlsx')">
+        <mat-icon style="color: #10b981">table_view</mat-icon>
+        <span>Exportar a MS Excel</span>
+    </button>
+    <button mat-menu-item (click)="descargar('staff_attendance_range', 'pdf')">
+        <mat-icon style="color: #ef4444">picture_as_pdf</mat-icon>
+        <span>Exportar a Documento PDF</span>
+    </button>
+</mat-menu>
+
 <mat-menu #rowMenu="matMenu" xPosition="before" class="users-action-menu">
     <ng-template matMenuContent let-row="row">
         <button mat-menu-item (click)="editarEstado(row)">
-            <mat-icon class="material-symbols-outlined">edit_note</mat-icon>
-            <span>Editar registro académico</span>
+            <mat-icon class="material-symbols-outlined text-primary-icon">edit_note</mat-icon>
+            <span>Corregir Registro de Fichaje</span>
         </button>
     </ng-template>
 </mat-menu>

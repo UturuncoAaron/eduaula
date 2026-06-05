@@ -4,12 +4,12 @@ import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/materia
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastService } from 'ngx-toastr-notifier';
+
 import { ApiService } from '../../../core/services/api';
 import { UserAvatar, AvatarRole } from '../../../shared/components/user-avatar/user-avatar';
-//                       ^^^^^^^^^^ importar el tipo
 
-// ── Tipos ──────────────────────────────────────────────────────
 export type UserTipo = 'alumnos' | 'docentes' | 'padres' | 'admins' | 'psicologos';
 
 export interface UserDetailDialogData {
@@ -17,7 +17,6 @@ export interface UserDetailDialogData {
   tipo: UserTipo;
 }
 
-/** Padre vinculado al alumno (solo se carga si tipo === 'alumnos'). */
 interface PadreVinculado {
   id: string;
   nombre: string;
@@ -58,10 +57,9 @@ interface UserDetail {
 interface TipoMeta {
   label: string;
   color: string;
-  rol: AvatarRole;            // ← antes era `any`
+  rol: AvatarRole;
 }
 
-// ── Constantes ─────────────────────────────────────────────────
 const TIPO_META: Record<UserTipo, TipoMeta> = {
   alumnos: { label: 'Alumno', color: '#10b981', rol: 'alumno' },
   docentes: { label: 'Docente', color: '#f59e0b', rol: 'docente' },
@@ -88,7 +86,7 @@ const ESTADO_CONTRATO_LABEL: Record<string, string> = {
   imports: [
     DatePipe, UpperCasePipe,
     MatIconModule, MatButtonModule,
-    MatDividerModule, MatDialogModule,
+    MatDividerModule, MatDialogModule, MatTooltipModule,
     UserAvatar,
   ],
   templateUrl: './user-detail-dialog.html',
@@ -102,17 +100,14 @@ export class UserDetailDialog implements OnInit {
   data = inject<UserDetailDialogData>(MAT_DIALOG_DATA);
   loading = signal(true);
   user = signal<UserDetail | null>(null);
-  /** Padres vinculados al alumno (solo aplica cuando tipo === 'alumnos'). */
   padresVinculados = signal<PadreVinculado[]>([]);
 
   meta = computed<TipoMeta>(
     () => TIPO_META[this.data.tipo] ?? TIPO_META.alumnos,
   );
 
-  // ── Lifecycle ────────────────────────────────────────────────
   ngOnInit(): void {
     this.api.get<any>(`admin/users/${this.data.tipo}/${this.data.id}`).subscribe({
-      //         ^^^^ mantener `any` como tu original (evita conflicto con ApiService)
       next: (r) => {
         this.user.set(r.data as UserDetail);
         this.loading.set(false);
@@ -123,8 +118,6 @@ export class UserDetailDialog implements OnInit {
       },
     });
 
-    // Si estamos viendo un alumno, en paralelo traemos sus padres vinculados
-    // para mostrarlos en el perfil. No bloquea el render del resto del dialog.
     if (this.data.tipo === 'alumnos') {
       this.api
         .get<any>(`admin/users/alumnos/${this.data.id}/padres`)
@@ -133,13 +126,11 @@ export class UserDetailDialog implements OnInit {
             const list = Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : [];
             this.padresVinculados.set(list as PadreVinculado[]);
           },
-          // Silencioso: la falta de padres es un estado válido (no error).
           error: () => this.padresVinculados.set([]),
         });
     }
   }
 
-  // ── Derivados ────────────────────────────────────────────────
   nombreCompleto = computed(() => {
     const u = this.user();
     if (!u) return '';
@@ -182,7 +173,6 @@ export class UserDetailDialog implements OnInit {
     return !!(u?.especialidad || u?.titulo_profesional || u?.colegiatura);
   });
 
-  // ── Labels ───────────────────────────────────────────────────
   relacionLabel = (r?: string) => (r && RELACION_LABEL[r]) ?? r ?? '';
   contratoLabel = (c?: string) => (c && CONTRATO_LABEL[c]) ?? c ?? '';
   estadoConLabel = (e?: string) => (e && ESTADO_CONTRATO_LABEL[e]) ?? e ?? '';

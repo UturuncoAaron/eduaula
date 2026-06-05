@@ -6,12 +6,12 @@
             <div class="inputs-fluid-group">
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-large">
                     <mat-icon matPrefix>badge</mat-icon>
-                    <mat-label>Colaborador / Docente</mat-label>
+                    <mat-label>Docente</mat-label>
                     <mat-select [(ngModel)]="personalId">
                         <mat-option value="">Todos los Docentes Activos</mat-option>
                         @for (p of personalLista(); track p.id) {
                         <mat-option [value]="p.id">
-                            {{ p.apellido_paterno }}, {{ p.nombre }}
+                            {{ p.apellido_paterno }} {{ p.apellido_materno ?? '' }}, {{ p.nombre }}
                         </mat-option>
                         }
                     </mat-select>
@@ -20,29 +20,30 @@
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
                     <mat-icon matPrefix>date_range</mat-icon>
                     <mat-label>Fecha Inicial</mat-label>
-                    <input matInput type="date" [(ngModel)]="rangoInicio" />
+                    <input matInput type="date" [(ngModel)]="rangoInicio" [max]="rangoFin" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="field-grow-small">
                     <mat-icon matPrefix>event_available</mat-icon>
                     <mat-label>Fecha de Término</mat-label>
-                    <input matInput type="date" [(ngModel)]="rangoFin" />
+                    <input matInput type="date" [(ngModel)]="rangoFin" [min]="rangoInicio" />
                 </mat-form-field>
             </div>
 
             <div class="actions-fluid-group">
-                <button mat-flat-button class="btn-action-primary" (click)="cargarResumen()">
-                    <mat-icon>sync_saved_locally</mat-icon>
-                    <span>Sincronizar Historial</span>
+                <button mat-flat-button class="btn-action-primary" (click)="cargarResumen()"
+                    [disabled]="store.reporteLoading() === 'loading'">
+                    <mat-icon>sync</mat-icon>
+                    <span>Sincronizar</span>
                 </button>
 
                 <div class="export-buttons-pack">
-                    <button mat-icon-button class="btn-export excel" (click)="descargarReportePersonal('xlsx')"
-                        matTooltip="Exportar Excel">
+                    <button mat-icon-button class="btn-export excel" (click)="descargarReporte('xlsx')"
+                        [disabled]="store.reporteLoading() === 'loading'" matTooltip="Exportar Excel">
                         <mat-icon>table_view</mat-icon>
                     </button>
-                    <button mat-icon-button class="btn-export pdf" (click)="descargarReportePersonal('pdf')"
-                        matTooltip="Exportar PDF">
+                    <button mat-icon-button class="btn-export pdf" (click)="descargarReporte('pdf')"
+                        [disabled]="store.reporteLoading() === 'loading'" matTooltip="Exportar PDF">
                         <mat-icon>picture_as_pdf</mat-icon>
                     </button>
                 </div>
@@ -53,27 +54,45 @@
 
     @if (store.reporteLoading() === 'loading') {
     <div class="loader-container">
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <mat-progress-bar mode="indeterminate" />
     </div>
     }
 
-    @if (store.resumenDocentes().length) {
+    @if (store.reporteLoading() === 'error') {
+    <div class="estado-vacio error">
+        <mat-icon>warning_amber</mat-icon>
+        <span>Error al cargar los datos. Verifica el rango de fechas e intenta nuevamente.</span>
+    </div>
+    }
+
+    @if (store.resumenDocentes().length > 0) {
+    <div class="resultados-header">
+        <span class="resultados-label">
+            <mat-icon>groups</mat-icon>
+            {{ store.resumenDocentes().length }} docente{{ store.resumenDocentes().length !== 1 ? 's' : '' }} en el
+            período
+        </span>
+        <span class="rango-label">{{ rangoInicio | date:'dd/MM/yyyy' }} — {{ rangoFin | date:'dd/MM/yyyy' }}</span>
+    </div>
+
     <div class="results-layout-area">
         <div class="desktop-table-view">
             <div class="table-scroll-container">
                 <table class="premium-data-table">
                     <thead>
                         <tr>
-                            <th>Docente / Colaborador</th>
-                            <th class="cell-num">Módulos Esperados</th>
+                            <th>Docente</th>
+                            <th class="cell-num">Bloques Esp.</th>
                             <th class="cell-num">Presente</th>
                             <th class="cell-num">Tardanzas</th>
-                            <th class="cell-num">Ausente</th>
-                            <th class="cell-num">Cumplimiento Global</th>
+                            <th class="cell-num">Faltas</th>
+                            <th class="cell-num">Justificados</th>
+                            <th class="cell-num">Sin Registro</th>
+                            <th class="cell-center">Cumplimiento</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for (d of $any(store.resumenDocentes()); track d.docente_id) {
+                        @for (d of store.resumenDocentes(); track d.docente_id) {
                         <tr [class.is-critical]="+(d.porcentaje_asistencia ?? 100) < 85">
                             <td>
                                 <div class="identity-meta-box">
@@ -84,7 +103,15 @@
                             <td class="cell-num status-success">{{ d.presentes }}</td>
                             <td class="cell-num status-warning">{{ d.tardanzas }}</td>
                             <td class="cell-num status-danger">{{ d.faltos }}</td>
-                            <td class="cell-num column-efficiency-badge">{{ d.porcentaje_asistencia ?? '0' }}%</td>
+                            <td class="cell-num status-info">{{ d.justificados }}</td>
+                            <td class="cell-num status-muted">{{ d.sin_registro }}</td>
+                            <td class="cell-center">
+                                <span class="efficiency-chip" [class.high]="+(d.porcentaje_asistencia ?? 0) >= 90"
+                                    [class.mid]="+(d.porcentaje_asistencia ?? 0) >= 75 && +(d.porcentaje_asistencia ?? 0) < 90"
+                                    [class.low]="+(d.porcentaje_asistencia ?? 0) < 75">
+                                    {{ d.porcentaje_asistencia ?? '0' }}%
+                                </span>
+                            </td>
                         </tr>
                         }
                     </tbody>
@@ -93,11 +120,16 @@
         </div>
 
         <div class="mobile-feed-view">
-            @for (d of $any(store.resumenDocentes()); track d.docente_id) {
+            @for (d of store.resumenDocentes(); track d.docente_id) {
             <div class="dynamic-feed-card" [class.is-critical]="+(d.porcentaje_asistencia ?? 100) < 85">
                 <div class="feed-card-header">
-                    <span class="feed-student-name">{{ d.docente_nombre }}</span>
-                    <span class="feed-efficiency-tag" [class.low]="+(d.porcentaje_asistencia ?? 100) < 85">
+                    <div class="feed-identity-block">
+                        <span class="feed-student-name">{{ d.docente_nombre }}</span>
+                        <span class="feed-sub">{{ d.total_bloques_esperados }} bloques esperados</span>
+                    </div>
+                    <span class="efficiency-chip" [class.high]="+(d.porcentaje_asistencia ?? 0) >= 90"
+                        [class.mid]="+(d.porcentaje_asistencia ?? 0) >= 75 && +(d.porcentaje_asistencia ?? 0) < 90"
+                        [class.low]="+(d.porcentaje_asistencia ?? 0) < 75">
                         {{ d.porcentaje_asistencia ?? '0' }}%
                     </span>
                 </div>
@@ -114,10 +146,21 @@
                         <span class="value">{{ d.faltos }}</span>
                         <span class="label">Faltas</span>
                     </div>
+                    <div class="metric-pill info">
+                        <span class="value">{{ d.justificados }}</span>
+                        <span class="label">Just.</span>
+                    </div>
                 </div>
             </div>
             }
         </div>
+    </div>
+    }
+
+    @if (store.reporteLoading() === 'success' && store.resumenDocentes().length === 0) {
+    <div class="estado-vacio">
+        <mat-icon>search_off</mat-icon>
+        <span>No se encontraron registros para el rango seleccionado.</span>
     </div>
     }
 

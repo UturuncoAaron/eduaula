@@ -1,9 +1,7 @@
 @if (isDialog) {
 <div class="dialog-header">
     <div class="title-wrapper">
-        <div class="icon-box">
-            <mat-icon>assignment_add</mat-icon>
-        </div>
+        <div class="icon-box"><mat-icon>assignment_add</mat-icon></div>
         <h2 mat-dialog-title>Crear nueva tarea</h2>
     </div>
     <button mat-icon-button (click)="cancel()" class="btn-close" aria-label="Cerrar modal">
@@ -15,6 +13,14 @@
 }
 
 <div [class.dialog-body]="isDialog" mat-dialog-content>
+
+    @if (iniciando()) {
+    <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Cargando datos del curso...</span>
+    </div>
+    } @else {
+
     <form [formGroup]="form" class="custom-form">
 
         <div class="kind-selector">
@@ -38,20 +44,6 @@
             </span>
         </div>
 
-        @if (!isDialog) {
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Curso</mat-label>
-            <mat-select formControlName="curso_id">
-                @for (c of courses(); track c.id) {
-                <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
-                }
-            </mat-select>
-            @if (form.controls.curso_id.invalid && form.controls.curso_id.touched) {
-            <mat-error>Selecciona un curso</mat-error>
-            }
-        </mat-form-field>
-        }
-
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Título de la tarea</mat-label>
             <input matInput formControlName="titulo" placeholder="Ej: Ejercicios Capítulo 3" cdkFocusInitial />
@@ -62,7 +54,7 @@
 
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Descripción (opcional)</mat-label>
-            <textarea matInput formControlName="descripcion" rows="4"
+            <textarea matInput formControlName="descripcion" rows="3"
                 placeholder="Instrucciones detalladas para los alumnos..."></textarea>
         </mat-form-field>
 
@@ -86,6 +78,7 @@
                 }
             </mat-form-field>
 
+            @if (kind() === 'archivo') {
             <mat-form-field appearance="outline" class="grid-item">
                 <mat-label>Puntaje (1-20)</mat-label>
                 <input matInput formControlName="puntos_max" type="number" min="1" max="20" />
@@ -93,25 +86,38 @@
                 <mat-error>Inválido</mat-error>
                 }
             </mat-form-field>
+            }
+        </div>
 
-            <mat-form-field appearance="outline" class="grid-item">
-                <mat-label>Bimestre</mat-label>
-                <mat-select formControlName="bimestre">
-                    <mat-option [value]="null">— Sin asignar —</mat-option>
-                    @for (b of [1, 2, 3, 4]; track b) {
-                    <mat-option [value]="b">Bimestre {{ b }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
+        <div class="periodo-semana-row">
+            <div class="periodo-info">
+                <span class="periodo-label">Bimestre</span>
+                @if (periodoActivo()) {
+                <span class="periodo-chip">
+                    <mat-icon>event</mat-icon>
+                    Bimestre {{ periodoActivo()!.bimestre }} — {{ periodoActivo()!.nombre }}
+                </span>
+                } @else {
+                <span class="periodo-chip periodo-chip--warn">
+                    <mat-icon>warning</mat-icon>
+                    Sin bimestre activo
+                </span>
+                }
+            </div>
 
-            <mat-form-field appearance="outline" class="grid-item">
+            <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Semana</mat-label>
-                <mat-select formControlName="semana">
+                <mat-select formControlName="semana" [disabled]="semanasFiltradas().length === 0">
                     <mat-option [value]="null">— Sin asignar —</mat-option>
-                    @for (s of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]; track s) {
-                    <mat-option [value]="s">Semana {{ s }}</mat-option>
+                    @for (s of semanasFiltradas(); track s.semana) {
+                    <mat-option [value]="s.semana">
+                        Semana {{ s.semana }}@if (s.descripcion) { — {{ s.descripcion }}}
+                    </mat-option>
                     }
                 </mat-select>
+                @if (semanasFiltradas().length === 0) {
+                <mat-hint>Sin semanas en este bimestre</mat-hint>
+                }
             </mat-form-field>
         </div>
 
@@ -124,8 +130,7 @@
                     accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
                 @if (!archivoReferencia()) {
                 <button mat-stroked-button type="button" (click)="fileInput.click()">
-                    <mat-icon>upload_file</mat-icon>
-                    Adjuntar archivo
+                    <mat-icon>upload_file</mat-icon> Adjuntar archivo
                 </button>
                 } @else {
                 <div class="file-chip">
@@ -137,7 +142,6 @@
                 </div>
                 }
             </div>
-
             <h3 class="section-title">¿Qué puede entregar el alumno?</h3>
             <div class="checkboxes-row">
                 <mat-checkbox formControlName="permite_archivo">Archivo (PDF / imagen / doc)</mat-checkbox>
@@ -150,9 +154,16 @@
         <section class="section-block">
             <div class="section-header">
                 <h3 class="section-title">Preguntas ({{ preguntasArray.length }})</h3>
-                <button mat-stroked-button type="button" (click)="addPregunta()">
-                    <mat-icon>add</mat-icon> Agregar pregunta
-                </button>
+                <div class="section-header-right">
+                    <span class="puntos-badge" [class.puntos-ok]="totalPuntos() === 20"
+                        [class.puntos-error]="totalPuntos() !== 20">
+                        <mat-icon>grade</mat-icon>
+                        Total: {{ totalPuntos() }} / 20
+                    </span>
+                    <button mat-stroked-button type="button" (click)="addPregunta()">
+                        <mat-icon>add</mat-icon> Agregar pregunta
+                    </button>
+                </div>
             </div>
 
             @for (pGroup of preguntasArray.controls; track pi; let pi = $index) {
@@ -181,7 +192,8 @@
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="pts-field">
                         <mat-label>Puntos</mat-label>
-                        <input matInput type="number" formControlName="puntos" min="1" />
+                        <input matInput type="number" formControlName="puntos" min="1" max="20" />
+                        <mat-hint>Distribuido automáticamente</mat-hint>
                     </mat-form-field>
                 </div>
 
@@ -215,11 +227,14 @@
         }
 
     </form>
+    }
 </div>
 
 <div [class.dialog-footer]="isDialog" class="dialog-footer" align="end">
-    <button mat-button (click)="cancel()" [disabled]="loading() || uploading()" class="btn-cancel">Cancelar</button>
-    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading() || uploading()" class="btn-submit">
+    <button mat-button (click)="cancel()" [disabled]="loading() || uploading() || iniciando()"
+        class="btn-cancel">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading() || uploading() || iniciando()"
+        class="btn-submit">
         @if (loading() || uploading()) {
         <mat-spinner diameter="18"></mat-spinner>
         } @else {

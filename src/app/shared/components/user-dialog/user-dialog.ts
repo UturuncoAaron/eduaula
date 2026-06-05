@@ -1,6 +1,6 @@
 import {
   Component, inject, signal, computed,
-  OnInit, ChangeDetectionStrategy, OnDestroy
+  OnInit, ChangeDetectionStrategy, OnDestroy, ChangeDetectorRef
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -61,6 +61,7 @@ export class UserDialog implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly toastr = inject(ToastService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly dialogRef = inject(MatDialogRef<UserDialog>);
 
   readonly data = inject<UserDialogData>(MAT_DIALOG_DATA);
@@ -138,51 +139,83 @@ export class UserDialog implements OnInit, OnDestroy {
     }
 
     if (this.isEdit && this.data.user) {
-      const u = this.data.user;
+      // 1. Cargamos de inmediato lo que tenemos en memoria para que el usuario no vea la pantalla en blanco
+      this.patchForm(this.data.user);
 
-      // Intentar extraer la fecha de nacimiento usando múltiples fuentes comunes de payloads
-      const rawFechaNacimiento = u.fecha_nacimiento || (u as any).fechaNacimiento || (u as any).birthdate || null;
+      // 2. MEJORA DE ARQUITECTURA: Vamos a la API a traer la ficha fresca real con su fecha de nacimiento
+      this.busy.set(true);
+      const endpoint = `${ROLE_META[this.data.rol].endpoint}/${this.data.user.id}`;
 
-      this.form.patchValue({
-        tipo_documento: u.tipo_documento ?? 'dni',
-        numero_documento: u.numero_documento ?? '',
-        nombre: u.nombre ?? '',
-        apellido_paterno: u.apellido_paterno ?? '',
-        apellido_materno: u.apellido_materno ?? '',
-        email: u.email ?? '',
-        telefono: u.telefono ?? '',
-        especialidad: u.especialidad ?? '',
-        titulo_profesional: (u as any).titulo_profesional ?? '',
-        colegiatura: u.colegiatura ?? '',
-        relacion: u.relacion_familiar ?? '',
-        es_inclusivo: u.inclusivo ?? false,
-        fecha_nacimiento: this.parseBackendDate(rawFechaNacimiento)
+      this.api.get<any>(endpoint).subscribe({
+        next: (res) => {
+          // Si tu API envuelve la respuesta en un objeto "data", lo extraemos
+          const userData = res?.data || res;
+
+          if (userData) {
+            this.patchForm(userData);
+          }
+          this.busy.set(false);
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.busy.set(false);
+          this.cdr.markForCheck();
+        }
       });
-
-      // Mapear cargos institucionales para Staff y Admins de forma explícita
-      if (this.data.rol === 'staff' || this.data.rol === 'admin') {
-        const cargoValor = u.cargo || (u as any).puesto || '';
-        this.form.get('cargo')?.setValue(cargoValor);
-      }
-
-      this.form.updateValueAndValidity();
     }
   }
 
-  /**
-   * Parsea de forma estricta cualquier valor de fecha del backend a un objeto Date nativo localmente habitable.
-   */
+  // Factorizamos el parchado en un método limpio y reutilizable
+  private patchForm(u: any): void {
+    const rawFechaNacimiento = u.fecha_nacimiento ||
+      u.fechaNacimiento ||
+      (u as any).birthdate ||
+      null;
+
+    this.form.patchValue({
+      tipo_documento: u.tipo_documento ?? 'dni',
+      numero_documento: u.numero_documento ?? '',
+      nombre: u.nombre ?? '',
+      apellido_paterno: u.apellido_paterno ?? '',
+      apellido_materno: u.apellido_materno ?? '',
+      email: u.email ?? '',
+      telefono: u.telefono ?? '',
+      especialidad: u.especialidad ?? '',
+      titulo_profesional: u.titulo_profesional ?? '',
+      colegiatura: u.colegiatura ?? '',
+      relacion: u.relacion_familiar ?? '',
+      es_inclusivo: u.inclusivo ?? false,
+      fecha_nacimiento: this.parseBackendDate(rawFechaNacimiento)
+    });
+
+    if (this.data.rol === 'staff' || this.data.rol === 'admin') {
+      const cargoValor = u.cargo || u.puesto || '';
+      this.form.get('cargo')?.setValue(cargoValor);
+    }
+
+    this.form.updateValueAndValidity();
+    this.cdr.markForCheck();
+  }
+
   private parseBackendDate(dateValue: any): Date | null {
     if (!dateValue) return null;
+
     if (dateValue instanceof Date) return isNaN(dateValue.getTime()) ? null : dateValue;
 
-    // Tratamiento para cadenas con formato "YYYY-MM-DD" para evitar desajustes horarios
-    const cleanStr = dateValue.toString().split('T')[0].trim();
-    const parts = cleanStr.split('-');
+    const dateStr = dateValue.toString().trim();
 
+    if (dateStr.includes('T')) {
+      const baseDate = new Date(dateStr);
+      if (!isNaN(baseDate.getTime())) {
+        const userTimezoneOffset = baseDate.getTimezoneOffset() * 60000;
+        return new Date(baseDate.getTime() + userTimezoneOffset);
+      }
+    }
+
+    const parts = dateStr.split('-');
     if (parts.length === 3) {
       const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1; // Base 0 en JS
+      const month = parseInt(parts[1], 10) - 1;
       const day = parseInt(parts[2], 10);
 
       if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
@@ -190,9 +223,7 @@ export class UserDialog implements OnInit, OnDestroy {
       }
     }
 
-    // Si viene con otro formato estándar, recurrir al motor nativo de parsing
-    const timestamp = Date.parse(dateValue);
-    return !isNaN(timestamp) ? new Date(timestamp) : null;
+    return null;
   }
 
   private setupDynamicValidators(): void {

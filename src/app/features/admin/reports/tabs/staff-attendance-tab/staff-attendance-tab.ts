@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -26,9 +26,16 @@ interface StaffItem {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule, FormsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIconModule,
-    MatProgressBarModule, MatTooltipModule
+    CommonModule,
+    DatePipe,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatTooltipModule,
   ],
   templateUrl: './staff-attendance-tab.html',
   styleUrl: './staff-attendance-tab.scss'
@@ -46,10 +53,11 @@ export class StaffAttendanceTab implements OnInit {
   rangoFin = new Date().toISOString().slice(0, 10);
 
   ngOnInit(): void {
-    this.api.get<StaffItem[]>('admin/users/staff?limit=200').subscribe({
+    this.api.get<any>('admin/users/staff?limit=200').subscribe({
       next: (r: any) => {
-        const lista = r?.data ?? r ?? [];
-        this.staffLista.set(Array.isArray(lista) ? lista : []);
+        const raw = r?.data ?? r ?? [];
+        const lista = Array.isArray(raw) ? raw : (raw?.data ?? []);
+        this.staffLista.set(lista);
         this.cdr.markForCheck();
       }
     });
@@ -59,7 +67,7 @@ export class StaffAttendanceTab implements OnInit {
     this.store.loadResumenStaff(this.rangoInicio, this.rangoFin, this.personalId || undefined);
   }
 
-  descargarReporteStaff(formato: 'xlsx' | 'pdf'): void {
+  descargarReporte(formato: 'xlsx' | 'pdf'): void {
     this.svc.downloadConsolidatedReport({
       scope: 'staff_attendance_range',
       format: formato,
@@ -67,17 +75,19 @@ export class StaffAttendanceTab implements OnInit {
       fecha_fin: this.rangoFin,
       ...(this.personalId && { cuenta_id: this.personalId })
     }).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `reporte_asistencia_staff.${formato}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }
+      next: (blob: Blob) => this.triggerDownload(blob, `asistencia_staff_${this.rangoInicio}_${this.rangoFin}.${formato}`)
     });
+  }
+
+  private triggerDownload(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   }
 
   private primerDiaMes(): string {

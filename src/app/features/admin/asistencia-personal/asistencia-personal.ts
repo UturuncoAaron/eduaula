@@ -22,6 +22,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { ApiService } from '../../../core/services/api';
+import { ReportsService } from '../../../core/services/reports';
 
 export interface AsistenciaPersonalRow {
     id: string;
@@ -71,6 +72,7 @@ const ESTADO_COLOR: Record<string, string> = {
 })
 export class AsistenciaPersonal implements OnInit {
     private api = inject(ApiService);
+    private reportsService = inject(ReportsService);
     private dialog = inject(MatDialog);
     private toastr = inject(ToastService);
     private destroyRef = inject(DestroyRef);
@@ -82,6 +84,7 @@ export class AsistenciaPersonal implements OnInit {
     estadoFiltro = new FormControl<string>('');
 
     loading = signal(true);
+    descargando = signal(false);
     total = signal(0);
     page = signal(1);
     pageSize = signal(20);
@@ -151,6 +154,36 @@ export class AsistenciaPersonal implements OnInit {
         const hoy = new Date().toLocaleDateString('en-CA');
         const fecha = this.fechaFiltro.value?.toLocaleDateString('en-CA');
         return fecha !== hoy || !!this.estadoFiltro.value;
+    }
+
+    descargar(scope: 'teacher_attendance_range' | 'staff_attendance_range', formato: 'xlsx' | 'pdf'): void {
+        const fecha = this.fechaFiltro.value?.toLocaleDateString('en-CA')
+            ?? new Date().toLocaleDateString('en-CA');
+
+        this.descargando.set(true);
+        this.reportsService.downloadConsolidatedReport({
+            scope,
+            format: formato,
+            fecha_inicio: fecha,
+            fecha_fin: fecha,
+        }).subscribe({
+            next: (blob: Blob) => {
+                const tipo = scope === 'teacher_attendance_range' ? 'docentes' : 'staff';
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `asistencia_${tipo}_${fecha}.${formato}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                this.descargando.set(false);
+            },
+            error: () => {
+                this.toastr.error('Error al generar el reporte', 'Error');
+                this.descargando.set(false);
+            }
+        });
     }
 
     async editarEstado(row: AsistenciaPersonalRow): Promise<void> {

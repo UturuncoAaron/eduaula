@@ -357,3 +357,138 @@
         }
     }
 }
+.resultados-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  .resultados-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: shared.$c-slate-700;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: shared.$c-slate-500;
+    }
+  }
+
+  .rango-label {
+    font-size: 0.8rem;
+    color: shared.$c-slate-500;
+    background: shared.$c-bg-muted;
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid shared.$c-border;
+  }
+}
+
+.estado-vacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1.5rem;
+  background: #ffffff;
+  border: 1px dashed shared.$c-border;
+  border-radius: 16px;
+  color: shared.$c-slate-500;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  &.error {
+    border-color: #fca5a5;
+    background: #fef2f2;
+    color: shared.$c-danger;
+  }
+}
+
+.efficiency-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 58px;
+
+  &.high {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  &.mid {
+    background: #fef9c3;
+    color: #a16207;
+  }
+
+  &.low {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+}
+
+.cargo-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  display: inline-block;
+  letter-spacing: 0.04em;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.cell-center {
+  text-align: center;
+}
+
+.status-info {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.status-muted {
+  color: shared.$c-slate-500;
+  font-weight: 500;
+}
+
+.identity-meta-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+
+  .text-main {
+    font-weight: 600;
+    color: shared.$c-slate-900;
+  }
+}
+
+.feed-sub {
+  font-size: 0.75rem;
+  color: shared.$c-slate-500;
+  margin-top: 2px;
+}
+
+.metric-pill.info {
+  background: #eff6ff;
+
+  .value {
+    color: #2563eb;
+  }
+}

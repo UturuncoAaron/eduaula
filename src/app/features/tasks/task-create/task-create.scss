@@ -57,14 +57,23 @@ $border-color: #e2e8f0;
     }
 }
 
-// En modo drawer (panelClass: form-drawer-pane) el ancho lo controla
-// MatDialog. Aquí solo controlamos el padding y overflow del body.
 .dialog-body {
     overflow-x: hidden;
 
     @media (max-width: 600px) {
         padding: 16px !important;
     }
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 48px 24px;
+    color: $text-muted;
+    font-size: 14px;
 }
 
 .custom-form {
@@ -82,7 +91,12 @@ $border-color: #e2e8f0;
         gap: 16px;
         align-items: flex-start;
 
-        @media (max-width: 500px) {
+        @media (max-width: 600px) {
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 400px) {
             grid-template-columns: 1fr;
             gap: 12px;
         }
@@ -90,9 +104,11 @@ $border-color: #e2e8f0;
 }
 
 .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
     padding: 16px 24px 20px 24px;
     border-top: 1px solid #f1f5f9;
-    margin-bottom: 0;
     gap: 12px;
 
     .btn-cancel {
@@ -161,6 +177,66 @@ $border-color: #e2e8f0;
     }
 }
 
+// ── Bimestre + Semana row ────────────────────────────────────────
+
+.periodo-semana-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: center;
+
+    @media (max-width: 500px) {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+.periodo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .periodo-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding-left: 2px;
+    }
+
+    .periodo-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        background: $primary-light;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        color: $primary-blue;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1;
+        height: 42px;
+        box-sizing: border-box;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        &--warn {
+            background: #fffbeb;
+            border-color: #fde68a;
+            color: #92400e;
+        }
+    }
+}
+
+// ── Secciones ────────────────────────────────────────────────────
+
 .section-block {
     display: flex;
     flex-direction: column;
@@ -187,6 +263,14 @@ $border-color: #e2e8f0;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .section-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     }
 
     .file-row {
@@ -233,6 +317,38 @@ $border-color: #e2e8f0;
     }
 }
 
+// ── Preguntas ────────────────────────────────────────────────────
+
+.puntos-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    transition: background 0.2s, color 0.2s;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+    &.puntos-ok {
+        background: #dcfce7;
+        color: #166534;
+        border-color: #bbf7d0;
+    }
+
+    &.puntos-error {
+        background: #fef2f2;
+        color: #991b1b;
+        border-color: #fecaca;
+    }
+}
+
 .question-block {
     display: flex;
     flex-direction: column;
@@ -258,6 +374,10 @@ $border-color: #e2e8f0;
         display: grid;
         grid-template-columns: 2fr 1fr;
         gap: 12px;
+
+        @media (max-width: 400px) {
+            grid-template-columns: 1fr;
+        }
     }
 
     .options-list {
