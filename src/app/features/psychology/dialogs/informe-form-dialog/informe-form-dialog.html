@@ -1,12 +1,12 @@
 <header class="ifd__header" mat-dialog-title>
     <div class="ifd__header-top">
         <div class="ifd__title">
-            <mat-icon aria-hidden="true">description</mat-icon>
+            <mat-icon aria-hidden="true" class="ifd__title-icon">description</mat-icon>
             <h2>{{ isEdit() ? 'Editar informe' : 'Nuevo informe' }}</h2>
         </div>
         <div class="ifd__student">
             <mat-icon aria-hidden="true">person</mat-icon>
-            <span>{{ data.studentName }}</span>
+            <span class="ifd__student-name">{{ data.studentName }}</span>
         </div>
     </div>
 
@@ -25,7 +25,7 @@
     <mat-dialog-content class="ifd__body">
 
         @if (isLocked()) {
-        <div class="ifd__locked" role="status">
+        <div class="ifd__alert ifd__alert--locked" role="status">
             <mat-icon aria-hidden="true">lock</mat-icon>
             <div>
                 <strong>Informe finalizado</strong>
@@ -35,8 +35,8 @@
         }
 
         <!-- ══════════════════════════════════════════
-         0 — DATOS DE FILIACIÓN
-    ══════════════════════════════════════════ -->
+          0 — DATOS DE FILIACIÓN
+        ══════════════════════════════════════════ -->
         @if (activeStep() === 0) {
         <section class="ifd__section" aria-labelledby="sec-filiacion">
             <h3 class="ifd__sec-title" id="sec-filiacion">
@@ -59,8 +59,7 @@
 
                 <mat-form-field appearance="outline">
                     <mat-label>Motivo de consulta (breve)</mat-label>
-                    <input matInput formControlName="motivoConsultaCorto"
-                        placeholder="Ej. A solicitud del padre por recomendación del colegio">
+                    <input matInput formControlName="motivoConsultaCorto" placeholder="Ej. A solicitud del padre...">
                 </mat-form-field>
             </div>
 
@@ -90,51 +89,62 @@
             <mat-form-field appearance="outline" class="ifd__full">
                 <mat-label>Instrumentos utilizados</mat-label>
                 <textarea matInput formControlName="instrumentosUtilizados" rows="3"
-                    placeholder="Ej. SCARED – Detección de trastornos emocionales relacionados con la ansiedad infantil"></textarea>
+                    placeholder="Ej. SCARED – Detección de trastornos..."></textarea>
             </mat-form-field>
 
-            <div class="ifd__confidencial">
-                <mat-slide-toggle formControlName="confidencial" color="warn">
-                    <span class="ifd__conf-label">
-                        <mat-icon aria-hidden="true">lock</mat-icon>
-                        Confidencial
-                    </span>
-                </mat-slide-toggle>
-                <p class="ifd__conf-hint">
+            <!-- PRIVACIDAD Y CONFIDENCIALIDAD OPTIMIZADA -->
+            <div class="ifd__privacy-card" [class.is-confidential]="form.get('confidencial')?.value">
+                <div class="ifd__privacy-header">
+                    <div class="ifd__privacy-title">
+                        <mat-icon aria-hidden="true">{{ form.get('confidencial')?.value ? 'visibility_off' : 'group'
+                            }}</mat-icon>
+                        <span>Nivel de Privacidad</span>
+                    </div>
+                    <mat-slide-toggle formControlName="confidencial" color="warn">
+                        <span class="ifd__privacy-toggle-label">Confidencial</span>
+                    </mat-slide-toggle>
+                </div>
+
+                <div class="ifd__privacy-body">
                     @if (form.get('confidencial')?.value) {
-                    Solo la psicóloga y el alumno podrán verlo. Los padres <strong>no</strong> tendrán acceso.
+                    <p class="ifd__privacy-desc">
+                        <mat-icon class="ifd__icon-status">security</mat-icon>
+                        <strong>Estricto:</strong> Solo la <strong>psicóloga</strong> tendrá acceso a este informe. El
+                        alumno y los padres no podrán visualizarlo.
+                    </p>
                     } @else {
-                    Visible para el alumno y sus padres cuando sea finalizado.
+                    <p class="ifd__privacy-desc">
+                        <mat-icon class="ifd__icon-status">visibility</mat-icon>
+                        <strong>Compartido:</strong> Visible para la <strong>psicóloga</strong> y el
+                        <strong>alumno</strong>. Los padres <strong>no</strong> tendrán acceso bajo ningún término.
+                    </p>
                     }
-                </p>
+                </div>
             </div>
         </section>
         }
 
         <!-- ══════════════════════════════════════════
-         1 — MOTIVO DE CONSULTA
-    ══════════════════════════════════════════ -->
+          1 — MOTIVO DE CONSULTA
+        ══════════════════════════════════════════ -->
         @if (activeStep() === 1) {
         <section class="ifd__section" aria-labelledby="sec-motivo">
             <h3 class="ifd__sec-title" id="sec-motivo">
                 <mat-icon aria-hidden="true">help_outline</mat-icon>
                 II. Motivo de consulta
             </h3>
-            <p class="ifd__sec-hint">
-                Descripción narrativa del motivo que da origen a la evaluación psicológica.
-            </p>
+            <p class="ifd__sec-hint">Descripción narrativa del motivo que da origen a la evaluación psicológica.</p>
             <mat-form-field appearance="outline" class="ifd__full">
                 <mat-label>Motivo de consulta</mat-label>
-                <textarea matInput formControlName="motivoConsulta" rows="12"
-                    placeholder="La evaluación psicológica se realizó a solicitud del padre, en respuesta a la recomendación de la institución educativa..."></textarea>
+                <textarea matInput formControlName="motivoConsulta" rows="10"></textarea>
                 <mat-hint align="end">{{ len('motivoConsulta') }} caracteres</mat-hint>
             </mat-form-field>
         </section>
         }
 
         <!-- ══════════════════════════════════════════
-         2 — ANTECEDENTES
-    ══════════════════════════════════════════ -->
+          2 — ANTECEDENTES
+        ══════════════════════════════════════════ -->
         @if (activeStep() === 2) {
         <section class="ifd__section" aria-labelledby="sec-antecedentes">
             <h3 class="ifd__sec-title" id="sec-antecedentes">
@@ -142,125 +152,111 @@
                 III. Antecedentes
             </h3>
 
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Dinámica familiar</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Dinámica familiar</mat-label>
-                    <textarea matInput formControlName="antecedentesFamilia" rows="5"
-                        placeholder="Composición familiar, relaciones, dinámica del hogar..."></textarea>
-                    <mat-hint align="end">{{ len('antecedentesFamilia') }} caracteres</mat-hint>
-                </mat-form-field>
-            </div>
+            <div class="ifd__subsec-grid">
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Dinámica familiar</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="antecedentesFamilia" rows="4"
+                            placeholder="Composición familiar, relaciones..."></textarea>
+                        <mat-hint align="end">{{ len('antecedentesFamilia') }} carac.</mat-hint>
+                    </mat-form-field>
+                </div>
 
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Intereses académicos</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Intereses académicos</mat-label>
-                    <textarea matInput formControlName="antecedentesAcademico" rows="5"
-                        placeholder="Materias de preferencia, actitud frente al estudio, dificultades reportadas..."></textarea>
-                    <mat-hint align="end">{{ len('antecedentesAcademico') }} caracteres</mat-hint>
-                </mat-form-field>
-            </div>
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Intereses académicos</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="antecedentesAcademico" rows="4"
+                            placeholder="Materias de preferencia, actitud..."></textarea>
+                        <mat-hint align="end">{{ len('antecedentesAcademico') }} carac.</mat-hint>
+                    </mat-form-field>
+                </div>
 
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Trayectoria escolar</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Trayectoria escolar</mat-label>
-                    <textarea matInput formControlName="antecedentesEscolar" rows="5"
-                        placeholder="Rendimiento histórico, repeticiones, cambios de colegio, observaciones previas..."></textarea>
-                    <mat-hint align="end">{{ len('antecedentesEscolar') }} caracteres</mat-hint>
-                </mat-form-field>
-            </div>
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Trayectoria escolar</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="antecedentesEscolar" rows="4"
+                            placeholder="Rendimiento histórico, cambios..."></textarea>
+                        <mat-hint align="end">{{ len('antecedentesEscolar') }} carac.</mat-hint>
+                    </mat-form-field>
+                </div>
 
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Autopercepción</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Autopercepción</mat-label>
-                    <textarea matInput formControlName="antecedentesAutopercepcion" rows="5"
-                        placeholder="Cómo se describe el estudiante, imagen de sí mismo, aspectos sociales..."></textarea>
-                    <mat-hint align="end">{{ len('antecedentesAutopercepcion') }} caracteres</mat-hint>
-                </mat-form-field>
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Autopercepción</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="antecedentesAutopercepcion" rows="4"
+                            placeholder="Cómo se describe el estudiante..."></textarea>
+                        <mat-hint align="end">{{ len('antecedentesAutopercepcion') }} carac.</mat-hint>
+                    </mat-form-field>
+                </div>
             </div>
         </section>
         }
 
         <!-- ══════════════════════════════════════════
-         3 — OBSERVACIONES
-    ══════════════════════════════════════════ -->
+          3 — OBSERVACIONES
+        ══════════════════════════════════════════ -->
         @if (activeStep() === 3) {
         <section class="ifd__section" aria-labelledby="sec-observaciones">
             <h3 class="ifd__sec-title" id="sec-observaciones">
                 <mat-icon aria-hidden="true">visibility</mat-icon>
                 IV. Observaciones generales y de conducta
             </h3>
-            <p class="ifd__sec-hint">
-                Comportamiento durante la sesión: presentación, actitud, atención, estado de ánimo, ritmo de trabajo,
-                etc.
-            </p>
+            <p class="ifd__sec-hint">Comportamiento durante la sesión: presentación, actitud, atención, ritmo de
+                trabajo, etc.</p>
             <mat-form-field appearance="outline" class="ifd__full">
                 <mat-label>Observaciones generales y de conducta</mat-label>
-                <textarea matInput formControlName="observacionesConducta" rows="14"
-                    placeholder="El evaluado presenta adecuada higiene y cuidado personal. Durante la evaluación se mostró colaborador al inicio..."></textarea>
+                <textarea matInput formControlName="observacionesConducta" rows="10"></textarea>
                 <mat-hint align="end">{{ len('observacionesConducta') }} caracteres</mat-hint>
             </mat-form-field>
         </section>
         }
 
         <!-- ══════════════════════════════════════════
-         4 — RESULTADOS
-    ══════════════════════════════════════════ -->
+          4 — RESULTADOS
+        ══════════════════════════════════════════ -->
         @if (activeStep() === 4) {
         <section class="ifd__section" aria-labelledby="sec-resultados">
             <h3 class="ifd__sec-title" id="sec-resultados">
                 <mat-icon aria-hidden="true">analytics</mat-icon>
-                V. Resultados
+                V. Resultados por Áreas
             </h3>
 
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Área Cognitiva</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Área Cognitiva</mat-label>
-                    <textarea matInput formControlName="resultadosCognitiva" rows="5"
-                        placeholder="Funcionamiento intelectual, razonamiento, memoria, velocidad de procesamiento..."></textarea>
-                    <mat-hint align="end">{{ len('resultadosCognitiva') }} caracteres</mat-hint>
-                </mat-form-field>
-            </div>
-
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Área Emocional</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Área Emocional</mat-label>
-                    <textarea matInput formControlName="resultadosEmocional" rows="5"
-                        placeholder="Indicadores de ansiedad, estado emocional, regulación afectiva (SCARED, etc.)..."></textarea>
-                    <mat-hint align="end">{{ len('resultadosEmocional') }} caracteres</mat-hint>
-                </mat-form-field>
-            </div>
-
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Área Conductual</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Área Conductual</mat-label>
-                    <textarea matInput formControlName="resultadosConductual" rows="5"
-                        placeholder="Indicadores de conducta, concentración, problemas disciplinarios (SDQ, etc.)..."></textarea>
-                    <mat-hint align="end">{{ len('resultadosConductual') }} caracteres</mat-hint>
-                </mat-form-field>
-            </div>
-
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Área Social</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Área Social</mat-label>
-                    <textarea matInput formControlName="resultadosSocial" rows="5"
-                        placeholder="Habilidades sociales, relación con pares, integración escolar..."></textarea>
-                    <mat-hint align="end">{{ len('resultadosSocial') }} caracteres</mat-hint>
-                </mat-form-field>
+            <div class="ifd__subsec-grid">
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Área Cognitiva</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="resultadosCognitiva" rows="4"
+                            placeholder="Funcionamiento intelectual..."></textarea>
+                    </mat-form-field>
+                </div>
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Área Emocional</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="resultadosEmocional" rows="4"
+                            placeholder="Indicadores de ansiedad..."></textarea>
+                    </mat-form-field>
+                </div>
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Área Conductual</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="resultadosConductual" rows="4"
+                            placeholder="Indicadores de conducta..."></textarea>
+                    </mat-form-field>
+                </div>
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Área Social</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="resultadosSocial" rows="4"
+                            placeholder="Habilidades sociales..."></textarea>
+                    </mat-form-field>
+                </div>
             </div>
         </section>
         }
 
         <!-- ══════════════════════════════════════════
-         5 — ANÁLISIS + CONCLUSIONES
-    ══════════════════════════════════════════ -->
+          5 — ANÁLISIS + CONCLUSIONES
+        ══════════════════════════════════════════ -->
         @if (activeStep() === 5) {
         <section class="ifd__section" aria-labelledby="sec-conclusiones">
             <h3 class="ifd__sec-title" id="sec-conclusiones">
@@ -271,33 +267,26 @@
             <div class="ifd__subsec">
                 <h4 class="ifd__subsec-title">VI. Análisis de los resultados</h4>
                 <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Análisis de los resultados</mat-label>
-                    <textarea matInput formControlName="analisisResultados" rows="7"
-                        placeholder="Integración de los hallazgos de todas las áreas evaluadas..."></textarea>
-                    <mat-hint align="end">{{ len('analisisResultados') }} caracteres</mat-hint>
+                    <textarea matInput formControlName="analisisResultados" rows="5"
+                        placeholder="Integración de los hallazgos..."></textarea>
                 </mat-form-field>
             </div>
 
             <div class="ifd__subsec">
                 <h4 class="ifd__subsec-title">VII. Conclusiones</h4>
-                <p class="ifd__subsec-hint">
-                    Incluye el diagnóstico CIE-10 si aplica. Ej: R41.83 – Funcionamiento Intelectual Límite.
-                </p>
+                <p class="ifd__subsec-hint">Incluye el diagnóstico CIE-10 si aplica. Ej: R41.83 – Funcionamiento
+                    Intelectual Límite.</p>
                 <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Conclusiones</mat-label>
-                    <textarea matInput formControlName="conclusiones" rows="8" placeholder="1. Presenta desarrollo adaptativo acorde a su edad.
-2. Evidencia funcionamiento cognitivo ubicado en rango límite.
-...
-R41.83 – Funcionamiento Intelectual Límite"></textarea>
-                    <mat-hint align="end">{{ len('conclusiones') }} caracteres</mat-hint>
+                    <textarea matInput formControlName="conclusiones" rows="5"
+                        placeholder="1. Presenta desarrollo adaptativo acorde a su edad..."></textarea>
                 </mat-form-field>
             </div>
         </section>
         }
 
         <!-- ══════════════════════════════════════════
-         6 — RECOMENDACIONES
-    ══════════════════════════════════════════ -->
+          6 — RECOMENDACIONES
+        ══════════════════════════════════════════ -->
         @if (activeStep() === 6) {
         <section class="ifd__section" aria-labelledby="sec-recomendaciones">
             <h3 class="ifd__sec-title" id="sec-recomendaciones">
@@ -305,32 +294,28 @@ R41.83 – Funcionamiento Intelectual Límite"></textarea>
                 VIII. Recomendaciones
             </h3>
 
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Para la Institución Educativa</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Recomendaciones para la institución</mat-label>
-                    <textarea matInput formControlName="recomendacionesInstitucion" rows="7" placeholder="1. Implementar adaptaciones curriculares no significativas.
-2. Brindar instrucciones claras, concretas y segmentadas.
-3. Otorgar mayor tiempo para el desarrollo de evaluaciones."></textarea>
-                    <mat-hint align="end">{{ len('recomendacionesInstitucion') }} caracteres</mat-hint>
-                </mat-form-field>
-            </div>
+            <div class="ifd__subsec-grid">
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Para la Institución Educativa</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="recomendacionesInstitucion" rows="6"
+                            placeholder="1. Adaptaciones curriculares..."></textarea>
+                    </mat-form-field>
+                </div>
 
-            <div class="ifd__subsec">
-                <h4 class="ifd__subsec-title">Para la Familia</h4>
-                <mat-form-field appearance="outline" class="ifd__full">
-                    <mat-label>Recomendaciones para la familia</mat-label>
-                    <textarea matInput formControlName="recomendacionesFamilia" rows="7" placeholder="1. Establecer rutinas estructuradas de estudio con supervisión directa.
-2. Reforzar logros mediante reconocimiento positivo.
-3. Evitar comparaciones con pares o hermanos."></textarea>
-                    <mat-hint align="end">{{ len('recomendacionesFamilia') }} caracteres</mat-hint>
-                </mat-form-field>
+                <div class="ifd__subsec">
+                    <h4 class="ifd__subsec-title">Para la Familia</h4>
+                    <mat-form-field appearance="outline">
+                        <textarea matInput formControlName="recomendacionesFamilia" rows="6"
+                            placeholder="1. Establecer rutinas estructuradas..."></textarea>
+                    </mat-form-field>
+                </div>
             </div>
         </section>
         }
 
         @if (errorMsg()) {
-        <div class="ifd__error" role="alert">
+        <div class="ifd__alert ifd__alert--error" role="alert">
             <mat-icon aria-hidden="true">error_outline</mat-icon>
             <span>{{ errorMsg() }}</span>
         </div>
@@ -342,29 +327,30 @@ R41.83 – Funcionamiento Intelectual Límite"></textarea>
 
     <mat-dialog-actions class="ifd__actions">
         <div class="ifd__actions-nav">
-            <button mat-stroked-button type="button" [disabled]="activeStep() === 0" (click)="goTo(activeStep() - 1)">
+            <button mat-unthemed-button class="ifd__btn-nav" type="button" [disabled]="activeStep() === 0"
+                (click)="goTo(activeStep() - 1)">
                 <mat-icon>arrow_back</mat-icon>
-                Anterior
+                <span>Anterior</span>
             </button>
             <span class="ifd__step-indicator">{{ activeStep() + 1 }} / {{ secciones.length }}</span>
-            <button mat-stroked-button type="button" [disabled]="activeStep() === secciones.length - 1"
-                (click)="goTo(activeStep() + 1)">
-                Siguiente
+            <button mat-unthemed-button class="ifd__btn-nav" type="button"
+                [disabled]="activeStep() === secciones.length - 1" (click)="goTo(activeStep() + 1)">
+                <span>Siguiente</span>
                 <mat-icon>arrow_forward</mat-icon>
             </button>
         </div>
 
         <div class="ifd__actions-main">
-            <button mat-button type="button" (click)="cancel()" [disabled]="loading()">
+            <button mat-button class="ifd__btn-cancel" type="button" (click)="cancel()" [disabled]="loading()">
                 Cancelar
             </button>
-            <button mat-flat-button color="primary" type="submit" [disabled]="loading() || isLocked()">
+            <button mat-flat-button class="ifd__btn-submit" type="submit" [disabled]="loading() || isLocked()">
                 @if (loading()) {
                 <mat-spinner diameter="18" />
                 <span>Guardando…</span>
                 } @else { <ng-container>
-                <mat-icon aria-hidden="true">save</mat-icon>
-                <span>{{ isEdit() ? 'Guardar cambios' : 'Crear informe' }}</span>
+                    <mat-icon aria-hidden="true">save</mat-icon>
+                    <span>{{ isEdit() ? 'Guardar cambios' : 'Crear informe' }}</span>
                 </ng-container>}
             </button>
         </div>

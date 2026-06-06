@@ -1,31 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400&display=swap');
-
-// ── Variables ────────────────────────────────────────────────────
 $ink: #1a1a1a;
 $muted: #555555;
 $green: #1e6b3a;
 $amber: #7a4f00;
-$border: #cccccc;
 
-// Dimensiones A4 exactas en mm
-$a4-w: 210mm;
-$a4-h: 297mm;
-$a4-pad-v: 20mm;
-$a4-pad-h: 22mm;
-
-// ── Host ─────────────────────────────────────────────────────────
-// No tocamos el fondo del host — lo maneja el MainLayout.
-// Solo ocupamos todo el espacio disponible.
 :host {
-    display: block;
-    min-height: 100%;
-    font-family: 'Times New Roman', Times, serif;
-    color: $ink;
-    background: #e0e0e0; // fondo gris solo dentro del content area
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    font-family: system-ui, sans-serif;
 }
 
-// ── Toolbar propio del informe ────────────────────────────────────
-// Va sobre el contenido (no fixed, para no interferir con el sidebar)
 .print-toolbar {
     position: sticky;
     top: 0;
@@ -39,7 +23,7 @@ $a4-pad-h: 22mm;
     background: #ffffff;
     border-bottom: 1px solid #e0e0e0;
     box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
-    font-family: system-ui, sans-serif;
+    flex-shrink: 0;
 
     .toolbar-left {
         display: flex;
@@ -89,7 +73,6 @@ $a4-pad-h: 22mm;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: .4px;
-        font-family: system-ui, sans-serif;
 
         mat-icon {
             font-size: 13px;
@@ -111,7 +94,6 @@ $a4-pad-h: 22mm;
     }
 }
 
-// ── Estados ──────────────────────────────────────────────────────
 .state-center,
 .state-error {
     display: flex;
@@ -121,7 +103,7 @@ $a4-pad-h: 22mm;
     gap: 12px;
     padding: 60px 24px;
     color: $muted;
-    font-family: system-ui, sans-serif;
+    flex: 1;
 
     mat-icon {
         font-size: 40px;
@@ -134,258 +116,14 @@ $a4-pad-h: 22mm;
     }
 }
 
-// ── Page wrap — área gris que simula visor PDF ────────────────────
-.page-wrap {
-    padding: 24px 20px 40px;
+.pdf-wrap {
+    flex: 1;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: auto;
-    min-height: calc(100vh - 52px);
+    overflow: hidden;
 }
 
-// ── Hoja A4 ───────────────────────────────────────────────────────
-.informe-doc {
-    width: $a4-w;
-    min-height: $a4-h;
-    background: // Línea de corte de página simulada cada 297mm
-    repeating-linear-gradient(to bottom,
-        #fff 0,
-        #fff calc(#{$a4-h} - 1px),
-        #bbb calc(#{$a4-h} - 1px),
-        #bbb $a4-h );
-    box-shadow: 0 2px 16px rgba(0, 0, 0, .28);
-    box-sizing: border-box;
-    font-size: 10.5pt;
-    line-height: 1.6;
-    color: $ink;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    padding: $a4-pad-v $a4-pad-h calc(#{$a4-pad-v} + 14mm);
-}
-
-// ── Encabezado ───────────────────────────────────────────────────
-.doc-header {
-    text-align: center;
-    margin-bottom: 18pt;
-
-    .doc-title {
-        margin: 0;
-        font-size: 13pt;
-        font-weight: 700;
-        letter-spacing: .5px;
-        color: $ink;
-        text-decoration: underline;
-        font-family: 'Times New Roman', Times, serif;
-    }
-}
-
-// ── Secciones ────────────────────────────────────────────────────
-.doc-section {
-    margin-top: 14pt;
-}
-
-.sec-title {
-    margin: 0 0 6pt;
-    font-size: 10.5pt;
-    font-weight: 700;
-    color: $ink;
-    font-family: 'Times New Roman', Times, serif;
-}
-
-// ── Tabla de filiación ───────────────────────────────────────────
-.filiacion-table {
+.pdf-frame {
     width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-
-    &--mt {
-        margin-top: 10pt;
-    }
-
-    td {
-        padding: 1.5pt 0;
-        vertical-align: top;
-        font-size: 10.5pt;
-        font-family: 'Times New Roman', Times, serif;
-        word-break: break-word;
-        overflow-wrap: anywhere;
-    }
-
-    .label {
-        width: 130pt;
-        padding-right: 8pt;
-        font-weight: normal;
-        white-space: nowrap;
-        word-break: normal;
-        overflow-wrap: normal;
-
-        &::after {
-            content: ':';
-        }
-    }
-
-    .value {
-        font-weight: bold;
-    }
-}
-
-.filiacion-divider {
+    height: 100%;
     border: none;
-    border-top: 1px solid $border;
-    margin: 8pt 0;
-}
-
-// ── Cuerpo de texto ──────────────────────────────────────────────
-.body-text {
-    margin: 0;
-    text-align: justify;
-    hyphens: auto;
-    font-size: 10.5pt;
-    font-family: 'Times New Roman', Times, serif;
-    line-height: 1.6;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-
-    &.multiline {
-        white-space: pre-wrap;
-    }
-}
-
-// ── Subtítulos de subsección ─────────────────────────────────────
-.subsec-title {
-    margin: 10pt 0 3pt;
-    font-size: 10.5pt;
-    font-weight: 700;
-    color: $ink;
-    font-family: 'Times New Roman', Times, serif;
-}
-
-// ── Nota al pie ──────────────────────────────────────────────────
-.doc-footnote {
-    margin-top: 24pt;
-    padding-top: 4pt;
-    border-top: 1px solid $border;
-    font-size: 7.5pt;
-    color: $muted;
-    text-align: center;
-    font-family: 'Times New Roman', Times, serif;
-}
-
-// ── Footer y Firma ───────────────────────────────────────────────
-.doc-footer {
-    margin-top: 32pt;
-    margin-bottom: 8pt;
-    display: flex;
-    justify-content: center;
-
-    .signature-block {
-        width: 200pt;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-
-        .firma-img {
-            max-width: 160pt;
-            max-height: 60pt;
-            object-fit: contain;
-            margin-bottom: 4pt;
-        }
-
-        .firma-blank {
-            width: 160pt;
-            height: 48pt;
-        }
-
-        .firma-line {
-            width: 100%;
-            border-top: 1px solid $ink;
-            margin-bottom: 5pt;
-        }
-
-        .firma-name {
-            margin: 0;
-            font-size: 9pt;
-            font-weight: 700;
-            color: $ink;
-            font-family: 'Times New Roman', Times, serif;
-        }
-
-        .firma-rol {
-            margin: 2pt 0 0;
-            font-size: 8.5pt;
-            font-weight: 600;
-            color: $ink;
-            font-family: 'Times New Roman', Times, serif;
-        }
-
-        .firma-cpsp {
-            margin: 2pt 0 0;
-            font-size: 8.5pt;
-            color: $ink;
-            font-family: 'Times New Roman', Times, serif;
-        }
-    }
-}
-
-// ── Impresión ────────────────────────────────────────────────────
-@media print {
-    @page {
-        size: A4;
-        margin: 20mm 22mm;
-    }
-
-    :host {
-        background: #fff;
-    }
-
-    .no-print,
-    .print-toolbar {
-        display: none !important;
-    }
-
-    .page-wrap {
-        padding: 0;
-        min-height: auto;
-        background: none;
-        overflow: visible;
-    }
-
-    .informe-doc {
-        width: 100%;
-        min-height: auto;
-        background: #fff;
-        box-shadow: none;
-        padding: 0;
-        overflow: visible;
-    }
-
-    .doc-footnote {
-        display: none;
-    }
-
-    .doc-section {
-        break-inside: avoid;
-    }
-
-    .doc-footer {
-        break-inside: avoid;
-    }
-
-    .subsec-title {
-        break-after: avoid;
-    }
-
-    .sec-title {
-        break-after: avoid;
-    }
-}
-
-// ── Responsive ───────────────────────────────────────────────────
-@media screen and (max-width: 900px) {
-    .informe-doc {
-        width: calc(100vw - 40px);
-        padding: 10mm 12mm 18mm;
-    }
 }

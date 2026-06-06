@@ -3,7 +3,7 @@ import {
     computed, inject, signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -47,21 +47,12 @@ function startOfWeekIso(d: Date): string {
     return isoDay(r);
 }
 
-/**
- * Vista pública de disponibilidad semanal de una psicóloga o docente.
- * Renderiza la grilla L–V con bloques libres/ocupados consumiendo
- * `GET /psicologas/:id/disponibilidad` o `GET /docentes/:id/disponibilidad`.
- *
- * No deja agendar desde aquí — es solo lectura. La idea es que cualquier
- * usuario autenticado pueda revisar la agenda de un profesional antes de
- * pedir cita desde el flujo correspondiente.
- */
 @Component({
     selector: 'app-public-availability',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        CommonModule, DatePipe,
+        CommonModule,
         MatButtonModule, MatIconModule, MatProgressSpinnerModule,
         WeekGrid, EmptyState,
     ],

@@ -1,7 +1,7 @@
 <div class="sd-layout fade-in">
 
     <div class="sd-back">
-        <button mat-button routerLink="../">
+        <button mat-button routerLink="/psicologa/alumnos">
             <mat-icon>arrow_back</mat-icon>
             Mis Alumnos
         </button>
@@ -210,8 +210,9 @@
                             </p>
 
                             <div class="sd-informe-card__actions">
-                                <a mat-icon-button [routerLink]="['/psicologa/informes', i.id, 'print']" target="_blank"
-                                    rel="noopener" matTooltip="Ver / Imprimir">
+                                <a mat-icon-button
+                                    [routerLink]="['/psicologa/student', studentId(), 'informes', i.id, 'print']"
+                                    matTooltip="Ver / Imprimir">
                                     <mat-icon>print</mat-icon>
                                 </a>
                                 @if (i.estado === 'borrador') {
@@ -326,7 +327,8 @@
                             <div class="sd-cita-notice">
                                 <mat-icon>info</mat-icon>
                                 <p>El contenido de sesión se habilita tras marcar la cita como
-                                    <strong>realizada</strong>.</p>
+                                    <strong>realizada</strong>.
+                                </p>
                             </div>
                             <div class="sd-cita-meta">
                                 <span><mat-icon>timer</mat-icon>{{ cita.durationMin }} min</span>
@@ -502,8 +504,7 @@
                                         </p>
                                         <div class="sd-session-informe__actions">
                                             <a mat-stroked-button
-                                                [routerLink]="['/psicologa/informes', detail.informe.id, 'print']"
-                                                target="_blank" rel="noopener">
+                                                [routerLink]="['/psicologa/student', studentId(), 'informes', detail.informe.id, 'print']">
                                                 <mat-icon>print</mat-icon>Ver / Imprimir
                                             </a>
                                             @if (detail.informe.estado === 'borrador') {

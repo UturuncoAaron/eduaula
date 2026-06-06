@@ -1,35 +1,50 @@
 :host {
     display: block;
+    width: 100%;
+    max-width: 1020px;
+    margin: 0 auto;
 
-    --ifd-primary: #1a3a6b;
-    --ifd-primary-lt: #2c5599;
-    --ifd-ink: #1f2937;
-    --ifd-muted: #6b7280;
-    --ifd-subtle: #9ca3af;
+    // Paleta de colores Premium Modernos
+    --ifd-primary: #1e3a8a;
+    --ifd-primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    --ifd-ink: #0f172a;
+    --ifd-muted: #475569;
+    --ifd-subtle: #94a3b8;
     --ifd-bg: #f8fafc;
-    --ifd-border: #e5e7eb;
-    --ifd-warn-bg: #fffbeb;
-    --ifd-warn-bd: #fde68a;
-    --ifd-warn-ink: #92400e;
+    --ifd-bg-white: #ffffff;
+    --ifd-border: #e2e8f0;
+
+    // Estados Dinámicos
+    --ifd-success-bg: #f0fdf4;
+    --ifd-success-border: #bbf7d0;
+    --ifd-success-ink: #166534;
+
+    --ifd-warn-bg: #fffbe6;
+    --ifd-warn-bd: #ffe58f;
+    --ifd-warn-ink: #b75d00;
+
     --ifd-error-bg: #fef2f2;
     --ifd-error-bd: #fecaca;
-    --ifd-error-ink: #b91c1c;
-    --ifd-radius: 10px;
-    --ifd-radius-lg: 16px;
+    --ifd-error-ink: #991b1b;
+
+    --ifd-radius-sm: 8px;
+    --ifd-radius-md: 12px;
+    --ifd-radius-lg: 20px;
+    --ifd-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
 }
 
 ::ng-deep .mat-mdc-dialog-surface {
     border-radius: var(--ifd-radius-lg) !important;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1) !important;
     overflow: hidden;
 }
 
-// ── Header ────────────────────────────────────────────────────────
-
+// ── Header Modernizado ─────────────────────────────────────────────
 .ifd__header {
     padding: 0 !important;
     margin: 0 !important;
-    background: linear-gradient(135deg, var(--ifd-primary) 0%, var(--ifd-primary-lt) 100%);
-    color: #fff;
+    background: var(--ifd-primary-gradient);
+    color: var(--ifd-bg-white);
 }
 
 .ifd__header-top {
@@ -37,52 +52,56 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 18px 24px 14px;
+    gap: 16px;
+    padding: 24px 28px 18px;
 }
 
 .ifd__title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 
     h2 {
         margin: 0;
-        font-size: 1.15rem;
-        font-weight: 600;
-        color: #fff;
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--ifd-bg-white);
     }
+}
 
-    mat-icon {
-        color: rgba(255, 255, 255, .85);
-    }
+.ifd__title-icon {
+    transform: scale(1.15);
+    opacity: 0.9;
 }
 
 .ifd__student {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    background: rgba(255, 255, 255, .15);
-    border-radius: 999px;
-    font-size: .82rem;
-    color: rgba(255, 255, 255, .9);
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.95);
 
     mat-icon {
-        font-size: 15px;
-        width: 15px;
-        height: 15px;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
     }
 }
 
-// ── Navegación por secciones ──────────────────────────────────────
-
+// ── Navegación con Scroll Suave e Indicadores Estilizados ──────────
 .ifd__nav {
     display: flex;
     overflow-x: auto;
-    gap: 2px;
-    padding: 0 16px 0;
-    border-top: 1px solid rgba(255, 255, 255, .12);
+    gap: 4px;
+    padding: 0 20px;
+    background: rgba(0, 0, 0, 0.08);
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
@@ -93,102 +112,119 @@
 .ifd__nav-item {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 8px 12px;
+    gap: 8px;
+    padding: 14px 16px;
     background: transparent;
     border: none;
     border-bottom: 3px solid transparent;
-    color: rgba(255, 255, 255, .65);
-    font-size: .78rem;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.82rem;
     font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
-    transition: color .15s, border-color .15s, background .15s;
-    border-radius: 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
     }
 
     &:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, .08);
+        color: var(--ifd-bg-white);
+        background: rgba(255, 255, 255, 0.05);
     }
 
     &.is-active {
-        color: #fff;
-        border-bottom-color: rgba(255, 255, 255, .85);
+        color: var(--ifd-bg-white);
+        border-bottom-color: var(--ifd-bg-white);
         font-weight: 600;
+        background: rgba(255, 255, 255, 0.08);
     }
 
-    @media (max-width: 600px) {
-        .ifd__nav-label {
-            display: none;
-        }
+    @media (max-width: 768px) {
+        padding: 12px 14px;
 
-        padding: 8px 10px;
+        .ifd__nav-label {
+            display: none; // UX limpia en móvil, solo iconos con Tooltips nativos
+        }
     }
 }
 
-// ── Body ──────────────────────────────────────────────────────────
-
+// ── Body / Contenedor de Formularios ────────────────────────────────
 .ifd__body {
-    display: flex;
-    flex-direction: column;
-    padding: 20px 24px 12px !important;
-    max-height: 62vh;
+    padding: 28px 28px 16px !important;
+    max-height: 60vh;
     overflow-y: auto;
+    background-color: #fafbfd;
 
     @media (max-width: 600px) {
-        padding: 14px 16px 8px !important;
+        padding: 16px 16px 12px !important;
         max-height: 65vh;
     }
 }
 
-// ── Alerta locked ─────────────────────────────────────────────────
-
-.ifd__locked {
+// ── Alertas Globales (Locked, Errors) ──────────────────────────────
+.ifd__alert {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: var(--ifd-radius);
-    border: 1px solid var(--ifd-warn-bd);
-    background: var(--ifd-warn-bg);
-    color: var(--ifd-warn-ink);
-    margin-bottom: 16px;
+    gap: 14px;
+    padding: 16px;
+    border-radius: var(--ifd-radius-md);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    box-shadow: var(--ifd-shadow);
 
     mat-icon {
-        color: #d97706;
         flex-shrink: 0;
+        transform: scale(1.1);
     }
 
     strong {
         display: block;
-        font-size: .9rem;
+        margin-bottom: 2px;
     }
 
     p {
-        margin: 3px 0 0;
-        font-size: .8rem;
+        margin: 0;
+        font-size: 0.82rem;
+        opacity: 0.9;
+    }
+
+    &--locked {
+        background: var(--ifd-warn-bg);
+        border: 1px solid var(--ifd-warn-bd);
+        color: var(--ifd-warn-ink);
+
+        mat-icon {
+            color: var(--ifd-warn-ink);
+        }
+    }
+
+    &--error {
+        background: var(--ifd-error-bg);
+        border: 1px solid var(--ifd-error-bd);
+        color: var(--ifd-error-ink);
+
+        mat-icon {
+            color: var(--ifd-error-ink);
+        }
     }
 }
 
-// ── Secciones de contenido ────────────────────────────────────────
-
+// ── Control Estructural de las Secciones ───────────────────────────
 .ifd__section {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    animation: ifd-fade-in .18s ease;
+    gap: 20px;
+    animation: ifd-slide-up 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes ifd-fade-in {
+@keyframes ifd-slide-up {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(8px);
     }
 
     to {
@@ -200,68 +236,80 @@
 .ifd__sec-title {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     margin: 0 0 4px;
-    font-size: .95rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--ifd-primary);
-    letter-spacing: .02em;
 
     mat-icon {
-        font-size: 19px;
-        width: 19px;
-        height: 19px;
         color: var(--ifd-primary);
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
     }
 }
 
 .ifd__sec-hint {
-    margin: -8px 0 4px;
-    font-size: .82rem;
+    margin: -12px 0 4px;
+    font-size: 0.85rem;
     color: var(--ifd-muted);
-    line-height: 1.45;
 }
 
-// ── Subsecciones dentro de una sección ───────────────────────────
+// ── Subsecciones Avanzadas (Flexibles y Modernas) ─────────────────
+.ifd__subsec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
 
 .ifd__subsec {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 18px;
     border: 1px solid var(--ifd-border);
-    border-radius: var(--ifd-radius);
-    background: var(--ifd-bg);
+    border-radius: var(--ifd-radius-md);
+    background: var(--ifd-bg-white);
+    box-shadow: var(--ifd-shadow);
+    transition: border-color 0.2s;
+
+    &:focus-within {
+        border-color: #3b82f6;
+    }
 }
 
 .ifd__subsec-title {
-    margin: 0 0 2px;
-    font-size: .88rem;
+    margin: 0;
+    font-size: 0.92rem;
     font-weight: 600;
     color: var(--ifd-ink);
 }
 
 .ifd__subsec-hint {
-    margin: -4px 0 4px;
-    font-size: .79rem;
+    margin: -4px 0 2px;
+    font-size: 0.8rem;
     color: var(--ifd-muted);
 }
 
-// ── Grid de campos ────────────────────────────────────────────────
-
+// ── CSS Grid para Formularios de Filiación ──────────────────────────
 .ifd__grid {
     display: grid;
-    gap: 14px;
+    gap: 16px;
 
     &--3 {
         grid-template-columns: repeat(3, 1fr);
 
-        @media (max-width: 700px) {
-            grid-template-columns: 1fr;
+        @media (max-width: 850px) {
+            grid-template-columns: repeat(2, 1fr);
         }
 
-        @media (min-width: 701px) and (max-width: 900px) {
-            grid-template-columns: repeat(2, 1fr);
+        @media (max-width: 550px) {
+            grid-template-columns: 1fr;
         }
     }
 }
@@ -270,127 +318,163 @@
     grid-column: 1 / -1;
 }
 
-// Todos los mat-form-field ocupan el ancho completo de su celda
 mat-form-field {
     width: 100%;
 }
 
-// ── Toggle confidencial ───────────────────────────────────────────
-
-.ifd__confidencial {
+// ── TARJETA DE PRIVACIDAD INTELIGENTE (UX MEJORADA) ──────────────────
+.ifd__privacy-card {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 14px 16px;
-    border: 1px solid var(--ifd-border);
-    border-radius: var(--ifd-radius);
-    background: var(--ifd-bg);
-}
+    padding: 20px;
+    border-radius: var(--ifd-radius-md);
+    background: var(--ifd-success-bg);
+    border: 1px solid var(--ifd-success-border);
+    color: var(--ifd-success-ink);
+    box-shadow: var(--ifd-shadow);
+    transition: all 0.25s ease;
 
-.ifd__conf-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-    color: var(--ifd-ink);
+    .ifd__privacy-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding-bottom: 10px;
+    }
 
-    mat-icon {
-        font-size: 17px;
-        width: 17px;
-        height: 17px;
-        color: #b91c1c;
+    .ifd__privacy-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    .ifd__privacy-toggle-label {
+        font-weight: 600;
+    }
+
+    .ifd__privacy-desc {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+
+        .ifd__icon-status {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+    }
+
+    // Variación de Estilo cuando está en modo Confidencial (Estricto)
+    &.is-confidential {
+        background: var(--ifd-error-bg);
+        border-color: var(--ifd-error-bd);
+        color: var(--ifd-error-ink);
+
+        .ifd__privacy-title mat-icon,
+        .ifd__icon-status {
+            color: var(--ifd-error-ink);
+        }
     }
 }
 
-.ifd__conf-hint {
-    margin: 0;
-    font-size: .8rem;
-    color: var(--ifd-muted);
-    line-height: 1.4;
-}
-
-// ── Error global ──────────────────────────────────────────────────
-
-.ifd__error {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: var(--ifd-radius);
-    background: var(--ifd-error-bg);
-    border: 1px solid var(--ifd-error-bd);
-    color: var(--ifd-error-ink);
-    font-size: .85rem;
-    margin-top: 8px;
-
-    mat-icon {
-        color: #dc2626;
-        flex-shrink: 0;
-    }
-}
-
-// ── Actions ───────────────────────────────────────────────────────
-
+// ── Barra de Acciones del Pie de Ventana ────────────────────────────
 .ifd__actions {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 12px 24px 16px !important;
+    gap: 16px;
+    padding: 16px 28px 24px !important;
+    background: #ffffff;
 
-    @media (max-width: 600px) {
-        padding: 10px 16px 14px !important;
+    @media (max-width: 650px) {
         flex-direction: column-reverse;
         align-items: stretch;
+        padding: 16px !important;
     }
 }
 
 .ifd__actions-nav {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 12px;
 
-    button {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
+    @media (max-width: 650px) {
+        width: 100%;
+    }
+}
 
-        mat-icon {
-            font-size: 17px;
-            width: 17px;
-            height: 17px;
-        }
+.ifd__btn-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--ifd-radius-sm);
+    border: 1px solid var(--ifd-border);
+    background: var(--ifd-bg-white);
+    color: var(--ifd-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover:not(:disabled) {
+        background: var(--ifd-bg);
+        color: var(--ifd-ink);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
     }
 }
 
 .ifd__step-indicator {
-    font-size: .82rem;
+    font-size: 0.85rem;
+    font-weight: 600;
     color: var(--ifd-muted);
-    min-width: 44px;
-    text-align: center;
+    letter-spacing: 0.05em;
 }
 
 .ifd__actions-main {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 
-    button {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        min-width: 120px;
-
-        mat-icon {
-            font-size: 17px;
-            width: 17px;
-            height: 17px;
-        }
-    }
-
-    @media (max-width: 600px) {
+    @media (max-width: 650px) {
         width: 100%;
         justify-content: flex-end;
+
+        button {
+            flex: 1;
+        }
     }
+}
+
+.ifd__btn-cancel {
+    font-weight: 600;
+    color: var(--ifd-muted) !important;
+    border-radius: var(--ifd-radius-sm) !important;
+}
+
+.ifd__btn-submit {
+    font-weight: 600 !important;
+    padding: 0 20px !important;
+    border-radius: var(--ifd-radius-sm) !important;
+    box-shadow: var(--ifd-shadow);
 }

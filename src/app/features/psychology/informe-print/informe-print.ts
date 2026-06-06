@@ -2,8 +2,8 @@ import {
   ChangeDetectionStrategy, Component, OnInit, OnDestroy,
   inject, signal, computed,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -12,22 +12,15 @@ import { firstValueFrom } from 'rxjs';
 
 import { PsychologyStore } from '../data-access/psychology.store';
 import { ApiService } from '../../../core/services/api';
-import { InformePsicologico, AssignedStudent } from '../../../core/models/psychology';
-
-interface PsicologaData {
-  nombre: string;
-  apellido_paterno: string;
-  apellido_materno: string | null;
-  colegiatura: string | null;
-}
+import { InformePsicologico } from '../../../core/models/psychology';
+import { PageHeader } from '../../../shared/components/page-header/page-header';
 
 @Component({
   selector: 'app-informe-print',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DatePipe, RouterLink,
-    MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule, PageHeader,
   ],
   templateUrl: './informe-print.html',
   styleUrl: './informe-print.scss',
@@ -36,33 +29,28 @@ export class InformePrint implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly store = inject(PsychologyStore);
   private readonly api = inject(ApiService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly toastr = inject(ToastService);
 
   readonly informe = signal<InformePsicologico | null>(null);
-  readonly student = signal<AssignedStudent | null>(null);
-  readonly firmaUrl = signal<string | null>(null);
   readonly loading = signal(true);
   readonly downloading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly pdfUrl = signal<SafeResourceUrl | null>(null);
 
-  private readonly psicologaData = signal<PsicologaData | null>(null);
-
-  readonly psicologaFullName = computed(() => {
-    const p = this.psicologaData();
-    if (!p) return '—';
-    return [p.nombre, p.apellido_paterno, p.apellido_materno ?? '']
-      .filter(Boolean).join(' ');
+  readonly backRoute = computed(() => {
+    const studentId = this.route.snapshot.paramMap.get('studentId');
+    return studentId ? `/psicologa/student/${studentId}` : '/psicologa/alumnos';
   });
-
-  readonly psicologaColegiatura = computed(() =>
-    this.psicologaData()?.colegiatura ?? null,
-  );
 
   ngOnInit(): void {
     void this.loadData();
   }
 
-  ngOnDestroy(): void { /* cleanup si se necesita */ }
+  ngOnDestroy(): void {
+    const url = this.pdfUrl();
+    if (url) URL.revokeObjectURL(url as string);
+  }
 
   private async loadData(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
@@ -75,23 +63,11 @@ export class InformePrint implements OnInit, OnDestroy {
       const informe = await this.store.getInformeById(id);
       this.informe.set(informe);
 
-      const [stuRes, firmaRes, psicRes] = await Promise.allSettled([
-        firstValueFrom(
-          this.api.get<AssignedStudent>(
-            `psychology/directory/students/${informe.studentId}`,
-          ),
-        ),
-        firstValueFrom(
-          this.api.get<{ firmaUrl: string | null }>('psychology/firma'),
-        ),
-        firstValueFrom(
-          this.api.get<PsicologaData>('psychology/me'),
-        ),
-      ]);
-
-      if (stuRes.status === 'fulfilled') this.student.set(stuRes.value.data ?? null);
-      if (firmaRes.status === 'fulfilled') this.firmaUrl.set(firmaRes.value.data?.firmaUrl ?? null);
-      if (psicRes.status === 'fulfilled') this.psicologaData.set(psicRes.value.data ?? null);
+      const blob = await firstValueFrom(
+        this.api.getBlob(`reports/psychology/informes/${id}/pdf/preview`),
+      );
+      const objectUrl = URL.createObjectURL(blob);
+      this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl));
     } catch {
       this.error.set('No se pudo cargar el informe');
     } finally {
@@ -104,21 +80,12 @@ export class InformePrint implements OnInit, OnDestroy {
     if (!inf || this.downloading()) return;
     this.downloading.set(true);
     try {
-      const studentName = this.student()
-        ? `${this.student()!.apellido_paterno}_${this.student()!.nombre}`
-        : 'informe';
-      await this.store.downloadInformePdf(inf.id, studentName);
+      await this.store.downloadInformePdf(inf.id, inf.motivoConsultaCorto ?? 'informe');
       this.toastr.success('PDF descargado');
     } catch {
       this.toastr.error('No se pudo descargar el PDF', 'Error');
     } finally {
       this.downloading.set(false);
     }
-  }
-
-  studentFullName(s: AssignedStudent | null): string {
-    if (!s) return '—';
-    return [s.nombre, s.apellido_paterno, s.apellido_materno ?? '']
-      .filter(Boolean).join(' ');
   }
 }

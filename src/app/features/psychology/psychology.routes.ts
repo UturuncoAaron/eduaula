@@ -45,8 +45,7 @@ export const PSYCHOLOGY_ROUTES: Routes = [
     title: 'Ficha del alumno | EduAula',
   },
   {
-
-    path: 'informes/:id/print',
+    path: 'student/:studentId/informes/:id/print',
     loadComponent: () =>
       import('./informe-print/informe-print')
         .then(m => m.InformePrint),
@@ -57,5 +56,5 @@ export const PSYCHOLOGY_ROUTES: Routes = [
     loadComponent: () =>
       import('./mi-firma/mi-firma').then(m => m.MiFirma),
     data: { title: 'Mi firma' },
-  }
+  },
 ];

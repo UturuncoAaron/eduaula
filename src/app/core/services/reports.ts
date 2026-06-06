@@ -15,9 +15,7 @@ export class ReportsService {
       .set('periodo_id', periodoId)
       .set('umbral', String(umbral));
 
-    if (anio) {
-      httpParams = httpParams.set('anio', String(anio));
-    }
+    if (anio) httpParams = httpParams.set('anio', String(anio));
 
     return this.http.get<any>(`${environment.apiUrl}/admin/reports/consolidated`, { params: httpParams });
   }
@@ -53,7 +51,6 @@ export class ReportsService {
       .pipe(map((r: any) => r.data ?? r));
   }
 
-
   getAlertasDocentes(fechaInicio: string, fechaFin: string, limit = 10): Observable<any[]> {
     const httpParams = new HttpParams()
       .set('fecha_inicio', fechaInicio)
@@ -73,7 +70,7 @@ export class ReportsService {
 
     return this.http.get(`${environment.apiUrl}/admin/reports/consolidated`, {
       params: httpParams,
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 
@@ -84,5 +81,24 @@ export class ReportsService {
     if (cuentaId) httpParams = httpParams.set('cuenta_id', cuentaId);
     return this.http.get<any[]>(`${environment.apiUrl}/reports/asistencias/staff`, { params: httpParams })
       .pipe(map((r: any) => r.data ?? r));
+  }
+
+  // ── NUEVO: reporte consolidado de todo el personal ──────────────────────────
+  downloadPersonalReport(
+    fechaInicio: string,
+    fechaFin: string,
+    rol?: string,
+  ): Observable<Blob> {
+    let httpParams = new HttpParams()
+      .set('fecha_inicio', fechaInicio)
+      .set('fecha_fin', fechaFin)
+      .set('format', 'xlsx');
+
+    if (rol) httpParams = httpParams.set('rol', rol);
+
+    return this.http.get(`${environment.apiUrl}/reports/asistencias/personal`, {
+      params: httpParams,
+      responseType: 'blob',
+    });
   }
 }
