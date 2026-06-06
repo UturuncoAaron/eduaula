@@ -43,6 +43,12 @@ export const COURSES_ROUTES: Routes = [
             .then(c => c.TabAsistencia),
       },
       {
+        path: 'grabadas',
+        loadComponent: () =>
+          import('./recorded-classes/recorded-classes')
+            .then(c => c.RecordedClasses),
+      },
+      {
         path: 'calificaciones',
         loadComponent: () =>
           import('./course-detail/tabs/tab-calificaciones/tab-calificaciones')

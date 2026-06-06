@@ -43,7 +43,9 @@
                         </div>
                         @if (n.fecha || n.observaciones) {
                         <div class="act-meta">
-                            @if (n.fecha) { <span><mat-icon>event</mat-icon>{{ n.fecha }}</span> }
+                            @if (n.fecha) {
+                            <span><mat-icon>event</mat-icon>{{ n.fecha | date:'dd/MM/yyyy' }}</span>
+                            }
                             @if (n.observaciones) {
                             <span class="act-obs" [matTooltip]="n.observaciones">
                                 <mat-icon>chat</mat-icon>{{ n.observaciones }}
@@ -76,7 +78,7 @@
     <div class="toolbar">
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="bim-field">
             <mat-label>Bimestre</mat-label>
-            <mat-select [ngModel]="periodoId()" (ngModelChange)="onPeriodoChange($event)"
+            <mat-select [value]="periodoId()" (selectionChange)="onPeriodoChange($event.value)"
                 [disabled]="periodoService.activos().length <= 1">
                 @for (p of periodoService.activos(); track p.id) {
                 <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
@@ -153,7 +155,9 @@
                         <span class="act-tipo">{{ TIPO_LABEL[act.tipo] }}</span>
                     </div>
                     <div class="act-row2">
-                        @if (act.fecha) { <span class="act-meta"><mat-icon>event</mat-icon>{{ act.fecha }}</span> }
+                        @if (act.fecha) {
+                        <span class="act-meta"><mat-icon>event</mat-icon>{{ act.fecha | date:'dd/MM/yyyy' }}</span>
+                        }
                         <span class="act-meta"><mat-icon>checklist</mat-icon>{{ act.conNota }}/{{ act.total }} con
                             nota</span>
                     </div>

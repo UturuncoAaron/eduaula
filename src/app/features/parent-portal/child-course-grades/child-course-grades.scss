@@ -1,0 +1,336 @@
+:host {
+    display: block;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    font-family: var(--font-sans, Roboto, system-ui, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    background-color: #f8fafc;
+}
+
+// Estados de carga distribuidos de forma simétrica
+.state-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 80px 24px;
+    color: #64748b;
+    text-align: center;
+
+    p {
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin: 0;
+    }
+}
+
+// Tarjeta de Resumen del Curso (Header KPI)
+.course-summary {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+        gap: 16px;
+    }
+
+    .summary-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-grow: 1;
+
+        .color-bar {
+            width: 6px;
+            height: 48px;
+            border-radius: 999px;
+            flex-shrink: 0;
+        }
+
+        .area-tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 6px 14px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    }
+
+    // Bloque Dinámico del Promedio del Curso
+    .promedio-block {
+        display: flex;
+        align-items: center;
+        gap: 12px; // Reducimos ligeramente el gap base para ganar espacio
+        padding: 10px 16px;
+        border-radius: 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        transition: transform 0.2s ease;
+        flex-wrap: wrap; // Permite que los elementos bajen si no hay espacio
+
+        @media (max-width: 640px) {
+            width: 100%;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        // Si la pantalla es críticamente angosta (móviles pequeños)
+        @media (max-width: 380px) {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            padding: 14px;
+
+            .promedio-desc {
+                border-left: none !important; // Quitamos la línea vertical en pantallas micro
+                border-top: 1px solid currentColor; // La ponemos horizontal
+                padding-left: 0 !important;
+                padding-top: 4px;
+                width: 100%;
+            }
+        }
+
+        &:hover {
+            transform: scale(1.02);
+        }
+
+        .promedio-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            opacity: 0.9;
+        }
+
+        .promedio-value {
+            font-size: 1.85rem; // Bajamos de 2rem a 1.85rem para evitar desbordes en layouts móviles
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .promedio-desc {
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding-left: 10px;
+            border-left: 1px solid currentColor;
+            white-space: nowrap; // Evita que la palabra se rompa en dos líneas
+        }
+    }
+}
+
+// Sección Contenedora de Actividades / Notas
+.actividades-section {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+
+    @media (max-width: 480px) {
+        padding: 16px;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f1f5f9;
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .acts-count {
+            font-size: 0.825rem;
+            font-weight: 600;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 4px 12px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+        }
+    }
+}
+
+// Lista de Tarjetas de Nota Individuales
+.acts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.act-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        transform: translateX(2px);
+    }
+
+    // Icono correspondiente al tipo mapeado en el TS
+    .act-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 22px;
+            width: 22px;
+            height: 22px;
+        }
+    }
+
+    // Bloque central de datos
+    .act-main {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex-grow: 1;
+        min-width: 0; // Crucial para que el text-overflow funcione en layouts flexibles
+    }
+
+    .act-row1 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+
+        .act-titulo {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 320px;
+
+            @media (max-width: 640px) {
+                max-width: 100%;
+                white-space: normal;
+            }
+        }
+
+        .act-tipo {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+    }
+
+    .act-row2 {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #94a3b8;
+        font-size: 0.8rem;
+        font-weight: 500;
+
+        mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    // Badge numérico de la nota vigesimal
+    .act-grade {
+        font-size: 1.25rem;
+        font-weight: 800;
+        min-width: 46px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+}
+
+// Sección de la Leyenda Institucional Homologada
+.academic-legend {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-top: 24px;
+
+    .legend-header {
+        font-size: 0.825rem;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 12px;
+    }
+
+    .legend-items-wrap {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .legend-pill {
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 8px;
+    }
+}
+
+// Inyección de clases utilitarias de color vigesimal mapeadas desde la Leyenda institucional
+.score-excelente {
+    color: #15803d;
+    background: #dcfce7;
+}
+
+.score-bueno {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.score-regular {
+    color: #b45309;
+    background: #fef3c7;
+}
+
+.score-deficiente {
+    color: #b91c1c;
+    background: #fee2e2;
+}

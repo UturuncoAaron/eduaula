@@ -1,7 +1,7 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { CommonModule, DatePipe, Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,9 +17,9 @@ import { PageHeader } from '../../../shared/components/page-header/page-header';
 @Component({
   selector: 'app-task-submit',
   imports: [
-    ReactiveFormsModule, MatFormFieldModule, MatInputModule,
+    CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCardModule,
-    MatProgressSpinnerModule, RouterLink, PageHeader, DatePipe,
+    MatProgressSpinnerModule, PageHeader, DatePipe,
   ],
   templateUrl: './task-submit.html',
   styleUrl: './task-submit.scss',
@@ -27,7 +27,7 @@ import { PageHeader } from '../../../shared/components/page-header/page-header';
 export class TaskSubmit implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  private location = inject(Location);
   private taskSvc = inject(TaskService);
   private toastr = inject(ToastService);
   private sanitizer = inject(DomSanitizer);
@@ -56,7 +56,7 @@ export class TaskSubmit implements OnInit {
         this.loading.set(false);
 
         if (tipoEntregaTarea(t) === 'interactiva') {
-          this.router.navigate(['/tareas', t.id, 'tomar']);
+          this.location.back();
           return;
         }
 
@@ -71,11 +71,15 @@ export class TaskSubmit implements OnInit {
         }
       },
       error: () => {
-        this.toastr.success('No se pudo cargar la tarea', '�xito');
+        this.toastr.success('No se pudo cargar la tarea', 'Error');
         this.loading.set(false);
-        this.router.navigate(['/tareas']);
+        this.location.back();
       },
     });
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 
   onFileSelected(ev: Event) {
@@ -94,7 +98,7 @@ export class TaskSubmit implements OnInit {
     const file = this.selectedFile();
 
     if (!texto && !file) {
-      this.toastr.success('Debes escribir una respuesta o adjuntar un archivo', '�xito');
+      this.toastr.success('Debes escribir una respuesta o adjuntar un archivo', 'Aviso');
       return;
     }
 
@@ -113,7 +117,7 @@ export class TaskSubmit implements OnInit {
           }
         },
         error: () => {
-          this.toastr.success('Error al subir el archivo', '�xito');
+          this.toastr.success('Error al subir el archivo', 'Error');
           this.sending.set(false);
         },
       });
@@ -123,14 +127,14 @@ export class TaskSubmit implements OnInit {
     this.taskSvc.submitText(this.taskId, texto).subscribe({
       next: () => this.finishSuccess(),
       error: () => {
-        this.toastr.success('Error al entregar la tarea', '�xito');
+        this.toastr.success('Error al entregar la tarea', 'Error');
         this.sending.set(false);
       },
     });
   }
 
   private finishSuccess() {
-    this.toastr.success('Tarea entregada correctamente', '�xito');
-    this.router.navigate(['/tareas']);
+    this.toastr.success('Tarea entregada correctamente', 'Éxito');
+    this.location.back();
   }
 }

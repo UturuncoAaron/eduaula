@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatRadioModule } from '@angular/material/radio';
@@ -25,7 +26,7 @@ import { PageHeader } from '../../../shared/components/page-header/page-header';
 export class TaskTake implements OnInit {
   objectKeys = Object.keys;
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  private location = inject(Location);
   private taskSvc = inject(TaskService);
   private toastr = inject(ToastService);
 
@@ -51,9 +52,9 @@ export class TaskTake implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.toastr.success('No se pudo cargar la tarea', '�xito');
+        this.toastr.success('No se pudo cargar la tarea', 'Error');
         this.loading.set(false);
-        this.router.navigate(['/tareas']);
+        this.location.back();
       },
     });
   }
@@ -66,7 +67,7 @@ export class TaskTake implements OnInit {
     const q = this.questions().length;
     const a = Object.keys(this.answers()).length;
     if (a < q) {
-      this.toastr.success(`Faltan ${q - a} preguntas por responder`, '�xito');
+      this.toastr.success(`Faltan ${q - a} preguntas por responder`, 'Aviso');
       return;
     }
     this.submitting.set(true);
@@ -77,11 +78,11 @@ export class TaskTake implements OnInit {
       next: r => {
         const data: any = r.data;
         const score = data?.calificacion_auto ?? data?.submission?.calificacion_auto ?? '—';
-        this.toastr.success(`Tarea enviada. Puntaje: ${score}`, '�xito');
-        this.router.navigate(['/tareas']);
+        this.toastr.success(`Tarea enviada. Puntaje: ${score}`, 'Éxito');
+        this.location.back();
       },
       error: () => {
-        this.toastr.success('Error al enviar la tarea', '�xito');
+        this.toastr.success('Error al enviar la tarea', 'Error');
         this.submitting.set(false);
       },
     });

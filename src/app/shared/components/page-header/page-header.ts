@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
@@ -14,4 +14,13 @@ export class PageHeader {
   @Input() title = '';
   @Input() subtitle = '';
   @Input() backRoute: string | null = null;
+  @Output() backClick = new EventEmitter<void>();
+
+  get hasBack(): boolean {
+    return !!this.backRoute || this.backClick.observed;
+  }
+
+  onBack(): void {
+    this.backClick.emit();
+  }
 }

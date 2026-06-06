@@ -1,0 +1,63 @@
+<div class="rcf-dialog">
+
+    <div class="rcf-header">
+        <mat-icon class="rcf-header-icon">videocam</mat-icon>
+        <h2 class="rcf-title">{{ isEdit() ? 'Editar grabación' : 'Agregar clase grabada' }}</h2>
+        <button mat-icon-button (click)="cerrar()" class="rcf-close-btn">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <form [formGroup]="form" class="rcf-body">
+
+        @if (!isEdit()) {
+        <mat-form-field appearance="outline" class="rcf-field">
+            <mat-label>URL del video</mat-label>
+            <input matInput formControlName="url_original"
+                placeholder="https://www.youtube.com/watch?v=... o https://drive.google.com/..."
+                (input)="onUrlChange()" />
+            @if (urlError()) {
+            <mat-error>{{ urlError() }}</mat-error>
+            } @else {
+            <mat-hint>Se detecta automáticamente si es YouTube o Google Drive</mat-hint>
+            }
+        </mat-form-field>
+
+        @if (proveedorDetectado()) {
+        <div class="rcf-proveedor-badge" [class.youtube]="proveedorDetectado() === 'youtube'"
+            [class.drive]="proveedorDetectado() === 'drive'">
+            <mat-icon>{{ proveedorDetectado() === 'youtube' ? 'smart_display' : 'cloud' }}</mat-icon>
+            {{ proveedorDetectado() === 'youtube' ? 'YouTube detectado' : 'Google Drive detectado' }}
+        </div>
+        }
+        }
+
+        <mat-form-field appearance="outline" class="rcf-field">
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="titulo" placeholder="Ej: Clase 01 — Introducción al tema" />
+            <mat-error>El título es requerido</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="rcf-field">
+            <mat-label>Descripción (opcional)</mat-label>
+            <textarea matInput formControlName="descripcion" rows="3"
+                placeholder="Breve descripción del contenido de la clase"></textarea>
+        </mat-form-field>
+
+    </form>
+
+    <div class="rcf-footer">
+        <button mat-stroked-button (click)="cerrar()" [disabled]="saving()">
+            Cancelar
+        </button>
+        <button mat-flat-button color="primary" (click)="guardar()" [disabled]="form.invalid || saving()">
+            @if (saving()) {
+            <mat-spinner diameter="18" strokeWidth="2" />
+            } @else {
+            <mat-icon>save</mat-icon>
+            }
+            {{ isEdit() ? 'Guardar cambios' : 'Agregar grabación' }}
+        </button>
+    </div>
+
+</div>

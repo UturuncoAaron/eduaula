@@ -4,6 +4,8 @@ import { ApiService } from '../../../core/services/api';
 import {
   Course, Material, MaterialDownload, MaterialPreviewInfo,
   CourseProgressEntry, LiveClass, SemanaResumen,
+  RecordedClass,
+  RecordedClassStats,
 } from '../../../core/models/course';
 
 @Injectable({ providedIn: 'root' })
@@ -133,5 +135,42 @@ export class CourseService {
 
   toggleForum(courseId: string, forumId: string, oculto: boolean) {
     return this.api.patch<unknown>(`courses/${courseId}/forums/${forumId}/toggle`, { oculto });
+  }
+  // ── Clases Grabadas ───────────────────────────────────────
+  getRecordedClasses(courseId: string) {
+    return this.api.get<RecordedClass[]>(`courses/${courseId}/recorded-classes`);
+  }
+
+  createRecordedClass(courseId: string, body: {
+    url_original: string;
+    titulo: string;
+    descripcion?: string;
+  }) {
+    return this.api.post<RecordedClass>(`courses/${courseId}/recorded-classes`, body);
+  }
+  updateRecordedClass(courseId: string, id: string, body: Partial<{
+    titulo: string;
+    descripcion: string;
+    semana: number;
+    duracion_min: number;
+    oculto: boolean;
+  }>) {
+    return this.api.patch<RecordedClass>(`courses/${courseId}/recorded-classes/${id}`, body);
+  }
+
+  deleteRecordedClass(courseId: string, id: string) {
+    return this.api.delete<{ message: string }>(`courses/${courseId}/recorded-classes/${id}`);
+  }
+
+  toggleRecordedClass(courseId: string, id: string, oculto: boolean) {
+    return this.api.patch<RecordedClass>(`courses/${courseId}/recorded-classes/${id}/toggle`, { oculto });
+  }
+
+  markRecordedClassViewed(courseId: string, id: string) {
+    return this.api.post<{ registrado: boolean }>(`courses/${courseId}/recorded-classes/${id}/view`, {});
+  }
+
+  getRecordedClassStats(courseId: string, id: string) {
+    return this.api.get<RecordedClassStats>(`courses/${courseId}/recorded-classes/${id}/stats`);
   }
 }

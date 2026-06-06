@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -36,7 +35,6 @@ type MediaKind = 'image' | 'video' | 'audio' | 'pdf' | 'youtube' | 'drive' | 'li
 export class MySubmissionView implements OnInit {
   private ref = inject<MatDialogRef<MySubmissionView>>(MatDialogRef);
   private sanitizer = inject(DomSanitizer);
-  private router = inject(Router);
   private taskSvc = inject(TaskService);
   readonly data = inject<MySubmissionViewData>(MAT_DIALOG_DATA);
 
@@ -114,7 +112,6 @@ export class MySubmissionView implements OnInit {
 
   reenviar() {
     this.ref.close('reenviar');
-    this.router.navigate(['/tareas', this.task.id, 'entregar']);
   }
 
   cerrar() {

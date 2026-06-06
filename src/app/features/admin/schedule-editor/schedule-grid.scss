@@ -3,20 +3,19 @@
 :host {
   display: block;
   width: 100%;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
-$col-min: 130px; // Reducido levemente para mejorar legibilidad en vistas compactas
-$hour-col-width: 75px; // Optimizado para pantallas pequeñas sin perder legibilidad
-$row-tick: 48px;
+$col-min: 130px;
+$hour-col-width: 85px;
 
 .sg-wrap {
   width: 100%;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   background: #fff;
-  overflow-x: auto; // Activa el desplazamiento horizontal responsivo
-  -webkit-overflow-scrolling: touch; // Desplazamiento suave inercial en iOS
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sg-header {
@@ -24,12 +23,13 @@ $row-tick: 48px;
   grid-template-columns: $hour-col-width repeat(5, minmax($col-min, 1fr));
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
-  min-width: calc(#{$hour-col-width} + (#{$col-min} * 5)); // Asegura consistencia del ancho
+  min-width: calc(#{$hour-col-width} + (#{$col-min} * 5));
 
   >div {
-    padding: 10px 8px;
+    padding: 12px 8px;
     border-right: 1px solid #e5e7eb;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 13px;
     color: #374151;
     text-align: center;
 
@@ -42,8 +42,8 @@ $row-tick: 48px;
     background: #f3f4f6;
     position: sticky;
     left: 0;
-    z-index: 10; // Mantiene la esquina fija al hacer scroll horizontal
-    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    z-index: 10;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.04);
   }
 
   .sg-day-head {
@@ -51,9 +51,11 @@ $row-tick: 48px;
     flex-direction: column;
     gap: 2px;
     justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 
     .sg-day-long {
-      font-size: 0.9rem;
+      font-size: 13px;
     }
 
     .sg-day-short {
@@ -70,7 +72,7 @@ $row-tick: 48px;
 
     .sg-day-short {
       display: inline;
-      font-size: 0.85rem;
+      font-size: 12px;
     }
   }
 }
@@ -83,25 +85,25 @@ $row-tick: 48px;
 }
 
 .sg-hours-col {
-  background: #fafafa;
+  background: #fbfbfb;
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   position: sticky;
   left: 0;
-  z-index: 9; // Columna de horas fija al desplazar los días horizontalmente
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  z-index: 9;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.04);
 
   .sg-hour-row {
-    height: $row-tick;
     box-sizing: border-box;
-    border-bottom: 1px solid #f1f5f9;
-    padding: 4px 6px;
+    border-bottom: 1px dashed #edf2f7;
+    padding: 6px 8px;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    color: #6b7280;
-    font-size: 0.7rem;
+    color: #4b5563;
+    font-size: 11px;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -113,7 +115,7 @@ $row-tick: 48px;
   border: none;
   border-right: 1px solid #e5e7eb;
   padding: 0;
-  cursor: crosshair;
+  cursor: cell;
   text-align: left;
   box-sizing: border-box;
 
@@ -122,98 +124,99 @@ $row-tick: 48px;
   }
 
   &:hover {
-    background: #fcfcfd;
+    background: #fafbfc;
   }
 
   .sg-grid-line {
-    height: $row-tick;
-    border-bottom: 1px dashed #eef2f7;
+    border-bottom: 1px dashed #f1f5f9;
     box-sizing: border-box;
     pointer-events: none;
 
-    &:nth-child(odd) {
-      border-bottom-color: #e5e7eb;
+    &:nth-child(even) {
+      border-bottom-color: #edf2f7;
       border-bottom-style: solid;
     }
   }
 }
 
-// ── Slots posicionados absolute ──────────────────────────────────
 .sg-slot {
   position: absolute;
-  left: 4px;
-  right: 4px;
-  border: none;
+  left: 5px;
+  right: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-left-width: 4px;
   border-radius: 8px;
-  padding: 5px 6px;
+  padding: 6px 8px;
   color: #fff;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   align-items: flex-start;
   text-align: left;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.15s ease-in-out;
   z-index: 2;
   box-sizing: border-box;
 
-  background-blend-mode: normal;
-
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    filter: brightness(0.96);
     z-index: 3;
   }
 
   &.is-pending::after {
     content: '';
     position: absolute;
-    top: 4px;
-    right: 4px;
+    top: 5px;
+    right: 5px;
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: #fbbf24;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
   }
 
   .sg-slot-title {
-    font-weight: 600;
-    font-size: 0.8rem;
+    font-weight: 700;
+    font-size: 12px;
     line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
   }
 
   .sg-slot-time {
-    font-size: 0.68rem;
-    opacity: 0.92;
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.95;
     font-variant-numeric: tabular-nums;
   }
 
   .sg-slot-room {
-    font-size: 0.65rem;
+    font-size: 10px;
+    font-weight: 500;
     opacity: 0.9;
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    margin-top: auto;
 
     mat-icon {
-      font-size: 0.8rem;
-      width: 0.8rem;
-      height: 0.8rem;
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
     }
   }
 }
 
 .sg-slot.is-editing {
-  outline: 3px solid #fff;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.5), 0 3px 8px rgba(0, 0, 0, .2);
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
   z-index: 4;
 }

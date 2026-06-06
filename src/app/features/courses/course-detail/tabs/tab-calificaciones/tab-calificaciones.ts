@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy, Component, effect,
   inject, input, signal, computed, OnInit,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -19,8 +19,6 @@ import { PeriodoService } from '../../../../../core/services/periodo';
 import { GradeBadge } from '../../../../../shared/components/grade-badge/grade-badge';
 import { UserAvatar } from '../../../../../shared/components/user-avatar/user-avatar';
 import { NewActividadDialog, NewActividadResult } from '../../../../grades/register-grades/new-actividad-dialog/new-actividad-dialog';
-
-// ── Tipos compartidos ──────────────────────────────────────────────────────────
 
 type TipoNota = 'tarea' | 'practica' | 'participacion' | 'proyecto' | 'otro';
 
@@ -82,8 +80,6 @@ interface PendingChange {
   act: Actividad;
 }
 
-// ── Constantes ─────────────────────────────────────────────────────────────────
-
 const TIPO_LABEL: Record<TipoNota, string> = {
   tarea: 'Tarea', practica: 'Práctica',
   participacion: 'Participación', proyecto: 'Proyecto', otro: 'Otro',
@@ -101,7 +97,7 @@ const TIPO_COLOR: Record<TipoNota, string> = {
   selector: 'app-tab-calificaciones',
   standalone: true,
   imports: [
-    FormsModule,
+    DatePipe,
     MatFormFieldModule, MatSelectModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
     MatTooltipModule, MatMenuModule, MatExpansionModule,
@@ -126,7 +122,6 @@ export class TabCalificaciones implements OnInit {
 
   loading = signal(true);
 
-  // ── Estado alumno ──────────────────────────────────
   misNotas = signal<MiNota[]>([]);
 
   bimestresAgrupados = computed<BimestreAgrupado[]>(() => {
@@ -148,7 +143,6 @@ export class TabCalificaciones implements OnInit {
     return [...grupos.values()].sort((a, b) => a.bimestre - b.bimestre);
   });
 
-  // ── Estado docente ─────────────────────────────────
   filas = signal<GradeRow[]>([]);
   actividades = signal<Actividad[]>([]);
   vistaActividad = signal<Actividad | null>(null);
@@ -200,8 +194,6 @@ export class TabCalificaciones implements OnInit {
     }
   }
 
-  // ── Alumno: cargar mis notas ───────────────────────
-
   private loadMisNotas() {
     this.loading.set(true);
     this.api.get<MiNota[]>(`grades/my?cursoId=${this.courseId()}`).subscribe({
@@ -212,8 +204,6 @@ export class TabCalificaciones implements OnInit {
       error: () => { this.misNotas.set([]); this.loading.set(false); },
     });
   }
-
-  // ── Docente: cargar grilla ─────────────────────────
 
   loadGrades() {
     const periodoId = this.periodoId();
@@ -241,8 +231,6 @@ export class TabCalificaciones implements OnInit {
     this.loadGrades();
   }
 
-  // ── Navegación vistas ──────────────────────────────
-
   abrirEditor(act: Actividad) { this.vistaActividad.set(act); }
 
   volverALista() {
@@ -251,8 +239,6 @@ export class TabCalificaciones implements OnInit {
     this.loadGrades();
     this.vistaActividad.set(null);
   }
-
-  // ── Celda helpers ──────────────────────────────────
 
   cellKey(row: GradeRow, titulo: string) { return `${row.alumno_id}::${titulo}`; }
   cellNota(row: GradeRow, titulo: string) { return row.notas[titulo]?.nota ?? null; }
@@ -276,8 +262,6 @@ export class TabCalificaciones implements OnInit {
     if (vals.length === 0) return null;
     return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
   }
-
-  // ── Guardar / descartar ────────────────────────────
 
   guardarCambios() {
     const changes = [...this.pendingChanges().values()];
@@ -312,8 +296,6 @@ export class TabCalificaciones implements OnInit {
     this.pendingChanges.set(new Map());
     this.loadGrades();
   }
-
-  // ── Nueva / eliminar actividad ─────────────────────
 
   newActividad() {
     if (this.hasPendingChanges() && !confirm(`Hay ${this.pendingCount()} cambios sin guardar. ¿Continuar?`)) return;
@@ -360,8 +342,6 @@ export class TabCalificaciones implements OnInit {
     if (vals.length === 0) return null;
     return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
   }
-
-  // ── Helpers UI ─────────────────────────────────────
 
   alumnoFullName(row: GradeRow): string {
     const a = row.alumno;

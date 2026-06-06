@@ -1,9 +1,15 @@
 <div class="header">
     <div class="header-left">
-        @if (backRoute) {
+        @if (hasBack) {
+        @if (backRoute && !backClick.observed) {
         <a mat-icon-button [routerLink]="backRoute">
             <mat-icon>arrow_back</mat-icon>
         </a>
+        } @else {
+        <button mat-icon-button type="button" (click)="onBack()">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        }
         }
         <div>
             <h2 class="title">{{ title }}</h2>

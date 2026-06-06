@@ -108,7 +108,6 @@
         </div>
     </section>
 
-    <!-- HORARIO SEMANAL -->
     <section class="section">
         <div class="section-header">
             <h2 class="section-title">
@@ -117,10 +116,9 @@
             </h2>
         </div>
 
-        <app-week-grid mode="schedule" [slots]="calendarSlots()" [startHour]="7" [endHour]="14"
-            [endHourExtraMin]="30" />
+        <app-week-grid mode="schedule" [slots]="calendarSlots()" [startHour]="8" [endHour]="15" [endHourExtraMin]="30"
+            [tickStepMin]="30" [pxPerMin]="2.4" [allowedDays]="['lunes', 'martes', 'miercoles', 'jueves', 'viernes']" />
     </section>
-
     <!-- TAREAS + COMUNICADOS -->
     <div class="bottom-grid">
 

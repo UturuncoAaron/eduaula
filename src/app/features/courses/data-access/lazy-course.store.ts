@@ -3,7 +3,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api';
 import { TaskService } from '../../tasks/data-access/task.store';
-import { Course, LiveClass, Material, SemanaResumen } from '../../../core/models/course';
+import { Course, LiveClass, Material, RecordedClass, SemanaResumen } from '../../../core/models/course';
 import { Task } from '../../../core/models/task';
 import { Forum } from '../../../core/models/forum';
 
@@ -36,6 +36,7 @@ export class LazyCourseStore {
   private readonly liveStreams = new Map<string, Observable<LiveClass[]>>();
   private readonly rosterStreams = new Map<string, Observable<RosterStudent[]>>();
   private readonly rosterRawStreams = new Map<string, Observable<unknown[]>>();
+  private readonly recordedStreams = new Map<string, Observable<RecordedClass[]>>();
 
   course$(courseId: string): Observable<Course | null> {
     let s = this.courseStreams.get(courseId);
@@ -104,11 +105,6 @@ export class LazyCourseStore {
     return s as Observable<T[]>;
   }
 
-  invalidateRoster(seccionId: string): void {
-    this.rosterStreams.delete(seccionId);
-    this.rosterRawStreams.delete(seccionId);
-  }
-
   liveClasses$(courseId: string): Observable<LiveClass[]> {
     let s = this.liveStreams.get(courseId);
     if (!s) {
@@ -124,6 +120,20 @@ export class LazyCourseStore {
     return s;
   }
 
+  recordedClasses$(courseId: string): Observable<RecordedClass[]> {
+    let s = this.recordedStreams.get(courseId);
+    if (!s) {
+      s = this.api.get<RecordedClass[]>(`courses/${courseId}/recorded-classes`).pipe(
+        map(r => [...(r.data ?? [])].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        )),
+        catchError(() => of([])),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+      this.recordedStreams.set(courseId, s);
+    }
+    return s;
+  }
   prefetchItems(courseId: string): void {
     if (this.itemsStreams.has(courseId)) return;
     const run = () => this.items$(courseId).subscribe();
@@ -137,10 +147,17 @@ export class LazyCourseStore {
   invalidateItems(courseId: string): void { this.itemsStreams.delete(courseId); }
   invalidateLiveClasses(courseId: string): void { this.liveStreams.delete(courseId); }
   invalidateSemanas(courseId: string): void { this.semanasStreams.delete(courseId); }
+  invalidateRecordedClasses(courseId: string): void { this.recordedStreams.delete(courseId); }
+  invalidateRoster(seccionId: string): void {
+    this.rosterStreams.delete(seccionId);
+    this.rosterRawStreams.delete(seccionId);
+  }
+
   invalidateAll(courseId: string): void {
     this.invalidateItems(courseId);
     this.invalidateLiveClasses(courseId);
     this.invalidateSemanas(courseId);
+    this.invalidateRecordedClasses(courseId);
     this.courseStreams.delete(courseId);
   }
 }
@@ -149,7 +166,6 @@ function normalizeRosterStudent(raw: any): RosterStudent {
   const a = raw?.alumno ?? raw ?? {};
   const realAlumnoId = raw?.alumno_id ?? raw?.alumno?.id ?? raw?.id ?? '';
   const enrollmentId = raw?.id !== realAlumnoId ? raw?.id : '';
-
   return {
     id: String(realAlumnoId),
     enrollment_id: String(enrollmentId),

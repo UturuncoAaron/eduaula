@@ -49,9 +49,12 @@ interface PendingPayloadSlot {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    MatButtonModule, MatIconModule,
-    MatDialogModule, MatTooltipModule,
-    MatProgressBarModule, MatProgressSpinnerModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDialogModule,
+    MatTooltipModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
     ScheduleGrid,
   ],
   templateUrl: './schedule-editor.html',
@@ -65,37 +68,30 @@ export class ScheduleEditor implements OnInit {
   private readonly toastr = inject(ToastService);
   private readonly dialog = inject(MatDialog);
 
-  // Params + query
   readonly seccionId = this.route.snapshot.paramMap.get('seccionId')!;
-  readonly anio = this.route.snapshot.queryParamMap.get('anio')
-    ?? String(new Date().getFullYear());
+  readonly anio = this.route.snapshot.queryParamMap.get('anio') ?? String(new Date().getFullYear());
   readonly seccionNombre = this.route.snapshot.queryParamMap.get('seccion') ?? '';
   readonly gradoNombre = this.route.snapshot.queryParamMap.get('grado') ?? '';
 
-  // Estado base
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly courses = signal<CourseSchedule[]>([]);
 
-  // Estado editable
   readonly workingCourses = signal<CourseSchedule[]>([]);
   readonly dirtyCourses = signal<Set<string>>(new Set());
   readonly editingSlotId = signal<number | string | null>(null);
 
-  // Constantes UI
   readonly dias = DIAS;
 
   readonly isDirty = computed(() => this.dirtyCourses().size > 0);
   readonly dirtyCount = computed(() => this.dirtyCourses().size);
 
-  /** Map para acceso rápido curso_id → curso (con color, nombre). */
   private readonly courseLookup = computed(() => {
     const m = new Map<string, CourseSchedule>();
     for (const c of this.workingCourses()) m.set(c.curso_id, c);
     return m;
   });
 
-  /** Vista plana de slots con metadata del curso, para pintar el grid. */
   readonly flatSlots = computed<EditableSlot[]>(() => {
     const out: EditableSlot[] = [];
     for (const c of this.workingCourses()) {
@@ -113,7 +109,6 @@ export class ScheduleEditor implements OnInit {
     return out;
   });
 
-  // ─── Lifecycle ─────────────────────────────────────────────────
   ngOnInit(): void { this.load(); }
 
   load(): void {
@@ -145,7 +140,6 @@ export class ScheduleEditor implements OnInit {
       });
   }
 
-  // ─── Grid interaction (delegadas desde <app-schedule-grid>) ────
   onGridCreate(payload: { dia: DiaSemana; hora: string }): void {
     this.openCreateDialog(payload.dia, payload.hora);
   }
@@ -163,7 +157,7 @@ export class ScheduleEditor implements OnInit {
     const ref = this.dialog.open<SlotAssignDialog, SlotAssignData, SlotAssignResult | null>(
       SlotAssignDialog,
       {
-        width: '480px',
+        width: '520px',
         data: {
           courses,
           dia,
@@ -182,7 +176,7 @@ export class ScheduleEditor implements OnInit {
     const ref = this.dialog.open<SlotAssignDialog, SlotAssignData, SlotAssignResult | null>(
       SlotAssignDialog,
       {
-        width: '480px',
+        width: '520px',
         data: {
           courses,
           dia: slot.dia_semana,
@@ -276,7 +270,7 @@ export class ScheduleEditor implements OnInit {
     this.markDirty(cursoId);
   }
 
-  private markDirty(cursoId: string): void {
+  private updateDirtyCoursesSet(cursoId: string): void {
     this.dirtyCourses.update(s => {
       const next = new Set(s);
       next.add(cursoId);
@@ -284,7 +278,10 @@ export class ScheduleEditor implements OnInit {
     });
   }
 
-  // ─── Save / discard ────────────────────────────────────────────
+  private markDirty(cursoId: string): void {
+    this.updateDirtyCoursesSet(cursoId);
+  }
+
   save(): void {
     if (this.saving() || this.dirtyCourses().size === 0) return;
     const dirty = Array.from(this.dirtyCourses());
@@ -334,37 +331,6 @@ export class ScheduleEditor implements OnInit {
     });
   }
 
-  // ─── Generar cursos desde plantilla ───────────────────────────
-  generateCoursesFromTemplate(): void {
-    if (this.saving()) return;
-    const ref = this.dialog.open(ConfirmDialog, {
-      data: {
-        title: 'Generar cursos por plantilla',
-        message:
-          'Vamos a crear los cursos estándar del grado en esta sección. ' +
-          'Los que ya existen no se duplicarán. ¿Continuar?',
-        confirm: 'Generar',
-      },
-    });
-    ref.afterClosed().subscribe(ok => {
-      if (!ok) return;
-      this.saving.set(true);
-      this.api
-        .post(`courses/generate/${this.seccionId}?anio=${this.anio}`, {})
-        .pipe(finalize(() => this.saving.set(false)))
-        .subscribe({
-          next: r => {
-            const data = r.data as { mensaje?: string } | undefined;
-            this.toastr.success(data?.mensaje ?? 'Cursos generados');
-            this.load();
-          },
-          error: () => {
-            this.toastr.error('No se pudo generar los cursos');
-          },
-        });
-    });
-  }
-
   back(): void {
     if (this.dirtyCourses().size === 0) { this.goBack(); return; }
     const ref = this.dialog.open(ConfirmDialog, {
@@ -391,7 +357,6 @@ export class ScheduleEditor implements OnInit {
   }
 }
 
-// ─── helpers ────────────────────────────────────────────────────
 function clone<T>(x: T): T { return JSON.parse(JSON.stringify(x)); }
 
 let _tempCounter = 1;

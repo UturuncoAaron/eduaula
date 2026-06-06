@@ -1,0 +1,78 @@
+@if (loading()) {
+<div class="state-center">
+    <mat-spinner diameter="38" strokeWidth="3" />
+    <p>Cargando notas...</p>
+</div>
+} @else if (!grupo()) {
+<app-page-header title="Notas del curso" (backClick)="back()" />
+<app-empty-state icon="assignment_late" title="Sin notas registradas"
+    message="No se encontraron notas para este curso." />
+} @else {
+
+@let g = grupo()!;
+@let pStyle = promedioStyle();
+
+<app-page-header [title]="g.curso_nombre" [subtitle]="g.periodo_nombre + ' ' + g.anio" (backClick)="back()" />
+
+<div class="course-summary">
+    <div class="summary-left">
+        <div class="color-bar" [style.background]="g.color || '#2563eb'"></div>
+        @if (g.area) {
+        <span class="area-tag">{{ g.area }}</span>
+        }
+    </div>
+    <div class="promedio-block" [style.color]="pStyle.color" [style.background]="pStyle.bg">
+        <span class="promedio-label">Promedio</span>
+        <span class="promedio-value">{{ g.promedio !== null ? (g.promedio | number:'1.1-1') : '—' }}</span>
+        <span class="promedio-desc">{{ pStyle.label }}</span>
+    </div>
+</div>
+
+<section class="actividades-section">
+    <header class="section-header">
+        <h3>Actividades del bimestre</h3>
+        <span class="acts-count">{{ g.notas.length }} {{ g.notas.length === 1 ? 'actividad' : 'actividades' }}</span>
+    </header>
+
+    @if (g.notas.length === 0) {
+    <app-empty-state icon="fact_check" title="Sin actividades"
+        message="El docente aún no ha registrado notas en este bimestre." />
+    } @else {
+    <div class="acts-list">
+        @for (nota of g.notas; track trackByNota($index, nota)) {
+        @let nStyle = getNotaStyle(nota.nota);
+        <div class="act-card">
+            <div class="act-icon" [style.background]="nStyle.bg">
+                <mat-icon [style.color]="nStyle.color">{{ tipoIcon(nota.tipo) }}</mat-icon>
+            </div>
+            <div class="act-main">
+                <div class="act-row1">
+                    <span class="act-titulo">{{ nota.titulo }}</span>
+                    <span class="act-tipo">{{ tipoLabel(nota.tipo) }}</span>
+                </div>
+                @if (nota.fecha) {
+                <div class="act-row2">
+                    <mat-icon>event</mat-icon>
+                    <span>{{ nota.fecha | date:'dd/MM/yyyy' }}</span>
+                </div>
+                }
+            </div>
+            <div class="act-grade" [style.color]="nStyle.color" [style.background]="nStyle.bg">
+                {{ nota.nota !== null ? (nota.nota | number:'1.0-1') : '—' }}
+            </div>
+        </div>
+        }
+    </div>
+    }
+</section>
+
+<footer class="academic-legend">
+    <div class="legend-header">Leyenda de Calificaciones (Escala Vigesimal):</div>
+    <div class="legend-items-wrap">
+        <span class="legend-pill score-excelente">17 – 20 Excelente</span>
+        <span class="legend-pill score-bueno">14 – 16 Bueno</span>
+        <span class="legend-pill score-regular">11 – 13 Regular</span>
+        <span class="legend-pill score-deficiente">00 – 10 Deficiente</span>
+    </div>
+</footer>
+}

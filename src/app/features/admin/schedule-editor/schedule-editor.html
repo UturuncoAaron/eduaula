@@ -1,6 +1,5 @@
 <div class="sched-editor">
 
-  <!-- ═══ Topbar ════════════════════════════════════════════════════ -->
   <header class="topbar">
     <button mat-icon-button (click)="back()" matTooltip="Volver" aria-label="Volver">
       <mat-icon>arrow_back</mat-icon>
@@ -15,26 +14,14 @@
 
     <div class="actions">
       @if (isDirty()) {
-        <span class="dirty-badge" matTooltip="Cursos con cambios sin guardar">
-          {{ dirtyCount() }} cambio(s)
-        </span>
-        <button mat-button color="warn" type="button" (click)="discard()" [disabled]="saving()">
-          <mat-icon>undo</mat-icon> Descartar
-        </button>
+      <span class="dirty-badge" matTooltip="Cursos con cambios sin guardar">
+        {{ dirtyCount() }} cambio(s)
+      </span>
+      <button mat-button color="warn" type="button" (click)="discard()" [disabled]="saving()">
+        <mat-icon>undo</mat-icon> Descartar
+      </button>
       }
-      @if (workingCourses().length > 0) {
-        <!-- Reusable también con cursos cargados: re-aplica plantilla y
-             agrega los faltantes sin duplicar. -->
-        <button mat-stroked-button type="button"
-                (click)="generateCoursesFromTemplate()"
-                [disabled]="saving()"
-                matTooltip="Generar cursos faltantes de la plantilla del grado">
-          <mat-icon>playlist_add</mat-icon>
-          Plantilla
-        </button>
-      }
-      <button mat-flat-button color="primary" type="button"
-              (click)="save()" [disabled]="!isDirty() || saving()">
+      <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="!isDirty() || saving()">
         <mat-icon>save</mat-icon>
         {{ saving() ? 'Guardando…' : 'Guardar' }}
       </button>
@@ -42,53 +29,45 @@
   </header>
 
   @if (saving()) {
-    <mat-progress-bar mode="indeterminate" />
+  <mat-progress-bar mode="indeterminate" />
   }
 
-  <!-- ═══ Body ═════════════════════════════════════════════════════ -->
   @if (loading()) {
-    <div class="loading-center">
-      <mat-spinner diameter="36" />
-      <p>Cargando horario…</p>
-    </div>
+  <div class="loading-center">
+    <mat-spinner diameter="36" />
+    <p>Cargando horario…</p>
+  </div>
   } @else if (workingCourses().length === 0) {
-    <div class="empty">
-      <mat-icon>calendar_month</mat-icon>
-      <h3>Esta sección aún no tiene cursos en el periodo</h3>
-      <p>Generá los cursos estándar del grado para empezar a armar el horario.</p>
-      <button mat-flat-button color="primary" type="button"
-              (click)="generateCoursesFromTemplate()" [disabled]="saving()">
-        <mat-icon>playlist_add</mat-icon>
-        {{ saving() ? 'Generando…' : 'Generar cursos del grado' }}
-      </button>
-    </div>
+  <div class="empty">
+    <mat-icon>calendar_month</mat-icon>
+    <h3>Esta sección aún no tiene cursos asignados</h3>
+    <p>Creá los cursos desde el módulo de administración académica para poder armar el horario.</p>
+  </div>
   } @else {
 
-    <p class="hint">
-      Hacé clic en un espacio libre para asignar un bloque, o clic en uno existente para editarlo o quitarlo.
-      Los bloques pueden tener cualquier duración (no están limitados a 30 min).
-    </p>
+  <p class="hint">
+    Hacé clic en un espacio libre para asignar un bloque, o clic en uno existente para editarlo o quitarlo.
+    Los bloques pueden tener cualquier duración (no están limitados a 30 min).
+  </p>
 
-    <app-schedule-grid
-      [slots]="flatSlots()"
-      (createAt)="onGridCreate($event)"
-      (editSlot)="onGridEdit($event)" />
+  <app-schedule-grid [slots]="flatSlots()" [startHour]="8" [endHour]="15" [endHourExtraMin]="30" [pxPerMin]="2.4"
+    [allowedDays]="['lunes', 'martes', 'miercoles', 'jueves', 'viernes']" (createAt)="onGridCreate($event)"
+    (editSlot)="onGridEdit($event)" />
 
-    <!-- Leyenda de cursos -->
-    <div class="legend">
-      <p class="legend-title">Cursos en esta sección</p>
-      <div class="legend-list">
-        @for (c of workingCourses(); track c.curso_id) {
-          <span class="legend-item" [class.is-dirty]="dirtyCourses().has(c.curso_id)">
-            <span class="dot" [style.background]="c.color"></span>
-            {{ c.curso_nombre }}
-            <small>({{ c.slots.length }} bloque{{ c.slots.length === 1 ? '' : 's' }})</small>
-            @if (dirtyCourses().has(c.curso_id)) {
-              <mat-icon class="pending-ic" matTooltip="Con cambios sin guardar">circle</mat-icon>
-            }
-          </span>
+  <div class="legend">
+    <p class="legend-title">Cursos en esta sección</p>
+    <div class="legend-list">
+      @for (c of workingCourses(); track c.curso_id) {
+      <span class="legend-item" [class.is-dirty]="dirtyCourses().has(c.curso_id)">
+        <span class="dot" [style.background]="c.color"></span>
+        {{ c.curso_nombre }}
+        <small>({{ c.slots.length }} bloque{{ c.slots.length === 1 ? '' : 's' }})</small>
+        @if (dirtyCourses().has(c.curso_id)) {
+        <mat-icon class="pending-ic" matTooltip="Con cambios sin guardar">circle</mat-icon>
         }
-      </div>
+      </span>
+      }
     </div>
+  </div>
   }
 </div>

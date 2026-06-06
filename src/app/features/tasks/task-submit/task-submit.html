@@ -1,86 +1,129 @@
-<div class="container">
-    <app-page-header [title]="task()?.titulo ?? 'Entregar tarea'"
-        [subtitle]="task() ? (task()!.curso ?? '') + ' · Entrega: ' + (task()!.fecha_limite | date:'dd/MM/yyyy HH:mm') : ''"
-        backRoute="/tareas" />
+<div class="delivery-container">
+    <app-page-header [title]="task()?.titulo ?? 'Entregar Tarea'"
+        [subtitle]="task() ? (task()!.curso ?? '') + ' · Fecha límite: ' + (task()!.fecha_limite | date:'dd/MM/yyyy HH:mm') : ''"
+        (backClick)="goBack()" />
 
     @if (loading()) {
-    <div class="loading-center">
-        <mat-spinner diameter="40" />
-        <p>Cargando...</p>
+    <div class="status-wrapper status-wrapper--loading">
+        <mat-spinner diameter="48" color="primary" />
+        <p class="status-wrapper__text">Cargando la información de tu tarea...</p>
     </div>
     } @else if (task()) {
 
-    @if (task()!.instrucciones) {
-    <mat-card class="info-card">
-        <mat-card-content>
-            <h3><mat-icon>description</mat-icon> Instrucciones</h3>
-            <p>{{ task()!.instrucciones }}</p>
-        </mat-card-content>
-    </mat-card>
-    }
+    <div class="delivery-grid">
 
-    @if (materialUrl()) {
-    <mat-card class="info-card">
-        <mat-card-content>
-            <h3><mat-icon>folder_shared</mat-icon> Material de referencia</h3>
-            <p>{{ materialNombre() ?? 'Archivo adjunto' }}</p>
-            <a mat-stroked-button [href]="materialUrl()" target="_blank" rel="noopener">
-                <mat-icon>open_in_new</mat-icon> Abrir material
-            </a>
-        </mat-card-content>
-    </mat-card>
-    }
+        <section class="delivery-sidebar">
+            @if (task()!.instrucciones) {
+            <mat-card class="u-card u-card--info">
+                <mat-card-content>
+                    <h3 class="u-card__title">
+                        <mat-icon class="u-card__icon">description</mat-icon>
+                        Instrucciones
+                    </h3>
+                    <p class="u-card__text">{{ task()!.instrucciones }}</p>
+                </mat-card-content>
+            </mat-card>
+            }
 
-    <mat-card class="form-card">
-        <mat-card-content>
-            <form [formGroup]="form" (ngSubmit)="submit()" class="form">
-
-                @if (puedeTexto()) {
-                <mat-form-field appearance="outline" class="w100">
-                    <mat-label>Tu respuesta</mat-label>
-                    <textarea matInput formControlName="respuesta_texto" rows="6"
-                        placeholder="Escribe tu respuesta aquí..."></textarea>
-                </mat-form-field>
-                }
-
-                @if (puedeArchivo()) {
-                <div class="file-block">
-                    <label class="file-label">
-                        <mat-icon>attach_file</mat-icon>
-                        <span>Adjuntar archivo (PDF, imagen, doc, etc.)</span>
-                    </label>
-                    <input #fileInput type="file" class="hidden-file" (change)="onFileSelected($event)"
-                        accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
-                    @if (!selectedFile()) {
-                    <button type="button" mat-stroked-button (click)="fileInput.click()">
-                        <mat-icon>upload_file</mat-icon> Seleccionar archivo
-                    </button>
-                    } @else {
-                    <div class="file-chip">
-                        <mat-icon>description</mat-icon>
-                        <span class="file-name">{{ selectedFile()!.name }}</span>
-                        <button type="button" mat-icon-button (click)="clearFile()" aria-label="Quitar archivo">
-                            <mat-icon>close</mat-icon>
-                        </button>
+            @if (materialUrl()) {
+            <mat-card class="u-card u-card--material">
+                <mat-card-content>
+                    <h3 class="u-card__title">
+                        <mat-icon class="u-card__icon">folder_shared</mat-icon>
+                        Material de Referencia
+                    </h3>
+                    <div class="material-action">
+                        <span class="material-action__name" [title]="materialNombre() ?? 'Archivo adjunto'">
+                            {{ materialNombre() ?? 'Archivo adjunto' }}
+                        </span>
+                        <a mat-flat-button color="accent" class="u-btn-rounded" [href]="materialUrl()" target="_blank"
+                            rel="noopener">
+                            <mat-icon>open_in_new</mat-icon> Abrir material
+                        </a>
                     </div>
-                    }
-                </div>
-                }
+                </mat-card-content>
+            </mat-card>
+            }
+        </section>
 
-                <div class="actions">
-                    <a mat-button routerLink="/tareas">Cancelar</a>
-                    <button mat-flat-button color="primary" type="submit" [disabled]="sending()">
-                        @if (sending()) {
-                        <mat-spinner diameter="18"></mat-spinner>
-                        } @else {
-                        <mat-icon>send</mat-icon>
+        <main class="delivery-main">
+            <mat-card class="u-card u-card--form">
+                <mat-card-content>
+                    <form [formGroup]="form" (ngSubmit)="submit()" class="delivery-form">
+
+                        @if (puedeTexto()) {
+                        <div class="form-group">
+                            <label class="form-group__label">Respuesta Escrita</label>
+                            <mat-form-field appearance="outline" class="u-w100">
+                                <mat-label>Escribe tu respuesta aquí</mat-label>
+                                <textarea matInput formControlName="respuesta_texto" rows="6"
+                                    placeholder="Redacta el desarrollo de tu tarea..."></textarea>
+                            </mat-form-field>
+                        </div>
                         }
-                        {{ sending() ? 'Enviando...' : 'Entregar tarea' }}
-                    </button>
-                </div>
 
-            </form>
-        </mat-card-content>
-    </mat-card>
+                        @if (puedeArchivo()) {
+                        <div class="form-group">
+                            <label class="form-group__label">Archivos Adjuntos</label>
+
+                            <div class="upload-zone" [class.upload-zone--has-file]="selectedFile()">
+                                <input #fileInput type="file" class="upload-zone__input"
+                                    (change)="onFileSelected($event)"
+                                    accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
+
+                                @if (!selectedFile()) {
+                                <div class="upload-zone__placeholder" (click)="fileInput.click()">
+                                    <div class="upload-zone__icon-wrapper">
+                                        <mat-icon class="upload-zone__icon">cloud_upload</mat-icon>
+                                    </div>
+                                    <div class="upload-zone__content">
+                                        <p class="upload-zone__primary-text">Arrastra tu archivo aquí o <span>búscalo en
+                                                tu equipo</span></p>
+                                        <p class="upload-zone__secondary-text">PDF, Word, Excel, PowerPoint o Imágenes
+                                            (Máx. 25MB)</p>
+                                    </div>
+                                </div>
+                                } @else {
+                                <div class="uploaded-file">
+                                    <div class="uploaded-file__info">
+                                        <div class="uploaded-file__icon-container">
+                                            <mat-icon>insert_drive_file</mat-icon>
+                                        </div>
+                                        <div class="uploaded-file__meta">
+                                            <span class="uploaded-file__name">{{ selectedFile()!.name }}</span>
+                                            <span class="uploaded-file__status">Listo para entregar</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" mat-icon-button class="uploaded-file__remove"
+                                        (click)="clearFile()" aria-label="Quitar archivo">
+                                        <mat-icon>close</mat-icon>
+                                    </button>
+                                </div>
+                                }
+                            </div>
+                        </div>
+                        }
+
+                        <footer class="form-actions">
+                            <button type="button" mat-stroked-button class="u-btn-rounded form-actions__cancel"
+                                (click)="goBack()">Cancelar</button>
+                            <button mat-flat-button color="primary" class="u-btn-rounded form-actions__submit"
+                                type="submit" [disabled]="sending()">
+                                @if (sending()) {
+                                <mat-spinner diameter="20" color="white" />
+                                <span>Enviando entrega...</span>
+                                } @else {<ng-container>
+                                    <mat-icon>send</mat-icon>
+                                    <span>Entregar Tarea</span>
+                                </ng-container>}
+                            </button>
+                        </footer>
+
+                    </form>
+                </mat-card-content>
+            </mat-card>
+        </main>
+
+    </div>
     }
 </div>

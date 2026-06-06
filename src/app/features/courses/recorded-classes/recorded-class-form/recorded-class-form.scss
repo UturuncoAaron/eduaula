@@ -1,0 +1,101 @@
+.rcf-dialog {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 520px;
+}
+
+.rcf-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.rcf-header-icon {
+    color: var(--course-color, #2563eb);
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+}
+
+.rcf-title {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.rcf-close-btn {
+    margin-left: auto;
+    color: #94a3b8;
+
+    &:hover {
+        color: #0f172a;
+    }
+}
+
+.rcf-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.rcf-field {
+    width: 100%;
+}
+
+.rcf-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.rcf-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    flex-shrink: 0;
+
+    button {
+        min-width: 120px;
+    }
+}
+
+.rcf-proveedor-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 4px;
+
+    mat-icon {
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+    }
+
+    &.youtube {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    &.drive {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+    }
+}

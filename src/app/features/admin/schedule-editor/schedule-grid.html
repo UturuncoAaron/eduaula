@@ -1,6 +1,5 @@
 <div class="sg-wrap" role="region" aria-label="Grilla de horario semanal">
 
-  <!-- Header: filas de cabecera (hora + 5 días) -->
   <div class="sg-header">
     <div class="sg-cell-hour"></div>
     @for (d of dias; track d.key) {
@@ -11,30 +10,24 @@
     }
   </div>
 
-  <!-- Cuerpo: una sola pieza CSS-grid con todas las columnas. Las filas de hora
-       sólo sirven como guías de fondo y para el label de tiempo de la izquierda. -->
   <div class="sg-body" [style.--col-h.px]="columnHeightPx()">
 
-    <!-- Columna de horas (rangos legibles) -->
     <div class="sg-hours-col">
       @for (r of rows(); track r.startMin) {
-      <div class="sg-hour-row">
+      <div class="sg-hour-row" [style.height.px]="tickStepMin() * pxPerMin()">
         <span class="sg-hour-range">{{ r.rangeLabel }}</span>
       </div>
       }
     </div>
 
-    <!-- Una columna por día -->
     @for (d of dias; track d.key) {
     <button type="button" class="sg-day-col" (click)="onColumnClick($event, d.key)"
       [attr.aria-label]="'Asignar bloque en ' + d.label">
 
-      <!-- Guías horarias (background) -->
       @for (r of rows(); track r.startMin) {
-      <div class="sg-grid-line"></div>
+      <div class="sg-grid-line" [style.height.px]="tickStepMin() * pxPerMin()"></div>
       }
 
-      <!-- Slots posicionados absolute -->
       @for (rs of slotsByDay()[d.key]; track trackSlot($index, rs)) {
       <button type="button" class="sg-slot" [class.is-pending]="rs.slot.pending" [class.is-editing]="rs.slot.editing"
         [style.background]="rs.slot.color" [style.top.px]="rs.topPx" [style.height.px]="rs.heightPx"

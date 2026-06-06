@@ -17,10 +17,10 @@
                         <span class="property-name">Asignatura</span>
                         <span class="property-value highlight-course-name">{{ c.nombre }}</span>
                     </li>
-                    @if (c.docente?.nombre) {
+                    @if (c.docente; as d) {
                     <li>
                         <span class="property-name">Docente</span>
-                        <span class="property-value">{{ c.docente?.nombre }} {{ c.docente?.apellido_paterno }}</span>
+                        <span class="property-value">{{ d.nombre }} {{ d.apellido_paterno }}</span>
                     </li>
                     }
                     <li>
@@ -42,7 +42,9 @@
 
             <mat-expansion-panel class="tc-custom-panel" (opened)="onLivePanelOpened()">
                 <mat-expansion-panel-header>
-                    <mat-panel-title class="panel-header-title-clean-bold">MIS VIDEOCONFERENCIAS</mat-panel-title>
+                    <mat-panel-title class="panel-header-title-clean-bold">
+                        MIS VIDEOCONFERENCIAS
+                    </mat-panel-title>
                     <mat-panel-description class="panel-header-description-badge">
                         @if (liveClasses() !== null) {
                         @if (liveClassesCount() > 0) {
@@ -55,13 +57,16 @@
                     </mat-panel-description>
                 </mat-expansion-panel-header>
 
-                @if (auth.isDocente()) {
                 <div class="toolbar-action-container">
+                    @if (auth.isDocente()) {
                     <button mat-flat-button color="primary" class="btn-create-session" (click)="abrirCrearLiveClass()">
-                        <mat-icon>add</mat-icon> Programar nueva videoconferencia
+                        <mat-icon>add</mat-icon> Programar videoconferencia
                     </button>
+                    }
+                    <a mat-stroked-button class="btn-ver-grabadas" [routerLink]="['../grabadas']">
+                        <mat-icon>play_circle</mat-icon> Ver clases grabadas
+                    </a>
                 </div>
-                }
 
                 @if (loadingLive() || liveClasses() === null) {
                 <app-week-content-skeleton [count]="2" />
@@ -79,13 +84,17 @@
                         <div class="session-main-details">
                             <div class="session-title-wrapper">
                                 <h4>{{ lc.titulo }}</h4>
-                                @if (estado === 'en-vivo') { <span class="status-indicator-tag live">Transmitiendo en
-                                    vivo</span> }
-                                @else if (estado === 'finalizada') { <span
-                                    class="status-indicator-tag past">Finalizada</span> }
-                                @else { <span class="status-indicator-tag upcoming">Próxima</span> }
+                                @if (estado === 'en-vivo') {
+                                <span class="status-indicator-tag live">Transmitiendo en vivo</span>
+                                } @else if (estado === 'finalizada') {
+                                <span class="status-indicator-tag past">Finalizada</span>
+                                } @else {
+                                <span class="status-indicator-tag upcoming">Próxima</span>
+                                }
                             </div>
-                            @if (lc.descripcion) { <p class="session-abstract">{{ lc.descripcion }}</p> }
+                            @if (lc.descripcion) {
+                            <p class="session-abstract">{{ lc.descripcion }}</p>
+                            }
                             <span class="session-timestamp-meta">
                                 <mat-icon>schedule</mat-icon>
                                 {{ lc.fecha_hora | date:'EEEE dd \'de\' MMMM, HH:mm' }} · ({{ lc.duracion_min }}

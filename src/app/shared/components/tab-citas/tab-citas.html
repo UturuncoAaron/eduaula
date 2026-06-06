@@ -43,13 +43,14 @@
         </div>
 
         <div class="header-actions">
+            @if (esPsicologa() || esDocente()) {
             <mat-form-field appearance="outline" class="search-field">
                 <mat-label>Buscar alumno</mat-label>
                 <input matInput [ngModel]="search()" (ngModelChange)="onSearchChange($event)"
                     placeholder="Nombre o apellido…" />
                 <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
-
+            }
             <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Estado</mat-label>
                 <mat-select [ngModel]="filterEstado()" (ngModelChange)="onEstadoChange($event)">
@@ -170,8 +171,7 @@
                             Finalizada
                         </span>
                         } @else {
-                        <span class="status-chip" [attr.data-estado]="row.estado"
-                            [matTooltip]="row.cancelReason || ''">
+                        <span class="status-chip" [attr.data-estado]="row.estado" [matTooltip]="row.cancelReason || ''">
                             <span class="status-dot"></span>
                             {{ estadoLabel(row.estado) }}
                         </span>

@@ -1,0 +1,112 @@
+<div class="rc-layout">
+
+    <aside class="rc-sidebar">
+        <div class="rc-sidebar-header">
+            <h3 class="rc-sidebar-title">
+                <mat-icon>videocam</mat-icon>
+                Clases Grabadas
+            </h3>
+            @if (auth.isDocente() || auth.isAdmin()) {
+            <button mat-flat-button color="primary" class="btn-nueva-grabacion" (click)="abrirCrear()">
+                <mat-icon>add</mat-icon> Nueva
+            </button>
+            }
+        </div>
+
+        @if (loading()) {
+        <div class="rc-loading-state">
+            <mat-spinner diameter="28" strokeWidth="3" />
+        </div>
+        } @else if (grabadasFiltradas().length === 0) {
+        <div class="rc-empty-state">
+            <mat-icon>video_library</mat-icon>
+            <p>No hay grabaciones disponibles</p>
+        </div>
+        } @else {
+        <ul class="rc-list">
+            @for (g of grabadasFiltradas(); track g.id) {
+            <li class="rc-list-item" [class.active]="selected()?.id === g.id" [class.oculto]="g.oculto"
+                (click)="seleccionar(g)">
+                <div class="rc-thumb-wrapper">
+                    @if (g.thumbnail_url) {
+                    <img [src]="g.thumbnail_url" [alt]="g.titulo" class="rc-thumb" loading="lazy" />
+                    } @else {
+                    <div class="rc-thumb-placeholder">
+                        <mat-icon>play_circle</mat-icon>
+                    </div>
+                    }
+                    @if (g.visto) {
+                    <span class="rc-visto-badge" matTooltip="Ya viste esta grabación">
+                        <mat-icon>check_circle</mat-icon>
+                    </span>
+                    }
+                </div>
+                <div class="rc-item-info">
+                    <span class="rc-item-titulo">{{ g.titulo }}</span>
+                    <span class="rc-item-meta">
+                        {{ g.created_at | date:'dd MMM yyyy' }}
+                    </span>
+                    @if (g.oculto) {
+                    <span class="rc-oculto-tag">Oculto</span>
+                    }
+                </div>
+                @if (auth.isDocente() || auth.isAdmin()) {
+                <button mat-icon-button class="rc-item-menu-btn" [matMenuTriggerFor]="itemMenu"
+                    (click)="$event.stopPropagation()">
+                    <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #itemMenu="matMenu">
+                    <button mat-menu-item (click)="abrirEditar(g)">
+                        <mat-icon>edit</mat-icon><span>Editar</span>
+                    </button>
+                    <button mat-menu-item (click)="toggleOculto(g)">
+                        <mat-icon>{{ g.oculto ? 'visibility' : 'visibility_off' }}</mat-icon>
+                        <span>{{ g.oculto ? 'Mostrar' : 'Ocultar' }}</span>
+                    </button>
+                    <button mat-menu-item (click)="eliminar(g)" class="menu-danger-action">
+                        <mat-icon>delete</mat-icon><span>Eliminar</span>
+                    </button>
+                </mat-menu>
+                }
+            </li>
+            }
+        </ul>
+        }
+    </aside>
+
+    <section class="rc-player-area">
+        @if (selected(); as g) {
+        <div class="rc-player-header">
+            <div class="rc-player-meta">
+                <h2 class="rc-player-titulo">{{ g.titulo }}</h2>
+                <div class="rc-player-chips">
+                    <span class="rc-chip">
+                        <mat-icon>calendar_today</mat-icon>
+                        {{ g.created_at | date:'dd MMM yyyy' }}
+                    </span>
+                    <span class="rc-chip provider-chip">
+                        <mat-icon>{{ g.proveedor === 'youtube' ? 'smart_display' : 'cloud' }}</mat-icon>
+                        {{ g.proveedor === 'youtube' ? 'YouTube' : 'Google Drive' }}
+                    </span>
+                </div>
+                @if (g.descripcion) {
+                <p class="rc-player-descripcion">{{ g.descripcion }}</p>
+                }
+            </div>
+        </div>
+
+        <div class="rc-iframe-wrapper">
+            <iframe [src]="embedUrl()" frameborder="0" allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                class="rc-iframe" title="{{ g.titulo }}">
+            </iframe>
+        </div>
+        } @else if (!loading()) {
+        <div class="rc-no-selection">
+            <mat-icon>play_circle_outline</mat-icon>
+            <p>Selecciona una grabación para reproducirla</p>
+        </div>
+        }
+    </section>
+
+</div>

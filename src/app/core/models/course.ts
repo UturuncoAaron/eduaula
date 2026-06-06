@@ -97,3 +97,26 @@ export interface LiveClass {
     created_at?: string;
     updated_at?: string;
 }
+
+export type ProveedorGrabacion = 'youtube' | 'drive';
+
+export interface RecordedClass {
+    id: string;
+    curso_id: string;
+    titulo: string;
+    descripcion?: string | null;
+    proveedor: ProveedorGrabacion;
+    video_id: string;
+    url_original: string;
+    embed_url: string;
+    thumbnail_url: string | null;
+    oculto: boolean;
+    activo: boolean;
+    visto?: boolean;
+    created_at: string;
+    updated_at?: string;
+}
+export interface RecordedClassStats {
+    total_vistas: number;
+    total_cuentas: number;
+}

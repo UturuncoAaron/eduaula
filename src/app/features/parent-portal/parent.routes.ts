@@ -7,6 +7,16 @@ export const PARENT_ROUTES: Routes = [
       import('./child-selector/child-selector').then(c => c.ChildSelector),
   },
   {
+    path: ':childId/notas',
+    loadComponent: () =>
+      import('./child-grades/child-grades').then(c => c.ChildGrades),
+  },
+  {
+    path: ':childId/notas/:cursoId',
+    loadComponent: () =>
+      import('./child-course-grades/child-course-grades').then(c => c.ChildCourseGrades),
+  },
+  {
     path: ':childId/asistencia',
     loadComponent: () =>
       import('./child-attendance/child-attendance').then(c => c.ChildAttendance),
