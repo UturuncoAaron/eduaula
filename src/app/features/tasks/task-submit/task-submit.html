@@ -1,128 +1,416 @@
-<div class="delivery-container">
+<div class="submit-page">
     <app-page-header [title]="task()?.titulo ?? 'Entregar Tarea'"
         [subtitle]="task() ? (task()!.curso ?? '') + ' · Fecha límite: ' + (task()!.fecha_limite | date:'dd/MM/yyyy HH:mm') : ''"
         (backClick)="goBack()" />
 
     @if (loading()) {
-    <div class="status-wrapper status-wrapper--loading">
-        <mat-spinner diameter="48" color="primary" />
-        <p class="status-wrapper__text">Cargando la información de tu tarea...</p>
+    <div class="state-center">
+        <mat-spinner diameter="44" color="primary" />
+        <p class="state-center__text">Cargando tarea...</p>
     </div>
-    } @else if (task()) {
+    }
 
-    <div class="delivery-grid">
+    @if (!loading() && task()) {
+    <div class="submit-body">
 
-        <section class="delivery-sidebar">
-            @if (task()!.instrucciones) {
-            <mat-card class="u-card u-card--info">
-                <mat-card-content>
-                    <h3 class="u-card__title">
-                        <mat-icon class="u-card__icon">description</mat-icon>
-                        Instrucciones
-                    </h3>
-                    <p class="u-card__text">{{ task()!.instrucciones }}</p>
-                </mat-card-content>
-            </mat-card>
-            }
+        <!-- ══ INSTRUCCIONES ════════════════════════════════════════ -->
+        @if (task()!.instrucciones) {
+        <mat-card class="card card--instructions">
+            <mat-card-content>
+                <div class="card-header">
+                    <mat-icon class="card-header__icon card-header__icon--blue">description</mat-icon>
+                    <span class="card-header__title">Instrucciones</span>
+                </div>
+                <p class="card__body-text">{{ task()!.instrucciones }}</p>
+            </mat-card-content>
+        </mat-card>
+        }
 
-            @if (materialUrl()) {
-            <mat-card class="u-card u-card--material">
-                <mat-card-content>
-                    <h3 class="u-card__title">
-                        <mat-icon class="u-card__icon">folder_shared</mat-icon>
-                        Material de Referencia
-                    </h3>
-                    <div class="material-action">
-                        <span class="material-action__name" [title]="materialNombre() ?? 'Archivo adjunto'">
-                            {{ materialNombre() ?? 'Archivo adjunto' }}
-                        </span>
-                        <a mat-flat-button color="accent" class="u-btn-rounded" [href]="materialUrl()" target="_blank"
-                            rel="noopener">
-                            <mat-icon>open_in_new</mat-icon> Abrir material
-                        </a>
+        <!-- ══ ENUNCIADO DE LA TAREA ════════════════════════════════ -->
+        @if (enunciado()) {
+        <div class="collapse-card collapse-card--tarea" [class.collapse-card--open]="enunciado()!.expandido">
+            <div class="collapse-card__header" (click)="toggleEnunciado()">
+                <div class="collapse-card__left">
+                    <div class="collapse-card__icon-wrap collapse-card__icon-wrap--orange">
+                        <mat-icon>assignment</mat-icon>
                     </div>
-                </mat-card-content>
-            </mat-card>
-            }
-        </section>
-
-        <main class="delivery-main">
-            <mat-card class="u-card u-card--form">
-                <mat-card-content>
-                    <form [formGroup]="form" (ngSubmit)="submit()" class="delivery-form">
-
-                        @if (puedeTexto()) {
-                        <div class="form-group">
-                            <label class="form-group__label">Respuesta Escrita</label>
-                            <mat-form-field appearance="outline" class="u-w100">
-                                <mat-label>Escribe tu respuesta aquí</mat-label>
-                                <textarea matInput formControlName="respuesta_texto" rows="6"
-                                    placeholder="Redacta el desarrollo de tu tarea..."></textarea>
-                            </mat-form-field>
-                        </div>
+                    <div class="collapse-card__meta">
+                        <span class="collapse-card__label">Archivo de la Tarea</span>
+                        <span class="collapse-card__titulo">
+                            {{ enunciado()!.nombre_original ?? enunciado()!.titulo }}
+                        </span>
+                        @if (enunciado()!.size_bytes) {
+                        <span class="collapse-card__size">{{ formatBytes(enunciado()!.size_bytes) }}</span>
                         }
+                    </div>
+                </div>
+                <div class="collapse-card__actions">
+                    @if (enunciado()!.url) {
+                    <a mat-icon-button [href]="enunciado()!.url!" target="_blank" rel="noopener"
+                        (click)="$event.stopPropagation()" aria-label="Abrir en nueva pestaña"
+                        class="collapse-card__action-btn">
+                        <mat-icon>open_in_new</mat-icon>
+                    </a>
+                    }
+                    <mat-icon class="collapse-card__chevron">
+                        {{ enunciado()!.expandido ? 'expand_less' : 'expand_more' }}
+                    </mat-icon>
+                </div>
+            </div>
 
-                        @if (puedeArchivo()) {
-                        <div class="form-group">
-                            <label class="form-group__label">Archivos Adjuntos</label>
+            @if (enunciado()!.expandido) {
+            <div class="collapse-card__body">
+                @if (enunciadoPdf) {
+                <div class="preview-embed">
+                    <iframe [src]="enunciadoPdf.url" class="preview-embed__frame"
+                        title="Previsualización enunciado"></iframe>
+                </div>
+                } @else if (enunciadoImagen) {
+                <div class="preview-image">
+                    <img [src]="enunciadoImagen.url" alt="Enunciado de la tarea" class="preview-image__img" />
+                </div>
+                } @else if (enunciadoOtro) {
+                <div class="file-chip">
+                    <mat-icon class="file-chip__icon">{{ enunciadoOtro.icono }}</mat-icon>
+                    <div class="file-chip__info">
+                        <span class="file-chip__name">{{ enunciadoOtro.nombre }}</span>
+                        <span class="file-chip__ext">{{ enunciadoOtro.extension }}</span>
+                    </div>
+                    @if (enunciado()!.url) {
+                    <a mat-flat-button color="primary" class="btn-pill file-chip__download" [href]="enunciado()!.url!"
+                        target="_blank" rel="noopener">
+                        <mat-icon>download</mat-icon>
+                        Descargar
+                    </a>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
 
-                            <div class="upload-zone" [class.upload-zone--has-file]="selectedFile()">
-                                <input #fileInput type="file" class="upload-zone__input"
-                                    (change)="onFileSelected($event)"
-                                    accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
+        <!-- ══ MATERIALES DE REFERENCIA DEL CURSO ══════════════════ -->
+        @if (materiales().length > 0) {
+        <div class="materiales-grupo">
+            <div class="materiales-grupo__header">
+                <mat-icon class="materiales-grupo__icon">folder_shared</mat-icon>
+                <span class="materiales-grupo__titulo">Materiales de Referencia</span>
+                <span class="materiales-grupo__badge">{{ materiales().length }}</span>
+            </div>
 
-                                @if (!selectedFile()) {
-                                <div class="upload-zone__placeholder" (click)="fileInput.click()">
-                                    <div class="upload-zone__icon-wrapper">
-                                        <mat-icon class="upload-zone__icon">cloud_upload</mat-icon>
-                                    </div>
-                                    <div class="upload-zone__content">
-                                        <p class="upload-zone__primary-text">Arrastra tu archivo aquí o <span>búscalo en
-                                                tu equipo</span></p>
-                                        <p class="upload-zone__secondary-text">PDF, Word, Excel, PowerPoint o Imágenes
-                                            (Máx. 25MB)</p>
+            @for (mat of materiales(); track mat.id) {
+            <div class="collapse-card collapse-card--material" [class.collapse-card--open]="mat.expandido">
+                <div class="collapse-card__header" (click)="toggleMaterial(mat.id)">
+                    <div class="collapse-card__left">
+                        <div class="collapse-card__icon-wrap collapse-card__icon-wrap--green">
+                            <mat-icon>
+                                @if (mat.tipo === 'pdf') { picture_as_pdf }
+                                @else if (mat.tipo === 'video') { play_circle }
+                                @else if (mat.tipo === 'link') { link }
+                                @else { insert_drive_file }
+                            </mat-icon>
+                        </div>
+                        <div class="collapse-card__meta">
+                            <span class="collapse-card__label">{{ mat.tipo | uppercase }}</span>
+                            <span class="collapse-card__titulo">{{ mat.titulo }}</span>
+                            @if (mat.descripcion) {
+                            <span class="collapse-card__desc">{{ mat.descripcion }}</span>
+                            }
+                            @if (mat.size_bytes) {
+                            <span class="collapse-card__size">{{ formatBytes(mat.size_bytes) }}</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="collapse-card__actions">
+                        @if (mat.url) {
+                        <a mat-icon-button [href]="mat.url" target="_blank" rel="noopener"
+                            (click)="$event.stopPropagation()" aria-label="Abrir" class="collapse-card__action-btn">
+                            <mat-icon>open_in_new</mat-icon>
+                        </a>
+                        }
+                        <mat-icon class="collapse-card__chevron">
+                            {{ mat.expandido ? 'expand_less' : 'expand_more' }}
+                        </mat-icon>
+                    </div>
+                </div>
+
+                @if (mat.expandido) {
+                <div class="collapse-card__body">
+                    @if (mat.esLink) {
+                    <div class="preview-link">
+                        <mat-icon class="preview-link__icon">link</mat-icon>
+                        <div>
+                            <p class="preview-link__label">Enlace externo</p>
+                            <a [href]="mat.url!" target="_blank" rel="noopener" class="preview-link__url">{{ mat.url
+                                }}</a>
+                        </div>
+                    </div>
+                    } @else if (materialPdf(mat)) {
+                    <div class="preview-embed">
+                        <iframe [src]="materialPdf(mat)!.url" class="preview-embed__frame"
+                            [title]="mat.titulo"></iframe>
+                    </div>
+                    } @else if (materialImagen(mat)) {
+                    <div class="preview-image">
+                        <img [src]="materialImagen(mat)!.url" [alt]="mat.titulo" class="preview-image__img" />
+                    </div>
+                    } @else if (materialOtro(mat)) {
+                    <div class="file-chip">
+                        <mat-icon class="file-chip__icon">{{ materialOtro(mat)!.icono }}</mat-icon>
+                        <div class="file-chip__info">
+                            <span class="file-chip__name">{{ materialOtro(mat)!.nombre }}</span>
+                            <span class="file-chip__ext">{{ materialOtro(mat)!.extension }}</span>
+                        </div>
+                        @if (mat.url) {
+                        <a mat-flat-button color="primary" class="btn-pill file-chip__download" [href]="mat.url"
+                            target="_blank" rel="noopener">
+                            <mat-icon>download</mat-icon>
+                            Descargar
+                        </a>
+                        }
+                    </div>
+                    } @else {
+                    <div class="preview-no-preview">
+                        <mat-icon>visibility_off</mat-icon>
+                        <span>Sin previsualización disponible</span>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <!-- ══ TAREA VENCIDA SIN ENTREGA ═══════════════════════════ -->
+        @if (vencida() && !yaEntrego()) {
+        <mat-card class="card card--expired">
+            <mat-card-content>
+                <div class="expired-state">
+                    <div class="expired-state__icon-wrap">
+                        <mat-icon>lock_clock</mat-icon>
+                    </div>
+                    <div class="expired-state__info">
+                        <p class="expired-state__title">El plazo de entrega ha vencido</p>
+                        <p class="expired-state__sub">
+                            La fecha límite era el {{ task()!.fecha_limite | date:'dd/MM/yyyy HH:mm' }}.
+                            No se pueden registrar nuevas entregas.
+                        </p>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+        }
+
+        <!-- ══ ENTREGA PREVIA DEL ALUMNO ════════════════════════════ -->
+        @if (yaEntrego()) {
+        <mat-card class="card card--submitted">
+            <mat-card-content>
+                <div class="card-header" style="cursor:pointer" (click)="toggleEntrega()">
+                    <mat-icon class="card-header__icon card-header__icon--green">check_circle</mat-icon>
+                    <span class="card-header__title">Tu Entrega</span>
+                    @if (calificada()) {
+                    <span class="badge badge--grade">
+                        <mat-icon class="badge__icon">star</mat-icon>
+                        {{ entregaPrevia()!.calificacion_final }} / 20
+                    </span>
+                    } @else {
+                    <span class="badge badge--pending">Pendiente de calificación</span>
+                    }
+                    <mat-icon class="collapse-card__chevron" style="margin-left:auto">
+                        {{ entregaExpandida() ? 'expand_less' : 'expand_more' }}
+                    </mat-icon>
+                </div>
+
+                @if (entregaExpandida()) {
+                <div class="submission-meta">
+                    <mat-icon class="submission-meta__icon">schedule</mat-icon>
+                    <span>Entregado el {{ entregaPrevia()!.fecha_entrega | date:'dd/MM/yyyy HH:mm' }}</span>
+                    @if (entregaPrevia()!.con_retraso) {
+                    <span class="badge badge--late">Con retraso</span>
+                    }
+                </div>
+
+                @if (entregaPrevia()!.comentario_docente) {
+                <div class="docente-comment">
+                    <mat-icon class="docente-comment__icon">rate_review</mat-icon>
+                    <div>
+                        <p class="docente-comment__label">Comentario del docente</p>
+                        <p class="docente-comment__text">{{ entregaPrevia()!.comentario_docente }}</p>
+                    </div>
+                </div>
+                }
+
+                @if (entregaPrevia()!.respuesta_texto) {
+                <div class="prev-text">
+                    <p class="prev-text__label">Respuesta escrita</p>
+                    <p class="prev-text__content">{{ entregaPrevia()!.respuesta_texto }}</p>
+                </div>
+                }
+
+                @if (entregaPrevia()!.nombre_archivo) {
+                <div class="file-preview-section">
+                    <p class="file-preview-section__label">Archivo entregado</p>
+                    @if (cargandoUrl()) {
+                    <div class="preview-loading">
+                        <mat-spinner diameter="28" color="primary" />
+                        <span>Cargando previsualización...</span>
+                    </div>
+                    } @else if (entregaPdf) {
+                    <div class="preview-embed">
+                        <iframe [src]="entregaPdf.url" class="preview-embed__frame" title="Tu entrega"></iframe>
+                    </div>
+                    } @else if (entregaImagen) {
+                    <div class="preview-image">
+                        <img [src]="entregaImagen.url" [alt]="entregaPrevia()!.nombre_archivo ?? ''"
+                            class="preview-image__img" />
+                    </div>
+                    } @else if (entregaOtro) {
+                    <div class="file-chip">
+                        <mat-icon class="file-chip__icon">{{ entregaOtro.icono }}</mat-icon>
+                        <div class="file-chip__info">
+                            <span class="file-chip__name">{{ entregaOtro.nombre }}</span>
+                            <span class="file-chip__ext">{{ entregaOtro.extension }}</span>
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+
+                @if (!vencida()) {
+                <div class="resubmit-hint">
+                    <mat-icon>info_outline</mat-icon>
+                    <span>Puedes reemplazar tu entrega antes del vencimiento.</span>
+                </div>
+                }
+                }
+            </mat-card-content>
+        </mat-card>
+        }
+
+        <!-- ══ FORMULARIO DE ENTREGA ════════════════════════════════ -->
+        @if (!vencida()) {
+        <mat-card class="card card--form">
+            <mat-card-content>
+                <div class="card-header">
+                    <mat-icon class="card-header__icon card-header__icon--purple">edit_note</mat-icon>
+                    <span class="card-header__title">
+                        {{ yaEntrego() ? 'Reemplazar Entrega' : 'Nueva Entrega' }}
+                    </span>
+                </div>
+
+                <form [formGroup]="form" (ngSubmit)="submit()" class="delivery-form">
+
+                    @if (puedeTexto()) {
+                    <div class="form-group">
+                        <label class="form-group__label">Respuesta Escrita</label>
+                        <mat-form-field appearance="outline" class="w-full">
+                            <mat-label>Escribe tu respuesta aquí</mat-label>
+                            <textarea matInput formControlName="respuesta_texto" rows="6"
+                                placeholder="Redacta el desarrollo de tu tarea..."></textarea>
+                        </mat-form-field>
+                    </div>
+                    }
+
+                    @if (puedeArchivo()) {
+                    <div class="form-group">
+                        <label class="form-group__label">Archivo Adjunto</label>
+
+                        <div class="upload-zone" [class.upload-zone--active]="selectedFile()">
+                            <input #fileInput type="file" class="upload-zone__input" (change)="onFileSelected($event)"
+                                accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
+
+                            @if (!selectedFile()) {
+                            <div class="upload-zone__placeholder" (click)="fileInput.click()">
+                                <div class="upload-zone__icon-bg">
+                                    <mat-icon>cloud_upload</mat-icon>
+                                </div>
+                                <p class="upload-zone__text">
+                                    Arrastra tu archivo aquí o <span>búscalo en tu equipo</span>
+                                </p>
+                                <p class="upload-zone__hint">
+                                    PDF, Word, Excel, PowerPoint o Imágenes · Máx. 15 MB
+                                </p>
+                            </div>
+                            } @else {
+
+                            <div class="upload-zone__selected">
+                                <div class="upload-zone__file-row">
+                                    <div class="uploaded-row">
+                                        <mat-icon class="uploaded-row__icon">insert_drive_file</mat-icon>
+                                        <div class="uploaded-row__meta">
+                                            <span class="uploaded-row__name">{{ selectedFile()!.name }}</span>
+                                            <span class="uploaded-row__size">
+                                                {{ formatBytes(selectedFile()!.size) }}
+                                            </span>
+                                        </div>
+                                        <button type="button" mat-icon-button class="uploaded-row__remove"
+                                            (click)="clearFile()" aria-label="Quitar archivo">
+                                            <mat-icon>close</mat-icon>
+                                        </button>
+                                        <button type="button" mat-icon-button class="uploaded-row__toggle"
+                                            (click)="toggleArchivo()" aria-label="Ver previsualización">
+                                            <mat-icon>
+                                                {{ archivoExpandido() ? 'expand_less' : 'expand_more' }}
+                                            </mat-icon>
+                                        </button>
                                     </div>
                                 </div>
-                                } @else {
-                                <div class="uploaded-file">
-                                    <div class="uploaded-file__info">
-                                        <div class="uploaded-file__icon-container">
-                                            <mat-icon>insert_drive_file</mat-icon>
-                                        </div>
-                                        <div class="uploaded-file__meta">
-                                            <span class="uploaded-file__name">{{ selectedFile()!.name }}</span>
-                                            <span class="uploaded-file__status">Listo para entregar</span>
+
+                                @if (archivoExpandido()) {
+                                <div class="upload-zone__preview">
+                                    @if (localPdf) {
+                                    <div class="preview-embed">
+                                        <iframe [src]="localPdf.url" class="preview-embed__frame"
+                                            title="Previsualización"></iframe>
+                                    </div>
+                                    } @else if (localImagen) {
+                                    <div class="preview-image">
+                                        <img [src]="localImagen.url" [alt]="selectedFile()!.name"
+                                            class="preview-image__img" />
+                                    </div>
+                                    } @else if (localOtro) {
+                                    <div class="file-chip">
+                                        <mat-icon class="file-chip__icon">{{ localOtro.icono }}</mat-icon>
+                                        <div class="file-chip__info">
+                                            <span class="file-chip__name">{{ localOtro.nombre }}</span>
+                                            <span class="file-chip__ext">{{ localOtro.extension }}</span>
                                         </div>
                                     </div>
-                                    <button type="button" mat-icon-button class="uploaded-file__remove"
-                                        (click)="clearFile()" aria-label="Quitar archivo">
-                                        <mat-icon>close</mat-icon>
-                                    </button>
+                                    }
                                 </div>
                                 }
                             </div>
+                            }
                         </div>
-                        }
+                    </div>
+                    }
 
-                        <footer class="form-actions">
-                            <button type="button" mat-stroked-button class="u-btn-rounded form-actions__cancel"
-                                (click)="goBack()">Cancelar</button>
-                            <button mat-flat-button color="primary" class="u-btn-rounded form-actions__submit"
-                                type="submit" [disabled]="sending()">
-                                @if (sending()) {
-                                <mat-spinner diameter="20" color="white" />
-                                <span>Enviando entrega...</span>
-                                } @else {<ng-container>
-                                    <mat-icon>send</mat-icon>
-                                    <span>Entregar Tarea</span>
-                                </ng-container>}
-                            </button>
-                        </footer>
+                    <footer class="form-footer">
+                        <button type="button" mat-stroked-button class="btn-pill" (click)="goBack()">
+                            Cancelar
+                        </button>
+                        <button mat-flat-button color="primary" class="btn-pill btn-pill--submit" type="submit"
+                            [disabled]="sending()">
+                            @if (sending()) {
+                            <ng-container>
+                                <mat-spinner diameter="18" />
+                                <span>Enviando...</span>
+                            </ng-container>
+                            } @else {
+                            <ng-container>
+                                <mat-icon>send</mat-icon>
+                                <span>{{ yaEntrego() ? 'Reemplazar Entrega' : 'Entregar Tarea' }}</span>
+                            </ng-container>
+                            }
+                        </button>
+                    </footer>
 
-                    </form>
-                </mat-card-content>
-            </mat-card>
-        </main>
+                </form>
+            </mat-card-content>
+        </mat-card>
+        }
 
     </div>
     }

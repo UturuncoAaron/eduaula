@@ -5,6 +5,7 @@ import {
     Submission,
     RespuestaAlternativa,
 } from '../../../core/models/task';
+import { MaterialReferencia } from '../task-submit/task-submit';
 
 export interface CreateTaskPayload {
     titulo: string;
@@ -60,6 +61,13 @@ export class TaskService {
     getEnunciadoUrl(taskId: string) {
         return this.api.get<{ url: string; nombre?: string | null }>(
             `tasks/${taskId}/enunciado-url`,
+        );
+    }
+
+    // Materiales de referencia de la tarea (máx 3, filtrados por bimestre/semana)
+    getMaterialesReferencia(taskId: string) {
+        return this.api.get<MaterialReferencia[]>(
+            `tasks/${taskId}/materiales-referencia`,
         );
     }
 

@@ -14,7 +14,13 @@ export const TASKS_ROUTES: Routes = [
     loadComponent: () => import('./task-results/task-results').then(c => c.TaskResults),
   },
   {
+    path: ':id/calificar/:alumnoId',
+    loadComponent: () =>
+      import('./task-grade-detail/task-grade-detail').then(c => c.TaskGradeDetail),
+  },
+  {
     path: ':id/calificar',
-    loadComponent: () => import('./task-grade/task-grade').then(c => c.TaskGrade),
+    loadComponent: () =>
+      import('./task-grade/task-grade').then(c => c.TaskGrade),
   },
 ];

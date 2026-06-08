@@ -19,6 +19,7 @@ import { ApiService } from '../../../core/services/api';
 import { TaskService, CreateTaskPayload } from '../data-access/task.store';
 
 type TaskKind = 'archivo' | 'interactiva';
+type TipoPregunta = 'multiple' | 'verdadero_falso' | 'unica';
 
 export interface TaskCreateData {
   courseId: string;
@@ -115,11 +116,10 @@ export class TaskCreate implements OnInit {
           : [];
         this.semanasFiltradas.set(filtradas);
 
-        const dialogBimestre = this.dialogData && typeof this.dialogData !== 'string'
+        const dialogSemana = this.dialogData && typeof this.dialogData !== 'string'
           ? this.dialogData.semana ?? null : null;
-        const semanaPreset = dialogBimestre ?? null;
-        if (semanaPreset && filtradas.some(s => s.semana === semanaPreset)) {
-          this.form.patchValue({ semana: semanaPreset });
+        if (dialogSemana && filtradas.some(s => s.semana === dialogSemana)) {
+          this.form.patchValue({ semana: dialogSemana });
         }
 
         this.iniciando.set(false);
@@ -177,7 +177,7 @@ export class TaskCreate implements OnInit {
   addPregunta() {
     const group = this.fb.group({
       enunciado: ['', Validators.required],
-      tipo: ['multiple'],
+      tipo: ['multiple' as TipoPregunta],
       puntos: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
       opciones: this.fb.array([
         this.newOpcion(''), this.newOpcion(''),
@@ -202,15 +202,22 @@ export class TaskCreate implements OnInit {
     const opciones = this.getOpcionesArray(pi);
     if (!grupo || !opciones) return;
     opciones.clear();
-    const tipo = grupo.value.tipo;
+    const tipo: TipoPregunta = grupo.value.tipo;
     if (tipo === 'verdadero_falso') {
       opciones.push(this.newOpcion('Verdadero', true));
       opciones.push(this.newOpcion('Falso', false));
-    } else if (tipo === 'corta') {
-      opciones.push(this.newOpcion('', true));
     } else {
+      // 'multiple' y 'unica' arrancan con 4 opciones en blanco
       [0, 1, 2, 3].forEach(() => opciones.push(this.newOpcion('')));
     }
+  }
+
+  onRespuestaUnicaChange(pi: number, oi: number) {
+    const opciones = this.getOpcionesArray(pi);
+    if (!opciones) return;
+    opciones.controls.forEach((ctrl, i) => {
+      (ctrl as FormGroup).get('es_correcta')?.setValue(i === oi, { emitEvent: false });
+    });
   }
 
   private newOpcion(texto: string, esCorrecta = false): FormGroup {
@@ -250,6 +257,7 @@ export class TaskCreate implements OnInit {
       this.toastr.error('Completa todos los campos requeridos', 'Error');
       return;
     }
+
     const v = this.form.value;
     const isInteractiva = this.kind() === 'interactiva';
 
@@ -282,19 +290,45 @@ export class TaskCreate implements OnInit {
     };
 
     if (isInteractiva) {
-      payload.preguntas = this.preguntasArray.controls.map((g, i) => {
-        const pv = (g as FormGroup).value;
-        return {
-          enunciado: pv.enunciado,
-          puntos: pv.puntos,
-          orden: i,
-          opciones: pv.opciones.map((o: { texto: string; es_correcta: boolean }, j: number) => ({
-            texto: o.texto,
-            es_correcta: !!o.es_correcta,
-            orden: j,
-          })),
-        };
-      });
+      let preguntas: CreateTaskPayload['preguntas'];
+      try {
+        preguntas = this.preguntasArray.controls.map((g, i) => {
+          const pv = (g as FormGroup).value;
+          const tipo: TipoPregunta = pv.tipo;
+
+          if (tipo === 'unica') {
+            const marcadas = pv.opciones.filter((o: { es_correcta: boolean }) => o.es_correcta).length;
+            if (marcadas !== 1) {
+              this.toastr.error(`Pregunta ${i + 1}: marca exactamente una respuesta correcta`, 'Error');
+              this.loading.set(false);
+              throw new Error('validacion');
+            }
+          }
+
+          if (tipo === 'multiple') {
+            const marcadas = pv.opciones.filter((o: { es_correcta: boolean }) => o.es_correcta).length;
+            if (marcadas < 2) {
+              this.toastr.error(`Pregunta ${i + 1}: marca al menos dos respuestas correctas`, 'Error');
+              this.loading.set(false);
+              throw new Error('validacion');
+            }
+          }
+
+          return {
+            enunciado: pv.enunciado,
+            puntos: pv.puntos,
+            orden: i,
+            opciones: pv.opciones.map((o: { texto: string; es_correcta: boolean }, j: number) => ({
+              texto: o.texto,
+              es_correcta: !!o.es_correcta,
+              orden: j,
+            })),
+          };
+        });
+      } catch {
+        return;
+      }
+      payload.preguntas = preguntas;
     }
 
     this.taskSvc.createTask(cursoId, payload).subscribe({

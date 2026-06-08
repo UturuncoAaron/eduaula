@@ -3,14 +3,17 @@ import {
   inject, input, signal, OnInit,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '../../../../../core/services/api';
 import { AuthService } from '../../../../../core/auth/auth';
-import { Task, Submission, tipoEntregaTarea, estadoAlumno as calcEstadoAlumno, EstadoTarea } from '../../../../../core/models/task';
+import {
+  Task, Submission, tipoEntregaTarea,
+  estadoAlumno as calcEstadoAlumno, EstadoTarea,
+} from '../../../../../core/models/task';
 import { formDrawerConfig } from '../../../../../shared/utils/form-drawer';
 
 @Component({
@@ -25,9 +28,8 @@ export class TabTareas implements OnInit {
   readonly auth = inject(AuthService);
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
+  private router = inject(Router);
 
-  /** Recibe `id` del path param via withComponentInputBinding. */
-  // eslint-disable-next-line @angular-eslint/no-input-rename
   courseId = input.required<string>({ alias: 'id' });
 
   tasks = signal<Task[]>([]);
@@ -82,19 +84,13 @@ export class TabTareas implements OnInit {
     }
   }
 
-  isPending(fecha: string): boolean { return new Date(fecha) > new Date(); }
+  isPending(fecha: string): boolean {
+    return new Date(fecha) > new Date();
+  }
 
-  async abrirEntregasDocente(t: Task) {
-    const { TaskSubmissionsPane } = await import(
-      '../../../../tasks/task-submissions-pane/task-submissions-pane'
-    );
-    this.dialog.open(TaskSubmissionsPane, {
-      data: { task: t },
-      width: '92vw', maxWidth: '100vw', height: '100vh', maxHeight: '100vh',
-      position: { right: '0', top: '0' },
-      panelClass: 'material-preview-pane',
-      enterAnimationDuration: 0, exitAnimationDuration: 0,
-    });
+  // Navega a la página de calificación en vez de abrir dialog
+  verEntregasDocente(t: Task) {
+    this.router.navigate(['/tareas', t.id, 'calificar']);
   }
 
   async abrirMiEntrega(t: Task) {

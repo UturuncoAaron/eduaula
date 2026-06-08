@@ -1,6 +1,7 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { forkJoin, map } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -10,6 +11,8 @@ import { ToastService } from 'ngx-toastr-notifier';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CourseService } from '../data-access/course.store';
 import { TipoMaterial } from '../../../core/models/course';
+import { Period } from '../../../core/models/academic';
+import { ApiService } from '@core/services/api';
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
@@ -31,6 +34,11 @@ export interface MaterialUploadData {
   semana?: number | null;
 }
 
+interface SemanaItem {
+  semana: number;
+  bimestre: number | null;
+}
+
 @Component({
   selector: 'app-material-upload',
   imports: [
@@ -45,9 +53,10 @@ export interface MaterialUploadData {
   templateUrl: './material-upload.html',
   styleUrl: './material-upload.scss',
 })
-export class MaterialUpload {
+export class MaterialUpload implements OnInit {
   private fb = inject(FormBuilder);
   private csSvc = inject(CourseService);
+  private apiSvc = inject(ApiService);
   private toastr = inject(ToastService);
   private dialogRef = inject(MatDialogRef<MaterialUpload>);
   private dialogData = inject<string | MaterialUploadData>(MAT_DIALOG_DATA);
@@ -64,8 +73,8 @@ export class MaterialUpload {
     return typeof this.dialogData === 'string' ? null : this.dialogData.semana ?? null;
   }
 
-  readonly bimestres = [1, 2, 3, 4];
-  readonly semanas = Array.from({ length: 16 }, (_, i) => i + 1);
+  bimestresDisponibles = signal<number[]>([]);
+  semanasDisponibles = signal<SemanaItem[]>([]);
 
   loading = signal(false);
   modoSubida = signal<'archivo' | 'url'>('archivo');
@@ -83,6 +92,13 @@ export class MaterialUpload {
 
   private formValue = toSignal(this.form.valueChanges, {
     initialValue: this.form.value,
+  });
+
+  semanasFiltradas = computed(() => {
+    const bimestre = this.formValue().bimestre;
+    const todas = this.semanasDisponibles();
+    if (bimestre == null) return todas;
+    return todas.filter(s => s.bimestre === bimestre);
   });
 
   tipoAceptaArchivo = computed(() => {
@@ -115,6 +131,39 @@ export class MaterialUpload {
     const url = val.url ?? '';
     return url.startsWith('https://') || url.startsWith('http://');
   });
+
+  ngOnInit() {
+    const anioActual = new Date().getFullYear();
+
+    forkJoin({
+      periodos: this.apiSvc.get<Period[]>('academic/periodos').pipe(map(r => r.data)),
+      semanas: this.apiSvc.get<SemanaItem[]>(`courses/${this.courseId}/semanas`).pipe(map(r => r.data)),
+    }).subscribe({
+      next: ({ periodos, semanas }) => {
+        const bimestres = [
+          ...new Set(
+            periodos
+              .filter(p => p.anio === anioActual)
+              .map(p => p.bimestre)
+              .sort((a, b) => a - b)
+          ),
+        ];
+        this.bimestresDisponibles.set(bimestres);
+        this.semanasDisponibles.set(semanas);
+      },
+      error: () => {
+        this.toastr.error('No se pudieron cargar bimestres y semanas', 'Error');
+      },
+    });
+  }
+
+  onBimestreChange() {
+    const semanaActual = this.form.value.semana;
+    const sigueDisponible = this.semanasFiltradas().some(s => s.semana === semanaActual);
+    if (!sigueDisponible) {
+      this.form.controls.semana.setValue(null);
+    }
+  }
 
   onTipoChange() {
     this.archivoSeleccionado.set(null);
@@ -219,7 +268,7 @@ export class MaterialUpload {
   }
 
   private onSuccess() {
-    this.toastr.success('Material subido correctamente', '�xito');
+    this.toastr.success('Material subido correctamente', 'Éxito');
     this.dialogRef.close(true);
   }
 

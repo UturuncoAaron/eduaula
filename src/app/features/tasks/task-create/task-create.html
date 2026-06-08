@@ -187,7 +187,7 @@
                         <mat-select formControlName="tipo" (selectionChange)="onTipoChange(pi)">
                             <mat-option value="multiple">Opción múltiple</mat-option>
                             <mat-option value="verdadero_falso">Verdadero / Falso</mat-option>
-                            <mat-option value="corta">Respuesta corta</mat-option>
+                            <mat-option value="unica">Respuesta única</mat-option>
                         </mat-select>
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="pts-field">
@@ -201,25 +201,41 @@
                     @for (oGroup of (getOpcionesArray(pi)?.controls ?? []); track oi; let oi = $index) {
                     @if (getOpcionGroup(pi, oi); as optGroup) {
                     <div class="option-row" [formGroup]="optGroup">
+
+                        @if (pregGroup.value.tipo === 'unica') {
+                        <button type="button" class="radio-btn" [class.radio-btn--active]="optGroup.value.es_correcta"
+                            (click)="onRespuestaUnicaChange(pi, oi)"
+                            [attr.aria-label]="'Marcar opción ' + (oi + 1) + ' como correcta'">
+                            <span class="radio-inner"></span>
+                        </button>
+                        } @else {
                         <mat-checkbox formControlName="es_correcta" />
+                        }
+
                         <mat-form-field appearance="outline" class="opt-field">
-                            <input matInput formControlName="texto"
-                                [placeholder]="pregGroup.value.tipo === 'corta' ? 'Respuesta esperada' : 'Texto de la opción'" />
+                            <input matInput formControlName="texto" [placeholder]="pregGroup.value.tipo === 'verdadero_falso'
+                                    ? ''
+                                    : 'Opción ' + (oi + 1)" />
                         </mat-form-field>
-                        @if (pregGroup.value.tipo === 'multiple') {
-                        <button mat-icon-button type="button" color="warn" (click)="removeOpcion(pi, oi)">
+
+                        @if (pregGroup.value.tipo === 'multiple' || pregGroup.value.tipo === 'unica') {
+                        <button mat-icon-button type="button" color="warn" (click)="removeOpcion(pi, oi)"
+                            [disabled]="(getOpcionesArray(pi)?.length ?? 0) <= 2">
                             <mat-icon>close</mat-icon>
                         </button>
                         }
+
                     </div>
                     }
                     }
-                    @if (pregGroup.value.tipo === 'multiple') {
-                    <button mat-button type="button" (click)="addOpcion(pi)">
+
+                    @if (pregGroup.value.tipo === 'multiple' || pregGroup.value.tipo === 'unica') {
+                    <button mat-button type="button" (click)="addOpcion(pi)" class="btn-add-opcion">
                         <mat-icon>add</mat-icon> Agregar opción
                     </button>
                     }
                 </div>
+
             </div>
             }
             }

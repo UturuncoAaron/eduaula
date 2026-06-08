@@ -1,0 +1,248 @@
+<div class="detail-page">
+    <app-page-header [title]="nombreAlumno() || 'Entrega del alumno'" subtitle="Revisión y calificación"
+        (backClick)="goBack()" />
+
+    @if (loading()) {
+    <div class="state-center">
+        <mat-spinner diameter="44" color="primary" />
+        <p class="state-center__text">Cargando entrega...</p>
+    </div>
+    } @else {
+
+    <div class="detail-layout">
+
+        <!-- ══ COLUMNA IZQUIERDA ════════════════════════════════════ -->
+        <div class="detail-left">
+
+            @if (!submission()) {
+            <app-empty-state icon="assignment_late" title="Sin entrega"
+                message="Este alumno no ha entregado la tarea." />
+            } @else {
+
+            <!-- Meta -->
+            <div class="meta-row">
+                <mat-icon class="meta-row__icon">schedule</mat-icon>
+                <span class="meta-row__text">
+                    Entregado el {{ submission()!.fecha_entrega | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+                @if (submission()!.con_retraso) {
+                <span class="badge badge--retraso">Con retraso</span>
+                } @else {
+                <span class="badge badge--a-tiempo">A tiempo</span>
+                }
+            </div>
+
+            <!-- ── INTERACTIVA: preguntas con respuestas ───────────── -->
+            @if (esInteractiva()) {
+
+            <div class="preguntas-revision">
+                @for (q of preguntas(); track q.id; let i = $index) {
+                <div class="pregunta-card">
+                    <div class="pregunta-card__header">
+                        <span class="pregunta-card__num">{{ i + 1 }}</span>
+                        <p class="pregunta-card__enunciado">{{ q.enunciado }}</p>
+                        <span class="pregunta-card__pts">{{ q.puntos }} pt</span>
+                    </div>
+
+                    <div class="opciones-list">
+                        @for (o of (q.opciones ?? []); track o.id) {
+                        <div class="opcion-item"
+                            [class.opcion-item--correcta]="estadoOpcion(q.id, o.id, !!o.es_correcta) === 'correcta'"
+                            [class.opcion-item--incorrecta]="estadoOpcion(q.id, o.id, !!o.es_correcta) === 'incorrecta'"
+                            [class.opcion-item--seleccionada]="opcionSeleccionadaPorAlumno(q.id, o.id)">
+
+                            <div class="opcion-item__indicator">
+                                @if (o.es_correcta) {
+                                <mat-icon class="opcion-item__icon opcion-item__icon--ok">check_circle</mat-icon>
+                                } @else if (opcionSeleccionadaPorAlumno(q.id, o.id)) {
+                                <mat-icon class="opcion-item__icon opcion-item__icon--err">cancel</mat-icon>
+                                } @else {
+                                <span class="opcion-item__dot"></span>
+                                }
+                            </div>
+
+                            <span class="opcion-item__texto">{{ o.texto }}</span>
+
+                            @if (opcionSeleccionadaPorAlumno(q.id, o.id)) {
+                            <span class="opcion-item__tag">Respuesta del alumno</span>
+                            }
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+
+            } @else {
+
+            <!-- ── ARCHIVO / TEXTO: layout original ──────────────── -->
+
+            @if (submission()!.respuesta_texto) {
+            <div class="section-card section-card--texto">
+                <div class="section-card__header">
+                    <mat-icon class="section-card__icon section-card__icon--blue">edit_note</mat-icon>
+                    <span class="section-card__title">Respuesta Escrita</span>
+                </div>
+                <p class="section-card__text">{{ submission()!.respuesta_texto }}</p>
+            </div>
+            }
+
+            @if (submission()!.nombre_archivo) {
+            <div class="collapse-card" [class.collapse-card--open]="archivoExpand()">
+                <div class="collapse-card__header" (click)="toggleArchivo()">
+                    <div class="collapse-card__left">
+                        <div class="collapse-card__icon-wrap">
+                            <mat-icon>attach_file</mat-icon>
+                        </div>
+                        <div class="collapse-card__meta">
+                            <span class="collapse-card__label">Archivo entregado</span>
+                            <span class="collapse-card__titulo">{{ submission()!.nombre_archivo }}</span>
+                        </div>
+                    </div>
+                    <div class="collapse-card__actions">
+                        @if (archivoPdf || archivoImagen) {
+                        <span class="collapse-card__hint">{{ archivoExpand() ? 'Ocultar' : 'Ver' }}</span>
+                        }
+                        <mat-icon class="collapse-card__chevron">
+                            {{ archivoExpand() ? 'expand_less' : 'expand_more' }}
+                        </mat-icon>
+                    </div>
+                </div>
+
+                @if (archivoExpand()) {
+                <div class="collapse-card__body">
+                    @if (cargandoVista()) {
+                    <div class="preview-loading">
+                        <mat-spinner diameter="28" color="primary" />
+                        <span>Cargando previsualización...</span>
+                    </div>
+                    } @else if (archivoPdf) {
+                    <div class="preview-embed">
+                        <iframe [src]="archivoPdf.url" class="preview-embed__frame" title="Archivo del alumno"></iframe>
+                    </div>
+                    } @else if (archivoImagen) {
+                    <div class="preview-image">
+                        <img [src]="archivoImagen.url" [alt]="submission()!.nombre_archivo ?? ''"
+                            class="preview-image__img" />
+                    </div>
+                    } @else if (archivoOtro) {
+                    <div class="file-chip">
+                        <mat-icon class="file-chip__icon">{{ archivoOtro.icono }}</mat-icon>
+                        <div class="file-chip__info">
+                            <span class="file-chip__name">{{ archivoOtro.nombre }}</span>
+                            <span class="file-chip__ext">{{ archivoOtro.extension }}</span>
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+
+            }
+            }
+        </div>
+
+        <!-- ══ COLUMNA DERECHA — calificación ══════════════════════ -->
+        <div class="detail-right">
+            <div class="grade-panel">
+
+                <div class="grade-panel__header">
+                    <mat-icon class="grade-panel__icon">grading</mat-icon>
+                    <span class="grade-panel__title">Calificación</span>
+                    @if (yaCalificada()) {
+                    <span class="badge badge--calificada">Calificada</span>
+                    }
+                </div>
+
+                @if (!submission()) {
+                <p class="grade-panel__no-submission">No hay entrega que calificar.</p>
+                } @else if (esInteractiva()) {
+
+                <!-- ── INTERACTIVA: nota auto ──────────────────────── -->
+                <div class="auto-grade-block">
+                    <p class="auto-grade-block__label">Puntaje autocorregido</p>
+                    @if (puntosObtenidos() !== null) {
+                    <div class="auto-grade-block__badge">
+                        <app-grade-badge [nota]="puntosObtenidos()!" />
+                    </div>
+                    <p class="auto-grade-block__hint">
+                        {{ puntosObtenidos() }} / {{ task()!.puntos_max }} puntos
+                    </p>
+                    } @else {
+                    <p class="auto-grade-block__hint">Sin calificación automática aún.</p>
+                    }
+                </div>
+
+                <form [formGroup]="form" (ngSubmit)="saveGrade()" class="grade-form">
+                    <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Comentario de retroalimentación (opcional)</mat-label>
+                        <textarea matInput rows="4" formControlName="comentario_docente"
+                            placeholder="Escribe observaciones para el alumno..."></textarea>
+                    </mat-form-field>
+
+                    <button mat-flat-button color="primary" type="submit" class="btn-pill btn-pill--save"
+                        [disabled]="saving() || puntosObtenidos() === null">
+                        @if (saving()) {
+                        <ng-container>
+                            <mat-spinner diameter="18" />
+                            <span>Guardando...</span>
+                        </ng-container>
+                        } @else {
+                        <ng-container>
+                            <mat-icon>save</mat-icon>
+                            <span>{{ yaCalificada() ? 'Actualizar comentario' : 'Guardar comentario' }}</span>
+                        </ng-container>
+                        }
+                    </button>
+                </form>
+
+                } @else {
+
+                <!-- ── ARCHIVO: formulario manual ─────────────────── -->
+                <form [formGroup]="form" (ngSubmit)="saveGrade()" class="grade-form">
+
+                    <div class="nota-row">
+                        <mat-form-field appearance="outline" class="nota-field">
+                            <mat-label>Nota (0 a 20)</mat-label>
+                            <input matInput type="number" min="0" max="20" step="0.5"
+                                formControlName="calificacion_manual" placeholder="Ej: 15" />
+                        </mat-form-field>
+
+                        @if (notaActual() !== null) {
+                        <div class="nota-badge-wrap">
+                            <app-grade-badge [nota]="notaActual()!" />
+                        </div>
+                        }
+                    </div>
+
+                    <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Comentario de retroalimentación (opcional)</mat-label>
+                        <textarea matInput rows="4" formControlName="comentario_docente"
+                            placeholder="Escribe observaciones para el alumno..."></textarea>
+                    </mat-form-field>
+
+                    <button mat-flat-button color="primary" type="submit" class="btn-pill btn-pill--save"
+                        [disabled]="form.invalid || saving()">
+                        @if (saving()) {
+                        <ng-container>
+                            <mat-spinner diameter="18" />
+                            <span>Guardando...</span>
+                        </ng-container>
+                        } @else {
+                        <ng-container>
+                            <mat-icon>save</mat-icon>
+                            <span>{{ yaCalificada() ? 'Actualizar nota' : 'Guardar nota' }}</span>
+                        </ng-container>
+                        }
+                    </button>
+
+                </form>
+
+                }
+            </div>
+        </div>
+
+    </div>
+    }
+</div>

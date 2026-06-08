@@ -31,13 +31,16 @@
                 </span>
                 @if (auth.isAlumno()) {
                 <div class="task-chips">
-                    <mat-chip class="chip chip-{{ estadoAlumno(t) }}" disabled>{{ estadoLabel(t) }}</mat-chip>
+                    <mat-chip class="chip chip-{{ estadoAlumno(t) }}" disabled>
+                        {{ estadoLabel(t) }}
+                    </mat-chip>
                     @if (miEntrega(t)?.con_retraso) {
                     <mat-chip class="chip chip-retraso" disabled>Con retraso</mat-chip>
                     }
                 </div>
                 }
             </div>
+
             <div class="resource-actions">
                 @if (auth.isAlumno()) {
                 @if (miEntrega(t)) {
@@ -49,12 +52,15 @@
                     <mat-icon>play_arrow</mat-icon> Resolver
                 </a>
                 } @else {
-                <a mat-flat-button class="btn-primary" [routerLink]="['/tareas', t.id, 'entregar']">Entregar</a>
+                <a mat-flat-button class="btn-primary" [routerLink]="['/tareas', t.id, 'entregar']">
+                    Entregar
+                </a>
                 }
                 }
+
                 @if (auth.isDocente()) {
-                <button mat-flat-button class="btn-primary" (click)="abrirEntregasDocente(t)">
-                    <mat-icon>visibility</mat-icon> Ver entregas
+                <button mat-flat-button class="btn-primary" (click)="verEntregasDocente(t)">
+                    <mat-icon>grading</mat-icon> Calificar
                 </button>
                 }
             </div>

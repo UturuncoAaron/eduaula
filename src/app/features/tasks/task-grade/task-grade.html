@@ -1,54 +1,87 @@
-<app-page-header title="Calificar entregas" backRoute="/tareas" />
+<div class="grade-page">
+    <app-page-header [title]="taskTitulo() || 'Calificar entregas'"
+        subtitle="Lista de alumnos · Haz clic para ver la entrega" (backClick)="goBack()" />
 
-@if (loading()) {
-<p>Cargando entregas...</p>
-} @else if (submissions().length === 0) {
-<app-empty-state icon="assignment_turned_in" title="Sin entregas"
-    message="Ningún alumno ha entregado esta tarea aún." />
-} @else {
-<div class="submissions-list">
-    @for (s of submissions(); track s.id) {
-    <mat-card class="sub-card">
-        <mat-card-header>
-            <mat-icon mat-card-avatar>person</mat-icon>
-            <mat-card-title>{{ nombreAlumno(s) }}</mat-card-title>
-            <mat-card-subtitle>
-                {{ s.con_retraso ? '⚠ Con retraso' : 'A tiempo' }}
-                · {{ s.fecha_entrega | slice:0:10 }}
-            </mat-card-subtitle>
-        </mat-card-header>
+    @if (loading()) {
+    <div class="state-center">
+        <mat-spinner diameter="44" color="primary" />
+        <p class="state-center__text">Cargando alumnos...</p>
+    </div>
+    } @else {
 
-        <mat-card-content>
-            <p class="response">{{ s.respuesta_texto }}</p>
+    <div class="grade-toolbar">
+        <div class="grade-toolbar__stats">
+            <div class="stat-chip stat-chip--blue">
+                <mat-icon>group</mat-icon>
+                <span>{{ alumnos().length }} alumnos</span>
+            </div>
+            <div class="stat-chip stat-chip--green">
+                <mat-icon>assignment_turned_in</mat-icon>
+                <span>{{ totalEntregados() }} entregaron</span>
+            </div>
+            <div class="stat-chip stat-chip--purple">
+                <mat-icon>grade</mat-icon>
+                <span>{{ totalCalificados() }} calificados</span>
+            </div>
+        </div>
 
-            @if (s.storage_key) {
-            <a [href]="s.storage_key" target="_blank" class="file-link">
-                <mat-icon>attach_file</mat-icon> Ver archivo adjunto
-            </a>
-            }
+        <div class="grade-toolbar__search">
+            <mat-icon class="grade-toolbar__search-icon">search</mat-icon>
+            <input class="grade-toolbar__input" type="text" placeholder="Buscar alumno..." [value]="filtro()"
+                (input)="onFiltro($event)" />
+        </div>
+    </div>
 
-            <div class="grade-row">
-                <mat-form-field appearance="outline" class="grade-field">
-                    <mat-label>Nota (0-20)</mat-label>
-                    <input matInput type="number" min="0" max="20" [(ngModel)]="s.calificacion_manual" />
-                </mat-form-field>
-                @if (s.calificacion_manual != null) {
-                <app-grade-badge [nota]="s.calificacion_manual" />
+    @if (alumnosFiltrados().length === 0) {
+    <app-empty-state icon="search_off" title="Sin resultados" message="No se encontraron alumnos con ese nombre." />
+    } @else {
+    <div class="alumnos-grid">
+        @for (a of alumnosFiltrados(); track a.alumno_id) {
+        <div class="alumno-card" [class.alumno-card--entregado]="a.submission !== null"
+            [class.alumno-card--sin-entregar]="a.submission === null" (click)="verDetalle(a)">
+
+            <div class="alumno-card__avatar">
+                @if (a.foto_storage_key) {
+                <img [src]="a.foto_storage_key" [alt]="nombreCompleto(a)" class="alumno-card__foto" />
+                } @else {
+                <mat-icon class="alumno-card__avatar-icon">person</mat-icon>
                 }
             </div>
 
-            <mat-form-field appearance="outline" class="w100">
-                <mat-label>Comentario de retroalimentación (opcional)</mat-label>
-                <textarea matInput rows="2" [(ngModel)]="s.comentario_docente"></textarea>
-            </mat-form-field>
-        </mat-card-content>
+            <div class="alumno-card__info">
+                <span class="alumno-card__nombre">{{ nombreCompleto(a) }}</span>
+                <span class="alumno-card__codigo">{{ a.codigo_estudiante }}</span>
+            </div>
 
-        <mat-card-actions>
-            <button mat-flat-button color="primary" (click)="saveGrade(s)">
-                <mat-icon>save</mat-icon> Guardar nota
-            </button>
-        </mat-card-actions>
-    </mat-card>
+            <div class="alumno-card__right">
+                @if (estadoDeEntrega(a.submission) === 'calificada') {
+                <div class="estado-badge estado-badge--calificada">
+                    <mat-icon>grade</mat-icon>
+                    <span>{{ a.submission!.calificacion_final }} / 20</span>
+                </div>
+                } @else if (estadoDeEntrega(a.submission) === 'a_tiempo') {
+                <div class="estado-badge estado-badge--a-tiempo">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>A tiempo</span>
+                </div>
+                } @else if (estadoDeEntrega(a.submission) === 'con_retraso') {
+                <div class="estado-badge estado-badge--retraso">
+                    <mat-icon>schedule</mat-icon>
+                    <span>Con retraso</span>
+                </div>
+                } @else {
+                <div class="estado-badge estado-badge--sin-entregar">
+                    <mat-icon>remove_circle_outline</mat-icon>
+                    <span>Sin entregar</span>
+                </div>
+                }
+                <mat-icon class="alumno-card__chevron">chevron_right</mat-icon>
+            </div>
+
+        </div>
+        }
+    </div>
+    }
+
     }
 </div>
-}

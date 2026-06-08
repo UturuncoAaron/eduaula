@@ -29,9 +29,9 @@
         <div class="row-pair">
             <mat-form-field appearance="outline">
                 <mat-label>Bimestre</mat-label>
-                <mat-select formControlName="bimestre">
+                <mat-select formControlName="bimestre" (selectionChange)="onBimestreChange()">
                     <mat-option [value]="null">— Sin asignar —</mat-option>
-                    @for (b of bimestres; track b) {
+                    @for (b of bimestresDisponibles(); track b) {
                     <mat-option [value]="b">Bimestre {{ b }}</mat-option>
                     }
                 </mat-select>
@@ -41,8 +41,8 @@
                 <mat-label>Semana</mat-label>
                 <mat-select formControlName="semana">
                     <mat-option [value]="null">— Sin asignar —</mat-option>
-                    @for (s of semanas; track s) {
-                    <mat-option [value]="s">Semana {{ s }}</mat-option>
+                    @for (s of semanasFiltradas(); track s.semana) {
+                    <mat-option [value]="s.semana">Semana {{ s.semana }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
