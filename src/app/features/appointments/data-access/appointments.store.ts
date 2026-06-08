@@ -570,11 +570,12 @@ export class AppointmentsStore {
      */
     async saveWeekAvailability(
         items: SetAvailabilityPayload[],
+        weekStart: string,
     ): Promise<AccountAvailability[]> {
         const res = await firstValueFrom(
             this.api.put<AccountAvailability[] | { data: AccountAvailability[] }>(
                 'appointments/availability/bulk',
-                { items },
+                { items, weekStart },
             ),
         );
         return unwrapList<AccountAvailability>(res.data);

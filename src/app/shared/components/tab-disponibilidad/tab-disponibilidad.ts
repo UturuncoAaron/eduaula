@@ -234,7 +234,7 @@ export class TabDisponibilidad implements OnInit {
 
     this.saving.set(true);
     try {
-      await this.store.saveWeekAvailability(specificItems);
+      await this.store.saveWeekAvailability(specificItems, ws);
       await this.loadWeekData();
       this.toast.success(`Disponibilidad de la semana ${this.weekLabel()} guardada`);
     } catch (err) {
