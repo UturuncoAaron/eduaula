@@ -156,8 +156,7 @@ export class AppointmentFormDialog implements OnInit {
   /** IDs de padres vinculados que el usuario seleccionó (puede ser más de uno). */
   readonly selectedLinkedParentIds = signal<readonly string[]>([]);
 
-  /** True si el alumno actual tiene 2+ padres en el sistema. */
-  readonly hasMultipleLinkedParents = computed(() => this.linkedParents().length > 1);
+  readonly hasLinkedParents = computed(() => this.linkedParents().length > 0);
 
   // FormControls para que mat-autocomplete detecte cambios
   readonly studentSearchCtrl = new FormControl('');
@@ -266,7 +265,6 @@ export class AppointmentFormDialog implements OnInit {
     if (!this.store.myStudents().length) this.store.loadMyStudents();
 
     if (this.data.preselectedStudentId) {
-      this.includeParent.set(true);
       this.loadParents(this.data.preselectedStudentId);
       const found = this.store.myStudents().find(s => s.id === this.data.preselectedStudentId);
       if (found) this.selectedStudent.set(found);
@@ -340,6 +338,7 @@ export class AppointmentFormDialog implements OnInit {
       this.form.patchValue({ parentId: next[0] });
     } else {
       this.form.patchValue({ parentId: '' });
+      this.includeParent.set(false);
     }
   }
 
@@ -360,6 +359,7 @@ export class AppointmentFormDialog implements OnInit {
 
   clearParent(): void {
     this.selectedParent.set(null);
+    this.selectedLinkedParentIds.set([]);
     this.parentSearchCtrl.setValue('', { emitEvent: false });
     this.form.patchValue({ parentId: '' });
   }
@@ -614,42 +614,16 @@ export class AppointmentFormDialog implements OnInit {
   }
 
   /**
-   * Trae los padres del alumno y aplica una política simple:
-   *   - 0 padres: deja los signals vacíos.
-   *   - 1 padre: se preselecciona automáticamente y se activa `includeParent`.
-   *   - 2+ padres: se exponen via `linkedParents()` para que la UI muestre
-   *     checkboxes y el usuario elija uno o ambos. `includeParent` queda
-   *     activo para que la sección se vea.
+   * Trae los padres del alumno para que la UI los liste sin invitarlos por defecto.
    */
   private async fetchAndApplyLinkedParents(studentId: string): Promise<void> {
     this.loadingParents.set(true);
     try {
       const parents = await this.store.getStudentParents(studentId);
       this.linkedParents.set(parents);
-      if (parents.length === 0) {
-        this.selectedLinkedParentIds.set([]);
-        return;
-      }
-      // Auto-activar la sección de padre cuando el alumno tiene vínculos.
-      this.includeParent.set(true);
-      if (parents.length === 1) {
-        const onlyOne = parents[0];
-        this.selectedLinkedParentIds.set([onlyOne.id]);
-        this.selectedParent.set({
-          id: onlyOne.id,
-          nombre: onlyOne.nombre,
-          apellido_paterno: onlyOne.apellido_paterno,
-          apellido_materno: onlyOne.apellido_materno,
-          relacion: onlyOne.relacion ?? null,
-        });
-        this.form.patchValue({ parentId: onlyOne.id });
-      } else {
-        // 2+ padres: dejamos que el usuario elija explícitamente con
-        // checkboxes. No preseleccionamos ninguno automáticamente.
-        this.selectedLinkedParentIds.set([]);
-        this.selectedParent.set(null);
-        this.form.patchValue({ parentId: '' });
-      }
+      this.selectedLinkedParentIds.set([]);
+      this.selectedParent.set(null);
+      this.form.patchValue({ parentId: '' });
     } catch {
       this.linkedParents.set([]);
     } finally {

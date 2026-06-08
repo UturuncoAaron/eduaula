@@ -99,16 +99,13 @@
             </div>
             }
 
-            <!-- Padre / tutor -->
-            @if (includeParent()) {
-
-            @if (hasMultipleLinkedParents()) {
+            @if (hasLinkedParents()) {
             <div class="afd-linked-parents">
                 <div class="afd-linked-parents__head">
                     <mat-icon>family_restroom</mat-icon>
                     <div>
                         <strong>{{ linkedParents().length }} padres/tutores vinculados</strong>
-                        <p>Selecciona uno o ambos para programar la cita con cada uno.</p>
+                        <p>Selecciona manualmente a quién invitar a la cita.</p>
                     </div>
                 </div>
                 <div class="afd-linked-parents__list">
@@ -130,8 +127,11 @@
             </div>
             }
 
+            <!-- Padre / tutor -->
+            @if (includeParent() && !hasLinkedParents()) {
+
             <div class="afd-participant-row">
-                @if (!hasMultipleLinkedParents() && selectedParent(); as sp) {
+                @if (selectedParent(); as sp) {
                 <div class="afd-chip afd-chip--parent">
                     <div class="afd-chip__avatar">{{ sp.nombre.charAt(0) }}</div>
                     <div class="afd-chip__info">
@@ -144,7 +144,7 @@
                         <mat-icon>close</mat-icon>
                     </button>
                 </div>
-                } @else if (!hasMultipleLinkedParents()) {
+                } @else {
                 <mat-form-field appearance="outline" class="afd-field">
                     <mat-label>Buscar padre / madre / tutor</mat-label>
                     <mat-icon matPrefix class="afd-field__prefix">family_restroom</mat-icon>
