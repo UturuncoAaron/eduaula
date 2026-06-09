@@ -213,7 +213,16 @@ export const routes: Routes = [
       },
       {
         path: 'admin',
-        canActivate: [roleGuard(['admin'])],
+        canActivate: [permissionGuard([
+          MODULO.USUARIOS,
+          MODULO.GRADOS_SECCIONES,
+          MODULO.PERIODOS,
+          MODULO.MATRICULAS,
+          MODULO.PADRE_HIJO_ADMIN,
+          MODULO.HISTORICO_ALUMNOS,
+          MODULO.ASIST_PERSONAL,
+          MODULO.REPORTES_GLOBALES,
+        ])],
         loadChildren: () =>
           import('./features/admin/admin.routes').then(r => r.ADMIN_ROUTES),
       },

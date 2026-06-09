@@ -2,16 +2,14 @@
 
     <div class="fichaje-card" [class.has-result]="estado() !== 'idle' && estado() !== 'loading'">
 
-        <!-- ── Logo / Título ─────────────────────────────────────────────── -->
         <div class="fichaje-header">
             <div class="school-logo">
-                <mat-icon>school</mat-icon>
+                <img src="logo.png" alt="Logo I.E. Juan Pablo Vizcardo y Guzmán">
             </div>
             <h1>Control de Asistencia</h1>
             <p class="subtitle">I.E. Juan Pablo Vizcardo y Guzmán</p>
         </div>
 
-        <!-- ── Resultado ─────────────────────────────────────────────────── -->
         @if (estado() !== 'idle' && estado() !== 'loading') {
         <div class="resultado-panel" [style.border-color]="colorEstado()" [@fadeSlide]>
 
@@ -54,7 +52,6 @@
         </div>
         }
 
-        <!-- ── Formulario ────────────────────────────────────────────────── -->
         @if (estado() === 'idle' || estado() === 'loading') {
         <form [formGroup]="form" (ngSubmit)="submit()" class="fichaje-form" autocomplete="off">
 
@@ -91,7 +88,6 @@
 
     </div>
 
-    <!-- ── Reloj ──────────────────────────────────────────────────────── -->
     <p class="reloj">{{ estado() === 'idle' || estado() === 'loading' ? '' : '' }}</p>
 
 </div>

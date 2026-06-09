@@ -96,8 +96,21 @@ export class Fichaje implements OnDestroy {
         this.scheduleReset(4000);
       },
       error: (err) => {
-        const msg = err?.error?.message ?? err?.message ?? 'Credenciales incorrectas';
-        this.errorMsg.set(Array.isArray(msg) ? msg.join(', ') : msg);
+        // Extraemos el mensaje del error
+        let msg = err?.error?.message || err?.error || 'Credenciales incorrectas';
+
+        // Si el mensaje es un objeto (lo que causa el [object Object])
+        if (typeof msg === 'object') {
+          if (Array.isArray(msg)) {
+            // Si es un array de validaciones, los unimos
+            msg = msg.join(', ');
+          } else {
+            // Si es un objeto genérico, ponemos un mensaje amigable por defecto
+            msg = 'Código de acceso o contraseña incorrectos';
+          }
+        }
+
+        this.errorMsg.set(msg);
         this.estado.set('error');
         this.scheduleReset(3500);
       },

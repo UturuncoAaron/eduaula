@@ -63,6 +63,18 @@ const PERMISOS_POR_ROL: Record<string, PermisoItem[]> = {
       label: 'Ver reportes globales',
       descripcion: 'Acceso al tab de reportes de todos los alumnos, no solo sus cursos asignados.',
     },
+    {
+      modulo: 'nav', accion: 'academico',
+      label: 'Gestión Académica',
+      descripcion: 'Acceso a Grados y Secciones, Catálogo de Cursos, Año Lectivo, Periodos, Matrículas y Vínculo Padre-Hijo.',
+      sensitive: true,
+    },
+    {
+      modulo: 'nav', accion: 'usuarios',
+      label: 'Gestión de Usuarios',
+      descripcion: 'Acceso para crear y editar cuentas de alumnos, padres, docentes, staff y psicología.',
+      sensitive: true,
+    },
   ],
   psicologa: [
     {
@@ -86,6 +98,18 @@ const PERMISOS_POR_ROL: Record<string, PermisoItem[]> = {
       modulo: 'reportes', accion: 'ver_todos',
       label: 'Ver reportes globales',
       descripcion: 'Acceso al módulo de reportes de todos los alumnos.',
+    },
+    {
+      modulo: 'nav', accion: 'academico',
+      label: 'Gestión Académica',
+      descripcion: 'Acceso a Grados y Secciones, Catálogo de Cursos, Año Lectivo, Periodos, Matrículas y Vínculo Padre-Hijo.',
+      sensitive: true,
+    },
+    {
+      modulo: 'nav', accion: 'usuarios',
+      label: 'Gestión de Usuarios',
+      descripcion: 'Acceso para crear y editar cuentas de alumnos, padres, docentes, staff y psicología.',
+      sensitive: true,
     },
   ],
 };
@@ -181,9 +205,9 @@ export class PermisoUsuarioDialog implements OnInit {
       data: {
         title: 'Permiso Sensible',
         message: `¿Estás seguro de que deseas otorgar el permiso "${item.label}"?\n\nDescripción: ${item.descripcion}`,
-        btnOkText: 'Confirmar y Activar',
-        btnCancelText: 'Cancelar',
-        type: 'warning' // Estilizado preventivo si tu modal lo soporta
+        confirm: 'Confirmar y Activar',
+        cancel: 'Cancelar',
+        danger: false,
       }
     });
 
@@ -191,10 +215,8 @@ export class PermisoUsuarioDialog implements OnInit {
       if (confirmado) {
         this.procesarCambioOperacion(item, true);
       }
-      // Si es falso, la señal reactiva mantendrá automáticamente el checkbox en su estado original sin mutaciones raras.
     });
   }
-
   /**
    * Centraliza la mutación de la señal de operaciones pendientes (Purity/Immutability)
    */
