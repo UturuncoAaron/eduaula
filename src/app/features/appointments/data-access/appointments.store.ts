@@ -23,7 +23,6 @@ import type {
     FollowUpSuggestion,
     CloseSessionPayload,
     CloseSessionResult,
-    WeekAvailabilityResponse,
 } from '../../../core/models/appointments';
 import type { Psicologa } from '../../../core/models/psychology';
 import type { Child } from '../../../core/models/parent-portal';
@@ -72,8 +71,6 @@ export type {
     FollowUpSuggestion,
     CloseSessionPayload,
     CloseSessionResult,
-    WeekAvailabilityResponse,
-    WeekAppointmentSummary,
 } from '../../../core/models/appointments';
 
 export type { Psicologa } from '../../../core/models/psychology';
@@ -540,45 +537,6 @@ export class AppointmentsStore {
         } catch {
             return [];
         }
-    }
-
-    /**
-     * Disponibilidad de una semana específica: bloques semanales (filtrados
-     * por override específico) + bloques específicos de esa semana + citas
-     * de esa semana con indicador de seguimiento.
-     */
-    async getWeekAvailability(
-        cuentaId: string,
-        weekStart: string,
-    ): Promise<WeekAvailabilityResponse | null> {
-        try {
-            const res = await firstValueFrom(
-                this.api.get<WeekAvailabilityResponse | { data: WeekAvailabilityResponse }>(
-                    `appointments/availability/${cuentaId}/week`,
-                    { weekStart },
-                ),
-            );
-            return (res?.data ?? null) as WeekAvailabilityResponse | null;
-        } catch {
-            return null;
-        }
-    }
-
-    /**
-     * Guarda disponibilidad semanal para la semana indicada (tipo='specific').
-     * Reemplaza todos los bloques específicos de esa semana con los nuevos.
-     */
-    async saveWeekAvailability(
-        items: SetAvailabilityPayload[],
-        weekStart: string,
-    ): Promise<AccountAvailability[]> {
-        const res = await firstValueFrom(
-            this.api.put<AccountAvailability[] | { data: AccountAvailability[] }>(
-                'appointments/availability/bulk',
-                { items, weekStart },
-            ),
-        );
-        return unwrapList<AccountAvailability>(res.data);
     }
 
     /**

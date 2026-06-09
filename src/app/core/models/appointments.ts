@@ -231,7 +231,7 @@ export interface ListAppointmentsQuery {
     limit?: number;
 }
 
-export type AvailabilityTipo = 'weekly' | 'specific';
+export type AvailabilityTipo = 'weekly';
 
 export interface AccountAvailability {
     id: string;
@@ -240,9 +240,9 @@ export interface AccountAvailability {
     horaInicio: string;
     horaFin: string;
     activo: boolean;
-    /** 'weekly' = se repite cada semana; 'specific' = solo en fechaEspecifica */
+    /** Horario base recurrente. */
     tipo: AvailabilityTipo;
-    /** YYYY-MM-DD — solo cuando tipo='specific' */
+    /** Reservado para compatibilidad con registros antiguos; el flujo actual usa null. */
     fechaEspecifica: string | null;
     createdAt: string;
     updatedAt: string;
@@ -252,8 +252,6 @@ export interface SetAvailabilityPayload {
     diaSemana: DiaSemana;
     horaInicio: string;
     horaFin: string;
-    tipo?: AvailabilityTipo;
-    fechaEspecifica?: string;
 }
 
 // ── Disponibilidad semanal con citas y seguimientos ───────────────────
@@ -265,13 +263,6 @@ export interface WeekAppointmentSummary {
     motivo: string;
     isFollowUp: boolean;
     studentName: string | null;
-}
-
-export interface WeekAvailabilityResponse {
-    weekStart: string;
-    weeklyBlocks: AccountAvailability[];
-    specificBlocks: AccountAvailability[];
-    appointments: WeekAppointmentSummary[];
 }
 
 export interface SlotTaken {

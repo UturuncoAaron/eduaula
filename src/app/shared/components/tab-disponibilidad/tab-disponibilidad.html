@@ -1,32 +1,18 @@
 <div class="tab-disponibilidad">
 
-    <!-- ── Selector de modo ──────────────────────────────────── -->
-    <div class="mode-switcher">
-        <div class="mode-switcher__tabs">
-            <button class="mode-tab" [class.mode-tab--active]="mode() === 'static'"
-                (click)="setMode('static')" type="button">
-                <mat-icon>repeat</mat-icon>
-                <span>Estática (todas las semanas)</span>
-            </button>
-            <button class="mode-tab" [class.mode-tab--active]="mode() === 'weekly'"
-                (click)="setMode('weekly')" type="button">
-                <mat-icon>calendar_view_week</mat-icon>
-                <span>Por semana</span>
-            </button>
+    <div class="availability-hero">
+        <div class="availability-hero__icon">
+            <mat-icon>event_available</mat-icon>
         </div>
-        <p class="mode-switcher__hint">
-            @if (mode() === 'static') {
-            La disponibilidad estática se repite igual cada semana. Una semana específica puede sobreescribirla.
-            } @else {
-            Configura la disponibilidad para una semana concreta. Sobreescribe la configuración estática para esa semana.
-            }
-        </p>
+        <div class="availability-hero__content">
+            <h3>Horario base de atención</h3>
+            <p>
+                Define los bloques recurrentes que estarán disponibles cada semana. Las citas y seguimientos
+                ya agendados se muestran como ocupados para esa fecha sin modificar este horario base.
+            </p>
+        </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════
-         MODO ESTÁTICO
-         ═══════════════════════════════════════════════════════ -->
-    @if (mode() === 'static') {
     @if (store.loadingAvailability()) {
     <div class="state-center">
         <mat-spinner diameter="32" />
@@ -39,99 +25,6 @@
         [saving]="saving()"
         (save)="onSave($event)"
         (deleteSlot)="onDeleteSlot($event)" />
-    }
-    }
-
-    <!-- ══════════════════════════════════════════════════════════
-         MODO SEMANAL
-         ═══════════════════════════════════════════════════════ -->
-    @if (mode() === 'weekly') {
-
-    <!-- Navegación de semana -->
-    <div class="week-nav">
-        <button mat-icon-button type="button" (click)="prevWeek()"
-            matTooltip="Semana anterior">
-            <mat-icon>chevron_left</mat-icon>
-        </button>
-
-        <div class="week-nav__label">
-            <span class="week-nav__range">{{ weekLabel() }}</span>
-            @if (isPastWeek()) {
-            <span class="week-nav__past-badge">
-                <mat-icon>history</mat-icon>
-                Semana pasada
-            </span>
-            }
-        </div>
-
-        <button mat-icon-button type="button" (click)="nextWeek()"
-            matTooltip="Semana siguiente">
-            <mat-icon>chevron_right</mat-icon>
-        </button>
-
-        <button mat-stroked-button type="button" class="week-nav__today"
-            (click)="goToCurrentWeek()" matTooltip="Ir a la semana actual">
-            <mat-icon>today</mat-icon>
-            Hoy
-        </button>
-    </div>
-
-    <!-- Indicadores de seguimiento -->
-    @if (weekFollowUps().length > 0) {
-    <div class="followup-banner">
-        <mat-icon>psychology</mat-icon>
-        <div class="followup-banner__content">
-            <strong>{{ weekFollowUps().length }} cita{{ weekFollowUps().length > 1 ? 's' : '' }} de seguimiento</strong>
-            esta semana
-            <ul class="followup-banner__list">
-                @for (f of weekFollowUps(); track f.id) {
-                <li>
-                    <mat-icon>schedule</mat-icon>
-                    <span>{{ f.scheduledAt | date:'EEE d MMM, HH:mm':'':'es-PE' }}</span>
-                    @if (f.studentName) {
-                    <span class="followup-banner__student">· {{ f.studentName }}</span>
-                    }
-                </li>
-                }
-            </ul>
-        </div>
-    </div>
-    }
-
-    <!-- Editor semanal -->
-    @if (loadingWeek()) {
-    <div class="state-center">
-        <mat-spinner diameter="32" />
-        <span>Cargando semana…</span>
-    </div>
-    } @else if (isPastWeek()) {
-    <!-- Semana pasada → solo lectura (auditoría) -->
-    <div class="past-week-panel">
-        <div class="past-week-panel__header">
-            <mat-icon>history_edu</mat-icon>
-            <div>
-                <h4>Semana pasada — vista de auditoría</h4>
-                <p>Las semanas anteriores son de solo lectura.</p>
-            </div>
-        </div>
-        <app-availability-calendar-editor
-            [initial]="weekBlocks()"
-            [rule]="myRule()"
-            [saving]="true"
-            [weekFollowUps]="weekFollowUps()"
-            (save)="$event"
-            (deleteSlot)="$event" />
-    </div>
-    } @else {
-    <app-availability-calendar-editor
-        [initial]="weekBlocks()"
-        [rule]="myRule()"
-        [saving]="saving()"
-        [weekFollowUps]="weekFollowUps()"
-        (save)="onSaveWeek($event)"
-        (deleteSlot)="onDeleteSlot($event)" />
-    }
-
     }
 
 </div>
