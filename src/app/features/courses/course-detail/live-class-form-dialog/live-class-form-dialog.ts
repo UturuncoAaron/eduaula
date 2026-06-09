@@ -18,6 +18,7 @@ export interface LiveClassFormDialogData {
 
 @Component({
   selector: 'app-live-class-form-dialog',
+  standalone: true,
   imports: [
     ReactiveFormsModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatDialogModule,
@@ -72,16 +73,18 @@ export class LiveClassFormDialog {
 
     obs.subscribe({
       next: res => {
-        this.toastr.success(this.isEdit ? 'Videoconferencia actualizada' : 'Videoconferencia programada', '�xito');
+        this.toastr.success(this.isEdit ? 'Videoconferencia actualizada' : 'Videoconferencia programada', 'Éxito');
         this.ref.close(res.data);
       },
       error: err => {
-        const msg = err?.error?.message ?? 'No se pudo guardar';
+        const msg = err?.error?.message ?? 'No se pudo guardar la información';
         this.toastr.error(msg, 'Error');
         this.loading.set(false);
       },
     });
   }
 
-  cerrar() { this.ref.close(); }
+  cerrar() {
+    this.ref.close();
+  }
 }

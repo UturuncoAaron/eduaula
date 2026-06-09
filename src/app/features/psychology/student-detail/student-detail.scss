@@ -1,11 +1,4 @@
-/* ══════════════════════════════════════════════════════════════════
-   student-detail.scss
-   Ficha psicológica del alumno — diseño responsivo completo
-   Tokens: sd-* (student-detail)
-═══════════════════════════════════════════════════════════════════ */
-
 :host {
-  /* ── Design tokens ──────────────────────────────────────────── */
   --sd-bg: #f8fafc;
   --sd-surface: #ffffff;
   --sd-border: #e2e8f0;
@@ -13,35 +6,28 @@
   --sd-text: #0f172a;
   --sd-text-muted: #64748b;
   --sd-text-soft: #94a3b8;
-
   --sd-primary: #0d9488;
   --sd-primary-deep: #115e59;
   --sd-accent: #4338ca;
   --sd-success: #16a34a;
   --sd-warn: #b45309;
   --sd-danger: #dc2626;
-
   --sd-shadow-xs: 0 1px 2px rgba(15, 23, 42, .04);
   --sd-shadow-sm: 0 2px 8px rgba(15, 23, 42, .07);
   --sd-shadow-md: 0 6px 20px -8px rgba(15, 23, 42, .18);
-
   --sd-radius-sm: 8px;
   --sd-radius-md: 12px;
   --sd-radius-lg: 16px;
-
   --sd-space-1: 4px;
   --sd-space-2: 8px;
   --sd-space-3: 12px;
   --sd-space-4: 16px;
   --sd-space-5: 20px;
   --sd-space-6: 24px;
-
   display: block;
   background: var(--sd-bg);
   min-height: 100vh;
 }
-
-/* ── Layout principal ──────────────────────────────────────────── */
 
 .sd-layout {
   display: flex;
@@ -51,8 +37,6 @@
   margin: 0 auto;
   padding: var(--sd-space-4) var(--sd-space-5) var(--sd-space-6);
 }
-
-/* ── Botón volver ──────────────────────────────────────────────── */
 
 .sd-back {
   margin-bottom: var(--sd-space-2);
@@ -73,8 +57,6 @@
   }
 }
 
-/* ── Estado de carga inicial ───────────────────────────────────── */
-
 .sd-fullstate {
   display: flex;
   flex-direction: column;
@@ -84,10 +66,6 @@
   color: var(--sd-text-muted);
   font-size: .9rem;
 }
-
-/* ════════════════════════════════════════════════════════════════
-   CABECERA
-════════════════════════════════════════════════════════════════ */
 
 .sd-header {
   display: grid;
@@ -168,8 +146,6 @@
   flex-shrink: 0;
 }
 
-/* ── Badges ────────────────────────────────────────────────────── */
-
 .sd-badge {
   display: inline-flex;
   align-items: center;
@@ -215,10 +191,6 @@
   }
 }
 
-/* ════════════════════════════════════════════════════════════════
-   TABS
-════════════════════════════════════════════════════════════════ */
-
 .sd-tabs {
   background: var(--sd-surface);
   border: 1px solid var(--sd-border);
@@ -226,7 +198,6 @@
   box-shadow: var(--sd-shadow-xs);
   overflow: hidden;
 
-  // Quitar sombra interna del grupo de tabs
   ::ng-deep .mat-mdc-tab-header {
     border-bottom: 1px solid var(--sd-border);
     background: #fafbfd;
@@ -269,8 +240,6 @@
   }
 }
 
-/* ── Contenido del tab ─────────────────────────────────────────── */
-
 .sd-tab-content {
   padding: var(--sd-space-5);
   display: flex;
@@ -302,8 +271,6 @@
   line-height: 1.4;
 }
 
-/* ── Estado inline de carga ───────────────────────────────────── */
-
 .sd-inline-state {
   display: flex;
   align-items: center;
@@ -317,10 +284,6 @@
     padding: var(--sd-space-4);
   }
 }
-
-/* ════════════════════════════════════════════════════════════════
-   CHIPS GENÉRICOS
-════════════════════════════════════════════════════════════════ */
 
 .sd-chip {
   display: inline-flex;
@@ -340,7 +303,6 @@
     height: 12px;
   }
 
-  /* Categorías de ficha */
   &--cat {
     text-transform: capitalize;
 
@@ -370,33 +332,6 @@
     }
   }
 
-  /* Tipo de informe */
-  &--tipo {
-    background: #ede9fe;
-    color: #5b21b6;
-
-    &[data-tipo="evaluacion"] {
-      background: #dbeafe;
-      color: #1e3a8a;
-    }
-
-    &[data-tipo="seguimiento"] {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    &[data-tipo="derivacion_familia"] {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    &[data-tipo="derivacion_externa"] {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-  }
-
-  /* Tipo de cita */
   &--tipo-cita {
     background: #e0e7ff;
     color: #3730a3;
@@ -432,7 +367,6 @@
     }
   }
 
-  /* Estado de cita */
   &--estado-cita {
     border-radius: 5px;
     text-transform: uppercase;
@@ -471,7 +405,6 @@
     }
   }
 
-  /* Estado de informe */
   &--final {
     background: #dcfce7;
     color: #166534;
@@ -486,16 +419,11 @@
     padding: 2px 8px;
   }
 
-  /* Confidencial */
   &--conf {
     background: #fef3c7;
     color: #92400e;
   }
 }
-
-/* ════════════════════════════════════════════════════════════════
-   TIMELINE DE FICHAS
-════════════════════════════════════════════════════════════════ */
 
 .sd-timeline {
   list-style: none;
@@ -506,7 +434,6 @@
   gap: 0;
   position: relative;
 
-  // Línea vertical
   &::before {
     content: '';
     position: absolute;
@@ -517,10 +444,8 @@
     background: var(--sd-border);
   }
 
-  &--compact {
-    &::before {
-      left: 5px;
-    }
+  &--compact::before {
+    left: 5px;
   }
 
   &__item {
@@ -564,8 +489,6 @@
     }
   }
 }
-
-/* ── Tarjeta de ficha ──────────────────────────────────────────── */
 
 .sd-ficha-card {
   background: var(--sd-surface);
@@ -644,10 +567,6 @@
   }
 }
 
-/* ════════════════════════════════════════════════════════════════
-   LISTA DE INFORMES
-════════════════════════════════════════════════════════════════ */
-
 .sd-card-list {
   list-style: none;
   margin: 0;
@@ -712,44 +631,12 @@
     }
   }
 
-  &__derivado {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-
-    mat-icon {
-      font-size: 13px;
-      width: 13px;
-      height: 13px;
-    }
-
-    strong {
-      color: var(--sd-text-muted);
-      font-weight: 600;
-    }
-  }
-
   &__actions {
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
     align-items: center;
     padding-top: var(--sd-space-1);
-  }
-}
-
-/* ════════════════════════════════════════════════════════════════
-   ARCHIVOS
-════════════════════════════════════════════════════════════════ */
-
-.sd-archivos-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sd-space-4);
-
-  &+& {
-    padding-top: var(--sd-space-5);
-    border-top: 1px dashed var(--sd-border);
   }
 }
 
@@ -785,6 +672,11 @@
   &.is-conf {
     border-left: 4px solid var(--sd-warn);
     background: linear-gradient(90deg, #fffbeb 0%, var(--sd-surface) 10%);
+  }
+
+  &.is-expanded {
+    grid-template-rows: auto auto;
+    align-items: start;
   }
 
   &__icon {
@@ -839,16 +731,36 @@
   }
 }
 
-/* ════════════════════════════════════════════════════════════════
-   ACORDEÓN DE CITAS
-════════════════════════════════════════════════════════════════ */
+.sd-file-preview {
+  grid-column: 1 / -1;
+  margin-top: var(--sd-space-3);
+  padding-top: var(--sd-space-3);
+  border-top: 1px solid var(--sd-border-soft);
+
+  &__iframe {
+    width: 100%;
+    height: 520px;
+    border: none;
+    border-radius: var(--sd-radius-sm);
+    background: #f1f5f9;
+    display: block;
+  }
+
+  &__img {
+    width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    border-radius: var(--sd-radius-sm);
+    background: #f1f5f9;
+    display: block;
+  }
+}
 
 .sd-accordion {
   display: flex;
   flex-direction: column;
   gap: var(--sd-space-2);
 
-  // Quitar margen de Angular Material
   ::ng-deep .mat-expansion-panel {
     border-radius: var(--sd-radius-md) !important;
     box-shadow: none !important;
@@ -929,17 +841,11 @@
   }
 }
 
-/* ── Cuerpo de cita: pendiente/cancelada ────────────────────────── */
-
 .sd-cita-body {
   padding-top: var(--sd-space-3);
   display: flex;
   flex-direction: column;
   gap: var(--sd-space-3);
-
-  &--pending {
-    background: transparent;
-  }
 
   &--cancelled {
     opacity: .75;
@@ -1012,8 +918,6 @@
   }
 }
 
-/* ── Sub-tabs de cita realizada ─────────────────────────────────── */
-
 .sd-cita-tabs {
   margin-top: var(--sd-space-3);
   border-top: 1px solid var(--sd-border-soft);
@@ -1042,7 +946,6 @@
   margin-bottom: var(--sd-space-3);
 }
 
-/* Estado vacío dentro de cita */
 .sd-cita-empty {
   display: flex;
   flex-direction: column;
@@ -1065,7 +968,6 @@
   }
 }
 
-/* Informe dentro de sesión */
 .sd-session-informe {
   display: flex;
   flex-direction: column;
@@ -1111,10 +1013,6 @@
   }
 }
 
-/* ════════════════════════════════════════════════════════════════
-   COLORES DE ACCIÓN
-════════════════════════════════════════════════════════════════ */
-
 .btn-danger {
   color: var(--sd-danger) !important;
 }
@@ -1122,10 +1020,6 @@
 .btn-success {
   color: var(--sd-success) !important;
 }
-
-/* ════════════════════════════════════════════════════════════════
-   RESPONSIVE
-════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
   .sd-layout {
@@ -1178,7 +1072,11 @@
   }
 
   .sd-cita-header__desc {
-    display: none; // chips pasan al interior en mobile
+    display: none;
+  }
+
+  .sd-file-preview__iframe {
+    height: 380px;
   }
 }
 
@@ -1187,15 +1085,6 @@
     width: 50px;
     height: 50px;
     font-size: 1.1rem;
-  }
-
-  .sd-ficha-card__header {
-    flex-wrap: wrap;
-
-    &__actions {
-      width: 100%;
-      justify-content: flex-end;
-    }
   }
 
   .sd-timeline::before {
@@ -1209,9 +1098,11 @@
   .sd-timeline__dot {
     display: none;
   }
-}
 
-/* ── Animación de entrada ──────────────────────────────────────── */
+  .sd-file-preview__iframe {
+    height: 300px;
+  }
+}
 
 .fade-in {
   animation: fadeIn .25s ease-out;

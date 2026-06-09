@@ -12,6 +12,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ToastService } from 'ngx-toastr-notifier';
 
 import { PsychologyStore } from '../../data-access/psychology.store';
@@ -20,7 +22,7 @@ import { ARCHIVO_MAX_BYTES, ArchivoCategoria } from '../../../../core/models/psy
 export interface ArchivoUploadDialogData {
   studentId: string;
   studentName: string;
-  categoria: ArchivoCategoria;   // 'ficha' | 'test'
+  categoria: ArchivoCategoria;
 }
 
 @Component({
@@ -31,7 +33,7 @@ export interface ArchivoUploadDialogData {
     CommonModule, FormsModule,
     MatDialogModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule,
-    MatSlideToggleModule, MatProgressBarModule,
+    MatSlideToggleModule, MatProgressBarModule, MatTooltipModule
   ],
   templateUrl: './archivo-upload-dialog.html',
   styleUrls: ['./archivo-upload-dialog.scss'],
@@ -40,29 +42,37 @@ export class ArchivoUploadDialog {
   private readonly ref = inject(MatDialogRef<ArchivoUploadDialog>);
   private readonly store = inject(PsychologyStore);
   private readonly toastr = inject(ToastService);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly data = inject<ArchivoUploadDialogData>(MAT_DIALOG_DATA);
 
-  // ── Estado del formulario ────────────────────────────────────
   readonly file = signal<File | null>(null);
   readonly nombre = signal('');
   readonly descripcion = signal('');
-  readonly confidencial = signal(true);   // default seguro
+  readonly confidencial = signal(true);
   readonly dragOver = signal(false);
   readonly uploading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly previewObjectUrl = signal<string | null>(null);
 
-  // ── Derivados ────────────────────────────────────────────────
   readonly maxBytes = ARCHIVO_MAX_BYTES;
 
-  readonly tituloModal = computed(() =>
-    this.data.categoria === 'ficha' ? 'Agregar ficha' : 'Agregar test',
-  );
+  readonly tituloModal = computed(() => {
+    const map: Record<string, string> = {
+      ficha: 'Agregar ficha',
+      test: 'Agregar test',
+      informe: 'Agregar informe externo',
+    };
+    return map[this.data.categoria] ?? 'Agregar archivo';
+  });
 
-  readonly subtituloModal = computed(() =>
-    this.data.categoria === 'ficha'
-      ? 'Sube un documento de ficha clínica del alumno'
-      : 'Sube los resultados de un test aplicado al alumno',
-  );
+  readonly subtituloModal = computed(() => {
+    const map: Record<string, string> = {
+      ficha: 'Sube un documento de ficha clínica del alumno',
+      test: 'Sube los resultados de un test aplicado al alumno',
+      informe: 'Sube un informe externo de un especialista',
+    };
+    return map[this.data.categoria] ?? 'Sube un archivo';
+  });
 
   readonly fileSizeLabel = computed(() => {
     const f = this.file();
@@ -76,25 +86,32 @@ export class ArchivoUploadDialog {
     return this.iconFor(f.type, f.name);
   });
 
+  readonly isPreviewable = computed(() => {
+    const f = this.file();
+    if (!f) return false;
+    const mime = f.type.toLowerCase();
+    const ext = f.name.split('.').pop()?.toLowerCase() ?? '';
+    return mime.startsWith('image/') || mime === 'application/pdf' || ext === 'pdf';
+  });
+
+  readonly isImagePreview = computed(() => {
+    const f = this.file();
+    return !!f && f.type.toLowerCase().startsWith('image/');
+  });
+
+  readonly safePdfUrl = computed((): SafeResourceUrl | null => {
+    const url = this.previewObjectUrl();
+    if (!url) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`${url}#toolbar=0&navpanes=0&scrollbar=1`);
+  });
+
   readonly canSubmit = computed(() =>
     !!this.file() && this.nombre().trim().length > 0 && !this.uploading(),
   );
 
-  // ── Drag & drop ──────────────────────────────────────────────
-  onDragEnter(e: DragEvent): void {
-    e.preventDefault();
-    this.dragOver.set(true);
-  }
-
-  onDragOver(e: DragEvent): void {
-    e.preventDefault();
-    this.dragOver.set(true);
-  }
-
-  onDragLeave(e: DragEvent): void {
-    e.preventDefault();
-    this.dragOver.set(false);
-  }
+  onDragEnter(e: DragEvent): void { e.preventDefault(); this.dragOver.set(true); }
+  onDragOver(e: DragEvent): void { e.preventDefault(); this.dragOver.set(true); }
+  onDragLeave(e: DragEvent): void { e.preventDefault(); this.dragOver.set(false); }
 
   onDrop(e: DragEvent): void {
     e.preventDefault();
@@ -111,38 +128,39 @@ export class ArchivoUploadDialog {
   }
 
   clearFile(): void {
+    this.revokePreview();
     this.file.set(null);
     this.error.set(null);
   }
 
   private setFile(f: File): void {
     if (f.size > this.maxBytes) {
-      this.error.set(
-        `El archivo supera el tamaño máximo de ${this.formatBytes(this.maxBytes)}.`,
-      );
+      this.error.set(`El archivo supera el tamaño máximo de ${this.formatBytes(this.maxBytes)}.`);
       return;
     }
-    if (f.size === 0) {
-      this.error.set('El archivo está vacío.');
-      return;
-    }
+    if (f.size === 0) { this.error.set('El archivo está vacío.'); return; }
     this.error.set(null);
+    this.revokePreview();
     this.file.set(f);
-    // Si el nombre aún no fue tocado, lo prerellenamos.
-    if (!this.nombre().trim()) {
-      this.nombre.set(this.stripExtension(f.name));
+    if (!this.nombre().trim()) this.nombre.set(this.stripExtension(f.name));
+
+    const mime = f.type.toLowerCase();
+    const ext = f.name.split('.').pop()?.toLowerCase() ?? '';
+    if (mime.startsWith('image/') || mime === 'application/pdf' || ext === 'pdf') {
+      this.previewObjectUrl.set(URL.createObjectURL(f));
     }
   }
 
-  // ── Submit ───────────────────────────────────────────────────
+  private revokePreview(): void {
+    const url = this.previewObjectUrl();
+    if (url) { URL.revokeObjectURL(url); this.previewObjectUrl.set(null); }
+  }
+
   async submit(): Promise<void> {
     const f = this.file();
     if (!f) return;
     const nombre = this.nombre().trim();
-    if (!nombre) {
-      this.error.set('El nombre es obligatorio.');
-      return;
-    }
+    if (!nombre) { this.error.set('El nombre es obligatorio.'); return; }
 
     this.uploading.set(true);
     this.error.set(null);
@@ -156,8 +174,11 @@ export class ArchivoUploadDialog {
         file: f,
       });
       this.toastr.success(
-        this.data.categoria === 'ficha' ? 'Ficha agregada' : 'Test agregado',
+        this.data.categoria === 'ficha' ? 'Ficha agregada'
+          : this.data.categoria === 'test' ? 'Test agregado'
+            : 'Informe externo agregado',
       );
+      this.revokePreview();
       this.ref.close(true);
     } catch (err: unknown) {
       const msg = (err as { error?: { message?: string } })?.error?.message
@@ -170,10 +191,10 @@ export class ArchivoUploadDialog {
 
   cancel(): void {
     if (this.uploading()) return;
+    this.revokePreview();
     this.ref.close(false);
   }
 
-  // ── Helpers ──────────────────────────────────────────────────
   private formatBytes(b: number): string {
     if (b < 1024) return `${b} B`;
     if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;

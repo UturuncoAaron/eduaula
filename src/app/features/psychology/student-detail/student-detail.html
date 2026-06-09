@@ -184,7 +184,6 @@
                         @for (i of informesGenerados(); track i.id) {
                         <li class="sd-informe-card" [class.is-final]="i.estado === 'finalizado'"
                             [class.is-conf]="i.confidencial">
-
                             <div class="sd-informe-card__chips">
                                 <span class="sd-chip" [class.sd-chip--final]="i.estado === 'finalizado'"
                                     [class.sd-chip--draft]="i.estado === 'borrador'">
@@ -196,11 +195,9 @@
                                 </span>
                                 }
                             </div>
-
                             <h4 class="sd-informe-card__title">
                                 {{ i.motivoConsultaCorto ?? 'Informe psicológico' }}
                             </h4>
-
                             <p class="sd-informe-card__meta">
                                 <mat-icon>schedule</mat-icon>
                                 {{ (i.finalizadoAt || i.createdAt) | date:'mediumDate' }}
@@ -208,7 +205,6 @@
                                 · Referente: <strong>{{ i.referente }}</strong>
                                 }
                             </p>
-
                             <div class="sd-informe-card__actions">
                                 <a mat-icon-button
                                     [routerLink]="['/psicologa/student', studentId(), 'informes', i.id, 'print']"
@@ -363,7 +359,6 @@
                         } @else {
                         <mat-tab-group class="sd-cita-tabs" animationDuration="100ms">
 
-                            <!-- Sub-tab: Anotaciones -->
                             <mat-tab>
                                 <ng-template mat-tab-label>
                                     <mat-icon class="sd-subtab-icon">edit_note</mat-icon>
@@ -416,7 +411,6 @@
                                 </div>
                             </mat-tab>
 
-                            <!-- Sub-tab: Archivos -->
                             <mat-tab>
                                 <ng-template mat-tab-label>
                                     <mat-icon class="sd-subtab-icon">folder_open</mat-icon>
@@ -442,14 +436,25 @@
                                     </div>
                                     <ul class="sd-file-list sd-file-list--compact" role="list">
                                         @for (a of detail.archivos; track a.id) {
-                                        <li class="sd-file-item">
+                                        <li class="sd-file-item" [class.is-expanded]="isPreviewing(a.id)">
                                             <mat-icon class="sd-file-item__icon">{{ archivoIcon(a) }}</mat-icon>
                                             <div class="sd-file-item__body">
                                                 <div class="sd-file-item__name">{{ a.nombre }}</div>
-                                                <p class="sd-file-item__meta">{{ archivoSize(a) }} · {{ a.createdAt |
-                                                    date:'d MMM yyyy' }}</p>
+                                                <p class="sd-file-item__meta">{{ archivoSize(a) }} ·
+                                                    {{ a.createdAt | date:'d MMM yyyy' }}</p>
                                             </div>
                                             <div class="sd-file-item__actions">
+                                                @if (isPreviewable(a)) {
+                                                <button mat-icon-button (click)="togglePreview(a)"
+                                                    [matTooltip]="isPreviewing(a.id) ? 'Cerrar vista previa' : 'Vista previa'">
+                                                    @if (previewLoading().has(a.id)) {
+                                                    <mat-spinner diameter="18" />
+                                                    } @else {
+                                                    <mat-icon>{{ isPreviewing(a.id) ? 'visibility_off' : 'visibility'
+                                                        }}</mat-icon>
+                                                    }
+                                                </button>
+                                                }
                                                 <button mat-icon-button (click)="downloadArchivo(a)"
                                                     matTooltip="Descargar">
                                                     <mat-icon>download</mat-icon>
@@ -459,6 +464,17 @@
                                                     <mat-icon>delete</mat-icon>
                                                 </button>
                                             </div>
+                                            @if (isPreviewing(a.id)) {
+                                            <div class="sd-file-preview">
+                                                @if (isImage(a)) {
+                                                <img [src]="previewUrls().get(a.id)" [alt]="a.nombre"
+                                                    class="sd-file-preview__img" />
+                                                } @else {
+                                                <iframe [src]="safePreviewUrl(a.id)" class="sd-file-preview__iframe"
+                                                    title="Vista previa"></iframe>
+                                                }
+                                            </div>
+                                            }
                                         </li>
                                         }
                                     </ul>
@@ -466,7 +482,6 @@
                                 </div>
                             </mat-tab>
 
-                            <!-- Sub-tab: Informe -->
                             <mat-tab>
                                 <ng-template mat-tab-label>
                                     <mat-icon class="sd-subtab-icon">description</mat-icon>
@@ -487,7 +502,8 @@
                                             <span class="sd-chip"
                                                 [class.sd-chip--final]="detail.informe.estado === 'finalizado'"
                                                 [class.sd-chip--draft]="detail.informe.estado === 'borrador'">
-                                                {{ detail.informe.estado === 'finalizado' ? 'Finalizado' : 'Borrador' }}
+                                                {{ detail.informe.estado === 'finalizado' ? 'Finalizado' : 'Borrador'
+                                                }}
                                             </span>
                                             @if (detail.informe.confidencial) {
                                             <span class="sd-chip sd-chip--conf">
@@ -545,7 +561,7 @@
 </div>
 
 <ng-template #archivoRow let-a let-tab="tab">
-    <li class="sd-file-item" [class.is-conf]="a.confidencial">
+    <li class="sd-file-item" [class.is-conf]="a.confidencial" [class.is-expanded]="isPreviewing(a.id)">
         <mat-icon class="sd-file-item__icon" aria-hidden="true">{{ archivoIcon(a) }}</mat-icon>
         <div class="sd-file-item__body">
             <div class="sd-file-item__name">
@@ -566,6 +582,16 @@
             </p>
         </div>
         <div class="sd-file-item__actions">
+            @if (isPreviewable(a)) {
+            <button mat-icon-button (click)="togglePreview(a)"
+                [matTooltip]="isPreviewing(a.id) ? 'Cerrar vista previa' : 'Vista previa'">
+                @if (previewLoading().has(a.id)) {
+                <mat-spinner diameter="18" />
+                } @else {
+                <mat-icon>{{ isPreviewing(a.id) ? 'visibility_off' : 'visibility' }}</mat-icon>
+                }
+            </button>
+            }
             <button mat-icon-button (click)="downloadArchivo(a)" matTooltip="Descargar">
                 <mat-icon>download</mat-icon>
             </button>
@@ -573,5 +599,14 @@
                 <mat-icon>delete</mat-icon>
             </button>
         </div>
+        @if (isPreviewing(a.id)) {
+        <div class="sd-file-preview">
+            @if (isImage(a)) {
+            <img [src]="previewUrls().get(a.id)" [alt]="a.nombre" class="sd-file-preview__img" />
+            } @else {
+            <iframe [src]="safePreviewUrl(a.id)" class="sd-file-preview__iframe" title="Vista previa"></iframe>
+            }
+        </div>
+        }
     </li>
 </ng-template>

@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -30,15 +31,12 @@ import {
   type ArchivoCategoria,
 } from '../../../core/models/psychology';
 
-// Labels con Record<string,string> para indexar con tipo dinámico en el template
 const INFORME_TIPO_LABELS: Record<string, string> = {
   evaluacion: 'Evaluación psicológica',
   seguimiento: 'Reporte de seguimiento',
   derivacion_familia: 'Derivación a la familia',
   derivacion_externa: 'Derivación a especialista externo',
 };
-
-// ─── Interfaces locales ──────────────────────────────────────────
 
 interface StudentProfile {
   id: string;
@@ -66,14 +64,12 @@ interface CitaRow {
 }
 
 interface CitaDetail {
-  anotaciones: PsychologyRecord[];      // notas de texto de la sesión
-  archivos: ArchivoPsicologico[];    // archivos subidos en la sesión
+  anotaciones: PsychologyRecord[];
+  archivos: ArchivoPsicologico[];
   informe: InformePsicologico | null;
   loading: boolean;
   loaded: boolean;
 }
-
-// ─── Constantes ──────────────────────────────────────────────────
 
 const TAB_TESTS = 1;
 const TAB_INFORMES = 2;
@@ -89,16 +85,20 @@ const CITA_ESTADO_LABELS: Record<string, string | undefined> = {
   cancelada: 'Cancelada', no_asistio: 'No asistió', rechazada: 'Rechazada',
 };
 
-// ─── Componente ──────────────────────────────────────────────────
-
 @Component({
   selector: 'app-student-detail',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DatePipe, NgTemplateOutlet, RouterLink,
-    MatButtonModule, MatIconModule, MatTabsModule, MatExpansionModule,
-    MatProgressSpinnerModule, MatTooltipModule,
+    DatePipe,
+    NgTemplateOutlet,
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    MatTabsModule,
+    MatExpansionModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
     EmptyState,
   ],
   templateUrl: './student-detail.html',
@@ -109,43 +109,31 @@ export class StudentDetail implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly toastr = inject(ToastService);
   private readonly api = inject(ApiService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly studentId = computed(() => this.route.snapshot.paramMap.get('id') ?? '');
 
-  // ── Perfil ────────────────────────────────────────────────────
   readonly profile = signal<StudentProfile | null>(null);
   readonly loadingProfile = signal(true);
-
-  // ── Tabs lazy — tab 0 carga en ngOnInit ──────────────────────
   readonly tabVisited = signal([true, false, false, false]);
-
-  // ── Tab 0: Fichas (archivos subidos, categoria='ficha') ───────
   readonly fichaArchivos = signal<ArchivoPsicologico[]>([]);
   readonly loadingFichas = signal(false);
-
-  // ── Tab 1: Tests (archivos subidos, categoria='test') ─────────
   readonly testArchivos = signal<ArchivoPsicologico[]>([]);
   readonly loadingTests = signal(false);
-
-  // ── Tab 2: Informes (generados + subidos categoria='informe') ─
   readonly informesGenerados = signal<InformePsicologico[]>([]);
   readonly informesSubidos = signal<ArchivoPsicologico[]>([]);
   readonly loadingInformes = signal(false);
-
-  // ── Tab 3: Citas ──────────────────────────────────────────────
   readonly citas = signal<CitaRow[]>([]);
   readonly loadingCitas = signal(false);
   readonly totalCitas = signal(0);
-
-  // ── Detalle por cita (lazy al abrir acordeón) ─────────────────
   readonly citaDetails = signal<Map<string, CitaDetail>>(new Map());
+  readonly previewUrls = signal<Map<string, string>>(new Map());
+  readonly previewLoading = signal<Set<string>>(new Set());
 
-  // ── Labels ───────────────────────────────────────────────────
   readonly tipoLabels = INFORME_TIPO_LABELS;
   readonly citaTipoLabels = CITA_TIPO_LABELS;
   readonly citaEstadoLabels = CITA_ESTADO_LABELS;
 
-  // ── Counts derivados ─────────────────────────────────────────
   readonly fichasCount = computed(() => this.fichaArchivos().length);
   readonly testsCount = computed(() => this.testArchivos().length);
   readonly informesCount = computed(
@@ -155,20 +143,12 @@ export class StudentDetail implements OnInit {
     () => this.informesGenerados().filter(i => i.estado === 'finalizado').length,
   );
 
-  // ════════════════════════════════════════════════════════════
-  // LIFECYCLE
-  // ════════════════════════════════════════════════════════════
-
   ngOnInit(): void {
     const id = this.studentId();
     if (!id) return;
     void this.loadProfile(id);
-    void this.loadFichas(id);  // tab 0 carga inmediato
+    void this.loadFichas(id);
   }
-
-  // ════════════════════════════════════════════════════════════
-  // CARGA DE DATOS
-  // ════════════════════════════════════════════════════════════
 
   private async loadProfile(id: string): Promise<void> {
     this.loadingProfile.set(true);
@@ -242,10 +222,6 @@ export class StudentDetail implements OnInit {
     }
   }
 
-  // ════════════════════════════════════════════════════════════
-  // TABS — lazy loading
-  // ════════════════════════════════════════════════════════════
-
   onTabChange(index: number): void {
     const visited = [...this.tabVisited()];
     if (!visited[index]) {
@@ -260,10 +236,6 @@ export class StudentDetail implements OnInit {
     if (index === TAB_CITAS && !this.loadingCitas() && !this.citas().length)
       void this.loadCitas(id);
   }
-
-  // ════════════════════════════════════════════════════════════
-  // ACORDEÓN — detalle por cita (lazy)
-  // ════════════════════════════════════════════════════════════
 
   async onCitaExpand(cita: CitaRow): Promise<void> {
     if (cita.estado !== 'realizada') return;
@@ -301,10 +273,63 @@ export class StudentDetail implements OnInit {
     { anotaciones: [], archivos: [], informe: null, loading: false, loaded: false };
   }
 
-  // ════════════════════════════════════════════════════════════
-  // HELPERS DE PRESENTACIÓN
-  // ════════════════════════════════════════════════════════════
+  isPreviewing(archivoId: string): boolean {
+    return this.previewUrls().has(archivoId);
+  }
 
+  isPreviewable(a: ArchivoPsicologico): boolean {
+    const mime = (a.mimeType ?? '').toLowerCase();
+    const ext = (a.nombreOriginal ?? '').split('.').pop()?.toLowerCase() ?? '';
+    return mime.startsWith('image/') || mime === 'application/pdf' || ext === 'pdf';
+  }
+
+  isImage(a: ArchivoPsicologico): boolean {
+    return (a.mimeType ?? '').startsWith('image/');
+  }
+
+  safePreviewUrl(archivoId: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      this.previewUrls().get(archivoId) ?? '',
+    );
+  }
+
+  async togglePreview(a: ArchivoPsicologico): Promise<void> {
+    const current = new Map(this.previewUrls());
+    if (current.has(a.id)) {
+      current.delete(a.id);
+      this.previewUrls.set(current);
+      return;
+    }
+    const loading = new Set(this.previewLoading());
+    loading.add(a.id);
+    this.previewLoading.set(loading);
+    try {
+      const res = await firstValueFrom(
+        this.api.get<{ url: string }>(`psychology/archivos/${a.id}/preview-url`),
+      );
+
+      let previewUrl = res.data.url;
+
+      // Detectar si el archivo es un PDF
+      const isPdf = (a.mimeType ?? '').toLowerCase() === 'application/pdf' ||
+        (a.nombreOriginal ?? '').toLowerCase().endsWith('.pdf');
+
+      // Si es PDF, agregamos los parámetros para ocultar el panel lateral y ajustar el ancho
+      if (isPdf) {
+        previewUrl += previewUrl.includes('#') ? '&navpanes=0&view=FitH' : '#navpanes=0&view=FitH';
+      }
+
+      const m = new Map(this.previewUrls());
+      m.set(a.id, previewUrl);
+      this.previewUrls.set(m);
+    } catch {
+      this.toastr.error('No se pudo cargar la previsualización', 'Error');
+    } finally {
+      const l = new Set(this.previewLoading());
+      l.delete(a.id);
+      this.previewLoading.set(l);
+    }
+  }
   fullName(p: StudentProfile | null): string {
     if (!p) return '';
     return `${p.nombre} ${p.apellidoPaterno}${p.apellidoMaterno ? ' ' + p.apellidoMaterno : ''}`;
@@ -346,10 +371,6 @@ export class StudentDetail implements OnInit {
     if (b < 1_048_576) return `${(b / 1_024).toFixed(1)} KB`;
     return `${(b / 1_048_576).toFixed(2)} MB`;
   }
-
-  // ════════════════════════════════════════════════════════════
-  // ARCHIVOS (fichas, tests, informes subidos)
-  // ════════════════════════════════════════════════════════════
 
   openUploadArchivo(categoria: ArchivoCategoria, citaId?: string): void {
     const p = this.profile();
@@ -406,10 +427,6 @@ export class StudentDetail implements OnInit {
     });
   }
 
-  // ════════════════════════════════════════════════════════════
-  // INFORMES GENERADOS
-  // ════════════════════════════════════════════════════════════
-
   openCreateInforme(citaId?: string): void {
     const p = this.profile();
     if (!p) return;
@@ -464,10 +481,6 @@ export class StudentDetail implements OnInit {
     });
   }
 
-  // ════════════════════════════════════════════════════════════
-  // ANOTACIONES DE SESIÓN (PsychologyRecord dentro de cita)
-  // ════════════════════════════════════════════════════════════
-
   openCreateAnotacion(citaId: string): void {
     const p = this.profile();
     if (!p) return;
@@ -504,10 +517,6 @@ export class StudentDetail implements OnInit {
     });
   }
 
-  // ════════════════════════════════════════════════════════════
-  // NUEVA CITA
-  // ════════════════════════════════════════════════════════════
-
   async openNuevaCita(): Promise<void> {
     const p = this.profile();
     if (!p) return;
@@ -522,10 +531,6 @@ export class StudentDetail implements OnInit {
       if (ok && this.tabVisited()[TAB_CITAS]) void this.loadCitas(this.studentId());
     });
   }
-
-  // ════════════════════════════════════════════════════════════
-  // MARCAR CITA REALIZADA
-  // ════════════════════════════════════════════════════════════
 
   marcarRealizada(cita: CitaRow): void {
     const fechaLabel = new Date(cita.scheduledAt).toLocaleDateString('es-PE', {
@@ -543,10 +548,6 @@ export class StudentDetail implements OnInit {
       } catch { this.toastr.error('No se pudo actualizar la cita', 'Error'); }
     });
   }
-
-  // ════════════════════════════════════════════════════════════
-  // HELPERS PRIVADOS
-  // ════════════════════════════════════════════════════════════
 
   private toArr<T = any>(res: any): T[] {
     const b = res?.data ?? res;

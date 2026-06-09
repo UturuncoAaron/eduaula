@@ -1,48 +1,70 @@
-<div class="lc-dialog">
+<div class="lc-dialog-container">
+
   <header class="lc-header">
-    <h2>
-      <mat-icon>video_call</mat-icon>
-      {{ isEdit ? 'Editar videoconferencia' : 'Programar videoconferencia' }}
-    </h2>
-    <button mat-icon-button (click)="cerrar()" aria-label="Cerrar">
+    <div class="lc-title-group">
+      <div class="icon-wrapper">
+        <mat-icon>video_camera_front</mat-icon>
+      </div>
+      <div>
+        <h2 mat-dialog-title class="lc-title">
+          {{ isEdit ? 'Editar videoconferencia' : 'Programar videoconferencia' }}
+        </h2>
+        <p class="lc-subtitle">Configura los detalles de la clase en vivo</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="cerrar()" aria-label="Cerrar" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
   </header>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="lc-form">
-    <mat-form-field appearance="outline">
-      <mat-label>Título</mat-label>
-      <input matInput formControlName="titulo" placeholder="Ej. Repaso de funciones cuadráticas" />
-    </mat-form-field>
+  <mat-dialog-content class="lc-content">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="lc-form" autocomplete="off">
 
-    <mat-form-field appearance="outline">
-      <mat-label>Descripción (opcional)</mat-label>
-      <textarea matInput formControlName="descripcion" rows="2"></textarea>
-    </mat-form-field>
-
-    <div class="row-2">
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha y hora</mat-label>
-        <input matInput type="datetime-local" formControlName="fecha_hora" />
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Título de la sesión</mat-label>
+        <input matInput formControlName="titulo" placeholder="Ej. Repaso de funciones cuadráticas" />
+        <mat-icon matPrefix>title</mat-icon>
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Duración (min)</mat-label>
-        <input matInput type="number" min="10" step="5" formControlName="duracion_min" />
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción (Opcional)</mat-label>
+        <textarea matInput formControlName="descripcion" rows="3"
+          placeholder="Detalles de lo que se verá en la clase..."></textarea>
       </mat-form-field>
-    </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Enlace de reunión (Meet, Zoom, Teams)</mat-label>
-      <input matInput formControlName="link_reunion" placeholder="https://meet.google.com/..." />
-    </mat-form-field>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha y hora</mat-label>
+          <input matInput type="datetime-local" formControlName="fecha_hora" />
+        </mat-form-field>
 
-    <footer class="lc-actions">
-      <button mat-stroked-button type="button" (click)="cerrar()" [disabled]="loading()">Cancelar</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
-        <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
-        {{ isEdit ? 'Guardar cambios' : 'Programar' }}
-      </button>
-    </footer>
-  </form>
+        <mat-form-field appearance="outline">
+          <mat-label>Duración (Minutos)</mat-label>
+          <input matInput type="number" min="10" step="5" formControlName="duracion_min" />
+          <mat-icon matPrefix>timer</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Enlace de la reunión</mat-label>
+        <input matInput formControlName="link_reunion" placeholder="https://meet.google.com/..." />
+        <mat-icon matPrefix>link</mat-icon>
+      </mat-form-field>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="lc-actions">
+    <button mat-button (click)="cerrar()" [disabled]="loading()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="form.invalid || loading()">
+      @if(loading()) {<ng-container>
+        <mat-icon class="spin">autorenew</mat-icon>
+        <span>Guardando...</span>
+      </ng-container>} @else {<ng-container>
+        <mat-icon>{{ isEdit ? 'save' : 'event_available' }}</mat-icon>
+        <span>{{ isEdit ? 'Guardar cambios' : 'Programar sesión' }}</span>
+      </ng-container>}
+    </button>
+  </mat-dialog-actions>
+
 </div>

@@ -3,14 +3,14 @@
         <div class="aud__heading">
             <div class="aud__icon-wrap">
                 <mat-icon aria-hidden="true">
-                    {{ data.categoria === 'ficha' ? 'folder_special' : 'science' }}
+                    {{ data.categoria === 'ficha' ? 'folder_special' : data.categoria === 'test' ? 'science' :
+                    'description' }}
                 </mat-icon>
             </div>
             <div class="aud__heading-text">
                 <h2 class="aud__title">{{ tituloModal() }}</h2>
                 <p class="aud__subtitle">
-                    {{ subtituloModal() }} —
-                    <strong>{{ data.studentName }}</strong>
+                    {{ subtituloModal() }} — <strong>{{ data.studentName }}</strong>
                 </p>
             </div>
         </div>
@@ -20,98 +20,106 @@
         </button>
     </header>
 
-    <div class="aud__body" mat-dialog-content>
+    <mat-dialog-content class="aud__body">
 
-        <!-- ── Dropzone ────────────────────────────────────────── -->
-        <div class="aud__drop" [class.is-over]="dragOver()" [class.has-file]="!!file()"
-            (dragenter)="onDragEnter($event)" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
-            (drop)="onDrop($event)">
-            @if (!file()) {
-            <input #picker type="file" class="aud__file-input" (change)="onFilePicked($event)"
-                [disabled]="uploading()" />
-            <mat-icon class="aud__drop-icon" aria-hidden="true">cloud_upload</mat-icon>
-            <p class="aud__drop-title">Arrastra tu archivo aquí</p>
-            <p class="aud__drop-hint">
-                o
-                <button mat-button color="primary" type="button" (click)="picker.click()" [disabled]="uploading()">
-                    selecciónalo desde tu equipo
-                </button>
-            </p>
-            <p class="aud__drop-limit">
-                Hasta {{ (maxBytes / 1024 / 1024) | number:'1.0-0' }} MB · Cualquier tipo de archivo
-            </p>
-            } @else {
-            <div class="aud__file-card">
-                <mat-icon class="aud__file-icon" aria-hidden="true">{{ fileIcon() }}</mat-icon>
-                <div class="aud__file-info">
-                    <p class="aud__file-name">{{ file()?.name }}</p>
-                    <p class="aud__file-meta">{{ fileSizeLabel() }}</p>
+        <div class="aud__wrapper">
+
+            <section class="aud__section">
+                @if (!file()) {
+                <div class="aud__dropzone" [class.is-over]="dragOver()" (dragenter)="onDragEnter($event)"
+                    (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+
+                    <input #picker type="file" class="aud__file-input" (change)="onFilePicked($event)"
+                        [disabled]="uploading()" />
+                    <mat-icon class="aud__drop-icon" aria-hidden="true">cloud_upload</mat-icon>
+                    <p class="aud__drop-title">Arrastra tu archivo aquí</p>
+                    <p class="aud__drop-hint">
+                        o <button mat-button color="primary" type="button" (click)="picker.click()"
+                            [disabled]="uploading()">selecciónalo desde tu equipo</button>
+                    </p>
+                    <p class="aud__drop-limit">Hasta {{ (maxBytes / 1024 / 1024) | number:'1.0-0' }} MB · Cualquier
+                        formato</p>
                 </div>
-                <button mat-icon-button type="button" class="aud__file-remove" (click)="clearFile()"
-                    [disabled]="uploading()" aria-label="Quitar archivo">
-                    <mat-icon>close</mat-icon>
-                </button>
-            </div>
-            }
-        </div>
+                } @else {
+                <div class="aud__file-card">
+                    <div class="aud__file-icon-box">
+                        <mat-icon aria-hidden="true">{{ fileIcon() }}</mat-icon>
+                    </div>
+                    <div class="aud__file-info">
+                        <p class="aud__file-name">{{ file()?.name }}</p>
+                        <p class="aud__file-meta">{{ fileSizeLabel() }}</p>
+                    </div>
+                    <button mat-icon-button type="button" class="aud__file-remove" (click)="clearFile()"
+                        [disabled]="uploading()" matTooltip="Quitar archivo">
+                        <mat-icon>delete_outline</mat-icon>
+                    </button>
+                </div>
+                }
+            </section>
 
-        <!-- ── Formulario ──────────────────────────────────────── -->
-        <div class="aud__fields">
-            <mat-form-field appearance="outline" class="aud__field">
-                <mat-label>Nombre</mat-label>
-                <input matInput type="text" maxlength="255" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)"
-                    [disabled]="uploading()" placeholder="Ej: Anamnesis inicial, WISC-V resultados…" />
-                <mat-hint align="end">{{ nombre().length }} / 255</mat-hint>
-            </mat-form-field>
+            <section class="aud__section aud__form-section">
+                <mat-form-field appearance="outline" class="aud__field">
+                    <mat-label>Nombre del documento</mat-label>
+                    <input matInput type="text" maxlength="255" [ngModel]="nombre()"
+                        (ngModelChange)="nombre.set($event)" [disabled]="uploading()"
+                        placeholder="Ej: Anamnesis inicial, WISC-V resultados…" />
+                    <mat-hint align="end">{{ nombre().length }} / 255</mat-hint>
+                </mat-form-field>
 
-            <mat-form-field appearance="outline" class="aud__field">
-                <mat-label>Descripción (opcional)</mat-label>
-                <textarea matInput rows="3" maxlength="500" [ngModel]="descripcion()"
-                    (ngModelChange)="descripcion.set($event)" [disabled]="uploading()"
-                    placeholder="Contexto, fecha de aplicación, observaciones…"></textarea>
-                <mat-hint align="end">{{ descripcion().length }} / 500</mat-hint>
-            </mat-form-field>
+                <mat-form-field appearance="outline" class="aud__field">
+                    <mat-label>Descripción (opcional)</mat-label>
+                    <textarea matInput rows="3" maxlength="500" [ngModel]="descripcion()"
+                        (ngModelChange)="descripcion.set($event)" [disabled]="uploading()"
+                        placeholder="Añade contexto, observaciones relevantes…"></textarea>
+                    <mat-hint align="end">{{ descripcion().length }} / 500</mat-hint>
+                </mat-form-field>
 
-            <!-- ── Visibilidad ─────────────────────────────────────── -->
-            <div class="aud__visibility" [class.is-confidential]="confidencial()">
-                <mat-slide-toggle color="primary" [checked]="confidencial()" (change)="confidencial.set($event.checked)"
-                    [disabled]="uploading()">
-                    <span class="aud__visibility-label">
-                        <mat-icon aria-hidden="true">
-                            {{ confidencial() ? 'lock' : 'public' }}
-                        </mat-icon>
-                        <strong>{{ confidencial() ? 'Confidencial' : 'Visible para padres' }}</strong>
-                    </span>
-                </mat-slide-toggle>
-                <p class="aud__visibility-hint">
-                    @if (confidencial()) {
-                    Solo el alumno y tú verán este archivo.
+                <div class="aud__visibility" [class.is-confidential]="confidencial()">
+                    <mat-slide-toggle color="primary" [checked]="confidencial()"
+                        (change)="confidencial.set($event.checked)" [disabled]="uploading()">
+                        <span class="aud__visibility-label">
+                            <mat-icon aria-hidden="true">{{ confidencial() ? 'lock' : 'public' }}</mat-icon>
+                            <strong>{{ confidencial() ? 'Confidencial (Solo tú y el alumno)' : 'Público (Visible para padres)' }}</strong>
+                        </span>
+                    </mat-slide-toggle>
+                </div>
+
+                @if (error()) {
+                <div class="aud__error" role="alert">
+                    <mat-icon aria-hidden="true">error_outline</mat-icon>
+                    <span>{{ error() }}</span>
+                </div>
+                }
+            </section>
+
+            @if (isPreviewable() && previewObjectUrl()) {
+            <section class="aud__section aud__preview-wrapper">
+                <div class="aud__preview-header">
+                    <mat-icon>visibility</mat-icon>
+                    <span>Vista previa del documento</span>
+                </div>
+                <div class="aud__preview-content">
+                    @if (isImagePreview()) {
+                    <img [src]="previewObjectUrl()" alt="Vista previa" class="aud__preview__img" />
                     } @else {
-                    El alumno y sus padres podrán verlo desde su portal.
+                    <iframe [src]="safePdfUrl()" class="aud__preview__iframe" title="Vista previa"></iframe>
                     }
-                </p>
-            </div>
-
-            @if (error()) {
-            <div class="aud__error" role="alert">
-                <mat-icon aria-hidden="true">error_outline</mat-icon>
-                <span>{{ error() }}</span>
-            </div>
+                </div>
+            </section>
             }
+
         </div>
-    </div>
+    </mat-dialog-content>
 
     @if (uploading()) {
-    <mat-progress-bar mode="indeterminate" />
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     }
 
-    <footer class="aud__footer" mat-dialog-actions>
-        <button mat-stroked-button type="button" [disabled]="uploading()" (click)="cancel()">
-            Cancelar
-        </button>
+    <mat-dialog-actions align="end" class="aud__footer">
+        <button mat-button type="button" [disabled]="uploading()" (click)="cancel()">Cancelar</button>
         <button mat-flat-button color="primary" type="button" [disabled]="!canSubmit()" (click)="submit()">
-            <mat-icon>upload</mat-icon>
-            <span>{{ uploading() ? 'Subiendo…' : 'Subir archivo' }}</span>
+            <mat-icon>cloud_upload</mat-icon>
+            <span>{{ uploading() ? 'Subiendo archivo…' : 'Subir archivo' }}</span>
         </button>
-    </footer>
+    </mat-dialog-actions>
 </div>

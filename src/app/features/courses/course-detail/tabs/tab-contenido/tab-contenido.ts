@@ -340,13 +340,23 @@ export class TabContenido implements OnInit {
 
   async abrirCrearLiveClass(): Promise<void> {
     const { LiveClassFormDialog } = await import('../../live-class-form-dialog/live-class-form-dialog');
-    const ref = this.dialog.open(LiveClassFormDialog, formDrawerConfig({ courseId: this.courseId() }, 'md'));
+    const ref = this.dialog.open(LiveClassFormDialog, {
+      data: { courseId: this.courseId() },
+      width: '550px',
+      maxWidth: '95vw'
+    });
+
     ref.afterClosed().subscribe(r => { if (r) this.refreshLiveClasses(); });
   }
 
   async abrirEditarLiveClass(lc: LiveClass): Promise<void> {
     const { LiveClassFormDialog } = await import('../../live-class-form-dialog/live-class-form-dialog');
-    const ref = this.dialog.open(LiveClassFormDialog, formDrawerConfig({ courseId: this.courseId(), liveClass: lc }, 'md'));
+    const ref = this.dialog.open(LiveClassFormDialog, {
+      data: { courseId: this.courseId(), liveClass: lc },
+      width: '550px',
+      maxWidth: '95vw'
+    });
+
     ref.afterClosed().subscribe(r => { if (r) this.refreshLiveClasses(); });
   }
 
