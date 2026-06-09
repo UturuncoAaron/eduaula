@@ -35,6 +35,12 @@ export class StudentPortalStore {
         );
     }
 
+    getArchivoPreviewUrl(archivoId: string): Observable<{ url: string }> {
+        return this.api.get<{ url: string }>(`student/psicologia/archivos/${archivoId}/preview`).pipe(
+            map(r => r.data),
+        );
+    }
+
     getInformePdfUrl(informeId: string): string {
         return `${this.api.base}/student/psicologia/informes/${informeId}/pdf`;
     }

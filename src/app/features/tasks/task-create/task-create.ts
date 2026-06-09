@@ -151,6 +151,10 @@ export class TaskCreate implements OnInit {
     return arr ? ((arr.at(oi) as FormGroup) ?? null) : null;
   }
 
+  getTipoPregunta(pi: number): TipoPregunta {
+    return this.getPreguntaGroup(pi)?.get('tipo')?.value ?? 'multiple';
+  }
+
   private redistribuirPuntos() {
     const n = this.preguntasArray.length;
     if (n === 0) { this.totalPuntos.set(0); return; }
@@ -202,12 +206,11 @@ export class TaskCreate implements OnInit {
     const opciones = this.getOpcionesArray(pi);
     if (!grupo || !opciones) return;
     opciones.clear();
-    const tipo: TipoPregunta = grupo.value.tipo;
+    const tipo: TipoPregunta = grupo.get('tipo')?.value;
     if (tipo === 'verdadero_falso') {
       opciones.push(this.newOpcion('Verdadero', true));
       opciones.push(this.newOpcion('Falso', false));
     } else {
-      // 'multiple' y 'unica' arrancan con 4 opciones en blanco
       [0, 1, 2, 3].forEach(() => opciones.push(this.newOpcion('')));
     }
   }
@@ -216,7 +219,7 @@ export class TaskCreate implements OnInit {
     const opciones = this.getOpcionesArray(pi);
     if (!opciones) return;
     opciones.controls.forEach((ctrl, i) => {
-      (ctrl as FormGroup).get('es_correcta')?.setValue(i === oi, { emitEvent: false });
+      (ctrl as FormGroup).get('es_correcta')?.setValue(i === oi);
     });
   }
 
@@ -361,6 +364,6 @@ export class TaskCreate implements OnInit {
     this.loading.set(false);
     this.toastr.success('Tarea creada correctamente', 'Éxito');
     if (this.dialogRef) this.dialogRef.close(true);
-    else this.router.navigate(['/tareas']);
+    else this.router.navigate(['/dashboard']);
   }
 }

@@ -1,9 +1,8 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -15,10 +14,15 @@ import { PageHeader } from '../../../shared/components/page-header/page-header';
 
 @Component({
   selector: 'app-task-take',
+  standalone: true,
   imports: [
-    MatCardModule, MatButtonModule, MatRadioModule,
-    MatProgressBarModule, MatIconModule, MatProgressSpinnerModule,
-    FormsModule, PageHeader,
+    MatCardModule,
+    MatButtonModule,
+    MatProgressBarModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    FormsModule,
+    PageHeader,
   ],
   templateUrl: './task-take.html',
   styleUrl: './task-take.scss',
@@ -29,6 +33,7 @@ export class TaskTake implements OnInit {
   private location = inject(Location);
   private taskSvc = inject(TaskService);
   private toastr = inject(ToastService);
+  private router = inject(Router);
 
   taskId = this.route.snapshot.paramMap.get('id')!;
 
@@ -52,39 +57,57 @@ export class TaskTake implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.toastr.success('No se pudo cargar la tarea', 'Error');
+        this.toastr.error('No se pudo cargar la tarea', 'Error');
         this.loading.set(false);
         this.location.back();
       },
     });
   }
 
-  selectAnswer(preguntaId: string, opcionId: string) {
-    this.answers.update(a => ({ ...a, [preguntaId]: opcionId }));
+  // Nueva lógica que permite marcar y desmarcar
+  toggleAnswer(preguntaId: string, opcionId: string) {
+    this.answers.update(a => {
+      const newAnswers = { ...a };
+      if (newAnswers[preguntaId] === opcionId) {
+        delete newAnswers[preguntaId];
+      } else {
+        newAnswers[preguntaId] = opcionId;
+      }
+      return newAnswers;
+    });
   }
 
   submit() {
     const q = this.questions().length;
     const a = Object.keys(this.answers()).length;
+
     if (a < q) {
-      this.toastr.success(`Faltan ${q - a} preguntas por responder`, 'Aviso');
+      this.toastr.warning(`Faltan ${q - a} preguntas por responder`, 'Aviso');
       return;
     }
+
     this.submitting.set(true);
     const respuestas = Object.entries(this.answers())
       .map(([pregunta_id, opcion_id]) => ({ pregunta_id, opcion_id }));
 
     this.taskSvc.submitAlternativas(this.taskId, respuestas).subscribe({
-      next: r => {
-        const data: any = r.data;
-        const score = data?.calificacion_auto ?? data?.submission?.calificacion_auto ?? '—';
-        this.toastr.success(`Tarea enviada. Puntaje: ${score}`, 'Éxito');
+      next: () => {
+        this.toastr.success('Tarea enviada correctamente', 'Éxito');
         this.location.back();
       },
       error: () => {
-        this.toastr.success('Error al enviar la tarea', 'Error');
+        this.toastr.error('Error al enviar la tarea', 'Error');
         this.submitting.set(false);
       },
     });
+  }
+
+  goBack() {
+    const t = this.task();
+    if (t?.curso_id) {
+      this.router.navigate(['/cursos', t.curso_id, 'actividades']);
+    } else {
+      this.location.back();
+    }
   }
 }

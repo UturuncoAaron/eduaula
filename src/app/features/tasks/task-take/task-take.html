@@ -1,57 +1,78 @@
 <app-page-header [title]="task()?.titulo ?? 'Tarea interactiva'"
-    [subtitle]="task() ? (task()!.curso ?? '') + ' · ' + task()!.puntos_max + ' pts' : ''" backRoute="/tareas" />
+    [subtitle]="task() ? (task()!.curso ?? '') + ' · ' + task()!.puntos_max + ' pts' : ''" (backClick)="goBack()" />
 
-@if (loading()) {
-<div class="loading-center">
-    <mat-spinner diameter="40" />
-    <p>Cargando tarea...</p>
-</div>
-} @else if (task()) {
-@if (task()!.instrucciones) {
-<div class="instrucciones">
-    <mat-icon>info</mat-icon>
-    <p>{{ task()!.instrucciones }}</p>
-</div>
-}
-
-<div class="progress-bar">
-    <div class="progress-info">
-        <span>{{ objectKeys(answers()).length }} / {{ questions().length }} respondidas</span>
-        <span>{{ progress() }}%</span>
+<div class="task-layout">
+    @if (loading()) {
+    <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Preparando tu actividad...</p>
     </div>
-    <mat-progress-bar mode="determinate" [value]="progress()" />
-</div>
+    } @else if (task()) {
 
-<div class="questions-list">
-    @for (q of questions(); track q.id; let i = $index) {
-    <mat-card class="question-card" [class.answered]="answers()[q.id]">
-        <mat-card-content>
-            <p class="question-text">
-                <span class="q-num">{{ i + 1 }}</span>
-                {{ q.enunciado }}
-                <span class="pts">({{ q.puntos }} pt)</span>
-            </p>
-            <mat-radio-group [value]="answers()[q.id]" (change)="selectAnswer(q.id, $event.value)"
-                class="options-group">
-                @for (o of q.opciones ?? []; track o.id) {
-                <mat-radio-button [value]="o.id" class="option">
-                    {{ o.texto }}
-                </mat-radio-button>
-                }
-            </mat-radio-group>
-        </mat-card-content>
-    </mat-card>
+    <div class="task-content">
+        @if (task()!.instrucciones) {
+        <div class="info-banner">
+            <mat-icon class="icon">info</mat-icon>
+            <p>{{ task()!.instrucciones }}</p>
+        </div>
+        }
+
+        <div class="progress-dashboard">
+            <div class="stats">
+                <span class="label">Preguntas respondidas</span>
+                <span class="count">{{ objectKeys(answers()).length }} / {{ questions().length }}</span>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="progress()"></mat-progress-bar>
+        </div>
+
+        <div class="question-feed">
+            @for (q of questions(); track q.id; let i = $index) {
+            <div class="question-container" [class.is-completed]="answers()[q.id]">
+                <div class="question-header">
+                    <div class="number-badge">{{ i + 1 }}</div>
+                    <h3 class="statement">{{ q.enunciado }}</h3>
+                    <div class="points-badge">{{ q.puntos }} pts</div>
+                </div>
+
+                <div class="options-grid">
+                    @for (o of q.opciones ?? []; track o.id) {
+                    <div class="option-tile" [class.is-selected]="answers()[q.id] === o.id"
+                        (click)="toggleAnswer(q.id, o.id)">
+
+                        <div class="custom-radio">
+                            <div class="radio-inner"></div>
+                        </div>
+                        <span class="option-text">{{ o.texto }}</span>
+
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+        <div class="action-footer">
+            <div class="status-message">
+                @if (objectKeys(answers()).length < questions().length) { <mat-icon class="icon-warning">
+                    pending_actions</mat-icon>
+                    <span>Aún faltan <strong>{{ questions().length - objectKeys(answers()).length }}</strong>
+                        preguntas.</span>
+                    } @else {
+                    <mat-icon class="icon-success">check_circle</mat-icon>
+                    <span>¡Excelente! Has respondido todo.</span>
+                    }
+            </div>
+
+            <button mat-flat-button class="btn-submit" (click)="submit()" [disabled]="submitting()">
+                @if (submitting()) {
+                <mat-spinner diameter="20" class="spinner"></mat-spinner>
+                Enviando...
+                } @else { <ng-container>
+                    <mat-icon>send</mat-icon>
+                    Enviar respuestas
+                </ng-container>}
+            </button>
+        </div>
+    </div>
     }
 </div>
-
-<div class="submit-area">
-    <span class="submit-hint">
-        @if (objectKeys(answers()).length < questions().length) { Faltan {{ questions().length -
-            objectKeys(answers()).length }} preguntas } @else { ¡Todo respondido! Puedes enviar. }
-    </span>
-    <button mat-flat-button color="primary" (click)="submit()" [disabled]="submitting()">
-        <mat-icon>send</mat-icon>
-        {{ submitting() ? 'Enviando...' : 'Enviar tarea' }}
-    </button>
-</div>
-}

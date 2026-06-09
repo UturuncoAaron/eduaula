@@ -1,105 +1,156 @@
 <app-page-header title="Mi Psicología" subtitle="Documentos e informes compartidos por tu psicóloga" />
 
-<!-- Tabs -->
-<div class="tab-bar">
-    @for (tab of tabs; track tab.id) {
-    <button class="tab-btn" [class.tab-btn--active]="activeTab() === tab.id" (click)="selectTab(tab.id)">
-        <mat-icon>{{ tab.icon }}</mat-icon>
-        <span>{{ tab.label }}</span>
-    </button>
+<div class="page-container">
+    <div class="tabs-wrapper">
+        <div class="tabs-container">
+            @for (tab of tabs; track tab.id) {
+            <button class="tab-btn" [class.active]="activeTab() === tab.id" (click)="selectTab(tab.id)">
+                <mat-icon class="tab-icon">{{ tab.icon }}</mat-icon>
+                <span class="tab-label">{{ tab.label }}</span>
+            </button>
+            }
+        </div>
+    </div>
+
+    @if (activeTab() === 'fichas') {
+        @if (loadingFichas()) {
+        <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Cargando tus fichas...</p>
+        </div>
+        } @else if (fichas().length === 0) {
+        <app-empty-state icon="folder_special" title="Sin fichas"
+            message="Tu psicóloga aún no ha compartido fichas contigo." />
+        } @else {
+        <div class="content-grid">
+            @for (archivo of fichas(); track trackById($index, archivo)) {
+            <ng-container *ngTemplateOutlet="archivoCard; context: { archivo: archivo, tipo: 'fichas' }"></ng-container>
+            }
+        </div>
+        }
+    }
+
+    @if (activeTab() === 'tests') {
+        @if (loadingTests()) {
+        <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Cargando tests...</p>
+        </div>
+        } @else if (tests().length === 0) {
+        <app-empty-state icon="science" title="Sin tests"
+            message="Tu psicóloga aún no ha compartido tests contigo." />
+        } @else {
+        <div class="content-grid">
+            @for (archivo of tests(); track trackById($index, archivo)) {
+            <ng-container *ngTemplateOutlet="archivoCard; context: { archivo: archivo, tipo: 'tests' }"></ng-container>
+            }
+        </div>
+        }
+    }
+
+    @if (activeTab() === 'informes') {
+        @if (loadingInformes()) {
+        <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Cargando informes...</p>
+        </div>
+        } @else if (informes().length === 0) {
+        <app-empty-state icon="description" title="Sin informes"
+            message="Tu psicóloga aún no ha compartido informes contigo." />
+        } @else {
+        <div class="content-grid">
+            @for (informe of informes(); track trackById($index, informe)) {
+            <div class="doc-card">
+                <div class="doc-card__header">
+                    <div class="icon-wrapper bg-purple">
+                        <mat-icon>description</mat-icon>
+                    </div>
+                    <div class="doc-info">
+                        <h3 class="doc-title">{{ informe.titulo }}</h3>
+                        <div class="doc-meta-row">
+                            <span class="meta-item">
+                                <mat-icon>person</mat-icon> {{ informe.psicologaNombre }}
+                            </span>
+                            @if (informe.finalizadoAt) {
+                            <span class="meta-separator">•</span>
+                            <span class="meta-item">
+                                <mat-icon>event</mat-icon> {{ informe.finalizadoAt | date:'dd MMM yyyy' }}
+                            </span>
+                            }
+                        </div>
+                    </div>
+                    <div class="doc-actions">
+                        <button mat-stroked-button color="primary" class="btn-action"
+                            matTooltip="Abrir PDF" (click)="verInformePdf(informe)">
+                            <mat-icon>open_in_new</mat-icon> Abrir
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        }
     }
 </div>
 
-<!-- ═══ TAB: DOCUMENTOS ═══════════════════════════════════════════════ -->
-@if (activeTab() === 'documentos') {
-
-@if (loadingArchivos()) {
-<div class="state-center">
-    <mat-spinner diameter="36" />
-    <p>Cargando documentos...</p>
-</div>
-
-} @else if (archivos().length === 0) {
-<app-empty-state icon="folder_open" title="Sin documentos"
-    message="Tu psicóloga aún no ha compartido documentos contigo." />
-
-} @else {
-<div class="archivo-grid">
-    @for (archivo of archivos(); track trackById($index, archivo)) {
-    <div class="archivo-card" matRipple>
-        <div class="archivo-card__icon" [style.color]="mimeColor(archivo.mimeType)">
-            <mat-icon>{{ mimeIcon(archivo.mimeType) }}</mat-icon>
-        </div>
-
-        <div class="archivo-card__body">
-            <span class="archivo-nombre">{{ archivo.nombre }}</span>
-            @if (archivo.descripcion) {
-            <span class="archivo-desc">{{ archivo.descripcion }}</span>
-            }
-            <div class="archivo-meta">
-                <span class="categoria-badge categoria-badge--{{ archivo.categoria }}">
-                    {{ categoriaLabel[archivo.categoria] }}
-                </span>
-                @if (archivo.sizeBytes) {
-                <span class="meta-text">{{ formatBytes(archivo.sizeBytes) }}</span>
+<ng-template #archivoCard let-archivo="archivo" let-tipo="tipo">
+    <div class="doc-card" [class.is-expanded]="archivo.expandido">
+        <div class="doc-card__header" (click)="toggleArchivo(archivo, tipo)">
+            <div class="icon-wrapper"
+                [style.color]="mimeColor(archivo.mimeType)"
+                [style.background-color]="mimeBgColor(archivo.mimeType)">
+                <mat-icon>{{ mimeIcon(archivo.mimeType) }}</mat-icon>
+            </div>
+            <div class="doc-info">
+                <h3 class="doc-title">{{ archivo.nombre }}</h3>
+                @if (archivo.descripcion) {
+                <p class="doc-desc">{{ archivo.descripcion }}</p>
                 }
-                <span class="meta-text">{{ archivo.createdAt | date:'dd MMM yyyy' }}</span>
+                <div class="doc-meta-row">
+                    @if (archivo.sizeBytes) {
+                    <span class="meta-pill">{{ formatBytes(archivo.sizeBytes) }}</span>
+                    }
+                    <span class="meta-text">{{ archivo.createdAt | date:'dd MMM yyyy' }}</span>
+                </div>
+            </div>
+            <div class="doc-actions">
+                <button mat-icon-button class="action-btn download-btn"
+                    [matTooltip]="'Descargar'"
+                    [disabled]="downloadingId() === archivo.id"
+                    (click)="$event.stopPropagation(); descargarArchivo(archivo)">
+                    @if (downloadingId() === archivo.id) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                    <mat-icon>file_download</mat-icon>
+                    }
+                </button>
+                @if (esPrevisualizble(archivo.mimeType)) {
+                <button mat-icon-button class="action-btn toggle-btn"
+                    (click)="$event.stopPropagation(); toggleArchivo(archivo, tipo)">
+                    <mat-icon>{{ archivo.expandido ? 'keyboard_arrow_up' : 'visibility' }}</mat-icon>
+                </button>
+                }
             </div>
         </div>
 
-        <button mat-icon-button class="archivo-card__action" [matTooltip]="'Descargar'"
-            [disabled]="downloadingId() === archivo.id" (click)="descargarArchivo(archivo)">
-            @if (downloadingId() === archivo.id) {
-            <mat-spinner diameter="20" />
-            } @else {
-            <mat-icon>download</mat-icon>
-            }
-        </button>
-    </div>
-    }
-</div>
-}
-}
-
-<!-- ═══ TAB: INFORMES ════════════════════════════════════════════════ -->
-@if (activeTab() === 'informes') {
-
-@if (loadingInformes()) {
-<div class="state-center">
-    <mat-spinner diameter="36" />
-    <p>Cargando informes...</p>
-</div>
-
-} @else if (informes().length === 0) {
-<app-empty-state icon="description" title="Sin informes"
-    message="Tu psicóloga aún no ha compartido informes contigo." />
-
-} @else {
-<div class="informe-list">
-    @for (informe of informes(); track trackById($index, informe)) {
-    <div class="informe-card">
-        <div class="informe-card__icon">
-            <mat-icon>description</mat-icon>
-        </div>
-
-        <div class="informe-card__body">
-            <span class="informe-titulo">{{ informe.titulo }}</span>
-            <span class="informe-tipo">{{ tipoLabel[informe.tipo] || informe.tipo }}</span>
-            <div class="informe-meta">
-                <mat-icon class="meta-icon">person</mat-icon>
-                <span class="meta-text">{{ informe.psicologaNombre }}</span>
-                @if (informe.finalizadoAt) {
-                <mat-icon class="meta-icon">event</mat-icon>
-                <span class="meta-text">{{ informe.finalizadoAt | date:'dd MMM yyyy' }}</span>
-                }
+        @if (archivo.expandido) {
+        <div class="doc-card__viewer" (click)="$event.stopPropagation()">
+            @if (archivo.loadingPreview) {
+            <div class="viewer-loading">
+                <mat-spinner diameter="32"></mat-spinner>
+                <span>Cargando documento...</span>
             </div>
+            } @else if (esPdf(archivo.mimeType) && getPreviewUrl(archivo.id)) {
+            <div class="pdf-container">
+                <iframe [src]="getPreviewUrl(archivo.id)" class="pdf-viewer"
+                    title="{{ archivo.nombre }}"></iframe>
+            </div>
+            } @else if (esImagen(archivo.mimeType) && getPreviewUrl(archivo.id)) {
+            <div class="image-container">
+                <img [src]="getPreviewUrl(archivo.id)" [alt]="archivo.nombre" class="preview-img" />
+            </div>
+            }
         </div>
-
-        <button mat-icon-button class="informe-card__action" matTooltip="Ver PDF" (click)="verInformePdf(informe)">
-            <mat-icon>open_in_new</mat-icon>
-        </button>
+        }
     </div>
-    }
-</div>
-}
-}
+</ng-template>

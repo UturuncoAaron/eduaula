@@ -1,124 +1,298 @@
-.loading-center {
+$c-primary: #3b82f6;
+$c-primary-light: #eff6ff;
+$c-primary-dark: #2563eb;
+$c-surface: #ffffff;
+$c-background: #f8fafc;
+$c-text-main: #0f172a;
+$c-text-muted: #64748b;
+$c-border: #e2e8f0;
+$c-border-hover: #cbd5e1;
+$c-success: #10b981;
+$c-warning: #f59e0b;
+
+$radius-lg: 16px;
+$radius-md: 12px;
+$radius-sm: 8px;
+$transition-base: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+:host {
+    display: block;
+    background-color: $c-background;
+    min-height: calc(100vh - 70px);
+}
+
+.task-layout {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+
+    @media (max-width: 768px) {
+        padding: 20px 16px 40px;
+    }
+}
+
+.loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 64px;
-    gap: 16px;
-    color: #666;
+    padding: 100px 20px;
+    gap: 20px;
+    color: $c-text-muted;
+    font-size: 1.1rem;
+    font-weight: 500;
 }
 
-.instrucciones {
+.info-banner {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
-    background: #E3F2FD;
-    border-left: 4px solid #1565C0;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    color: #0D47A1;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background-color: $c-primary-light;
+    border-radius: $radius-md;
+    margin-bottom: 24px;
+    color: $c-primary-dark;
+
+    .icon {
+        flex-shrink: 0;
+    }
 
     p {
         margin: 0;
-        font-size: 14px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        font-weight: 500;
     }
 }
 
-.progress-bar {
-    margin-bottom: 24px;
-    background: white;
-    padding: 12px 16px;
-    border-radius: 10px;
-    border: 1px solid #eee;
+.progress-dashboard {
+    background: $c-surface;
+    padding: 20px 24px;
+    border-radius: $radius-lg;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.025);
+    margin-bottom: 32px;
+    border: 1px solid rgba($c-border, 0.5);
 
-    .progress-info {
+    .stats {
         display: flex;
         justify-content: space-between;
-        font-size: 13px;
-        color: #666;
-        margin-bottom: 8px;
+        align-items: center;
+        margin-bottom: 12px;
+
+        .label {
+            color: $c-text-muted;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .count {
+            color: $c-primary;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+    }
+
+    ::ng-deep .mat-mdc-progress-bar {
+        border-radius: 8px;
+        height: 10px;
+        --mdc-linear-progress-active-indicator-color: #{$c-primary};
+        --mdc-linear-progress-track-color: #{$c-primary-light};
     }
 }
 
-.questions-list {
+.question-feed {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 32px;
 }
 
-.question-card {
-    border-radius: 12px !important;
-    border: 2px solid transparent;
-    transition: border-color 0.2s;
+.question-container {
+    background: $c-surface;
+    border-radius: $radius-lg;
+    padding: 32px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+    border: 1px solid $c-border;
+    transition: $transition-base;
 
-    &.answered {
-        border-color: #C8E6C9;
-    }
-
-    .question-text {
-        font-size: 15px;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-
-        .q-num {
-            background: #1565C0;
-            color: white;
-            border-radius: 50%;
-            width: 26px;
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .pts {
-            font-size: 12px;
-            color: #888;
-            margin-left: auto;
-            white-space: nowrap;
-        }
-    }
-
-    .options-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding-left: 36px;
-    }
-
-    .option {
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid #eee;
-        transition: background 0.15s;
-
-        &:hover {
-            background: #F0F4FF;
-        }
-    }
-}
-
-.submit-area {
-    margin-top: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 16px;
-
-    .submit-hint {
-        font-size: 13px;
-        color: #888;
+    &.is-completed {
+        border-color: rgba($c-primary, 0.3);
+        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.05);
     }
 
     @media (max-width: 600px) {
-        flex-direction: column;
+        padding: 24px 16px;
+    }
 
-        button {
+    .question-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 28px;
+
+        .number-badge {
+            background: $c-primary-light;
+            color: $c-primary-dark;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .statement {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: $c-text-main;
+            line-height: 1.6;
+            flex-grow: 1;
+            padding-top: 4px;
+        }
+
+        .points-badge {
+            background: #f1f5f9;
+            color: $c-text-muted;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+    }
+}
+
+.options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.option-tile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 2px solid $c-border;
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition: $transition-base;
+    background-color: $c-surface;
+    user-select: none;
+
+    &:hover {
+        border-color: $c-border-hover;
+        background-color: #f8fafc;
+    }
+
+    &.is-selected {
+        border-color: $c-primary;
+        background-color: $c-primary-light;
+
+        .custom-radio {
+            border-color: $c-primary;
+
+            .radio-inner {
+                transform: scale(1);
+                background-color: $c-primary;
+            }
+        }
+
+        .option-text {
+            color: $c-primary-dark;
+            font-weight: 500;
+        }
+    }
+
+    .custom-radio {
+        width: 22px;
+        height: 22px;
+        border: 2px solid $c-text-muted;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: $transition-base;
+
+        .radio-inner {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: transparent;
+            transform: scale(0);
+            transition: $transition-base;
+        }
+    }
+
+    .option-text {
+        font-size: 1rem;
+        color: $c-text-main;
+        line-height: 1.5;
+        transition: color 0.2s;
+    }
+}
+
+.action-footer {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 32px;
+    background: $c-surface;
+    border-radius: $radius-lg;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid $c-border;
+
+    .status-message {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+        color: $c-text-muted;
+
+        .icon-warning {
+            color: $c-warning;
+        }
+
+        .icon-success {
+            color: $c-success;
+        }
+    }
+
+    .btn-submit {
+        background-color: $c-primary;
+        color: white;
+        padding: 0 32px;
+        height: 52px;
+        font-size: 1rem;
+        border-radius: $radius-md;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+
+        &:hover:not([disabled]) {
+            background-color: $c-primary-dark;
+            box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4);
+        }
+
+        .spinner {
+            margin-right: 12px;
+            display: inline-block;
+        }
+    }
+
+    @media (max-width: 700px) {
+        flex-direction: column;
+        gap: 24px;
+        padding: 24px;
+        text-align: center;
+
+        .btn-submit {
             width: 100%;
         }
     }
