@@ -1,6 +1,5 @@
 <div class="asistencia-container fade-in">
 
-    <!-- ── HEADER ──────────────────────────────────────────── -->
     <div class="page-header">
         <button class="btn-back" (click)="volver()" title="Volver al dashboard">
             <mat-icon>arrow_back_ios_new</mat-icon>
@@ -16,7 +15,6 @@
             </p>
         </div>
 
-        <!-- Selector de fecha — showPicker() fix -->
         <div class="date-picker-wrap" (click)="datePicker.showPicker()">
             <mat-icon class="dp-icon">edit_calendar</mat-icon>
             <span class="dp-label">{{ fechaCorta() }}</span>
@@ -40,7 +38,6 @@
         }
     </div>
 
-    <!-- Aviso cuando se edita un día pasado -->
     @if (!isToday() && !loading()) {
     <div class="edit-notice">
         <mat-icon>history</mat-icon>
@@ -49,14 +46,12 @@
     </div>
     }
 
-    <!-- ── LOADING ──────────────────────────────────────────── -->
     @if (loading()) {
     <div class="state-center">
         <div class="spinner-ring"></div>
         <p>Cargando lista de alumnos...</p>
     </div>
 
-    <!-- ── ERROR ────────────────────────────────────────────── -->
     } @else if (error()) {
     <div class="state-center error-state">
         <mat-icon>error_outline</mat-icon>
@@ -67,10 +62,8 @@
         </button>
     </div>
 
-    <!-- ── CONTENIDO ────────────────────────────────────────── -->
     } @else {
 
-    <!-- Stats -->
     <div class="stats-row">
         <div class="stat-card green">
             <div class="stat-icon"><mat-icon>check_circle</mat-icon></div>
@@ -112,7 +105,6 @@
         </div>
     </div>
 
-    <!-- Quick actions -->
     <div class="quick-actions">
         <span class="qa-label">Marcar todos como:</span>
         <button class="qa-btn green" (click)="marcarTodos('asistio')">
@@ -126,9 +118,7 @@
         </button>
     </div>
 
-    <!-- Student list -->
     <div class="students-card">
-
         <div class="list-header">
             <span class="col-num">#</span>
             <span class="col-alumno">Alumno</span>
@@ -187,18 +177,3 @@
     </div>
     }
 </div>
-
-<!-- ── BOTTOM BAR ──────────────────────────────────────── -->
-@if (!loading() && !error() && alumnos().length) {
-<div class="bottom-bar">
-    <div class="bottom-stats">
-        <mat-icon>people</mat-icon>
-        <span>{{ alumnos().length }} alumnos</span>
-        <span class="pct-badge">{{ pctAsistencia() }}% asistencia</span>
-    </div>
-    <button class="btn-save-bottom" (click)="guardar()" [disabled]="saving()">
-        <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save' }}</mat-icon>
-        {{ saving() ? 'Guardando...' : (isToday() ? 'Guardar asistencia' : 'Actualizar registro') }}
-    </button>
-</div>
-}

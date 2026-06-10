@@ -110,6 +110,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Periodos', icon: 'calendar_month', route: '/admin/periodos', modulos: [MODULO.PERIODOS], exactMatch: true },
       { label: 'Matrículas', icon: 'how_to_reg', route: '/admin/matriculas', modulos: [MODULO.MATRICULAS], exactMatch: true },
       { label: 'Vínculo Padre-Hijo', icon: 'family_restroom', route: '/admin/padre-hijo', modulos: [MODULO.PADRE_HIJO_ADMIN], exactMatch: true },
+      { label: 'Horario de Entrada', icon: 'schedule', route: '/admin/academico/horario-entrada', modulos: [MODULO.GRADOS_SECCIONES], exactMatch: true },
     ],
   },
   {

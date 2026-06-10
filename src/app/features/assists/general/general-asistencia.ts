@@ -17,7 +17,6 @@ interface AlumnoRow {
     apellido_materno: string;
     codigo_estudiante: string;
     foto_url: string | null;
-    // null = sin registro aún (alumno no ha sido marcado ni escaneó QR)
     estado: EstadoAsistencia | null;
 }
 
@@ -51,12 +50,25 @@ export class GeneralAsistencia implements OnInit {
 
     seccionId = '';
 
-    readonly todayStr = new Date().toISOString().slice(0, 10);
+    // CORRECCIÓN: Cálculo de fecha local forzada a la zona horaria de Perú (America/Lima)
+    readonly todayStr = (() => {
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Lima',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        return formatter.format(new Date()); // Retorna exactamente "YYYY-MM-DD"
+    })();
+
     selectedDate = signal<string>(this.todayStr);
 
     readonly fechaLabel = computed(() => {
-        const d = new Date(this.selectedDate() + 'T00:00:00');
-        return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+        const [y, m, d] = this.selectedDate().split('-');
+        // Evitamos desfases usando Date.UTC al instanciar el objeto de fecha
+        const dateObj = new Date(Date.UTC(+y, +m - 1, +d));
+        return `${DIAS[dateObj.getUTCDay()]}
+, ${dateObj.getUTCDate()} de ${MESES[dateObj.getUTCMonth()]} de ${dateObj.getUTCFullYear()}`;
     });
 
     readonly fechaCorta = computed(() => {
@@ -75,8 +87,6 @@ export class GeneralAsistencia implements OnInit {
     alumnos = signal<AlumnoRow[]>([]);
     yaRegistrado = signal(false);
 
-    // ── Contadores ─────────────────────────────────────────────────────────────
-    // Solo cuentan alumnos con registro explícito — los null no suman en ningún lado
     readonly totalPresentes = computed(() => this.alumnos().filter(a => a.estado === 'asistio').length);
     readonly totalFaltas = computed(() => this.alumnos().filter(a => a.estado === 'falta').length);
     readonly totalTardanzas = computed(() => this.alumnos().filter(a => a.estado === 'tardanza').length);
@@ -152,9 +162,6 @@ export class GeneralAsistencia implements OnInit {
                     apellido_materno: a.apellido_materno ?? '',
                     codigo_estudiante: a.codigo_estudiante,
                     foto_url: a.foto_url ?? null,
-                    // FIX: null si no tiene registro — no asumir 'asistio' por default.
-                    // Los alumnos que escanearon QR ya tienen estado en el map.
-                    // Los que no escanearon quedan en null hasta que el auxiliar los marque.
                     estado: map.get(a.id) ?? null,
                 })));
 
@@ -199,26 +206,27 @@ export class GeneralAsistencia implements OnInit {
     guardar() {
         if (this.saving() || !this.alumnos().length) return;
 
-        // Verificar que todos tengan estado antes de guardar
         const sinMarcar = this.sinRegistro();
+
         if (sinMarcar > 0) {
-            this.toastr.warning(
-                `${sinMarcar} alumno${sinMarcar > 1 ? 's' : ''} sin marcar. ` +
-                `Usa "Marcar todos" o marca cada uno individualmente.`,
+            this.toastr.info(
+                `${sinMarcar} alumno${sinMarcar > 1 ? 's' : ''} sin marcar ${sinMarcar > 1 ? 'serán registrados' : 'será registrado'} como falta.`,
             );
-            return;
+            this.alumnos.update(list =>
+                list.map(a => a.estado === null ? { ...a, estado: 'falta' as EstadoAsistencia } : a),
+            );
         }
 
         this.saving.set(true);
 
-        // Solo enviar alumnos con estado explícito (por si acaso)
-        const alumnosConEstado = this.alumnos()
-            .filter(a => a.estado !== null)
-            .map(a => ({ alumno_id: a.id, estado: a.estado }));
+        const payload = this.alumnos().map(a => ({
+            alumno_id: a.id,
+            estado: a.estado as EstadoAsistencia,
+        }));
 
         this.api.post(`asistencias/general/${this.seccionId}/bulk`, {
             fecha: this.selectedDate(),
-            alumnos: alumnosConEstado,
+            alumnos: payload,
         }).subscribe({
             next: () => {
                 const msg = this.isToday()

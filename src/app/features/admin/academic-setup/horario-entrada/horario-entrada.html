@@ -1,0 +1,91 @@
+<div class="horario-view-wrapper fade-in">
+
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="title-with-icon">
+                <div class="icon-badge">
+                    <mat-icon>verified_user</mat-icon>
+                </div>
+                <div>
+                    <h1>Horario de Entrada</h1>
+                    <p class="subtitle">Gestión de tolerancia y control de asistencia de alumnos vía código QR</p>
+                </div>
+            </div>
+        </div>
+
+        <button class="action-btn primary-btn" [disabled]="saving() || loading() || !hasChanges()" (click)="guardar()">
+            <mat-icon [class.spinning]="saving()">{{ saving() ? 'sync' : 'save_as' }}</mat-icon>
+            <span>{{ saving() ? 'Guardando...' : 'Guardar Cambios' }}</span>
+        </button>
+    </header>
+
+    @if (loading()) {
+    <div class="skeleton-loader-container">
+        <div class="spinner-loader"></div>
+        <p>Sincronizando directivas horarias...</p>
+    </div>
+    } @else {
+
+    <div class="grid-layout">
+
+        <section class="control-card mass-update-card">
+            <div class="card-body">
+                <div class="card-info">
+                    <mat-icon class="feature-icon">bolt</mat-icon>
+                    <div>
+                        <h3>Asignación Masiva</h3>
+                        <p>Cambia la hora límite de todos los días hábiles de la semana con un solo clic.</p>
+                    </div>
+                </div>
+                <div class="mass-action-form">
+                    <div class="input-time-group">
+                        <mat-icon>schedule</mat-icon>
+                        <input type="time" [(ngModel)]="horaGlobal" class="custom-time-picker" />
+                    </div>
+                    <button type="button" class="action-btn secondary-btn" (click)="aplicarHoraMasiva()">
+                        Aplicar a la Semana
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <main class="horarios-card-container">
+            <div class="table-header-indicator">
+                <span>Día Escolar</span>
+                <span>Hora Límite de Acceso</span>
+                <span class="desktop-only">Estado Posterior</span>
+            </div>
+
+            <div class="rows-stack">
+                @for (h of horarios(); track h.dia_semana) {
+                <div class="schedule-row-item">
+
+                    <div class="day-identity">
+                        <div class="day-dot" [attr.data-day]="h.dia_semana"></div>
+                        <span class="day-name">{{ h.label }}</span>
+                    </div>
+
+                    <div class="time-selector-cell">
+                        <div class="input-time-group">
+                            <mat-icon class="picker-clock">watch_later</mat-icon>
+                            <input type="time" [value]="h.hora_limite"
+                                (change)="updateHoraIndividual(h.dia_semana, $any($event.target).value)"
+                                class="custom-time-picker" />
+                        </div>
+                    </div>
+
+                    <div class="status-badge-cell">
+                        <span class="badge delay-badge">
+                            <span class="indicator-dot"></span>
+                            Tardanza Automática
+                        </span>
+                    </div>
+
+                </div>
+                }
+            </div>
+        </main>
+
+    </div>
+    }
+</div>

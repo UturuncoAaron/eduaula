@@ -122,4 +122,10 @@ export const ADMIN_ROUTES: Routes = [
       import('./asistencia-personal/asistencia-personal').then(c => c.AsistenciaPersonal),
     title: 'Asistencia Personal | EduAula',
   },
+  {
+    path: 'academico/horario-entrada',
+    loadComponent: () =>
+      import('./academic-setup/horario-entrada/horario-entrada').then(c => c.HorarioEntrada),
+    title: 'Horario de Entrada | EduAula',
+  },
 ];
