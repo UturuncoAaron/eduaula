@@ -139,18 +139,22 @@ export class PostponeAppointmentDialog implements OnInit {
         const rolConvocador = appt.convocadoPor?.rol ?? '';
         const rolConvocado = appt.convocadoA?.rol ?? '';
 
-        // Si el que inició la cita es el profesional, devolvemos su ID
+        // Si el convocado es psicóloga, siempre es ella quien dueña del calendario
+        // (cubre derivaciones docente→psicóloga y padre→psicóloga)
+        if (rolConvocado === 'psicologa') {
+            return appt.convocadoAId;
+        }
+
+        // Si el convocador es profesional con calendario propio
         if (CALENDAR_OWNER_ROLES.has(rolConvocador)) {
-            // ¡Ojo aquí! Usamos el ID de la relación, no createdById, por seguridad.
             return appt.convocadoPor?.id ?? appt.createdById;
         }
 
-        // Si el convocado es el profesional (ej. Padre citó a Psicóloga), devolvemos su ID
+        // Si el convocado es profesional con calendario propio
         if (CALENDAR_OWNER_ROLES.has(rolConvocado)) {
             return appt.convocadoAId;
         }
 
-        // Fallback en caso de datos anómalos
         return null;
     });
 

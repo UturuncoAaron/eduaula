@@ -248,17 +248,7 @@ export class AppointmentsStore {
         const res = await firstValueFrom(
             this.api.patch<Appointment>(`appointments/${id}/aplazar`, payload),
         );
-        this.appointments.update(list =>
-            list.map(c =>
-                c.id === id
-                    ? {
-                        ...c,
-                        estado: 'pendiente',
-                        scheduledAt: payload.nuevaFechaHora,
-                    }
-                    : c,
-            ),
-        );
+        await this.loadMine({});
         return res.data;
     }
 

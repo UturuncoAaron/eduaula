@@ -122,4 +122,18 @@ export class AppointmentHistoryDialog implements OnInit {
         const e = this.data.appointment.estado;
         return e === 'cancelada' || e === 'rechazada';
     });
+    formatPriorNotes(notes: string | null): string {
+        if (!notes) return '';
+        return notes.replace(
+            /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[.\d]*Z/g,
+            (isoDate) => new Date(isoDate).toLocaleString('es-PE', {
+                timeZone: 'America/Lima',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            })
+        );
+    }
 }

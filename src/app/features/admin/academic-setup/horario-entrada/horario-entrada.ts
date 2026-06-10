@@ -33,22 +33,17 @@ export class HorarioEntrada implements OnInit {
   readonly loading = signal<boolean>(true);
   readonly saving = signal<boolean>(false);
   readonly horarios = signal<HorarioEntradaDia[]>([]);
-
-  // Estado para el control masivo global
   readonly horaGlobal = signal<string>('07:30');
 
-  // Evalúa si hubo cambios reales contra lo guardado (Mantenibilidad / UX)
   private originalData: string = '';
-  readonly hasChanges = computed(() => {
-    return JSON.stringify(this.horarios()) !== this.originalData;
-  });
+  readonly hasChanges = computed(() => JSON.stringify(this.horarios()) !== this.originalData);
 
   ngOnInit(): void {
     this.cargarConfiguracion();
   }
 
   private cargarConfiguracion(): void {
-    this.api.get<HorarioEntradaDia[]>('admin/config/horario-entrada').subscribe({
+    this.api.get<HorarioEntradaDia[]>('academic/config/horario-entrada').subscribe({
       next: res => {
         const data = (res as any).data ?? res;
         const listadoMap = DIAS_CONFIG.map(d => ({
@@ -89,7 +84,7 @@ export class HorarioEntrada implements OnInit {
       horarios: this.horarios().map(({ dia_semana, hora_limite }) => ({ dia_semana, hora_limite })),
     };
 
-    this.api.post('admin/config/horario-entrada', payload).subscribe({
+    this.api.post('academic/config/horario-entrada', payload).subscribe({
       next: () => {
         this.toastr.success('Configuración guardada correctamente', 'Éxito');
         this.originalData = JSON.stringify(this.horarios());

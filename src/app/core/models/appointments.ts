@@ -184,6 +184,7 @@ export interface Appointment {
     parent?: PersonRef | null;
     convocadoA?: PersonRefWithRole | null;
     convocadoPor?: PersonRefWithRole | null;
+    lastPostponedById: string | null;
 }
 
 interface PersonRef {

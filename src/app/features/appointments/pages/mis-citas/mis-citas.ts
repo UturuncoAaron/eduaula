@@ -170,10 +170,12 @@ export class MisCitas {
      */
     canConfirm(a: Appointment): boolean {
         if (a.estado !== 'pendiente') return false;
+        if (new Date(a.scheduledAt).getTime() <= Date.now()) return false;
         const me = this.auth.currentUser()?.id;
-        if (a.convocadoAId !== me) return false;
-        return new Date(a.scheduledAt).getTime() > Date.now();
+        if (a.lastPostponedById === me) return false;
+        return a.convocadoAId === me || a.parentId === me || a.createdById === me;
     }
+
 
     /**
      * El padre puede rechazar (sólo padre, y sólo cuando es el convocado).
@@ -196,9 +198,10 @@ export class MisCitas {
     canPostpone(a: Appointment): boolean {
         if (this.mode() === 'alumno') return false;
         if (a.estado !== 'pendiente' && a.estado !== 'confirmada') return false;
+        if (new Date(a.scheduledAt).getTime() <= Date.now()) return false;
         const me = this.auth.currentUser()?.id;
-        if (a.convocadoAId !== me) return false;
-        return new Date(a.scheduledAt).getTime() > Date.now();
+        // Puede aplazar tanto el convocador como el convocado
+        return a.convocadoAId === me || a.createdById === me;
     }
 
     trackById = (_: number, a: Appointment): string => a.id;
