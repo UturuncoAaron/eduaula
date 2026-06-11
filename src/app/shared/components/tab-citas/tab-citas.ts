@@ -235,26 +235,44 @@ export class TabCitas {
 
     if (a.lastPostponedById && String(a.lastPostponedById) === miId) return false;
 
-    // Docente no confirma citas que el padre creó dentro de su disponibilidad
-    if (currentUser.rol === 'docente' && a.convocadoPor?.rol === 'padre') return false;
+    if (currentUser.rol === 'padre') {
+      return a.convocadoAId === miId || a.parentId === miId;
+    }
 
-    const creadorId = String(a.createdById);
-    const convocadoId = String(a.convocadoAId);
-    if (creadorId === miId) return false;
-    if (currentUser.rol === 'admin' && convocadoId !== miId) return true;
-    if (convocadoId !== miId) return false;
+    if (currentUser.rol === 'docente') {
+      return a.convocadoAId === miId;
+    }
+
+    if (currentUser.rol === 'admin') {
+      return String(a.createdById) !== miId;
+    }
+
+    if (String(a.createdById) === miId) return false;
+    if (a.convocadoAId !== miId) return false;
     return new Date(a.scheduledAt).getTime() > Date.now();
   }
   // True si la psicóloga puede marcar la cita como realizada (solo confirmada)
   canFinish(a: Appointment): boolean {
-    return this.esPsicologa() && a.estado === 'confirmada';
+    if (!['pendiente', 'confirmada'].includes(a.estado)) return false;
+    const me = this.auth.currentUser();
+    if (!me) return false;
+    if (!['psicologa', 'docente', 'admin'].includes(me.rol)) return false;
+    const miId = String(me.id);
+    if (me.rol === 'admin') return true;
+    return a.createdById === miId || a.convocadoAId === miId;
   }
+
 
   // True si la psicóloga puede registrar inasistencia (confirmada y fecha pasada)
   canMarkNoShow(a: Appointment): boolean {
-    if (!this.esPsicologa()) return false;
+    const me = this.auth.currentUser();
+    if (!me) return false;
+    if (!['psicologa', 'docente', 'admin'].includes(me.rol)) return false;
     if (['cancelada', 'rechazada', 'realizada', 'no_asistio'].includes(a.estado)) return false;
-    return new Date(a.scheduledAt).getTime() <= Date.now();
+    if (new Date(a.scheduledAt).getTime() > Date.now()) return false;
+    if (me.rol === 'admin') return true;
+    const miId = String(me.id);
+    return a.createdById === miId || a.convocadoAId === miId;
   }
 
   // True si el usuario puede aplazar la cita
