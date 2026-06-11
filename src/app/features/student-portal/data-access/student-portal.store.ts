@@ -41,7 +41,7 @@ export class StudentPortalStore {
         );
     }
 
-    getInformePdfUrl(informeId: string): string {
-        return `${this.api.base}/student/psicologia/informes/${informeId}/pdf`;
+    getInformePdfBlob(informeId: string): Observable<Blob> {
+        return this.api.getBlob(`student/psicologia/informes/${informeId}/pdf`);
     }
 }
