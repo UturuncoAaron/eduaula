@@ -430,3 +430,34 @@ export interface CloseSessionResult {
     closed: Appointment;
     followUp: Appointment | null;
 }
+// ── Agregar estos tipos al final de core/models/appointments.ts ──────
+
+export type AvailabilityOverrideTipo = 'weekly' | 'specific';
+
+export interface AvailabilityOverrideSlot {
+    id: string;
+    horaInicio: string;
+    horaFin: string;
+}
+
+export interface AvailabilityOverrideDay {
+    /** YYYY-MM-DD */
+    date: string;
+    slots: AvailabilityOverrideSlot[];
+}
+
+export interface ReplaceOverridesPayload {
+    slots: { horaInicio: string; horaFin: string }[];
+}
+
+export interface ReplaceOverridesResult {
+    saved: AccountAvailability[];
+    cancelledAppointments: {
+        id: string;
+        scheduledAt: string;
+        durationMin: number;
+        estado: string;
+        motivo: string;
+        studentName: string | null;
+    }[];
+}

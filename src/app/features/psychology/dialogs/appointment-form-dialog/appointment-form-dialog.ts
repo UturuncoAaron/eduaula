@@ -26,7 +26,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TitleCasePipe } from '@angular/common';
 import {
   catchError,
   debounceTime,
@@ -65,6 +64,7 @@ import {
   ruleToEndHour,
   ruleToMaxConsecutiveSlots,
   ruleToStartHour,
+  AvailabilityOverrideDay,
 } from '../../../../core/models/appointments';
 import {
   AssignedStudent,
@@ -97,7 +97,6 @@ function addMinutesToHour(hour: string, minutes: number): string {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    TitleCasePipe,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -113,7 +112,6 @@ function addMinutesToHour(hour: string, minutes: number): string {
   styleUrl: './appointment-form-dialog.scss',
 })
 export class AppointmentFormDialog implements OnInit {
-
   readonly data = inject<AppointmentFormDialogData>(MAT_DIALOG_DATA);
   private readonly ref = inject(MatDialogRef<AppointmentFormDialog>);
   private readonly fb = inject(FormBuilder);
@@ -131,7 +129,6 @@ export class AppointmentFormDialog implements OnInit {
     { value: 'otro', label: 'Otro', icon: 'more_horiz' },
   ];
 
-  // ── UI state ──────────────────────────────────────────────────
   readonly loading = signal(false);
   readonly loadingParents = signal(false);
   readonly loadingSlots = signal(false);
@@ -140,32 +137,18 @@ export class AppointmentFormDialog implements OnInit {
   readonly searchingParent = signal(false);
   readonly errorMsg = signal('');
 
-  // ── Participantes ─────────────────────────────────────────────
   readonly selectedStudent = signal<AssignedStudent | null>(null);
   readonly selectedParent = signal<SearchableParent | null>(null);
   readonly includeStudent = signal(true);
   readonly includeParent = signal(false);
-
-  /**
-   * Padres vinculados al alumno actualmente seleccionado. Se hidrata
-   * automáticamente cuando la psicóloga elige un alumno (búsqueda
-   * inteligente). Cuando hay 2+, exponemos checkboxes para elegir uno o
-   * ambos.
-   */
   readonly linkedParents = signal<ParentOfStudent[]>([]);
-  /** IDs de padres vinculados que el usuario seleccionó (puede ser más de uno). */
   readonly selectedLinkedParentIds = signal<readonly string[]>([]);
+  readonly isDayBlocked = signal(false);
+  readonly overrides = signal<AvailabilityOverrideDay[]>([]);
 
   readonly hasLinkedParents = computed(() => this.linkedParents().length > 0);
-
-  // FormControls para que mat-autocomplete detecte cambios
   readonly studentSearchCtrl = new FormControl('');
   readonly parentSearchCtrl = new FormControl('');
-
-  // ── Búsqueda como signals ─────────────────────────────────────
-  // toSignal() propaga cambios al CDK overlay portal donde vive el
-  // panel de mat-autocomplete, lo que el async pipe + OnPush no logra
-  // en Angular 18+.
 
   readonly students = toSignal(
     this.studentSearchCtrl.valueChanges.pipe(
@@ -209,20 +192,15 @@ export class AppointmentFormDialog implements OnInit {
     { initialValue: [] as SearchableParent[] },
   );
 
-  // ── Calendario ────────────────────────────────────────────────
   readonly weekStart = signal<string>(getCurrentMonday());
   readonly availability = signal<AccountAvailability[]>([]);
   readonly slotsTaken = signal<SlotTaken[]>([]);
   readonly picked = signal<PickedSlot[]>([]);
 
-  // ── Reglas del rol ────────────────────────────────────────────
   readonly myRule = computed(() => {
     const me = this.auth.currentUser();
-    return me
-      ? (ruleForRol(me.rol) ?? APPOINTMENT_RULES.psicologa)
-      : APPOINTMENT_RULES.psicologa;
+    return me ? (ruleForRol(me.rol) ?? APPOINTMENT_RULES.psicologa) : APPOINTMENT_RULES.psicologa;
   });
-
   readonly mySlotMinutes = computed(() => this.myRule().slotMinutes);
   readonly myAllowedDays = computed(() => this.myRule().allowedDays);
   readonly myStartHour = computed(() => ruleToStartHour(this.myRule()));
@@ -230,7 +208,6 @@ export class AppointmentFormDialog implements OnInit {
   readonly maxConsecutiveSlots = computed(() => ruleToMaxConsecutiveSlots(this.myRule()));
   readonly maxDurationMin = computed(() => this.myRule().maxDurationMin);
 
-  // ── Selección de slots ────────────────────────────────────────
   readonly pickedSorted = computed(() =>
     [...this.picked()].sort((a, b) => a.hour.localeCompare(b.hour)),
   );
@@ -249,7 +226,6 @@ export class AppointmentFormDialog implements OnInit {
     return `${diaLabel(first.dia)} ${first.dateLabel} · ${first.hour} – ${endHour} (${this.durationMin()} min)`;
   });
 
-  // ── Formulario ────────────────────────────────────────────────
   readonly form: FormGroup = this.fb.group({
     studentId: [this.data.preselectedStudentId ?? ''],
     parentId: [''],
@@ -260,21 +236,17 @@ export class AppointmentFormDialog implements OnInit {
     priorNotes: [''],
   });
 
-  // ── Ciclo de vida ─────────────────────────────────────────────
   ngOnInit(): void {
     if (!this.store.myStudents().length) this.store.loadMyStudents();
-
     if (this.data.preselectedStudentId) {
       this.loadParents(this.data.preselectedStudentId);
       const found = this.store.myStudents().find(s => s.id === this.data.preselectedStudentId);
       if (found) this.selectedStudent.set(found);
     }
-
     this.loadOwnAvailability();
     this.refreshSlotsTaken();
   }
 
-  // ── Participantes ─────────────────────────────────────────────
   toggleIncludeStudent(checked: boolean): void {
     this.includeStudent.set(checked);
     if (!checked) {
@@ -292,19 +264,9 @@ export class AppointmentFormDialog implements OnInit {
   }
 
   onStudentSelected(student: AssignedStudent): void {
-    // CAPTURA DEL ID + PAYLOAD COMPLETO. Antes el form sólo guardaba
-    // `studentId` y el resto de los campos del alumno se quedaban en el
-    // signal `selectedStudent`. Si por alguna razón se reseteaba el signal
-    // pero el form ya tenía el id, la cita se enviaba con datos vacíos en
-    // el front (avatar, nombre, grado). Reasignamos siempre el objeto
-    // entero para garantizar consistencia.
     this.selectedStudent.set(student);
     this.form.patchValue({ studentId: student.id });
     this.studentSearchCtrl.setValue('', { emitEvent: false });
-
-    // Búsqueda inteligente: al elegir un alumno, traé sus padres
-    // vinculados del backend (sin importar si el modal trajo o no
-    // `preselectedStudentId`).
     this.linkedParents.set([]);
     this.selectedLinkedParentIds.set([]);
     this.clearParent();
@@ -319,7 +281,6 @@ export class AppointmentFormDialog implements OnInit {
     this.selectedLinkedParentIds.set([]);
   }
 
-  /** Marca/desmarca un padre vinculado al alumno (checkboxes múltiples). */
   toggleLinkedParent(parentId: string, checked: boolean): void {
     const current = this.selectedLinkedParentIds();
     if (checked) {
@@ -329,9 +290,6 @@ export class AppointmentFormDialog implements OnInit {
     } else {
       this.selectedLinkedParentIds.set(current.filter(id => id !== parentId));
     }
-    // Mantenemos `includeParent` activo cuando hay al menos un padre marcado
-    // y sincronizamos `parentId` del form con el PRIMERO seleccionado para
-    // que el submit base siga funcionando (los demás se crean en paralelo).
     const next = this.selectedLinkedParentIds();
     if (next.length > 0) {
       this.includeParent.set(true);
@@ -364,7 +322,6 @@ export class AppointmentFormDialog implements OnInit {
     this.form.patchValue({ parentId: '' });
   }
 
-  // ── Calendario ────────────────────────────────────────────────
   onWeekChange(weekStart: string): void {
     this.weekStart.set(weekStart);
     this.clearPicked();
@@ -380,14 +337,12 @@ export class AppointmentFormDialog implements OnInit {
       dateLabel: `${pad2(ev.date.getDate())}/${pad2(ev.date.getMonth() + 1)}`,
       date: ev.date,
     };
-
     if (current.length > 0 && current[0].dia !== ev.dia) {
       this.picked.set([newSlot]);
       this.errorMsg.set('');
       this.syncFormFromPicked();
       return;
     }
-
     if (current.some(s => s.hour === ev.hour)) {
       const sorted = this.pickedSorted();
       const idx = sorted.findIndex(s => s.hour === ev.hour);
@@ -398,19 +353,16 @@ export class AppointmentFormDialog implements OnInit {
       }
       return;
     }
-
     if (!current.length) {
       this.picked.set([newSlot]);
       this.errorMsg.set('');
       this.syncFormFromPicked();
       return;
     }
-
     if (current.length >= this.maxConsecutiveSlots()) {
       this.errorMsg.set(`Máximo ${this.maxDurationMin()} minutos por cita.`);
       return;
     }
-
     const sorted = this.pickedSorted();
     const expectedBefore = addMinutesToHour(sorted[0].hour, -slotMin);
     const expectedAfter = addMinutesToHour(sorted[sorted.length - 1].hour, slotMin);
@@ -429,7 +381,6 @@ export class AppointmentFormDialog implements OnInit {
     this.form.patchValue({ date: null, time: '' });
   }
 
-  // ── Presentación ─────────────────────────────────────────────
   fullName(s: AssignedStudent): string {
     return `${s.nombre} ${s.apellido_paterno} ${s.apellido_materno ?? ''}`.trim();
   }
@@ -439,22 +390,15 @@ export class AppointmentFormDialog implements OnInit {
     return `${p.nombre} ${p.apellido_paterno} ${p.apellido_materno ?? ''}`.trim() + rel;
   }
 
-  // Retorna '' para limpiar el input al seleccionar una opción
   readonly displayFn = (): string => '';
 
   cancel(): void { this.ref.close(false); }
 
   async submit(): Promise<void> {
     const hasStudent = this.includeStudent() && !!this.form.value.studentId;
-
-    // Decidimos qué padres usaremos: si la psicóloga viene de la búsqueda
-    // inteligente y eligió 2+ padres vinculados, creamos UNA cita por
-    // cada uno. Si no, caemos al flujo original con `parentId` del form.
     const linkedIds = this.selectedLinkedParentIds();
     const parentIdsToInvite: string[] = this.includeParent()
-      ? (linkedIds.length > 0
-        ? [...linkedIds]
-        : (this.form.value.parentId ? [this.form.value.parentId] : []))
+      ? (linkedIds.length > 0 ? [...linkedIds] : (this.form.value.parentId ? [this.form.value.parentId] : []))
       : [];
     const hasParent = parentIdsToInvite.length > 0;
 
@@ -470,19 +414,15 @@ export class AppointmentFormDialog implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-
     const psicologaId = this.auth.currentUser()?.id;
     if (!psicologaId) { this.errorMsg.set('Sesión inválida.'); return; }
 
     const v = this.form.value;
     const scheduled = combineDateAndTime(v.date as Date, v.time as string);
-
-    if (Number.isNaN(scheduled.getTime()) ||
-      scheduled.getTime() < Date.now() + MIN_LEAD_MINUTES * 60_000) {
+    if (Number.isNaN(scheduled.getTime()) || scheduled.getTime() < Date.now() + MIN_LEAD_MINUTES * 60_000) {
       this.errorMsg.set(`La cita debe agendarse con al menos ${MIN_LEAD_MINUTES} minutos de anticipación.`);
       return;
     }
-
     if (parentIdsToInvite.includes(psicologaId) || v.studentId === psicologaId) {
       this.errorMsg.set('No puedes convocarte a ti misma.');
       return;
@@ -492,9 +432,6 @@ export class AppointmentFormDialog implements OnInit {
     this.errorMsg.set('');
     try {
       if (parentIdsToInvite.length > 1) {
-        // 2+ padres vinculados → una cita por padre, todas con el mismo
-        // alumno, fecha, motivo y duración. Si una falla, registramos el
-        // error pero seguimos con las demás.
         const results = await Promise.allSettled(
           parentIdsToInvite.map(parentId =>
             this.appointmentsStore.createAppointment({
@@ -515,19 +452,11 @@ export class AppointmentFormDialog implements OnInit {
           this.toast.success(`Citas programadas para ${okCount} padres/tutores`);
           this.ref.close(true);
         } else if (okCount > 0) {
-          this.toast.info(
-            `${okCount} cita(s) creadas, ${failCount} fallaron. Revisa la agenda y reintenta las pendientes.`,
-            undefined, { duration: 8000 },
-          );
+          this.toast.info(`${okCount} cita(s) creadas, ${failCount} fallaron.`, undefined, { duration: 8000 });
           this.ref.close(true);
         } else {
-          // Todas fallaron — mostramos el error del primero
           const first = results[0];
-          this.errorMsg.set(
-            first.status === 'rejected'
-              ? parseApiError(first.reason, 'No se pudo crear la cita')
-              : 'No se pudo crear la cita',
-          );
+          this.errorMsg.set(first.status === 'rejected' ? parseApiError(first.reason, 'No se pudo crear la cita') : 'No se pudo crear la cita');
         }
       } else {
         const convocadoAId = hasParent ? parentIdsToInvite[0] : v.studentId;
@@ -541,18 +470,9 @@ export class AppointmentFormDialog implements OnInit {
           durationMin: this.durationMin(),
           priorNotes: v.priorNotes || undefined,
         });
-
-        // El BE puede devolver `availableParents` cuando la psicóloga citó
-        // al alumno y existían varios padres. La cita ya quedó creada con
-        // el primer padre — aquí informamos para que la usuaria pueda
-        // recrearla si necesita el otro padre.
         if (created.availableParents && created.availableParents.length > 1 && !hasParent) {
-          const names = created.availableParents
-            .map(p => `${p.nombre} ${p.apellido_paterno}`).join(', ');
-          this.toast.info(
-            `Cita programada · El alumno tiene ${created.availableParents.length} padres registrados (${names}). Se vinculó al primero — si necesitas cambiarlo, créala de nuevo seleccionando el padre.`,
-            undefined, { duration: 8000 },
-          );
+          const names = created.availableParents.map(p => `${p.nombre} ${p.apellido_paterno}`).join(', ');
+          this.toast.info(`Cita programada con el primer padre. El alumno posee ${created.availableParents.length} registrados (${names}).`, undefined, { duration: 8000 });
         } else {
           this.toast.success('Cita programada correctamente');
         }
@@ -565,7 +485,6 @@ export class AppointmentFormDialog implements OnInit {
     }
   }
 
-  // ── Privados ──────────────────────────────────────────────────
   private syncFormFromPicked(): void {
     const sorted = this.pickedSorted();
     if (!sorted.length) {
@@ -596,26 +515,32 @@ export class AppointmentFormDialog implements OnInit {
     if (!id) return;
     this.loadingSlots.set(true);
     try {
-      this.slotsTaken.set(
-        await this.appointmentsStore.getSlotsTaken(id, this.weekStart()),
-      );
+      const dateTarget = this.form.value.date ? this.toLocalDateStr(this.form.value.date) : this.weekStart();
+      const [blocksRes, slotsTakenRes, overridesRes] = await Promise.all([
+        this.appointmentsStore.getDayBlocks(id, dateTarget),
+        this.appointmentsStore.getSlotsTaken(id, this.weekStart()),
+        this.appointmentsStore.getOverridesForWeek(id, this.weekStart())
+      ]);
+      if (blocksRes && 'isBlocked' in blocksRes) {
+        this.isDayBlocked.set((blocksRes as any).isBlocked ?? false);
+      } else {
+        this.isDayBlocked.set(false);
+      }
+      this.slotsTaken.set(slotsTakenRes);
+      this.overrides.set(overridesRes ?? []);
     } catch {
       this.slotsTaken.set([]);
+      this.overrides.set([]);
+      this.isDayBlocked.set(false);
     } finally {
       this.loadingSlots.set(false);
     }
   }
 
-  // `loadParents` se reemplaza por `fetchAndApplyLinkedParents`, más
-  // explicativo sobre el comportamiento UI. Mantenemos esta firma por
-  // compatibilidad con el código original.
   private async loadParents(studentId: string): Promise<void> {
     return this.fetchAndApplyLinkedParents(studentId);
   }
 
-  /**
-   * Trae los padres del alumno para que la UI los liste sin invitarlos por defecto.
-   */
   private async fetchAndApplyLinkedParents(studentId: string): Promise<void> {
     this.loadingParents.set(true);
     try {
@@ -629,5 +554,10 @@ export class AppointmentFormDialog implements OnInit {
     } finally {
       this.loadingParents.set(false);
     }
+  }
+
+  private toLocalDateStr(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
 }

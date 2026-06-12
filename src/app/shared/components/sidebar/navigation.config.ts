@@ -31,16 +31,10 @@ export const NAV_ITEMS: NavItem[] = [
     modulos: [MODULO.TUTORIA], exactMatch: true,
   },
 
-  // ─── Asistencia General (docente-tutor con sección + staff con permiso) ───
-  // {
-  //   label: 'Asistencia General', icon: 'fact_check', route: '/asistencia/general',
-  //   modulos: [MODULO.ASIST_GENERAL], dividerBefore: false,
-  // },
-
   // ─── Comunicados ──────────────────────────────────────────────────────────
   {
     label: 'Comunicados', icon: 'campaign', route: '/comunicados',
-    modulos: [MODULO.COMUNICADOS], dividerBefore: true,
+    modulos: [MODULO.COMUNICADOS, MODULO.USUARIOS], dividerBefore: true,
   },
 
   // ─── Libretas de Padres ───────────────────────────────────────────────────

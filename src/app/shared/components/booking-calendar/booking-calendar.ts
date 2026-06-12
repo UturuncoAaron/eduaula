@@ -1,13 +1,9 @@
-import {
-  ChangeDetectionStrategy, Component, computed, input, output,
-} from '@angular/core';
-
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { WeekGrid } from '../week-grid/week-grid';
 import {
   WeekDia, WeekGridCellClick, WeekSlot, isWeekDia, toHHMM, toMin,
 } from '../week-grid/week-grid.types';
-// IMPORTANTE: Agregamos "Appointment" a la importación
-import { AccountAvailability, DiaSemana, SlotTaken, Appointment } from '../../../core/models/appointments';
+import { AccountAvailability, DiaSemana, SlotTaken, Appointment, AvailabilityOverrideDay } from '../../../core/models/appointments';
 import { buildWeekBookingSlots } from '../../utils/week-booking-slots';
 import { dateFromWeekAndDia } from '../../utils/calendar-week';
 
@@ -33,8 +29,8 @@ export interface BookingPickEvent {
   styleUrl: './booking-calendar.scss',
 })
 export class BookingCalendar {
-  // ── Inputs ────────────────────────────────────────────────────
   readonly availability = input<AccountAvailability[]>([]);
+  readonly overrides = input<AvailabilityOverrideDay[]>([]);
   readonly slotsTaken = input<SlotTaken[]>([]);
   readonly weekStart = input.required<string>();
   readonly loading = input<boolean>(false);
@@ -45,7 +41,6 @@ export class BookingCalendar {
   readonly allowedDays = input<readonly DiaSemana[] | readonly string[] | null>(null);
   readonly emptyMessage = input<string>('No hay disponibilidad configurada en este horario.');
 
-  // 👇 NUEVOS INPUTS PARA EL APLAZAMIENTO 👇
   readonly picked = input<BookingSelectedSlot | null>(null);
   readonly originalAppointment = input<Appointment | null>(null);
 
@@ -53,21 +48,14 @@ export class BookingCalendar {
   readonly selectedDia = input<DiaSemana | null>(null);
   readonly selectedHour = input<string | null>(null);
 
-  // ── Outputs ───────────────────────────────────────────────────
   readonly pick = output<BookingPickEvent>();
   readonly weekChange = output<string>();
 
-  // ── Selección efectiva ────────────────────────────────────────
   private readonly effectiveSelection = computed<readonly BookingSelectedSlot[]>(() => {
-    // 1. Si viene del input "picked" (modal de aplazar), lo priorizamos
     const p = this.picked();
     if (p) return [p];
-
-    // 2. Si viene de selectedSlots (v2)
     const arr = this.selectedSlots();
     if (arr.length > 0) return arr;
-
-    // 3. Fallback legado
     const dia = this.selectedDia();
     const hour = this.selectedHour();
     return dia && hour ? [{ dia, hour }] : [];
@@ -79,7 +67,6 @@ export class BookingCalendar {
     return s;
   });
 
-  // ── Computed expuestos al template ────────────────────────────
   readonly allowedWeekDays = computed<readonly WeekDia[] | null>(() => {
     const raw = this.allowedDays();
     if (!raw?.length) return null;
@@ -94,7 +81,6 @@ export class BookingCalendar {
     return this.slotMinutes();
   });
 
-  // 👇 AQUÍ SUCEDE LA MAGIA VISUAL 👇
   readonly weekSlots = computed<WeekSlot[]>(() => {
     const step = this.slotMinutes();
     const base = buildWeekBookingSlots({
@@ -105,55 +91,66 @@ export class BookingCalendar {
       slotMinutes: step,
     });
 
-    // 1. Agregar "Horario Anterior" de la cita original
+    const ovs = this.overrides() ?? [];
+    const blockedDates = new Set(ovs.filter(o => o.slots?.length === 0).map(o => o.date));
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    const filteredBase = base.filter(s => {
+      const idx = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'].indexOf(s.dia);
+      if (idx === -1) return true;
+      const ref = new Date(`${this.weekStart()}T00:00:00`);
+      ref.setDate(ref.getDate() + idx);
+      const slotDateIso = `${ref.getFullYear()}-${pad(ref.getMonth() + 1)}-${pad(ref.getDate())}`;
+      return !blockedDates.has(slotDateIso);
+    });
+
     const orig = this.originalAppointment();
     if (orig) {
       const d = new Date(orig.scheduledAt);
-
-      // Validamos que la cita original caiga en la semana que estamos mirando actualmente
       const wsStr = this.weekStart();
       const wsDate = new Date(wsStr.includes('T') ? wsStr : `${wsStr}T00:00:00`);
       const nextWsDate = new Date(wsDate);
       nextWsDate.setDate(nextWsDate.getDate() + 7);
 
       if (d >= wsDate && d < nextWsDate) {
-        const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'] as DiaSemana[]; const diaOrig = dias[d.getDay()];
+        const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'] as DiaSemana[];
+        const diaOrig = dias[d.getDay()];
         const startMinOrig = d.getHours() * 60 + d.getMinutes();
         const durOrig = orig.durationMin ?? step;
 
-        base.push({
+        filteredBase.push({
           id: `__orig-${orig.id}`,
           dia: diaOrig,
           horaInicio: toHHMM(startMinOrig),
           horaFin: toHHMM(startMinOrig + durOrig),
           title: 'Horario anterior',
-          kind: 'taken', // Se pinta como gris para indicar que está "bloqueado"
+          kind: 'taken',
           pending: false,
         });
       }
     }
 
-    // 2. Agregar el "Nuevo horario" (La selección actual)
     const dur = this.effectivePickDuration();
     for (const sel of this.effectiveSelection()) {
       const startMin = toMin(sel.hour);
-      base.push({
+      filteredBase.push({
         id: `__sel-${sel.dia}-${sel.hour}`,
         dia: sel.dia,
         horaInicio: sel.hour,
         horaFin: toHHMM(startMin + dur),
         title: orig ? 'Nuevo horario' : 'Tu selección',
-        kind: 'appointment', // Se pinta verde/resaltado
+        kind: 'appointment',
         pending: true,
       });
     }
 
-    return base;
+    return filteredBase;
   });
 
-  readonly hasAnyAvailable = computed(() => this.availability().some(a => a.activo));
+  readonly hasAnyAvailable = computed(() => {
+    return this.weekSlots().some(s => s.kind === 'available');
+  });
 
-  // ── Event handlers ────────────────────────────────────────────
   onCellClick(ev: WeekGridCellClick): void {
     const slot = this.findAvailableAt(ev.dia, ev.hora);
     if (!slot) return;
@@ -180,7 +177,6 @@ export class BookingCalendar {
     this.weekChange.emit(weekStart);
   }
 
-  // ── Lookups internos ──────────────────────────────────────────
   private findAvailableAt(dia: WeekDia | string, hora: string): WeekSlot | null {
     const m = toMin(hora);
     for (const s of this.weekSlots()) {

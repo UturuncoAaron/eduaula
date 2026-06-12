@@ -1,0 +1,162 @@
+<div class="override-drawer">
+
+    <!-- ── Header ──────────────────────────────────────────── -->
+    <header class="override-drawer__header">
+        <div class="override-drawer__title">
+            <mat-icon>edit_calendar</mat-icon>
+            <div>
+                <h3>Modificar disponibilidad</h3>
+                <span class="override-drawer__date">{{ data.dateLabel }}</span>
+            </div>
+        </div>
+        <button mat-icon-button type="button" (click)="cancel()" matTooltip="Cerrar">
+            <mat-icon>close</mat-icon>
+        </button>
+    </header>
+
+    <div class="override-drawer__body">
+
+        <!-- ── Explicación ─────────────────────────────────────── -->
+        <div class="override-drawer__info">
+            <mat-icon>info_outline</mat-icon>
+            <p>
+                Este cambio aplica <strong>solo para {{ data.dateLabel }}</strong>.
+                Tu horario base de todas las demás semanas no se modifica.
+            </p>
+        </div>
+
+        <!-- ── Selector de modo ────────────────────────────────── -->
+        <div class="override-drawer__modes">
+
+            <button class="mode-card" [class.mode-card--active]="isBaseMode()" type="button" (click)="setModeBase()">
+                <mat-icon>repeat</mat-icon>
+                <div>
+                    <strong>Usar horario base</strong>
+                    <small>Igual que todas las semanas</small>
+                </div>
+                @if (isBaseMode()) {
+                <mat-icon class="mode-card__check">check_circle</mat-icon>
+                }
+            </button>
+
+            <button class="mode-card" [class.mode-card--active]="isCustomMode()" type="button"
+                (click)="setModeCustom()">
+                <mat-icon>tune</mat-icon>
+                <div>
+                    <strong>Horario personalizado</strong>
+                    <small>Define los bloques solo para este día</small>
+                </div>
+                @if (isCustomMode()) {
+                <mat-icon class="mode-card__check">check_circle</mat-icon>
+                }
+            </button>
+
+            <button class="mode-card mode-card--danger" [class.mode-card--active]="isBlockedMode()" type="button"
+                (click)="setModeBlocked()">
+                <mat-icon>block</mat-icon>
+                <div>
+                    <strong>Día bloqueado</strong>
+                    <small>Sin atención este día</small>
+                </div>
+                @if (isBlockedMode()) {
+                <mat-icon class="mode-card__check">check_circle</mat-icon>
+                }
+            </button>
+
+        </div>
+
+        <!-- ── Horario base (preview) ──────────────────────────── -->
+        @if (isBaseMode()) {
+        <div class="override-drawer__base-preview">
+            <p class="override-drawer__section-label">
+                <mat-icon>schedule</mat-icon> Tu horario base para este día
+            </p>
+            @if (data.baseSlots.length > 0) {
+            <ul class="slot-list">
+                @for (s of data.baseSlots; track s.horaInicio) {
+                <li class="slot-list__item slot-list__item--base">
+                    <mat-icon>access_time</mat-icon>
+                    {{ s.horaInicio }} – {{ s.horaFin }}
+                </li>
+                }
+            </ul>
+            } @else {
+            <p class="override-drawer__empty">Sin disponibilidad en el horario base para este día.</p>
+            }
+        </div>
+        }
+
+        <!-- ── Slots personalizados ────────────────────────────── -->
+        @if (isCustomMode()) {
+        <div class="override-drawer__slots">
+            <p class="override-drawer__section-label">
+                <mat-icon>schedule</mat-icon>
+                Bloques de atención
+                @if (totalHours() > 0) {
+                <span class="override-drawer__hours-badge">{{ totalHours().toFixed(1) }} h</span>
+                }
+            </p>
+
+            @if (slots().length === 0) {
+            <p class="override-drawer__empty">
+                No hay bloques. Agrega al menos uno para tener disponibilidad este día.
+            </p>
+            }
+
+            <ul class="slot-list">
+                @for (slot of slots(); track $index; let i = $index) {
+                <li class="slot-list__item slot-list__item--edit">
+                    <input type="time" class="slot-input" [ngModel]="slot.horaInicio"
+                        (ngModelChange)="updateSlotStart(i, $event)" />
+                    <span class="slot-sep">–</span>
+                    <input type="time" class="slot-input" [ngModel]="slot.horaFin"
+                        (ngModelChange)="updateSlotEnd(i, $event)" />
+                    <button mat-icon-button type="button" color="warn" (click)="removeSlot(i)"
+                        matTooltip="Eliminar bloque">
+                        <mat-icon>remove_circle_outline</mat-icon>
+                    </button>
+                    @if (slot.error) {
+                    <span class="slot-error">{{ slot.error }}</span>
+                    }
+                </li>
+                }
+            </ul>
+
+            <button mat-stroked-button type="button" color="primary" class="override-drawer__add-btn"
+                (click)="addSlot()">
+                <mat-icon>add</mat-icon>
+                Agregar bloque
+            </button>
+        </div>
+        }
+
+        <!-- ── Bloqueado ───────────────────────────────────────── -->
+        @if (isBlockedMode()) {
+        <div class="override-drawer__blocked-info">
+            <mat-icon>block</mat-icon>
+            <p>
+                Este día quedará <strong>sin disponibilidad</strong>. No se podrán agendar
+                citas nuevas. Las citas ya agendadas para este día se cancelarán
+                automáticamente y los participantes serán notificados.
+            </p>
+        </div>
+        }
+
+    </div>
+
+    <!-- ── Footer ──────────────────────────────────────────── -->
+    <footer class="override-drawer__footer">
+        <button mat-button type="button" (click)="cancel()" [disabled]="saving()">
+            Cancelar
+        </button>
+        <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="saving() || hasSlotErrors()">
+            @if (saving()) {
+            <mat-spinner diameter="18" />
+            } @else {
+            <mat-icon>save</mat-icon>
+            }
+            Guardar
+        </button>
+    </footer>
+
+</div>

@@ -23,6 +23,8 @@ import type {
     FollowUpSuggestion,
     CloseSessionPayload,
     CloseSessionResult,
+    AvailabilityOverrideDay,
+    ReplaceOverridesResult,
 } from '../../../core/models/appointments';
 import type { Psicologa } from '../../../core/models/psychology';
 import type { Child } from '../../../core/models/parent-portal';
@@ -71,10 +73,13 @@ export type {
     FollowUpSuggestion,
     CloseSessionPayload,
     CloseSessionResult,
+    AvailabilityOverrideDay,
+    ReplaceOverridesResult,
 } from '../../../core/models/appointments';
 
 export type { Psicologa } from '../../../core/models/psychology';
 export type { Child } from '../../../core/models/parent-portal';
+
 function unwrapList<T>(payload: T[] | { data?: T[] } | null | undefined): T[] {
     if (Array.isArray(payload)) return payload;
     if (payload && Array.isArray((payload as { data?: T[] }).data)) {
@@ -147,16 +152,10 @@ export class AppointmentsStore {
         }
     }
 
-    // Alias — compatibilidad con componentes que llaman loadMyAppointments()
     async loadMyAppointments(): Promise<void> {
         return this.loadMine({});
     }
 
-    /**
-     * Crea una cita. Si la psicóloga incluye un alumno y existen múltiples
-     * padres vinculados, el BE devuelve `availableParents` para que el FE
-     * deje al usuario elegir uno y reintente con `parentId`.
-     */
     async createAppointment(
         payload: CreateAppointmentPayload,
     ): Promise<CreateAppointmentResult> {
@@ -180,10 +179,6 @@ export class AppointmentsStore {
         return res.data;
     }
 
-    /**
-     * Cancela una cita. Usa el alias canónico `PATCH /:id/cancelar` con
-     * motivo obligatorio (el BE valida que no esté vacío).
-     */
     async cancelAppointment(
         id: string,
         payload: CancelAppointmentPayload,
@@ -206,7 +201,6 @@ export class AppointmentsStore {
         );
     }
 
-    /** Confirma una cita pendiente (alias canónico del spec). */
     async confirmAppointment(id: string): Promise<Appointment> {
         const res = await firstValueFrom(
             this.api.patch<Appointment>(`appointments/${id}/confirmar`, {}),
@@ -217,12 +211,10 @@ export class AppointmentsStore {
         return res.data;
     }
 
-    /** Alias histórico: muchos componentes ya llaman `acceptAppointment`. */
     acceptAppointment(id: string): Promise<Appointment> {
         return this.confirmAppointment(id);
     }
 
-    /** Rechaza una cita pendiente con motivo (alias canónico del spec). */
     async rejectAppointment(id: string, motivo: string): Promise<Appointment> {
         const res = await firstValueFrom(
             this.api.patch<Appointment>(`appointments/${id}/rechazar`, { motivo }),
@@ -237,10 +229,6 @@ export class AppointmentsStore {
         return res.data;
     }
 
-    /**
-     * Aplaza una cita: padre/alumno propone nueva fecha+motivo. El estado
-     * vuelve a `pendiente` con un append en `priorNotes`.
-     */
     async postponeAppointment(
         id: string,
         payload: PostponeAppointmentPayload,
@@ -252,7 +240,6 @@ export class AppointmentsStore {
         return res.data;
     }
 
-    /** Marca la cita como realizada (sólo psicóloga). */
     async markAsRealizada(
         id: string,
         payload: CompleteAppointmentPayload = {},
@@ -266,8 +253,7 @@ export class AppointmentsStore {
                     ? {
                         ...c,
                         estado: 'realizada',
-                        followUpNotes:
-                            payload.notasPosteriores ?? c.followUpNotes,
+                        followUpNotes: payload.notasPosteriores ?? c.followUpNotes,
                     }
                     : c,
             ),
@@ -275,7 +261,6 @@ export class AppointmentsStore {
         return res.data;
     }
 
-    /** Marca la cita como `no_asistio` (psicóloga). Notifica al padre. */
     async markAsNoAsistio(id: string): Promise<Appointment> {
         const res = await firstValueFrom(
             this.api.patch<Appointment>(`appointments/${id}/inasistencia`, {}),
@@ -286,10 +271,6 @@ export class AppointmentsStore {
         return res.data;
     }
 
-    /**
-     * Deriva un alumno docente → psicóloga. El BE crea la cita con
-     * `tipo='psicologico'` y activa el vínculo `psicologa_alumno`.
-     */
     async deriveToPsicologa(
         payload: DeriveAppointmentPayload,
     ): Promise<Appointment> {
@@ -300,12 +281,6 @@ export class AppointmentsStore {
         return res.data;
     }
 
-    /**
-     * Elimina un único bloque de `disponibilidad_cuenta`. Si hay citas
-     * activas en ese bloque y `confirm` es falso, el BE responde 409
-     * con la lista de afectadas. Si `confirm=true`, el BE elimina el
-     * bloque y cancela las citas en cascada en una transacción.
-     */
     async deleteAvailabilitySlot(
         slotId: string,
         confirm = false,
@@ -320,9 +295,6 @@ export class AppointmentsStore {
             );
             return { ok: true };
         } catch (err: unknown) {
-            // El HttpExceptionFilter del backend devuelve el cuerpo 409 en
-            // e.error (raíz), no en e.error.data:
-            //   { success: false, statusCode: 409, message: { message, affectedCount, affected }, ... }
             const e = err as {
                 status?: number;
                 error?: {
@@ -331,7 +303,6 @@ export class AppointmentsStore {
                 };
             };
             if (e?.status === 409) {
-                // NestJS ConflictException({ ... }) → message contiene el objeto
                 const body = e.error?.message;
                 if (body && typeof body === 'object' && 'affected' in body) {
                     return {
@@ -346,12 +317,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Historial completo de transiciones de estado de una cita.
-     * GET /appointments/:id/estado-log — devuelve entradas ordenadas
-     * cronológicamente (más antiguas primero). El BE filtra por rol
-     * (sólo psicóloga/docente/admin o partes de la cita pueden leer).
-     */
     async getStatusLog(appointmentId: string): Promise<AppointmentStatusLogEntry[]> {
         try {
             const res = await firstValueFrom(
@@ -365,11 +330,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Disponibilidad pública semanal de una psicóloga o docente.
-     * Devuelve los slots cruzados con citas activas (libre/ocupado)
-     * en formato lun–sáb.
-     */
     async getPublicWeeklyAvailability(
         cuentaId: string,
         rol: 'psicologa' | 'docente',
@@ -386,8 +346,7 @@ export class AppointmentsStore {
                     params,
                 ),
             );
-            const data = (res?.data ?? null) as WeeklyAvailability | null;
-            return data;
+            return (res?.data ?? null) as WeeklyAvailability | null;
         } catch {
             return null;
         }
@@ -401,21 +360,12 @@ export class AppointmentsStore {
                     { date } as Record<string, string>,
                 ),
             );
-            const list = unwrapList<SlotTaken>(res.data);
-            // ✅ log para ver exactamente qué devuelve el backend
-            console.log('[AppointmentsStore] getSlotsTaken recibidos:', list.length, list);
-            return list;
-        } catch (err) {
-            // ✅ antes tragaba el error silenciosamente
-            console.error('[AppointmentsStore] getSlotsTaken ERROR:', err);
+            return unwrapList<SlotTaken>(res.data);
+        } catch {
             return [];
         }
     }
 
-    /**
-     * Slots libres calculados por el backend (disponibilidad − ocupados − pasados).
-     * Ideal para un selector de fecha + hora tipo grid.
-     */
     async getFreeSlots(
         cuentaId: string,
         date: string,
@@ -436,11 +386,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Detalle por bloques + sub-slots de un día (drawer/slide-over). El
-     * calendario macro muestra bloques generales; al abrir un día se
-     * despliegan los sub-slots de 15/30 min.
-     */
     async getDayBlocks(
         cuentaId: string,
         date: string,
@@ -458,10 +403,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Plan de Seguimiento Inteligente: fecha recomendada + slots libres
-     * precargados para la próxima sesión de la psicóloga.
-     */
     async getFollowUpSuggestion(
         appointmentId: string,
     ): Promise<FollowUpSuggestion | null> {
@@ -477,11 +418,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Cierre clínico en una sola operación: marca la cita realizada, guarda
-     * notas clínicas (ficha privada) y, opcionalmente, crea la cita de
-     * seguimiento. (Botón "Guardar Notas y Programar Seguimiento".)
-     */
     async closeSession(
         appointmentId: string,
         payload: CloseSessionPayload,
@@ -497,7 +433,7 @@ export class AppointmentsStore {
     }
 
     // ════════════════════════════════════════════════════════════
-    // DISPONIBILIDAD  →  tabla: disponibilidad_cuenta
+    // DISPONIBILIDAD — WEEKLY (horario base)
     // ════════════════════════════════════════════════════════════
 
     async loadAvailability(cuentaId: string): Promise<void> {
@@ -529,11 +465,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Reglas del rol que aplican al `targetId`. El BE es la única fuente
-     * de verdad — el FE solo consume estos valores para configurar el
-     * dialog (duración fija, días permitidos, etc.).
-     */
     async getRulesForTarget(targetId: string): Promise<AppointmentRoleRule | null> {
         try {
             const res = await firstValueFrom(
@@ -541,8 +472,7 @@ export class AppointmentsStore {
                     `appointments/rules/${targetId}`,
                 ),
             );
-            const data = (res?.data ?? null) as AppointmentRoleRule | null;
-            return data;
+            return (res?.data ?? null) as AppointmentRoleRule | null;
         } catch {
             return null;
         }
@@ -561,22 +491,57 @@ export class AppointmentsStore {
     }
 
     // ════════════════════════════════════════════════════════════
+    // DISPONIBILIDAD — OVERRIDES SPECIFIC (por fecha puntual)
+    // ════════════════════════════════════════════════════════════
+
+    async getOverridesForWeek(
+        cuentaId: string,
+        weekStart?: string,
+    ): Promise<AvailabilityOverrideDay[]> {
+        try {
+            const params: Record<string, string> = {};
+            if (weekStart) params['weekStart'] = weekStart;
+            const res = await firstValueFrom(
+                this.api.get<AvailabilityOverrideDay[] | { data: AvailabilityOverrideDay[] }>(
+                    `appointments/availability/overrides/${cuentaId}`,
+                    params,
+                ),
+            );
+            return unwrapList<AvailabilityOverrideDay>(res.data);
+        } catch {
+            return [];
+        }
+    }
+
+    async replaceOverridesForDate(
+        cuentaId: string,
+        date: string,
+        slots: { horaInicio: string; horaFin: string }[],
+    ): Promise<ReplaceOverridesResult> {
+        const res = await firstValueFrom(
+            this.api.put<ReplaceOverridesResult>(
+                `appointments/availability/overrides/${cuentaId}/${date}`,
+                { slots },
+            ),
+        );
+        return res.data;
+    }
+
+    async deleteOverrideForDate(
+        cuentaId: string,
+        date: string,
+    ): Promise<void> {
+        await firstValueFrom(
+            this.api.delete(
+                `appointments/availability/overrides/${cuentaId}/${date}`,
+            ),
+        );
+    }
+
+    // ════════════════════════════════════════════════════════════
     // DIRECTORIOS
     // ════════════════════════════════════════════════════════════
 
-    /**
-     * Carga los docentes con los que el usuario actual puede agendar citas.
-     *
-     * Endpoint nuevo `appointments/teachers/bookable` (role-aware):
-     *   - admin / psicologa → todos los docentes activos
-     *   - padre             → solo los docentes que dictan curso a sus
-     *                         hijos o son tutores de su sección
-     *   - resto             → 403
-     *
-     * Reemplaza el viejo `admin/users/docentes/select`, que era admin-only
-     * y devolvía 403 cuando el padre intentaba elegir docente, dejando el
-     * dropdown vacío con "No hay docentes disponibles".
-     */
     async loadDocentes(): Promise<void> {
         if (this.loadingDocentes()) return;
         this.loadingDocentes.set(true);
@@ -586,8 +551,6 @@ export class AppointmentsStore {
                     'appointments/teachers/bookable',
                 ),
             );
-            // El nuevo endpoint no devuelve foto_url; el FE lo trata como
-            // opcional así que normalizamos a null para mantener el contrato.
             const list = unwrapList<DocenteSelectItem>(res.data).map((d) => ({
                 ...d,
                 foto_url: d.foto_url ?? null,
@@ -600,11 +563,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Carga los administradores/directivos con los que se puede agendar
-     * (admin incluye director, secretaría, etc.). Endpoint role-aware
-     * `appointments/admins/bookable`.
-     */
     async loadAdmins(): Promise<void> {
         if (this.loadingAdmins()) return;
         this.loadingAdmins.set(true);
@@ -655,10 +613,7 @@ export class AppointmentsStore {
     }
 
     // ════════════════════════════════════════════════════════════
-    // SEARCH — TeacherRequestAppointmentDialog
-    // Reusa el endpoint del directorio (`psychology/directory/students/search`)
-    // que ya está expuesto a `psicologa | docente | auxiliar | admin`. No
-    // creamos uno por rol — la búsqueda de alumnos es la misma.
+    // SEARCH
     // ════════════════════════════════════════════════════════════
 
     async searchMyStudents(query: string): Promise<StudentSearchResult[]> {
@@ -677,10 +632,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Búsqueda de PADRES por nombre / apellido. Usada por el admin para crear
-     * citas (el admin cita únicamente a padres, no a alumnos).
-     */
     async searchParents(query: string): Promise<ParentSearchResult[]> {
         const term = (query ?? '').trim();
         if (term.length < 2) return [];
@@ -697,11 +648,6 @@ export class AppointmentsStore {
         }
     }
 
-    /**
-     * Trae los padres/tutores vinculados a un alumno. Usado por la psicóloga
-     * en la "búsqueda inteligente": al elegir un alumno, autocargamos los
-     * padres del sistema para que pueda elegir uno o ambos.
-     */
     async getStudentParents(studentId: string): Promise<LinkedParent[]> {
         if (!studentId) return [];
         try {
@@ -715,6 +661,7 @@ export class AppointmentsStore {
             return [];
         }
     }
+
     async countFutureAppointments(): Promise<number> {
         try {
             const res = await firstValueFrom(
@@ -752,10 +699,6 @@ export interface StudentSearchResult {
     } | null;
 }
 
-/**
- * Resultado del endpoint `directory/parents/search`. Es el padre/tutor
- * ya como entidad (no a través del alumno).
- */
 export interface ParentSearchResult {
     id: string;
     nombre: string;
@@ -767,9 +710,6 @@ export interface ParentSearchResult {
     foto_storage_key?: string | null;
 }
 
-/**
- * Padre vinculado a un alumno concreto (`directory/students/:id/parents`).
- */
 export interface LinkedParent {
     id: string;
     nombre: string;
