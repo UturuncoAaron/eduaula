@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://backendcapstone-five.vercel.app/api'
+    apiUrl: 'https://eduaula-api.duckdns.org/api'
 };
