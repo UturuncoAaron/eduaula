@@ -24,29 +24,23 @@
 } @else {
 <div class="nb-grid">
     @for (nb of notebooks(); track nb.id; let i = $index) {
-    <article class="nb-card" [style.animation-delay]="(i * 50) + 'ms'">
+    <article class="nb-card" [style.animation-delay]="(i * 60) + 'ms'" (click)="ver(nb)">
 
-        <div class="nb-card-left">
-            <div class="nb-icon">
-                <mat-icon>description</mat-icon>
+        <div class="nb-thumb">
+            <mat-icon>picture_as_pdf</mat-icon>
+            <div class="nb-thumb-overlay">
+                <mat-icon>visibility</mat-icon>
+                <span>Previsualizar</span>
             </div>
-            <div class="nb-bimestre-line"></div>
         </div>
 
-        <div class="nb-card-body">
-            <div class="nb-card-top">
-                <div>
-                    <p class="nb-period">{{ nb.periodo.nombre }}</p>
-                    <p class="nb-meta">
-                        <span class="nb-bim-badge">Bim {{ nb.periodo.bimestre }}</span>
-                        {{ nb.periodo.anio }}
-                    </p>
-                </div>
-                <button mat-flat-button class="nb-open-btn" (click)="open(nb.id, nb.url)">
-                    <mat-icon>open_in_new</mat-icon>
-                    Ver boletín
-                </button>
+        <div class="nb-body">
+            <div class="nb-body-head">
+                <span class="nb-bim-badge">Bim {{ nb.periodo.bimestre }}</span>
+                <span class="nb-year">{{ nb.periodo.anio }}</span>
             </div>
+
+            <h3 class="nb-period">{{ nb.periodo.nombre }}</h3>
 
             @if (nb.observaciones) {
             <p class="nb-obs">{{ nb.observaciones }}</p>
@@ -58,7 +52,46 @@
             </p>
         </div>
 
+        <div class="nb-actions" (click)="$event.stopPropagation()">
+            <button class="nb-icon-btn" matTooltip="Previsualizar" (click)="ver(nb)">
+                <mat-icon>visibility</mat-icon>
+            </button>
+            <button class="nb-icon-btn" matTooltip="Abrir en pestaña nueva" (click)="abrirExterno(nb)">
+                <mat-icon>open_in_new</mat-icon>
+            </button>
+        </div>
+
     </article>
     }
+</div>
+}
+
+@if (preview(); as nb) {
+<div class="nb-viewer" (click)="cerrarPreview()">
+    <div class="nb-viewer-box" (click)="$event.stopPropagation()">
+        <header class="nb-viewer-head">
+            <div class="nb-viewer-title">
+                <div class="nb-viewer-icon">
+                    <mat-icon>picture_as_pdf</mat-icon>
+                </div>
+                <div>
+                    <p class="nb-viewer-name">{{ nb.periodo.nombre }}</p>
+                    <p class="nb-viewer-sub">Bim {{ nb.periodo.bimestre }} · {{ nb.periodo.anio }}</p>
+                </div>
+            </div>
+            <div class="nb-viewer-tools">
+                <button class="nb-icon-btn" matTooltip="Abrir en pestaña nueva" (click)="abrirExterno(nb)">
+                    <mat-icon>open_in_new</mat-icon>
+                </button>
+                <button class="nb-icon-btn" matTooltip="Cerrar" (click)="cerrarPreview()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        </header>
+
+        <div class="nb-viewer-frame">
+            <iframe [src]="previewUrl()" title="Previsualización de libreta"></iframe>
+        </div>
+    </div>
 </div>
 }

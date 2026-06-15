@@ -1,67 +1,100 @@
-<app-page-header
-    title="Libreta de notas"
-    subtitle="Boletines firmados por bimestre"
-    backRoute="/portal-padres" />
+<app-page-header title="Libreta de notas" subtitle="Boletines firmados por bimestre" backRoute="/portal-padres" />
 
 @if (loading()) {
-    <div class="state-center">
-        <mat-spinner diameter="36" />
-        <p>Cargando libretas...</p>
-    </div>
+<div class="state-center">
+    <mat-spinner diameter="36" />
+    <p>Cargando libretas...</p>
+</div>
 } @else if (libretas().length === 0) {
-    <app-empty-state
-        icon="menu_book"
-        title="Sin libretas"
-        message="Aún no se ha publicado ninguna libreta para este alumno." />
+<app-empty-state icon="menu_book" title="Sin libretas"
+    message="Aún no se ha publicado ninguna libreta para este alumno." />
 } @else {
 
-    <div class="libretas-grid">
-        @for (l of libretas(); track l.id) {
-            <mat-card class="libreta-card">
-                <mat-card-header>
-                    <div mat-card-avatar class="lib-avatar">
-                        <mat-icon>menu_book</mat-icon>
-                    </div>
-                    <mat-card-title>
-                        @if (l.periodo) {
-                            {{ l.periodo.nombre }} {{ l.periodo.anio }}
-                        } @else {
-                            Libreta
-                        }
-                    </mat-card-title>
-                    <mat-card-subtitle>
-                        Subida {{ l.created_at | date:'mediumDate' }}
-                    </mat-card-subtitle>
-                </mat-card-header>
+<div class="cl-grid">
+    @for (l of libretas(); track l.id; let i = $index) {
+    <article class="cl-card" [style.animation-delay]="(i * 50) + 'ms'" [class.cl-card--disabled]="!hasUrl(l)"
+        (click)="ver(l)">
 
-                <mat-card-content>
-                    <p class="filename">
-                        <mat-icon>description</mat-icon>
-                        <span>{{ l.nombre_archivo }}</span>
+        <div class="cl-thumb">
+            <mat-icon>picture_as_pdf</mat-icon>
+            @if (l.periodo) {
+            <span class="cl-thumb-bim">B{{ l.periodo.bimestre }}</span>
+            }
+            @if (hasUrl(l)) {
+            <div class="cl-thumb-overlay">
+                <mat-icon>visibility</mat-icon>
+                <span>Previsualizar</span>
+            </div>
+            }
+        </div>
+
+        <div class="cl-body">
+            <h3 class="cl-title">
+                @if (l.periodo) { {{ l.periodo.nombre }} {{ l.periodo.anio }} } @else { Libreta }
+            </h3>
+            @if (l.periodo) {
+            <p class="cl-sub">Bimestre {{ l.periodo.bimestre }}</p>
+            }
+            @if (l.nombre_archivo) {
+            <p class="cl-filename" [matTooltip]="l.nombre_archivo">
+                <mat-icon>description</mat-icon>{{ l.nombre_archivo }}
+            </p>
+            }
+            @if (l.observaciones) {
+            <p class="cl-obs">
+                <mat-icon>chat_bubble</mat-icon>{{ l.observaciones }}
+            </p>
+            }
+        </div>
+
+        <div class="cl-foot" (click)="$event.stopPropagation()">
+            <span class="cl-date">
+                <mat-icon>event</mat-icon>{{ l.created_at | date:'dd/MM/yyyy' }}
+            </span>
+            <div class="cl-actions">
+                <button class="cl-icon-btn" matTooltip="Previsualizar" [disabled]="!hasUrl(l)" (click)="ver(l)">
+                    <mat-icon>visibility</mat-icon>
+                </button>
+                <button class="cl-icon-btn"
+                    [matTooltip]="hasUrl(l) ? 'Abrir en pestaña nueva' : 'Archivo no disponible'"
+                    [disabled]="!hasUrl(l)" (click)="abrirExterno(l)">
+                    <mat-icon>{{ hasUrl(l) ? 'open_in_new' : 'block' }}</mat-icon>
+                </button>
+            </div>
+        </div>
+    </article>
+    }
+</div>
+
+}
+
+@if (preview(); as l) {
+<div class="cl-viewer" (click)="cerrarPreview()">
+    <div class="cl-viewer-box" (click)="$event.stopPropagation()">
+        <header class="cl-viewer-head">
+            <div class="cl-viewer-title">
+                <div class="cl-viewer-icon"><mat-icon>picture_as_pdf</mat-icon></div>
+                <div>
+                    <p class="cl-viewer-name">
+                        @if (l.periodo) { {{ l.periodo.nombre }} {{ l.periodo.anio }} } @else { Libreta }
                     </p>
-                    @if (l.observaciones) {
-                        <p class="obs">{{ l.observaciones }}</p>
+                    @if (l.periodo) {
+                    <p class="cl-viewer-sub">Bimestre {{ l.periodo.bimestre }}</p>
                     }
-                </mat-card-content>
-
-                <mat-card-actions align="end">
-                    @if (hasUrl(l)) {
-                        <button mat-flat-button color="primary"
-                                (click)="open(l.url)">
-                            <mat-icon>open_in_new</mat-icon>
-                            <span>Ver libreta</span>
-                        </button>
-                    } @else {
-                        <button mat-stroked-button
-                                disabled
-                                matTooltip="Archivo no disponible">
-                            <mat-icon>block</mat-icon>
-                            <span>Ver libreta</span>
-                        </button>
-                    }
-                </mat-card-actions>
-            </mat-card>
-        }
+                </div>
+            </div>
+            <div class="cl-viewer-tools">
+                <button class="cl-icon-btn" matTooltip="Abrir en pestaña nueva" (click)="abrirExterno(l)">
+                    <mat-icon>open_in_new</mat-icon>
+                </button>
+                <button class="cl-icon-btn" matTooltip="Cerrar" (click)="cerrarPreview()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        </header>
+        <div class="cl-viewer-frame">
+            <iframe [src]="previewUrl()" title="Previsualización de libreta"></iframe>
+        </div>
     </div>
-
+</div>
 }

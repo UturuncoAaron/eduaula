@@ -64,6 +64,11 @@ interface CitaRow {
 }
 
 interface CitaDetail {
+  /**
+   * Mantenido por compatibilidad (Opción B): ya no se usa en la UI ni se
+   * solicita al backend en onCitaExpand, pero se conserva en la interfaz
+   * por si se reutiliza en otro flujo. Siempre queda como [].
+   */
   anotaciones: PsychologyRecord[];
   archivos: ArchivoPsicologico[];
   informe: InformePsicologico | null;
@@ -247,14 +252,13 @@ export class StudentDetail implements OnInit {
 
     const id = this.studentId();
     try {
-      const [anotRes, archRes, infRes] = await Promise.all([
-        firstValueFrom(this.api.get<any>(`psychology/records/student/${id}?citaId=${cita.id}&limit=50`)),
+      const [archRes, infRes] = await Promise.all([
         firstValueFrom(this.api.get<any>(`psychology/archivos/student/${id}?citaId=${cita.id}&limit=50`)),
         firstValueFrom(this.api.get<any>(`psychology/informes/student/${id}?citaId=${cita.id}&limit=1`)),
       ]);
       const m2 = new Map(this.citaDetails());
       m2.set(cita.id, {
-        anotaciones: this.toArr<PsychologyRecord>(anotRes),
+        anotaciones: [],
         archivos: this.toArr<ArchivoPsicologico>(archRes),
         informe: (this.toArr<InformePsicologico>(infRes)[0]) ?? null,
         loading: false, loaded: true,
@@ -271,6 +275,11 @@ export class StudentDetail implements OnInit {
   getCitaDetail(citaId: string): CitaDetail {
     return this.citaDetails().get(citaId) ??
     { anotaciones: [], archivos: [], informe: null, loading: false, loaded: false };
+  }
+
+  /** Filtra los archivos de una sesión por categoría (ficha/test). */
+  archivosPorCategoria(archivos: ArchivoPsicologico[], categoria: ArchivoCategoria): ArchivoPsicologico[] {
+    return archivos.filter(a => a.categoria === categoria);
   }
 
   isPreviewing(archivoId: string): boolean {
@@ -481,6 +490,11 @@ export class StudentDetail implements OnInit {
     });
   }
 
+  /**
+   * Mantenidos por compatibilidad (Opción B): "Anotaciones" ya no se muestra
+   * en la UI de citas, pero estos métodos quedan disponibles por si se
+   * reutilizan en otro flujo. No están referenciados desde el template.
+   */
   openCreateAnotacion(citaId: string): void {
     const p = this.profile();
     if (!p) return;

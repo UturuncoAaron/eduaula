@@ -277,7 +277,7 @@
                     <div>
                         <h3 class="sd-tab-title">Historial de citas</h3>
                         <p class="sd-tab-subtitle">
-                            Las citas realizadas incluyen anotaciones de sesión, archivos e informe.
+                            Las citas realizadas incluyen fichas, tests e informe de la sesión.
                         </p>
                     </div>
                     <button mat-flat-button color="primary" (click)="openNuevaCita()">
@@ -361,124 +361,45 @@
 
                             <mat-tab>
                                 <ng-template mat-tab-label>
-                                    <mat-icon class="sd-subtab-icon">edit_note</mat-icon>
-                                    Anotaciones
-                                    @if (detail.anotaciones.length) {
-                                    <span class="sd-tab-badge sd-tab-badge--sm">{{ detail.anotaciones.length }}</span>
+                                    <mat-icon class="sd-subtab-icon">folder_special</mat-icon>
+                                    Fichas
+                                    @if (archivosPorCategoria(detail.archivos, 'ficha').length) {
+                                    <span class="sd-tab-badge sd-tab-badge--sm">
+                                        {{ archivosPorCategoria(detail.archivos, 'ficha').length }}
+                                    </span>
                                     }
                                 </ng-template>
                                 <div class="sd-cita-tab-body">
-                                    @if (!detail.anotaciones.length) {
-                                    <div class="sd-cita-empty">
-                                        <mat-icon>edit_note</mat-icon>
-                                        <p>Sin anotaciones para esta sesión</p>
-                                        <button mat-stroked-button (click)="openCreateAnotacion(cita.id)">
-                                            <mat-icon>add</mat-icon>Agregar anotación
-                                        </button>
-                                    </div>
-                                    } @else {
-                                    <div class="sd-cita-tab-toolbar">
-                                        <button mat-stroked-button (click)="openCreateAnotacion(cita.id)">
-                                            <mat-icon>add</mat-icon>Agregar
-                                        </button>
-                                    </div>
-                                    <ul class="sd-timeline sd-timeline--compact" role="list">
-                                        @for (r of detail.anotaciones; track r.id) {
-                                        <li class="sd-timeline__item">
-                                            <span class="sd-timeline__dot" [attr.data-cat]="r.categoria"></span>
-                                            <article class="sd-ficha-card sd-ficha-card--compact"
-                                                [attr.data-cat]="r.categoria">
-                                                <header class="sd-ficha-card__header">
-                                                    <span class="sd-chip sd-chip--cat" [attr.data-cat]="r.categoria">{{
-                                                        r.categoria }}</span>
-                                                    <div class="sd-ficha-card__actions">
-                                                        <button mat-icon-button (click)="openEditAnotacion(r, cita.id)"
-                                                            matTooltip="Editar">
-                                                            <mat-icon>edit</mat-icon>
-                                                        </button>
-                                                        <button mat-icon-button (click)="deleteAnotacion(r, cita.id)"
-                                                            matTooltip="Eliminar" class="btn-danger">
-                                                            <mat-icon>delete</mat-icon>
-                                                        </button>
-                                                    </div>
-                                                </header>
-                                                <p class="sd-ficha-card__content">{{ r.contenido }}</p>
-                                            </article>
-                                        </li>
-                                        }
-                                    </ul>
-                                    }
+                                    <ng-container *ngTemplateOutlet="citaFileList; context: {
+                                        $implicit: archivosPorCategoria(detail.archivos, 'ficha'),
+                                        citaId: cita.id,
+                                        categoria: 'ficha',
+                                        uploadLabel: 'Subir ficha',
+                                        emptyIcon: 'folder_special',
+                                        emptyText: 'Sin fichas para esta sesión'
+                                    }" />
                                 </div>
                             </mat-tab>
 
                             <mat-tab>
                                 <ng-template mat-tab-label>
-                                    <mat-icon class="sd-subtab-icon">folder_open</mat-icon>
-                                    Archivos
-                                    @if (detail.archivos.length) {
-                                    <span class="sd-tab-badge sd-tab-badge--sm">{{ detail.archivos.length }}</span>
+                                    <mat-icon class="sd-subtab-icon">science</mat-icon>
+                                    Tests
+                                    @if (archivosPorCategoria(detail.archivos, 'test').length) {
+                                    <span class="sd-tab-badge sd-tab-badge--sm">
+                                        {{ archivosPorCategoria(detail.archivos, 'test').length }}
+                                    </span>
                                     }
                                 </ng-template>
                                 <div class="sd-cita-tab-body">
-                                    @if (!detail.archivos.length) {
-                                    <div class="sd-cita-empty">
-                                        <mat-icon>folder_open</mat-icon>
-                                        <p>Sin archivos para esta sesión</p>
-                                        <button mat-stroked-button (click)="openUploadArchivo('ficha', cita.id)">
-                                            <mat-icon>upload</mat-icon>Subir archivo
-                                        </button>
-                                    </div>
-                                    } @else {
-                                    <div class="sd-cita-tab-toolbar">
-                                        <button mat-stroked-button (click)="openUploadArchivo('ficha', cita.id)">
-                                            <mat-icon>upload</mat-icon>Subir archivo
-                                        </button>
-                                    </div>
-                                    <ul class="sd-file-list sd-file-list--compact" role="list">
-                                        @for (a of detail.archivos; track a.id) {
-                                        <li class="sd-file-item" [class.is-expanded]="isPreviewing(a.id)">
-                                            <mat-icon class="sd-file-item__icon">{{ archivoIcon(a) }}</mat-icon>
-                                            <div class="sd-file-item__body">
-                                                <div class="sd-file-item__name">{{ a.nombre }}</div>
-                                                <p class="sd-file-item__meta">{{ archivoSize(a) }} ·
-                                                    {{ a.createdAt | date:'d MMM yyyy' }}</p>
-                                            </div>
-                                            <div class="sd-file-item__actions">
-                                                @if (isPreviewable(a)) {
-                                                <button mat-icon-button (click)="togglePreview(a)"
-                                                    [matTooltip]="isPreviewing(a.id) ? 'Cerrar vista previa' : 'Vista previa'">
-                                                    @if (previewLoading().has(a.id)) {
-                                                    <mat-spinner diameter="18" />
-                                                    } @else {
-                                                    <mat-icon>{{ isPreviewing(a.id) ? 'visibility_off' : 'visibility'
-                                                        }}</mat-icon>
-                                                    }
-                                                </button>
-                                                }
-                                                <button mat-icon-button (click)="downloadArchivo(a)"
-                                                    matTooltip="Descargar">
-                                                    <mat-icon>download</mat-icon>
-                                                </button>
-                                                <button mat-icon-button (click)="deleteArchivoFromCita(a, cita.id)"
-                                                    matTooltip="Eliminar" class="btn-danger">
-                                                    <mat-icon>delete</mat-icon>
-                                                </button>
-                                            </div>
-                                            @if (isPreviewing(a.id)) {
-                                            <div class="sd-file-preview">
-                                                @if (isImage(a)) {
-                                                <img [src]="previewUrls().get(a.id)" [alt]="a.nombre"
-                                                    class="sd-file-preview__img" />
-                                                } @else {
-                                                <iframe [src]="safePreviewUrl(a.id)" class="sd-file-preview__iframe"
-                                                    title="Vista previa"></iframe>
-                                                }
-                                            </div>
-                                            }
-                                        </li>
-                                        }
-                                    </ul>
-                                    }
+                                    <ng-container *ngTemplateOutlet="citaFileList; context: {
+                                        $implicit: archivosPorCategoria(detail.archivos, 'test'),
+                                        citaId: cita.id,
+                                        categoria: 'test',
+                                        uploadLabel: 'Subir test',
+                                        emptyIcon: 'science',
+                                        emptyText: 'Sin tests para esta sesión'
+                                    }" />
                                 </div>
                             </mat-tab>
 
@@ -609,4 +530,73 @@
         </div>
         }
     </li>
+</ng-template>
+
+<!--
+    Template reutilizable para los sub-tabs "Fichas" y "Tests" dentro de una cita.
+    Contexto esperado:
+      $implicit  -> ArchivoPsicologico[]  (ya filtrado por categoría)
+      citaId     -> string
+      categoria  -> 'ficha' | 'test'
+      uploadLabel-> string
+      emptyIcon  -> string
+      emptyText  -> string
+-->
+<ng-template #citaFileList let-archivos let-citaId="citaId" let-categoria="categoria" let-uploadLabel="uploadLabel"
+    let-emptyIcon="emptyIcon" let-emptyText="emptyText">
+    @if (!archivos.length) {
+    <div class="sd-cita-empty">
+        <mat-icon>{{ emptyIcon }}</mat-icon>
+        <p>{{ emptyText }}</p>
+        <button mat-stroked-button (click)="openUploadArchivo(categoria, citaId)">
+            <mat-icon>upload</mat-icon>{{ uploadLabel }}
+        </button>
+    </div>
+    } @else {
+    <div class="sd-cita-tab-toolbar">
+        <button mat-stroked-button (click)="openUploadArchivo(categoria, citaId)">
+            <mat-icon>upload</mat-icon>{{ uploadLabel }}
+        </button>
+    </div>
+    <ul class="sd-file-list sd-file-list--compact" role="list">
+        @for (a of archivos; track a.id) {
+        <li class="sd-file-item" [class.is-expanded]="isPreviewing(a.id)">
+            <mat-icon class="sd-file-item__icon">{{ archivoIcon(a) }}</mat-icon>
+            <div class="sd-file-item__body">
+                <div class="sd-file-item__name">{{ a.nombre }}</div>
+                <p class="sd-file-item__meta">{{ archivoSize(a) }} ·
+                    {{ a.createdAt | date:'d MMM yyyy' }}</p>
+            </div>
+            <div class="sd-file-item__actions">
+                @if (isPreviewable(a)) {
+                <button mat-icon-button (click)="togglePreview(a)"
+                    [matTooltip]="isPreviewing(a.id) ? 'Cerrar vista previa' : 'Vista previa'">
+                    @if (previewLoading().has(a.id)) {
+                    <mat-spinner diameter="18" />
+                    } @else {
+                    <mat-icon>{{ isPreviewing(a.id) ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    }
+                </button>
+                }
+                <button mat-icon-button (click)="downloadArchivo(a)" matTooltip="Descargar">
+                    <mat-icon>download</mat-icon>
+                </button>
+                <button mat-icon-button (click)="deleteArchivoFromCita(a, citaId)" matTooltip="Eliminar"
+                    class="btn-danger">
+                    <mat-icon>delete</mat-icon>
+                </button>
+            </div>
+            @if (isPreviewing(a.id)) {
+            <div class="sd-file-preview">
+                @if (isImage(a)) {
+                <img [src]="previewUrls().get(a.id)" [alt]="a.nombre" class="sd-file-preview__img" />
+                } @else {
+                <iframe [src]="safePreviewUrl(a.id)" class="sd-file-preview__iframe" title="Vista previa"></iframe>
+                }
+            </div>
+            }
+        </li>
+        }
+    </ul>
+    }
 </ng-template>

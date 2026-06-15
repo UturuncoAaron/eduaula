@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -18,7 +18,7 @@ import { ChildLibreta as ChildLibretaModel } from '../../../core/models/parent-p
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         DatePipe,
-        MatCardModule, MatButtonModule, MatIconModule,
+        MatButtonModule, MatIconModule,
         MatProgressSpinnerModule, MatTooltipModule,
         PageHeader, EmptyState,
     ],
@@ -28,13 +28,21 @@ import { ChildLibreta as ChildLibretaModel } from '../../../core/models/parent-p
 export class ChildLibreta implements OnInit {
     private route = inject(ActivatedRoute);
     private store = inject(ParentPortalService);
+    private sanitizer = inject(DomSanitizer);
 
     readonly libretas = signal<ChildLibretaModel[]>([]);
     readonly loading = signal(true);
+    readonly preview = signal<ChildLibretaModel | null>(null);
 
     readonly childId = computed<string>(() =>
         this.route.snapshot.paramMap.get('childId') ?? '',
     );
+
+    readonly previewUrl = computed<SafeResourceUrl | null>(() => {
+        const l = this.preview();
+        if (!l?.url) return null;
+        return this.sanitizer.bypassSecurityTrustResourceUrl(`${l.url}#toolbar=1&view=FitH`);
+    });
 
     ngOnInit() {
         const id = this.childId();
@@ -53,13 +61,22 @@ export class ChildLibreta implements OnInit {
         });
     }
 
-    open(url: string | null | undefined) {
-        if (!url) return;
-        window.open(url, '_blank', 'noopener');
-    }
-
     /** True si la libreta tiene URL firmada lista para descarga. */
     hasUrl(l: ChildLibretaModel): boolean {
         return typeof l.url === 'string' && l.url.length > 0;
+    }
+
+    ver(l: ChildLibretaModel) {
+        if (!this.hasUrl(l)) return;
+        this.preview.set(l);
+    }
+
+    abrirExterno(l: ChildLibretaModel) {
+        if (!this.hasUrl(l)) return;
+        window.open(l.url!, '_blank', 'noopener');
+    }
+
+    cerrarPreview() {
+        this.preview.set(null);
     }
 }

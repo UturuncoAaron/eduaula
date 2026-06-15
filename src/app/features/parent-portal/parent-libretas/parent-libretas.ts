@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, computed, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -38,10 +39,18 @@ interface YearGroup {
 })
 export class ParentLibretas implements OnInit {
   private api = inject(ApiService);
+  private sanitizer = inject(DomSanitizer);
 
   readonly libretas = signal<Libreta[]>([]);
   readonly loading = signal(true);
   readonly error = signal(false);
+
+  readonly preview = signal<Libreta | null>(null);
+  readonly previewUrl = computed<SafeResourceUrl | null>(() => {
+    const lb = this.preview();
+    if (!lb?.url) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`${lb.url}#toolbar=1&view=FitH`);
+  });
 
   readonly total = computed(() => this.libretas().length);
 
@@ -86,17 +95,30 @@ export class ParentLibretas implements OnInit {
     });
   }
 
-  open(lb: Libreta) {
-    if (!lb.url) return;
+  private marcarVista(lb: Libreta) {
     this.api.post(`libretas/${lb.id}/marcar-vista`, {}).subscribe({
       next: () => {
-        // Marca como leída localmente sin recargar
         this.libretas.update(list =>
           list.map(item => item.id === lb.id ? { ...item, leida: true } : item)
         );
       },
       error: () => undefined,
     });
+  }
+
+  ver(lb: Libreta) {
+    if (!lb.url) return;
+    this.marcarVista(lb);
+    this.preview.set(lb);
+  }
+
+  abrirExterno(lb: Libreta) {
+    if (!lb.url) return;
+    this.marcarVista(lb);
     window.open(lb.url, '_blank', 'noopener');
+  }
+
+  cerrarPreview() {
+    this.preview.set(null);
   }
 }

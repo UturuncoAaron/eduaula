@@ -23,6 +23,7 @@ export interface ArchivoUploadDialogData {
   studentId: string;
   studentName: string;
   categoria: ArchivoCategoria;
+  citaId?: string;
 }
 
 @Component({
@@ -172,6 +173,7 @@ export class ArchivoUploadDialog {
         descripcion: this.descripcion().trim() || undefined,
         confidencial: this.confidencial(),
         file: f,
+        citaId: this.data.citaId,
       });
       this.toastr.success(
         this.data.categoria === 'ficha' ? 'Ficha agregada'

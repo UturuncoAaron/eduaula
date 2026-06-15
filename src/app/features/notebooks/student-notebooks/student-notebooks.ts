@@ -1,7 +1,9 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../../core/services/api';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 
@@ -23,16 +25,24 @@ interface Libreta {
 @Component({
   selector: 'app-student-notebooks',
   standalone: true,
-  imports: [DatePipe, MatIconModule, MatButtonModule, PageHeader],
+  imports: [DatePipe, MatIconModule, MatButtonModule, MatTooltipModule, PageHeader],
   templateUrl: './student-notebooks.html',
   styleUrl: './student-notebooks.scss',
 })
 export class StudentNotebooks implements OnInit {
   private api = inject(ApiService);
+  private sanitizer = inject(DomSanitizer);
 
   notebooks = signal<Libreta[]>([]);
   loading = signal(true);
   error = signal(false);
+
+  preview = signal<Libreta | null>(null);
+  readonly previewUrl = computed<SafeResourceUrl | null>(() => {
+    const nb = this.preview();
+    if (!nb) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`${nb.url}#toolbar=1&view=FitH`);
+  });
 
   ngOnInit() {
     this.api.get<Libreta[]>('libretas/me').subscribe({
@@ -41,13 +51,24 @@ export class StudentNotebooks implements OnInit {
     });
   }
 
-  open(libretaId: string, url: string) {
-    // Marca la libreta como vista por el usuario actual (alumno/padre).
-    // Endpoint idempotente, ignoramos errores para no bloquear la apertura.
+  private marcarVista(libretaId: string) {
     this.api.post(`libretas/${libretaId}/marcar-vista`, {}).subscribe({
       next: () => undefined,
       error: () => undefined,
     });
-    window.open(url, '_blank');
+  }
+
+  ver(nb: Libreta) {
+    this.marcarVista(nb.id);
+    this.preview.set(nb);
+  }
+
+  abrirExterno(nb: Libreta) {
+    this.marcarVista(nb.id);
+    window.open(nb.url, '_blank', 'noopener');
+  }
+
+  cerrarPreview() {
+    this.preview.set(null);
   }
 }

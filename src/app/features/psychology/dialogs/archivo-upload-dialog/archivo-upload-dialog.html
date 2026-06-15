@@ -79,7 +79,7 @@
                         (change)="confidencial.set($event.checked)" [disabled]="uploading()">
                         <span class="aud__visibility-label">
                             <mat-icon aria-hidden="true">{{ confidencial() ? 'lock' : 'public' }}</mat-icon>
-                            <strong>{{ confidencial() ? 'Confidencial (Solo tú y el alumno)' : 'Público (Visible para padres)' }}</strong>
+                            <strong>{{ confidencial() ? 'Confidencial (solo tú)' : 'Visible para el alumno' }}</strong>
                         </span>
                     </mat-slide-toggle>
                 </div>
