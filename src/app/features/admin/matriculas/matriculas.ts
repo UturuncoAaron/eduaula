@@ -425,6 +425,49 @@ export class Matriculas implements OnInit {
       ? this.matriculas().filter(m => m.seccion_id === secId)
       : this.matriculas();
   });
+  async aprobarTodos(): Promise<void> {
+    const seccionId = this.seccionFiltro.value;
+    const seccion = this.seccionesFiltro().find(s => s.id === seccionId);
+    const pendientes = this.matriculas().filter(
+      m => m.seccion_id === seccionId && m.activo && m.condicion_final === 'pendiente'
+    ).length;
 
+    if (!pendientes) {
+      this.toastr.error('No hay alumnos pendientes en esta sección');
+      return;
+    }
+
+    const { ConfirmDialog } = await import(
+      '../../../shared/components/confirm-dialog/confirm-dialog'
+    );
+    const ref = this.dialog.open(ConfirmDialog, {
+      width: '440px',
+      data: {
+        title: '¿Aprobar todos los pendientes?',
+        message: `Se marcarán ${pendientes} alumno(s) de Sección ${seccion?.nombre ?? ''} como APROBADO.\n\nLuego puedes editar individualmente los que no correspondan.`,
+        confirm: 'Sí, aprobar todos',
+        cancel: 'Cancelar',
+        danger: false,
+      },
+    });
+
+    ref.afterClosed().subscribe((ok: boolean) => {
+      if (!ok) return;
+      this.api
+        .post('academic-years/matriculas/bulk-condicion', {
+          anio: this.anioActual(),
+          seccion_id: seccionId,
+          condicion: 'aprobado',
+        })
+        .subscribe({
+          next: (r: any) => {
+            const actualizadas = r?.data?.actualizadas ?? 0;
+            this.toastr.success(`${actualizadas} alumno(s) marcados como aprobados`);
+            this.cargarMatriculas();
+          },
+          error: () => this.toastr.error('Error al aprobar alumnos'),
+        });
+    });
+  }
 
 }

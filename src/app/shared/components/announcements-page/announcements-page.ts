@@ -1,9 +1,10 @@
 import {
   Component, inject, signal, computed, OnInit,
-  ChangeDetectionStrategy,
+  ChangeDetectionStrategy, HostListener,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -36,7 +37,10 @@ interface ArchivoItem {
   original_name: string;
   mime_type: string;
   size_bytes: number;
+  /** URL de descarga (Content-Disposition: attachment). */
   url?: string;
+  /** URL inline para previsualizar en el visor. */
+  preview_url?: string;
 }
 
 interface CreadorInfo {
@@ -82,6 +86,7 @@ interface PeriodoItem {
   nombre: string;
   anio: number;
   bimestre: number;
+  activo: boolean;
 }
 
 const LABELS: Record<string, string> = {
@@ -112,8 +117,7 @@ export class AnnouncementsPage implements OnInit {
   private attachments = inject(AttachmentsService);
   private notifStore = inject(NotificationsStore);
   private router = inject(Router);
-
-
+  private sanitizer = inject(DomSanitizer);
 
   activeTab = signal<'comunicados' | 'notificaciones'>('comunicados');
   notifFilter = signal<'todas' | 'no_leidas'>('todas');
@@ -154,6 +158,27 @@ export class AnnouncementsPage implements OnInit {
   periodoFiltro = new FormControl<string | null>(null);
   soloImportantes = signal(false);
   soloNoLeidos = signal(false);
+
+  // ── Visor de adjuntos (lightbox) ────────────────────────────────
+  previewList = signal<ArchivoItem[]>([]);
+  previewIndex = signal(0);
+
+  previewArchivo = computed<ArchivoItem | null>(
+    () => this.previewList()[this.previewIndex()] ?? null,
+  );
+
+  /** Fuente inline para imagen/iframe (preview_url con fallback a url). */
+  previewSrc(arch: ArchivoItem): string {
+    return arch.preview_url ?? arch.url ?? '';
+  }
+
+  safePreviewUrl = computed<SafeResourceUrl | null>(() => {
+    const pv = this.previewArchivo();
+    if (!pv || this.isImage(pv.mime_type)) return null;
+    const src = this.previewSrc(pv);
+    if (!src) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(src);
+  });
 
   readonly userId = computed(() => this.auth.currentUser()?.id ?? '');
   readonly rol = computed(() => this.auth.currentUser()?.rol ?? '');
@@ -203,7 +228,8 @@ export class AnnouncementsPage implements OnInit {
     }
     const sinTodos = current.filter(d => d !== 'todos');
     const idx = sinTodos.indexOf(value);
-    idx >= 0 ? sinTodos.splice(idx, 1) : sinTodos.push(value);
+    if (idx >= 0) sinTodos.splice(idx, 1);
+    else sinTodos.push(value);
     this.form.get('destinatarios')?.setValue(sinTodos);
   }
 
@@ -235,7 +261,12 @@ export class AnnouncementsPage implements OnInit {
 
   private cargarPeriodos() {
     this.api.get<PeriodoItem[]>('academic/periodos').subscribe({
-      next: r => this.periodos.set((r as any).data ?? []),
+      next: r => {
+        const todos: PeriodoItem[] = (r as any).data ?? [];
+        const activo = todos.find(p => p.activo);
+        const anioActual = activo?.anio ?? new Date().getFullYear();
+        this.periodos.set(todos.filter(p => p.anio === anioActual));
+      },
       error: () => { },
     });
   }
@@ -356,11 +387,87 @@ export class AnnouncementsPage implements OnInit {
     });
   }
 
+  // ── Adjuntos: tipo + previsualización ───────────────────────────
+  isImage(mime: string): boolean {
+    return !!mime && mime.startsWith('image/');
+  }
+
+  isPdf(mime: string): boolean {
+    return mime === 'application/pdf';
+  }
+
+  isPreviewable(mime: string): boolean {
+    return this.isImage(mime) || this.isPdf(mime);
+  }
+
+  imagenesDe(a: ComunicadoItem): ArchivoItem[] {
+    return a.archivos.filter(x => this.isImage(x.mime_type) && (!!x.preview_url || !!x.url));
+  }
+
+  documentosDe(a: ComunicadoItem): ArchivoItem[] {
+    return a.archivos.filter(x => !this.isImage(x.mime_type));
+  }
+
   getUrgenciaIcon(mime: string): string {
     if (mime.startsWith('image/')) return 'image';
     if (mime === 'application/pdf') return 'picture_as_pdf';
-    if (mime.startsWith('video/')) return 'videocam';
-    return 'attach_file';
+    if (mime.startsWith('video/')) return 'movie';
+    if (mime.startsWith('audio/')) return 'audio_file';
+    if (mime.includes('word')) return 'description';
+    if (mime.includes('sheet') || mime.includes('excel')) return 'table_chart';
+    if (mime.includes('presentation') || mime.includes('powerpoint')) return 'slideshow';
+    return 'insert_drive_file';
+  }
+
+  tipoLabel(mime: string): string {
+    if (this.isImage(mime)) return 'Imagen';
+    if (this.isPdf(mime)) return 'PDF';
+    if (mime.startsWith('video/')) return 'Video';
+    if (mime.startsWith('audio/')) return 'Audio';
+    if (mime.includes('word')) return 'Documento';
+    if (mime.includes('sheet') || mime.includes('excel')) return 'Hoja de cálculo';
+    if (mime.includes('presentation') || mime.includes('powerpoint')) return 'Presentación';
+    return 'Archivo';
+  }
+
+  openPreview(a: ComunicadoItem, arch: ArchivoItem): void {
+    const src = arch.preview_url ?? arch.url;
+    if (!src) return;
+    if (!this.isPreviewable(arch.mime_type)) {
+      window.open(src, '_blank', 'noopener');
+      return;
+    }
+    const previewables = a.archivos.filter(
+      x => this.isPreviewable(x.mime_type) && (!!x.preview_url || !!x.url),
+    );
+    const idx = previewables.findIndex(x => x.id === arch.id);
+    this.previewList.set(previewables);
+    this.previewIndex.set(idx < 0 ? 0 : idx);
+  }
+
+  closePreview(): void {
+    this.previewList.set([]);
+    this.previewIndex.set(0);
+  }
+
+  nextPreview(): void {
+    const n = this.previewList().length;
+    if (n < 2) return;
+    this.previewIndex.update(i => (i + 1) % n);
+  }
+
+  prevPreview(): void {
+    const n = this.previewList().length;
+    if (n < 2) return;
+    this.previewIndex.update(i => (i - 1 + n) % n);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeydown(ev: KeyboardEvent): void {
+    if (!this.previewArchivo()) return;
+    if (ev.key === 'Escape') this.closePreview();
+    else if (ev.key === 'ArrowRight') this.nextPreview();
+    else if (ev.key === 'ArrowLeft') this.prevPreview();
   }
 
   formatBytes(bytes: number): string {

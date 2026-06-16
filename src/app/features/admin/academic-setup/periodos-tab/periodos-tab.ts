@@ -29,6 +29,7 @@ export class PeriodosTab implements OnInit {
 
   periodos = signal<Period[]>([]);
   loading = signal(true);
+  anioActual = signal<number>(new Date().getFullYear());
 
   cols = ['nombre', 'bimestre', 'fechas', 'estado', 'acciones'];
 
@@ -37,8 +38,22 @@ export class PeriodosTab implements OnInit {
   loadPeriodos(): void {
     this.loading.set(true);
     this.api.get<Period[]>('academic/periodos').subscribe({
-      next: r => { this.periodos.set((r as any).data ?? []); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.toastr.error('Error al cargar periodos', 'Error'); },
+      next: r => {
+        const todos: Period[] = (r as any).data ?? [];
+        const activo = todos.find(p => p.activo);
+        const anio = activo?.anio ?? new Date().getFullYear();
+        this.anioActual.set(anio);
+        this.periodos.set(
+          todos
+            .filter(p => p.anio === anio)
+            .sort((a, b) => a.bimestre - b.bimestre),
+        );
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.toastr.error('Error al cargar periodos', 'Error');
+      },
     });
   }
 
@@ -46,16 +61,20 @@ export class PeriodosTab implements OnInit {
     const { CreatePeriodoDialog } = await import(
       '../../../../shared/components/create-periodo-dialog/create-periodo-dialog'
     );
-    const ref = this.dialog.open(CreatePeriodoDialog, { width: '520px' });
+    const ref = this.dialog.open(CreatePeriodoDialog, {
+      width: '520px',
+      data: { anio: this.anioActual() },
+    });
     ref.afterClosed().subscribe(result => {
       if (!result) return;
       this.api.post<Period>('academic/periodos', result).subscribe({
         next: r => {
-          this.periodos.update(list =>
-            [...list, (r as any).data].sort((a: Period, b: Period) =>
-              a.anio !== b.anio ? a.anio - b.anio : a.bimestre - b.bimestre,
-            ),
-          );
+          const nuevo = (r as any).data as Period;
+          if (nuevo.anio === this.anioActual()) {
+            this.periodos.update(list =>
+              [...list, nuevo].sort((a, b) => a.bimestre - b.bimestre),
+            );
+          }
           this.toastr.success('Periodo creado correctamente', 'Éxito');
         },
         error: err => this.toastr.error(err.error?.message ?? 'Error al crear periodo', 'Error'),
@@ -72,7 +91,7 @@ export class PeriodosTab implements OnInit {
       width: '420px',
       data: {
         title: '¿Activar periodo?',
-        message: `Se activará "${periodo.nombre}" y se desactivará el periodo actual. Los nuevos cursos usarán este periodo.`,
+        message: `Se activará "${periodo.nombre}" y se desactivará el periodo actual.`,
         confirm: 'Activar',
         cancel: 'Cancelar',
         danger: false,
@@ -82,7 +101,9 @@ export class PeriodosTab implements OnInit {
       if (!confirmed) return;
       this.api.patch(`academic/periodos/${periodo.id}/activar`, {}).subscribe({
         next: () => {
-          this.periodos.update(list => list.map(p => ({ ...p, activo: p.id === periodo.id })));
+          this.periodos.update(list =>
+            list.map(p => ({ ...p, activo: p.id === periodo.id })),
+          );
           this.toastr.success(`"${periodo.nombre}" activado correctamente`, 'Éxito');
         },
         error: () => this.toastr.error('Error al activar periodo', 'Error'),

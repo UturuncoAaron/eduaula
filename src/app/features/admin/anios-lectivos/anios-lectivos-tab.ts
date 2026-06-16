@@ -43,23 +43,6 @@ const ESTADO_CHIP: Record<AcademicYearStatus, EstadoChip> = {
     },
 };
 
-/**
- * Vista admin del módulo "Año Lectivo".
- *
- * Permite:
- *   - Listar los años lectivos existentes con su estado.
- *   - Crear un nuevo año lectivo (planificado).
- *   - Activar un año planificado (transición → en_curso).
- *   - Pre-visualizar la promoción anual (qué alumnos serán promovidos,
- *     repetidores, egresados, sin destino) antes de ejecutarla.
- *   - Ejecutar la promoción anual (SERIALIZABLE, idempotente, BE).
- *   - Forzar la desactivación de cuentas de egresados (cron diario lo
- *     hace 30 días después del cierre; este botón es para casos manuales).
- *
- * Diseñada para escalabilidad por años (2026 → 2027 → 2028 …). El BE
- * acepta el `anio` como parámetro y la entidad es idempotente, así que
- * la UI no necesita lógica condicional extra cuando llegue 2027.
- */
 @Component({
     selector: 'app-anios-lectivos-tab',
     standalone: true,
@@ -87,7 +70,6 @@ export class AniosLectivosTab implements OnInit {
     readonly preview = signal<PromotionPreview | null>(null);
     readonly previewLoading = signal(false);
 
-    // Form de creación (planificado).
     readonly nuevoAnio = signal<number | null>(null);
     readonly nuevaFechaInicio = signal<string>('');
     readonly nuevaFechaFin = signal<string>('');
@@ -236,12 +218,13 @@ export class AniosLectivosTab implements OnInit {
         const ok = await this.confirm({
             title: `¿Ejecutar promoción ${a.anio} → ${a.anio + 1}?`,
             message:
-                'Se crearán matrículas para el año siguiente según la condición final de cada alumno.\n\n' +
-                '• Aprobados de 1ro–4to → matrícula en grado+1.\n' +
-                '• Repetidores → nueva matrícula en el MISMO grado.\n' +
-                '• Aprobados de 5to Sec → egresados (sin nueva matrícula).\n' +
-                '• Las matrículas viejas quedan inactivas pero intactas (historial inmutable).\n\n' +
-                'La operación es idempotente y se ejecuta en una transacción SERIALIZABLE.',
+                `Al confirmar, el sistema generará automáticamente las matrículas del año ${a.anio + 1} para todos los alumnos con condición final registrada:\n\n` +
+                `• Alumnos de 1ro a 4to marcados como aprobados pasarán al grado siguiente.\n` +
+                `• Alumnos marcados como desaprobados repetirán el mismo grado.\n` +
+                `• Alumnos de 5to de Secundaria aprobados serán registrados como egresados y no tendrán matrícula para ${a.anio + 1}.\n` +
+                `• Las matrículas del año ${a.anio} quedarán inactivas. El historial académico no se elimina y seguirá disponible desde el módulo de reportes.\n\n` +
+                `Los alumnos que aún figuren sin condición final serán omitidos y podrán procesarse de forma individual después de ejecutar esta acción.\n\n` +
+                `Esta operación no puede deshacerse. Asegúrate de haber revisado la vista previa antes de continuar.`,
             confirm: 'Ejecutar promoción',
             danger: true,
         });
@@ -291,7 +274,7 @@ export class AniosLectivosTab implements OnInit {
             title: `¿Desactivar egresados ${a.anio}?`,
             message:
                 'Las cuentas de los alumnos que terminaron 5to de Sec. quedarán INACTIVAS (login bloqueado). NO se elimina ningún dato: historial académico, informes psicológicos y libretas siguen consultables por admin/director.\n\n' +
-                'Normalmente el cron diario hace esto automáticamente 30 días después del cierre del año. Usa este botón solo si necesitas adelantarlo.',
+                'Normalmente el sistema hace esto automáticamente 30 días después del cierre del año. Usa este botón solo si necesitas adelantarlo.',
             confirm: 'Desactivar egresados',
             danger: true,
         });

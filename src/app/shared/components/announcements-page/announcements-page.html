@@ -1,274 +1,350 @@
-<div class="ann-wrap">
+<div class="cm">
+  <div class="cm__inner">
 
-  <!-- HEADER -->
-  <div class="ann-header">
-    <div class="ann-header__left">
-      <div class="ann-header__icon"><mat-icon>campaign</mat-icon></div>
-      <div>
-        <h1 class="ann-header__title">Comunicados</h1>
-        <p class="ann-header__sub">
-          @if (!loading()) {
-          {{ items().length }} publicado{{ items().length !== 1 ? 's' : '' }}
-          @if (totalNoLeidos() > 0) { · {{ totalNoLeidos() }} sin leer }
-          } @else { Cargando... }
-        </p>
+    <!-- HEADER -->
+    <header class="cm-head">
+      <div class="cm-head__brand">
+        <span class="cm-head__icon"><mat-icon>campaign</mat-icon></span>
+        <div class="cm-head__titles">
+          <h1>Comunicados</h1>
+          <p>
+            @if (!loading()) {
+            {{ items().length }} publicado{{ items().length !== 1 ? 's' : '' }}
+            @if (totalNoLeidos() > 0) { · <b>{{ totalNoLeidos() }}</b> sin leer }
+            } @else { Cargando… }
+          </p>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- TABS -->
-  <div class="tab-bar">
-    <button type="button" class="tab" [class.tab--active]="activeTab() === 'comunicados'"
-      (click)="switchTab('comunicados')">
-      <mat-icon>campaign</mat-icon>
-      Comunicados
-      @if (totalNoLeidos() > 0) { <span class="tab__badge">{{ totalNoLeidos() }}</span> }
-    </button>
-    <button type="button" class="tab" [class.tab--active]="activeTab() === 'notificaciones'"
-      (click)="switchTab('notificaciones')">
-      <mat-icon>notifications</mat-icon>
-      Notificaciones
-      @if (notifUnreadCount() > 0) { <span class="tab__badge">{{ notifUnreadCount() }}</span> }
-    </button>
-  </div>
-
-  <!-- BODY: COMUNICADOS -->
-  @if (activeTab() === 'comunicados') {
-  <div class="ann-body" [class.ann-body--full]="!canCreate()">
-
-    <!-- COMPOSE -->
-    @if (canCreate()) {
-    <aside class="compose-card">
-      <div class="compose-card__top">
-        <p class="compose-card__title">Nuevo comunicado</p>
-        <button mat-icon-button (click)="showForm.update(v => !v)"
-          [matTooltip]="showForm() ? 'Cerrar' : 'Abrir formulario'">
-          <mat-icon>{{ showForm() ? 'expand_less' : 'expand_more' }}</mat-icon>
+      <!-- Segmented tabs -->
+      <div class="seg" role="tablist">
+        <button type="button" class="seg__btn" [class.seg__btn--on]="activeTab() === 'comunicados'"
+          (click)="switchTab('comunicados')">
+          <mat-icon>campaign</mat-icon>
+          <span>Comunicados</span>
+          @if (totalNoLeidos() > 0) { <i class="seg__dot">{{ totalNoLeidos() }}</i> }
+        </button>
+        <button type="button" class="seg__btn" [class.seg__btn--on]="activeTab() === 'notificaciones'"
+          (click)="switchTab('notificaciones')">
+          <mat-icon>notifications</mat-icon>
+          <span>Notificaciones</span>
+          @if (notifUnreadCount() > 0) { <i class="seg__dot">{{ notifUnreadCount() }}</i> }
         </button>
       </div>
+    </header>
 
-      @if (showForm()) {
-      <form [formGroup]="form" (ngSubmit)="publicar()" class="compose-form">
-        <div class="field">
-          <label class="field__label">Titulo</label>
-          <input class="field__input" formControlName="titulo" maxlength="200" placeholder="Ej: Reunion de padres..." />
-          <span class="field__count">{{ form.get('titulo')?.value?.length ?? 0 }}/200</span>
+    <!-- ════════════ COMUNICADOS ════════════ -->
+    @if (activeTab() === 'comunicados') {
+
+    <!-- COMPOSER -->
+    @if (canCreate()) {
+    <section class="composer" [class.composer--open]="showForm()">
+      @if (!showForm()) {
+      <button type="button" class="composer__trigger" (click)="showForm.set(true)">
+        <span class="composer__avatar"><mat-icon>edit</mat-icon></span>
+        <span class="composer__placeholder">Redactar un nuevo comunicado…</span>
+        <span class="composer__cta"><mat-icon>add</mat-icon> Crear</span>
+      </button>
+      } @else {
+      <form [formGroup]="form" (ngSubmit)="publicar()" class="composer__form">
+        <div class="composer__formhead">
+          <h2>Nuevo comunicado</h2>
+          <button type="button" class="iconbtn" (click)="showForm.set(false)" matTooltip="Cerrar">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
-        <div class="field">
-          <label class="field__label">Contenido</label>
-          <textarea class="field__input field__ta" formControlName="contenido" rows="4"
-            placeholder="Escribe el cuerpo del comunicado..."></textarea>
-        </div>
-        <div class="field">
-          <label class="field__label">Destinatarios</label>
-          <div class="dest-grid">
+
+        <label class="fld">
+          <span class="fld__label">Título</span>
+          <input class="fld__input" formControlName="titulo" maxlength="200"
+            placeholder="Ej: Reunión de padres de familia" />
+          <span class="fld__hint">{{ form.get('titulo')?.value?.length ?? 0 }}/200</span>
+        </label>
+
+        <label class="fld">
+          <span class="fld__label">Contenido</span>
+          <textarea class="fld__input fld__ta" formControlName="contenido" rows="4"
+            placeholder="Escribe el cuerpo del comunicado…"></textarea>
+        </label>
+
+        <div class="fld">
+          <span class="fld__label">Destinatarios</span>
+          <div class="dest">
             @for (opt of destOptions; track opt.value) {
-            <button type="button" class="dest-btn" [class.dest-btn--active]="isDestSelected(opt.value)"
+            <button type="button" class="dest__chip" [class.dest__chip--on]="isDestSelected(opt.value)"
               (click)="toggleDest(opt.value)">
-              <mat-icon class="dest-btn__icon">{{ opt.icon }}</mat-icon>
-              <span class="dest-btn__label">{{ opt.label }}</span>
-              @if (isDestSelected(opt.value)) { <mat-icon class="dest-btn__check">check_circle</mat-icon> }
+              <mat-icon>{{ opt.icon }}</mat-icon>
+              {{ opt.label }}
             </button>
             }
           </div>
         </div>
-        <div class="field">
-          <mat-slide-toggle formControlName="importante" color="warn">Marcar como importante</mat-slide-toggle>
-        </div>
-        <div class="field">
-          <label class="field__label">Adjuntos (opcional)</label>
+
+        <div class="fld">
+          <span class="fld__label">Adjuntos</span>
           <app-staged-attachments-picker label="Arrastra archivos o haz clic" [maxBytes]="maxFileBytes"
             [maxFiles]="maxFiles" [files]="stagedFiles()" (filesChange)="stagedFiles.set($event)" />
         </div>
-        <button class="btn-publish" type="submit" [disabled]="saving() || form.invalid">
-          @if (saving()) { <span class="btn-publish__spinner"></span> Publicando... }
-          @else { <mat-icon>send</mat-icon> Publicar comunicado }
-        </button>
+
+        <div class="composer__actions">
+          <mat-slide-toggle formControlName="importante" color="warn">Marcar como importante</mat-slide-toggle>
+          <button class="btn-primary" type="submit" [disabled]="saving() || form.invalid">
+            @if (saving()) { <span class="spin"></span> Publicando… }
+            @else { <mat-icon>send</mat-icon> Publicar }
+          </button>
+        </div>
       </form>
       }
-    </aside>
+    </section>
     }
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search">
+        <mat-icon>search</mat-icon>
+        <input [formControl]="busqueda" placeholder="Buscar comunicados…" />
+        @if (busqueda.value) {
+        <button type="button" class="search__clear" (click)="busqueda.setValue('')"><mat-icon>close</mat-icon></button>
+        }
+      </div>
+      <div class="toolbar__filters">
+        <mat-form-field appearance="outline" class="period">
+          <mat-select [formControl]="periodoFiltro" placeholder="Bimestre" (selectionChange)="onPeriodoChange()">
+            <mat-option [value]="null">Todos los bimestres</mat-option>
+            @for (p of periodos(); track p.id) {
+            <mat-option [value]="p.id">{{ p.nombre }} ({{ p.anio }})</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button type="button" class="pill" [class.pill--warn]="soloImportantes()" (click)="toggleImportantes()">
+          <mat-icon>priority_high</mat-icon> Importantes
+        </button>
+        <button type="button" class="pill" [class.pill--on]="soloNoLeidos()" (click)="toggleNoLeidos()">
+          <mat-icon>mark_email_unread</mat-icon> No leídos
+        </button>
+      </div>
+    </div>
 
     <!-- FEED -->
-    <section class="feed">
-      <div class="feed__bar">
-        <span class="feed__bar-title">Publicados</span>
-        <div class="feed__filters">
-          <mat-form-field appearance="outline" class="filtro-periodo">
-            <mat-select [formControl]="periodoFiltro" placeholder="Bimestre" (selectionChange)="onPeriodoChange()">
-              <mat-option [value]="null">Todos los bimestres</mat-option>
-              @for (p of periodos(); track p.id) {
-              <mat-option [value]="p.id">{{ p.nombre }} ({{ p.anio }})</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-          <button type="button" class="filter-chip" [class.filter-chip--warn]="soloImportantes()"
-            (click)="toggleImportantes()">
-            <mat-icon>priority_high</mat-icon> Importantes
-          </button>
-          <button type="button" class="filter-chip" [class.filter-chip--active]="soloNoLeidos()"
-            (click)="toggleNoLeidos()">
-            <mat-icon>mark_email_unread</mat-icon> No leidos
-          </button>
+    @if (loading()) {
+    <div class="feed">
+      @for (i of [1,2,3]; track i) {
+      <div class="sk">
+        <div class="sk__row">
+          <div class="sk__avatar"></div>
+          <div class="sk__lines"><span class="sk__l" style="width:38%"></span><span class="sk__l"
+              style="width:22%"></span></div>
         </div>
+        <span class="sk__l" style="width:70%"></span>
+        <span class="sk__l" style="width:92%"></span>
+        <span class="sk__l" style="width:60%"></span>
       </div>
-
-      <!-- Buscador -->
-      <div class="search-bar">
-        <mat-icon>search</mat-icon>
-        <input [formControl]="busqueda" placeholder="Buscar en comunicados..." />
-      </div>
-
-      @if (loading()) {
-      <div class="feed__body">
-        @for (i of [1,2,3]; track i) {
-        <div class="sk-card">
-          <div class="sk-line" style="width:60%"></div>
-          <div class="sk-line" style="width:88%"></div>
-          <div class="sk-line" style="width:72%"></div>
-        </div>
-        }
-      </div>
-      } @else if (items().length === 0) {
-      <div class="feed__empty">
-        <mat-icon class="feed__empty-icon">inbox</mat-icon>
-        <p class="feed__empty-title">Sin comunicados</p>
-        <p class="feed__empty-desc">No hay comunicados con los filtros actuales.</p>
-      </div>
-      } @else {
-      <div class="feed__body">
-        @for (a of items(); track a.id; let i = $index) {
-        <article class="ann-card" [class.ann-card--fijado]="a.fijado" [class.ann-card--importante]="a.importante"
-          [class.ann-card--no-leido]="a.leido_por_mi === false" [attr.data-i]="i">
-
-          <div class="ann-card__badges">
-            @if (a.fijado) {
-            <span class="badge-icon badge-icon--fijado" matTooltip="Fijado"
-              matTooltipPosition="left"><mat-icon>push_pin</mat-icon></span>
-            }
-            @if (a.importante) {
-            <span class="badge-icon badge-icon--importante" matTooltip="Importante"
-              matTooltipPosition="left"><mat-icon>priority_high</mat-icon></span>
-            }
-          </div>
-
-          <div class="ann-card__content">
-            <div class="ann-card__top">
-              <div class="ann-card__chips">
-                @for (d of a.destinatarios; track d) {
-                <span class="chip chip--custom">{{ labelDest(d) }}</span>
-                }
-              </div>
-              <div class="ann-card__meta">
-                @if (a.bimestre_label) {
-                <span class="ann-card__bimestre">{{ a.bimestre_label }}</span>
-                }
-                <span class="ann-card__time">{{ a.created_at | date:'d MMM · HH:mm' }}</span>
-                <div class="ann-card__actions">
-                  @if (canDelete() || a.creado_por.id === userId()) {
-                  <button type="button" class="ann-card__del" (click)="archivar(a)"
-                    matTooltip="Archivar"><mat-icon>archive</mat-icon></button>
-                  }
-                </div>
-              </div>
-            </div>
-
-            <h3 class="ann-card__title">
-              @if (a.leido_por_mi === false) { <span class="unread-dot"></span> }
-              {{ a.titulo }}
-            </h3>
-            <p class="ann-card__body">{{ a.contenido_preview }}</p>
-
-            @if (a.archivos.length > 0) {
-            <div class="ann-card__archivos">
-              @for (arch of a.archivos; track arch.id) {
-              <a class="archivo-chip" [href]="arch.url" target="_blank" rel="noopener">
-                <mat-icon>{{ getUrgenciaIcon(arch.mime_type) }}</mat-icon>
-                {{ arch.original_name }} ({{ formatBytes(arch.size_bytes) }})
-              </a>
-              }
-            </div>
-            }
-          </div>
-
-          <div class="ann-card__footer">
-            <div class="ann-card__avatar">{{ a.creado_por.nombre_completo.charAt(0) }}</div>
-            <span class="ann-card__author">{{ a.creado_por.nombre_completo }}</span>
-            <span class="ann-card__stats">
-              <mat-icon>visibility</mat-icon> {{ a.vistas }}
-              @if (a.total_archivos > 0) { · <mat-icon>attach_file</mat-icon> {{ a.total_archivos }} }
-            </span>
-          </div>
-        </article>
-        }
-
-        @if (hasNext()) {
-        <div class="cargar-mas-wrap">
-          <button type="button" class="btn-cargar-mas" (click)="cargarMas()" [disabled]="loadingMore()">
-            @if (loadingMore()) { <mat-spinner diameter="18"></mat-spinner> Cargando... }
-            @else { <mat-icon>expand_more</mat-icon> Cargar mas }
-          </button>
-        </div>
-        }
-      </div>
-      }
-    </section>
-  </div>
-  }
-
-  <!-- BODY: NOTIFICACIONES -->
-  @if (activeTab() === 'notificaciones') {
-  <div class="notif-body">
-
-    <!-- Notif toolbar -->
-    <div class="notif-toolbar">
-      <div class="notif-toolbar__filters">
-        <button type="button" class="filter-chip" [class.filter-chip--active]="notifFilter() === 'todas'"
-          (click)="toggleNotifFilter('todas')">Todas</button>
-        <button type="button" class="filter-chip" [class.filter-chip--active]="notifFilter() === 'no_leidas'"
-          (click)="toggleNotifFilter('no_leidas')">No leídas</button>
-      </div>
-      @if (notifUnreadCount() > 0) {
-      <button type="button" class="btn-mark-all" (click)="markAllNotifAsRead()">
-        <mat-icon>done_all</mat-icon> Marcar todas como leídas
-      </button>
       }
     </div>
-
-    <!-- Notif list -->
-    @if (filteredNotifications().length === 0) {
-    <div class="feed__empty">
-      <mat-icon class="feed__empty-icon">notifications_none</mat-icon>
-      <p class="feed__empty-title">Sin notificaciones</p>
-      <p class="feed__empty-desc">
-        No tienes notificaciones{{ notifFilter() === 'no_leidas' ? ' sin leer' : '' }}.
-      </p>
+    } @else if (items().length === 0) {
+    <div class="empty">
+      <span class="empty__art"><mat-icon>forum</mat-icon></span>
+      <h3>Sin comunicados</h3>
+      <p>No hay comunicados que coincidan con los filtros actuales.</p>
     </div>
     } @else {
-    <div class="notif-list">
-      @for (n of filteredNotifications(); track n.id; let i = $index) {
-      <div class="notif-card" [class.notif-card--unread]="!n.read" [attr.data-i]="i" (click)="onNotifClick(n)">
-        <div class="notif-card__icon" [style.background]="colorFor(n.tipo) + '18'" [style.color]="colorFor(n.tipo)">
-          <mat-icon>{{ iconFor(n.tipo) }}</mat-icon>
-        </div>
-        <div class="notif-card__body">
-          <div class="notif-card__title">{{ n.titulo }}</div>
-          @if (n.cuerpo) { <div class="notif-card__text">{{ n.cuerpo }}</div> }
-          <div class="notif-card__time">{{ n.createdAt | date:'d MMM yyyy · HH:mm' }}</div>
-        </div>
-        <div class="notif-card__actions">
-          @if (!n.read) {
-          <button type="button" class="notif-card__read-btn" (click)="markNotifAsRead(n.id, $event)"
-            matTooltip="Marcar como leída">
-            <mat-icon>check_circle</mat-icon>
-          </button>
+    <div class="feed">
+      @for (a of items(); track a.id; let i = $index) {
+      <article class="post" [class.post--unread]="a.leido_por_mi === false" [attr.data-i]="i">
+
+        <header class="post__head">
+          <span class="post__avatar">
+            @if (a.creado_por.foto_url) { <img [src]="a.creado_por.foto_url" [alt]="a.creado_por.nombre_completo" /> }
+            @else { {{ a.creado_por.nombre_completo.charAt(0) }} }
+          </span>
+          <div class="post__who">
+            <span class="post__name">
+              {{ a.creado_por.nombre_completo }}
+              @if (a.leido_por_mi === false) { <i class="post__newdot" matTooltip="Sin leer"></i> }
+            </span>
+            <span class="post__sub">
+              {{ labelDest(a.creado_por.rol) }} · {{ a.created_at | date:'d MMM, HH:mm' }}
+              @if (a.bimestre_label) { · {{ a.bimestre_label }} }
+            </span>
+          </div>
+          <div class="post__flags">
+            @if (a.importante) { <span class="flag flag--warn"
+              matTooltip="Importante"><mat-icon>priority_high</mat-icon></span> }
+            @if (a.fijado) { <span class="flag flag--pin" matTooltip="Fijado"><mat-icon>push_pin</mat-icon></span> }
+            @if (canDelete() || a.creado_por.id === userId()) {
+            <button type="button" class="iconbtn iconbtn--ghost" (click)="archivar(a)" matTooltip="Archivar">
+              <mat-icon>archive</mat-icon>
+            </button>
+            }
+          </div>
+        </header>
+
+        @if (a.destinatarios.length) {
+        <div class="post__chips">
+          @for (d of a.destinatarios; track d) {
+          <span class="tag tag--{{ d }}">{{ labelDest(d) }}</span>
           }
         </div>
+        }
+
+        <h3 class="post__title">{{ a.titulo }}</h3>
+        <p class="post__text">{{ a.contenido_preview }}</p>
+
+        @if (a.archivos.length) {
+        <div class="media">
+
+          <!-- Galería de imágenes -->
+          @if (imagenesDe(a).length) {
+          <div class="gallery" [attr.data-n]="imagenesDe(a).length">
+            @for (img of imagenesDe(a); track img.id) {
+            <button type="button" class="gallery__item" (click)="openPreview(a, img)" [matTooltip]="img.original_name">
+              <img [src]="previewSrc(img)" [alt]="img.original_name" loading="lazy" />
+              <span class="gallery__zoom"><mat-icon>zoom_in</mat-icon></span>
+            </button>
+            }
+          </div>
+          }
+
+          <!-- Documentos / otros -->
+          @for (doc of documentosDe(a); track doc.id) {
+          @if (isPdf(doc.mime_type) && (doc.preview_url || doc.url)) {
+          <button type="button" class="file file--btn" (click)="openPreview(a, doc)">
+            <span class="file__icon file__icon--pdf"><mat-icon>picture_as_pdf</mat-icon></span>
+            <span class="file__meta">
+              <span class="file__name">{{ doc.original_name }}</span>
+              <span class="file__sub">{{ tipoLabel(doc.mime_type) }} · {{ formatBytes(doc.size_bytes) }}</span>
+            </span>
+            <span class="file__action"><mat-icon>visibility</mat-icon> Ver</span>
+          </button>
+          } @else {
+          <a class="file" [href]="doc.url" target="_blank" rel="noopener" [download]="doc.original_name">
+            <span class="file__icon"><mat-icon>{{ getUrgenciaIcon(doc.mime_type) }}</mat-icon></span>
+            <span class="file__meta">
+              <span class="file__name">{{ doc.original_name }}</span>
+              <span class="file__sub">{{ tipoLabel(doc.mime_type) }} · {{ formatBytes(doc.size_bytes) }}</span>
+            </span>
+            <span class="file__action"><mat-icon>download</mat-icon></span>
+          </a>
+          }
+          }
+        </div>
+        }
+
+        <footer class="post__foot">
+          <span class="stat"><mat-icon>visibility</mat-icon> {{ a.vistas }}</span>
+          @if (a.total_archivos > 0) { <span class="stat"><mat-icon>attach_file</mat-icon> {{ a.total_archivos }}</span>
+          }
+        </footer>
+      </article>
+      }
+
+      @if (hasNext()) {
+      <div class="loadmore">
+        <button type="button" class="btn-ghost" (click)="cargarMas()" [disabled]="loadingMore()">
+          @if (loadingMore()) { <mat-spinner diameter="18"></mat-spinner> Cargando… }
+          @else { <mat-icon>expand_more</mat-icon> Cargar más }
+        </button>
       </div>
       }
     </div>
     }
+    }
+
+    <!-- ════════════ NOTIFICACIONES ════════════ -->
+    @if (activeTab() === 'notificaciones') {
+    <div class="notifs">
+      <div class="toolbar toolbar--notif">
+        <div class="toolbar__filters">
+          <button type="button" class="pill" [class.pill--on]="notifFilter() === 'todas'"
+            (click)="toggleNotifFilter('todas')">Todas</button>
+          <button type="button" class="pill" [class.pill--on]="notifFilter() === 'no_leidas'"
+            (click)="toggleNotifFilter('no_leidas')">No leídas</button>
+        </div>
+        @if (notifUnreadCount() > 0) {
+        <button type="button" class="btn-ghost btn-ghost--sm" (click)="markAllNotifAsRead()">
+          <mat-icon>done_all</mat-icon> Marcar todas
+        </button>
+        }
+      </div>
+
+      @if (filteredNotifications().length === 0) {
+      <div class="empty">
+        <span class="empty__art"><mat-icon>notifications_none</mat-icon></span>
+        <h3>Sin notificaciones</h3>
+        <p>No tienes notificaciones{{ notifFilter() === 'no_leidas' ? ' sin leer' : '' }}.</p>
+      </div>
+      } @else {
+      <div class="feed">
+        @for (n of filteredNotifications(); track n.id; let i = $index) {
+        <div class="notif" [class.notif--unread]="!n.read" [attr.data-i]="i" (click)="onNotifClick(n)">
+          <span class="notif__icon" [style.background]="colorFor(n.tipo) + '1f'" [style.color]="colorFor(n.tipo)">
+            <mat-icon>{{ iconFor(n.tipo) }}</mat-icon>
+          </span>
+          <div class="notif__body">
+            <span class="notif__title">{{ n.titulo }}</span>
+            @if (n.cuerpo) { <span class="notif__text">{{ n.cuerpo }}</span> }
+            <span class="notif__time">{{ n.createdAt | date:'d MMM yyyy · HH:mm' }}</span>
+          </div>
+          @if (!n.read) {
+          <button type="button" class="iconbtn iconbtn--ok" (click)="markNotifAsRead(n.id, $event)"
+            matTooltip="Marcar como leída"><mat-icon>check_circle</mat-icon></button>
+          }
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }
+
+  </div>
+
+  <!-- ════════════ VISOR / LIGHTBOX ════════════ -->
+  @if (previewArchivo(); as pv) {
+  <div class="viewer" (click)="closePreview()">
+    <div class="viewer__bar" (click)="$event.stopPropagation()">
+      <div class="viewer__title">
+        <mat-icon>{{ getUrgenciaIcon(pv.mime_type) }}</mat-icon>
+        <div>
+          <span class="viewer__name">{{ pv.original_name }}</span>
+          <span class="viewer__meta">{{ tipoLabel(pv.mime_type) }} · {{ formatBytes(pv.size_bytes) }}</span>
+        </div>
+      </div>
+      <div class="viewer__tools">
+        @if (previewList().length > 1) {
+        <span class="viewer__count">{{ previewIndex() + 1 }} / {{ previewList().length }}</span>
+        }
+        <a class="viewer__btn" [href]="pv.url" target="_blank" rel="noopener"
+          matTooltip="Abrir en pestaña"><mat-icon>open_in_new</mat-icon></a>
+        <a class="viewer__btn" [href]="pv.url" [download]="pv.original_name"
+          matTooltip="Descargar"><mat-icon>download</mat-icon></a>
+        <button type="button" class="viewer__btn viewer__btn--close" (click)="closePreview()"
+          matTooltip="Cerrar (Esc)"><mat-icon>close</mat-icon></button>
+      </div>
+    </div>
+
+    <div class="viewer__stage" (click)="$event.stopPropagation()">
+      @if (previewList().length > 1) {
+      <button type="button" class="viewer__nav viewer__nav--prev"
+        (click)="prevPreview()"><mat-icon>chevron_left</mat-icon></button>
+      }
+
+      @if (isImage(pv.mime_type)) {
+      <img class="viewer__img" [src]="previewSrc(pv)" [alt]="pv.original_name" />
+      } @else if (safePreviewUrl(); as src) {
+      <iframe class="viewer__frame" [src]="src" title="Vista previa"></iframe>
+      } @else {
+      <div class="viewer__fallback">
+        <mat-icon>{{ getUrgenciaIcon(pv.mime_type) }}</mat-icon>
+        <p>Este archivo no se puede previsualizar.</p>
+        <a class="btn-primary" [href]="pv.url" [download]="pv.original_name"><mat-icon>download</mat-icon> Descargar</a>
+      </div>
+      }
+
+      @if (previewList().length > 1) {
+      <button type="button" class="viewer__nav viewer__nav--next"
+        (click)="nextPreview()"><mat-icon>chevron_right</mat-icon></button>
+      }
+    </div>
   </div>
   }
-
 </div>

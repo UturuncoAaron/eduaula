@@ -13,6 +13,13 @@
                 <mat-icon>upload_file</mat-icon>
                 <span>Carga masiva</span>
             </button>
+            @if (seccionFiltro.value) {
+            <button mat-stroked-button (click)="aprobarTodos()"
+                matTooltip="Marcar todos los pendientes de esta sección como aprobados">
+                <mat-icon>done_all</mat-icon>
+                <span>Aprobar todos</span>
+            </button>
+            }
             <button mat-flat-button color="primary" (click)="matricularAlumno()">
                 <mat-icon>person_add</mat-icon>
                 <span>Matricular alumno</span>

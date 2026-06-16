@@ -111,8 +111,10 @@ export class SeccionPage implements OnInit {
 
         this.seccion.set(seccionMapeada);
 
-        const activo = ((periodos as any).data as any[]).find(p => p.activo);
-        this.anio.set(activo?.anio ?? new Date().getFullYear());
+        const todosPeriodos: any[] = (periodos as any).data ?? [];
+        const activo = todosPeriodos.find(p => p.activo);
+        const masReciente = [...todosPeriodos].sort((a, b) => b.anio - a.anio)[0];
+        this.anio.set(activo?.anio ?? masReciente?.anio ?? new Date().getFullYear());
 
         this.alumnos.set(this.mapAlumnos(alumnos ?? []));
         this.loading.set(false);
