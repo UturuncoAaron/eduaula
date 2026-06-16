@@ -120,13 +120,11 @@
                     </ng-container>
 
                     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
-                        [class.inactive-row]="row.activo === false"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row" [class.inactive-row]="row.activo === false"></tr>
                 </table>
             </div>
 
-            <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageIndex]="page() - 1"
-                [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons />
+            <mat-paginator [length]="total()" [pageSize]="pageSize()" [pageIndex]="page() - 1" [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons />
             }
         </div>
     </main>
@@ -145,6 +143,10 @@
         <button mat-menu-item (click)="gestionarHorario(row)">
             <mat-icon class="material-symbols-outlined">schedule</mat-icon>
             <span>Horario laboral</span>
+        </button>
+        <button mat-menu-item (click)="gestionarPermisos(row)">
+            <mat-icon class="material-symbols-outlined">admin_panel_settings</mat-icon>
+            <span>Gestionar permisos</span>
         </button>
         <mat-divider />
         @if (row.activo !== false) {
