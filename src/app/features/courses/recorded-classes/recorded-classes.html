@@ -93,6 +93,15 @@
                 <p class="rc-player-descripcion">{{ g.descripcion }}</p>
                 }
             </div>
+
+            @if (auth.isDocente() || auth.isAdmin()) {
+            <div class="rc-player-actions">
+                <button mat-stroked-button class="rc-viewers-btn" (click)="verVistas(g)">
+                    <mat-icon>visibility</mat-icon>
+                    Ver quién lo vio
+                </button>
+            </div>
+            }
         </div>
 
         <div class="rc-iframe-wrapper">

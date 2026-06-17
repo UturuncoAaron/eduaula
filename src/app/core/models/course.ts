@@ -120,3 +120,14 @@ export interface RecordedClassStats {
     total_vistas: number;
     total_cuentas: number;
 }
+export interface RecordedClassViewer {
+    cuenta_id: string;
+    nombre: string | null;
+    apellido_paterno: string | null;
+    apellido_materno: string | null;
+    codigo_estudiante: string | null;
+    visto: boolean;
+    primera_vista_en: string | null;
+    ultima_vista_en: string | null;
+    veces_vista: number | null;
+}

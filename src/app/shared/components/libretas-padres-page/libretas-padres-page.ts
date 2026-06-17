@@ -230,14 +230,32 @@ export class LibretasPadresPage implements OnInit {
     const periodo = this.periodoSeleccionado();
     if (!periodo) { this.toastr.warning('Selecciona un bimestre primero', 'Aviso'); return; }
 
+    // Cargar TODOS los padres sin paginación para el matcher
+    let todosPadres: PadreLibretaItem[] = this.padres();
+    try {
+      const params = new URLSearchParams({
+        periodo_id: String(periodo.id),
+        page: '1',
+        limit: '1000',
+      });
+      const sid = this.seccionId();
+      if (sid) params.set('seccion_id', sid);
+
+      const r = await this.api.get<any>(`libretas/padre/admin/listado?${params}`).toPromise();
+      const body = (r as any)?.data ?? r ?? {};
+      todosPadres = (body.items ?? []) as PadreLibretaItem[];
+    } catch {
+      // fallback a los de la página actual
+    }
+
     const { BulkUploadPadres } = await import('../bulk-upload-padres/bulk-upload-padres');
 
     const ref = this.dialog.open(BulkUploadPadres, {
       data: {
-        padres: this.padres(),
+        padres: todosPadres,
         periodo_id: periodo.id,
         periodo_label: `Bim ${periodo.bimestre} · ${periodo.anio}`,
-        existentes: new Set(this.padres().filter(p => p.libreta !== null).map(p => p.id)),
+        existentes: new Set(todosPadres.filter(p => p.libreta !== null).map(p => p.id)),
       } satisfies BulkUploadPadresData,
       maxWidth: '860px', width: '92vw', maxHeight: '90vh',
       panelClass: 'bulk-upload-dialog-panel', autoFocus: false,

@@ -1,0 +1,72 @@
+<div class="rcv-dialog">
+
+    <div class="rcv-header">
+        <mat-icon class="rcv-header-icon">visibility</mat-icon>
+        <div class="rcv-header-text">
+            <h2 class="rcv-title">Quién vio esta grabación</h2>
+            <p class="rcv-subtitle">{{ data.grabada.titulo }}</p>
+        </div>
+        <button mat-icon-button (click)="cerrar()" class="rcv-close-btn">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="rcv-body">
+
+        @if (loading()) {
+        <div class="rcv-state">
+            <mat-spinner diameter="28" strokeWidth="3" />
+        </div>
+        } @else if (error()) {
+        <div class="rcv-state">
+            <mat-icon>error_outline</mat-icon>
+            <p>No se pudieron cargar las visualizaciones</p>
+        </div>
+        } @else if (total() === 0) {
+        <div class="rcv-state">
+            <mat-icon>group_off</mat-icon>
+            <p>No hay alumnos matriculados en esta sección</p>
+        </div>
+        } @else {
+        <div class="rcv-meta">
+            <span class="rcv-count">{{ vistos() }} de {{ total() }} vieron la grabación</span>
+            <div class="rcv-progress">
+                <span class="rcv-progress-bar" [style.width.%]="total() ? (vistos() / total()) * 100 : 0"></span>
+            </div>
+        </div>
+        <ul class="rcv-list">
+            @for (v of viewers(); track v.cuenta_id) {
+            <li class="rcv-item" [class.no-visto]="!v.visto">
+                <span class="rcv-avatar" [class.avatar-visto]="v.visto">{{ initials(v) }}</span>
+                <div class="rcv-info">
+                    <span class="rcv-name">{{ nombreCompleto(v) }}</span>
+                    <span class="rcv-sub">
+                        @if (v.codigo_estudiante) {
+                        <span class="rcv-code">{{ v.codigo_estudiante }}</span>
+                        }
+                        @if (v.visto) {
+                        <span class="rcv-date">
+                            <mat-icon>schedule</mat-icon>
+                            {{ v.ultima_vista_en | date:'dd MMM yyyy, HH:mm' }}
+                        </span>
+                        } @else {
+                        <span class="rcv-pending">Sin ver</span>
+                        }
+                    </span>
+                </div>
+                @if (v.visto) {
+                <span class="rcv-status visto">
+                    <mat-icon matTooltip="Veces que la vio">check_circle</mat-icon>
+                    {{ v.veces_vista }}×
+                </span>
+                } @else {
+                <mat-icon class="rcv-status pendiente">radio_button_unchecked</mat-icon>
+                }
+            </li>
+            }
+        </ul>
+        }
+
+    </div>
+
+</div>

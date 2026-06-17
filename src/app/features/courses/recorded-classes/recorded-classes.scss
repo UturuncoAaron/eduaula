@@ -187,14 +187,24 @@ $r-sm: 8px;
 }
 
 .rc-item-menu-btn {
-    width: 28px;
-    height: 28px;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    padding: 0 !important;
     flex-shrink: 0;
+    overflow: hidden !important;
+
+    ::ng-deep .mat-mdc-button-ripple,
+    ::ng-deep .mat-ripple {
+        border-radius: 50%;
+        overflow: hidden;
+    }
 
     mat-icon {
         font-size: 16px;
         width: 16px;
         height: 16px;
+        line-height: 16px;
     }
 }
 
@@ -205,9 +215,33 @@ $r-sm: 8px;
 }
 
 .rc-player-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
     padding: 20px 24px 16px;
     border-bottom: 1px solid $border;
     flex-shrink: 0;
+}
+
+.rc-player-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.rc-player-actions {
+    flex-shrink: 0;
+}
+
+.rc-viewers-btn {
+    font-size: 0.78rem;
+    height: 34px;
+    white-space: nowrap;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
 }
 
 .rc-player-titulo {

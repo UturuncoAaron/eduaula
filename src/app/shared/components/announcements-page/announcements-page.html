@@ -1,7 +1,6 @@
 <div class="cm">
   <div class="cm__inner">
 
-    <!-- HEADER -->
     <header class="cm-head">
       <div class="cm-head__brand">
         <span class="cm-head__icon"><mat-icon>campaign</mat-icon></span>
@@ -10,13 +9,14 @@
           <p>
             @if (!loading()) {
             {{ items().length }} publicado{{ items().length !== 1 ? 's' : '' }}
-            @if (totalNoLeidos() > 0) { · <b>{{ totalNoLeidos() }}</b> sin leer }
-            } @else { Cargando… }
+            @if (totalNoLeidos() > 0) { &middot; <b>{{ totalNoLeidos() }}</b> sin leer }
+            } @else {
+            Cargando&hellip;
+            }
           </p>
         </div>
       </div>
 
-      <!-- Segmented tabs -->
       <div class="seg" role="tablist">
         <button type="button" class="seg__btn" [class.seg__btn--on]="activeTab() === 'comunicados'"
           (click)="switchTab('comunicados')">
@@ -33,38 +33,34 @@
       </div>
     </header>
 
-    <!-- ════════════ COMUNICADOS ════════════ -->
     @if (activeTab() === 'comunicados') {
 
-    <!-- COMPOSER -->
     @if (canCreate()) {
     <section class="composer" [class.composer--open]="showForm()">
       @if (!showForm()) {
       <button type="button" class="composer__trigger" (click)="showForm.set(true)">
         <span class="composer__avatar"><mat-icon>edit</mat-icon></span>
-        <span class="composer__placeholder">Redactar un nuevo comunicado…</span>
-        <span class="composer__cta"><mat-icon>add</mat-icon> Crear</span>
+        <span class="composer__placeholder">Redactar un nuevo comunicado&hellip;</span>
+        <span class="composer__cta"><mat-icon>add</mat-icon> <span class="u-hide-mobile">Crear</span></span>
       </button>
       } @else {
       <form [formGroup]="form" (ngSubmit)="publicar()" class="composer__form">
         <div class="composer__formhead">
           <h2>Nuevo comunicado</h2>
-          <button type="button" class="iconbtn" (click)="showForm.set(false)" matTooltip="Cerrar">
-            <mat-icon>close</mat-icon>
-          </button>
+          <button type="button" class="iconbtn iconbtn--ghost"
+            (click)="showForm.set(false)"><mat-icon>close</mat-icon></button>
         </div>
 
         <label class="fld">
           <span class="fld__label">Título</span>
-          <input class="fld__input" formControlName="titulo" maxlength="200"
-            placeholder="Ej: Reunión de padres de familia" />
+          <input class="fld__input" formControlName="titulo" maxlength="200" placeholder="Ej: Reunión de padres" />
           <span class="fld__hint">{{ form.get('titulo')?.value?.length ?? 0 }}/200</span>
         </label>
 
         <label class="fld">
           <span class="fld__label">Contenido</span>
           <textarea class="fld__input fld__ta" formControlName="contenido" rows="4"
-            placeholder="Escribe el cuerpo del comunicado…"></textarea>
+            placeholder="Escribe el cuerpo del comunicado&hellip;"></textarea>
         </label>
 
         <div class="fld">
@@ -74,7 +70,7 @@
             <button type="button" class="dest__chip" [class.dest__chip--on]="isDestSelected(opt.value)"
               (click)="toggleDest(opt.value)">
               <mat-icon>{{ opt.icon }}</mat-icon>
-              {{ opt.label }}
+              <span>{{ opt.label }}</span>
             </button>
             }
           </div>
@@ -87,10 +83,10 @@
         </div>
 
         <div class="composer__actions">
-          <mat-slide-toggle formControlName="importante" color="warn">Marcar como importante</mat-slide-toggle>
+          <mat-slide-toggle formControlName="important" color="warn">Importante</mat-slide-toggle>
           <button class="btn-primary" type="submit" [disabled]="saving() || form.invalid">
-            @if (saving()) { <span class="spin"></span> Publicando… }
-            @else { <mat-icon>send</mat-icon> Publicar }
+            @if (saving()) { <span class="spin"></span> }
+            @else { <mat-icon>send</mat-icon> <span>Publicar</span> }
           </button>
         </div>
       </form>
@@ -98,45 +94,51 @@
     </section>
     }
 
-    <!-- TOOLBAR -->
     <div class="toolbar">
       <div class="search">
         <mat-icon>search</mat-icon>
-        <input [formControl]="busqueda" placeholder="Buscar comunicados…" />
+        <input [formControl]="busqueda" placeholder="Buscar comunicados&hellip;" />
         @if (busqueda.value) {
         <button type="button" class="search__clear" (click)="busqueda.setValue('')"><mat-icon>close</mat-icon></button>
         }
       </div>
-      <div class="toolbar__filters">
-        <mat-form-field appearance="outline" class="period">
-          <mat-select [formControl]="periodoFiltro" placeholder="Bimestre" (selectionChange)="onPeriodoChange()">
-            <mat-option [value]="null">Todos los bimestres</mat-option>
-            @for (p of periodos(); track p.id) {
-            <mat-option [value]="p.id">{{ p.nombre }} ({{ p.anio }})</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <button type="button" class="pill" [class.pill--warn]="soloImportantes()" (click)="toggleImportantes()">
-          <mat-icon>priority_high</mat-icon> Importantes
-        </button>
-        <button type="button" class="pill" [class.pill--on]="soloNoLeidos()" (click)="toggleNoLeidos()">
-          <mat-icon>mark_email_unread</mat-icon> No leídos
-        </button>
+
+      <div class="toolbar__scroll-wrapper">
+        <div class="toolbar__filters">
+          <mat-form-field appearance="outline" class="period">
+            <mat-select [formControl]="periodoFiltro" placeholder="Bimestre" (selectionChange)="onPeriodoChange()">
+              <mat-option [value]="null">Todos los años</mat-option>
+              @for (p of periodos(); track p.id) {
+              <mat-option [value]="p">{{ p.nombre }} &middot; {{ p.anio }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <button type="button" class="pill" [class.pill--warn]="soloImportantes()" (click)="toggleImportantes()"
+            matTooltip="Importantes">
+            <mat-icon>priority_high</mat-icon>
+            <span class="pill__label">Importantes</span>
+          </button>
+
+          <button type="button" class="pill" [class.pill--on]="soloNoLeidos()" (click)="toggleNoLeidos()"
+            matTooltip="No leídos">
+            <mat-icon>mark_email_unread</mat-icon>
+            <span class="pill__label">No leídos</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- FEED -->
     @if (loading()) {
     <div class="feed">
       @for (i of [1,2,3]; track i) {
       <div class="sk">
         <div class="sk__row">
           <div class="sk__avatar"></div>
-          <div class="sk__lines"><span class="sk__l" style="width:38%"></span><span class="sk__l"
-              style="width:22%"></span></div>
+          <div class="sk__lines"><span class="sk__l" style="width:40%"></span><span class="sk__l"
+              style="width:20%"></span></div>
         </div>
-        <span class="sk__l" style="width:70%"></span>
-        <span class="sk__l" style="width:92%"></span>
+        <span class="sk__l" style="width:90%"></span>
         <span class="sk__l" style="width:60%"></span>
       </div>
       }
@@ -151,7 +153,6 @@
     <div class="feed">
       @for (a of items(); track a.id; let i = $index) {
       <article class="post" [class.post--unread]="a.leido_por_mi === false" [attr.data-i]="i">
-
         <header class="post__head">
           <span class="post__avatar">
             @if (a.creado_por.foto_url) { <img [src]="a.creado_por.foto_url" [alt]="a.creado_por.nombre_completo" /> }
@@ -162,28 +163,23 @@
               {{ a.creado_por.nombre_completo }}
               @if (a.leido_por_mi === false) { <i class="post__newdot" matTooltip="Sin leer"></i> }
             </span>
-            <span class="post__sub">
-              {{ labelDest(a.creado_por.rol) }} · {{ a.created_at | date:'d MMM, HH:mm' }}
-              @if (a.bimestre_label) { · {{ a.bimestre_label }} }
-            </span>
+            <span class="post__sub">{{ labelDest(a.creado_por.rol) }} &middot; {{ a.created_at | date:'d MMM, HH:mm'
+              }}</span>
           </div>
           <div class="post__flags">
             @if (a.importante) { <span class="flag flag--warn"
               matTooltip="Importante"><mat-icon>priority_high</mat-icon></span> }
             @if (a.fijado) { <span class="flag flag--pin" matTooltip="Fijado"><mat-icon>push_pin</mat-icon></span> }
             @if (canDelete() || a.creado_por.id === userId()) {
-            <button type="button" class="iconbtn iconbtn--ghost" (click)="archivar(a)" matTooltip="Archivar">
-              <mat-icon>archive</mat-icon>
-            </button>
+            <button type="button" class="iconbtn iconbtn--ghost" (click)="archivar(a)"
+              matTooltip="Archivar"><mat-icon>archive</mat-icon></button>
             }
           </div>
         </header>
 
         @if (a.destinatarios.length) {
         <div class="post__chips">
-          @for (d of a.destinatarios; track d) {
-          <span class="tag tag--{{ d }}">{{ labelDest(d) }}</span>
-          }
+          @for (d of a.destinatarios; track d) { <span class="tag tag--{{ d }}">{{ labelDest(d) }}</span> }
         </div>
         }
 
@@ -192,40 +188,29 @@
 
         @if (a.archivos.length) {
         <div class="media">
-
-          <!-- Galería de imágenes -->
           @if (imagenesDe(a).length) {
           <div class="gallery" [attr.data-n]="imagenesDe(a).length">
             @for (img of imagenesDe(a); track img.id) {
-            <button type="button" class="gallery__item" (click)="openPreview(a, img)" [matTooltip]="img.original_name">
+            <button type="button" class="gallery__item" (click)="openPreview(a, img)">
               <img [src]="previewSrc(img)" [alt]="img.original_name" loading="lazy" />
               <span class="gallery__zoom"><mat-icon>zoom_in</mat-icon></span>
             </button>
             }
           </div>
           }
-
-          <!-- Documentos / otros -->
           @for (doc of documentosDe(a); track doc.id) {
-          @if (isPdf(doc.mime_type) && (doc.preview_url || doc.url)) {
-          <button type="button" class="file file--btn" (click)="openPreview(a, doc)">
-            <span class="file__icon file__icon--pdf"><mat-icon>picture_as_pdf</mat-icon></span>
+          <button type="button" class="file" (click)="openPreview(a, doc)">
+            <span class="file__icon" [class.file__icon--pdf]="isPdf(doc.mime_type)">
+              <mat-icon>{{ getUrgenciaIcon(doc.mime_type) }}</mat-icon>
+            </span>
             <span class="file__meta">
               <span class="file__name">{{ doc.original_name }}</span>
-              <span class="file__sub">{{ tipoLabel(doc.mime_type) }} · {{ formatBytes(doc.size_bytes) }}</span>
+              <span class="file__sub">{{ tipoLabel(doc.mime_type) }} &middot; {{ formatBytes(doc.size_bytes) }}</span>
             </span>
-            <span class="file__action"><mat-icon>visibility</mat-icon> Ver</span>
+            <span class="file__action">
+              <mat-icon>{{ isPdf(doc.mime_type) ? 'visibility' : 'download' }}</mat-icon>
+            </span>
           </button>
-          } @else {
-          <a class="file" [href]="doc.url" target="_blank" rel="noopener" [download]="doc.original_name">
-            <span class="file__icon"><mat-icon>{{ getUrgenciaIcon(doc.mime_type) }}</mat-icon></span>
-            <span class="file__meta">
-              <span class="file__name">{{ doc.original_name }}</span>
-              <span class="file__sub">{{ tipoLabel(doc.mime_type) }} · {{ formatBytes(doc.size_bytes) }}</span>
-            </span>
-            <span class="file__action"><mat-icon>download</mat-icon></span>
-          </a>
-          }
           }
         </div>
         }
@@ -241,8 +226,8 @@
       @if (hasNext()) {
       <div class="loadmore">
         <button type="button" class="btn-ghost" (click)="cargarMas()" [disabled]="loadingMore()">
-          @if (loadingMore()) { <mat-spinner diameter="18"></mat-spinner> Cargando… }
-          @else { <mat-icon>expand_more</mat-icon> Cargar más }
+          @if (loadingMore()) { <mat-progress-spinner diameter="18" mode="indeterminate" /> }
+          @else { <mat-icon>expand_more</mat-icon> <span>Cargar más</span> }
         </button>
       </div>
       }
@@ -250,7 +235,6 @@
     }
     }
 
-    <!-- ════════════ NOTIFICACIONES ════════════ -->
     @if (activeTab() === 'notificaciones') {
     <div class="notifs">
       <div class="toolbar toolbar--notif">
@@ -262,7 +246,7 @@
         </div>
         @if (notifUnreadCount() > 0) {
         <button type="button" class="btn-ghost btn-ghost--sm" (click)="markAllNotifAsRead()">
-          <mat-icon>done_all</mat-icon> Marcar todas
+          <mat-icon>done_all</mat-icon> <span class="u-hide-mobile">Marcar todas</span>
         </button>
         }
       </div>
@@ -271,7 +255,7 @@
       <div class="empty">
         <span class="empty__art"><mat-icon>notifications_none</mat-icon></span>
         <h3>Sin notificaciones</h3>
-        <p>No tienes notificaciones{{ notifFilter() === 'no_leidas' ? ' sin leer' : '' }}.</p>
+        <p>No tienes notificaciones @if (notifFilter() === 'no_leidas') { sin leer }</p>
       </div>
       } @else {
       <div class="feed">
@@ -286,8 +270,8 @@
             <span class="notif__time">{{ n.createdAt | date:'d MMM yyyy · HH:mm' }}</span>
           </div>
           @if (!n.read) {
-          <button type="button" class="iconbtn iconbtn--ok" (click)="markNotifAsRead(n.id, $event)"
-            matTooltip="Marcar como leída"><mat-icon>check_circle</mat-icon></button>
+          <button type="button" class="iconbtn iconbtn--ok"
+            (click)="markNotifAsRead(n.id, $event)"><mat-icon>check_circle</mat-icon></button>
           }
         </div>
         }
@@ -295,10 +279,8 @@
       }
     </div>
     }
-
   </div>
 
-  <!-- ════════════ VISOR / LIGHTBOX ════════════ -->
   @if (previewArchivo(); as pv) {
   <div class="viewer" (click)="closePreview()">
     <div class="viewer__bar" (click)="$event.stopPropagation()">
@@ -306,19 +288,15 @@
         <mat-icon>{{ getUrgenciaIcon(pv.mime_type) }}</mat-icon>
         <div>
           <span class="viewer__name">{{ pv.original_name }}</span>
-          <span class="viewer__meta">{{ tipoLabel(pv.mime_type) }} · {{ formatBytes(pv.size_bytes) }}</span>
+          <span class="viewer__meta">{{ tipoLabel(pv.mime_type) }} &middot; {{ formatBytes(pv.size_bytes) }}</span>
         </div>
       </div>
       <div class="viewer__tools">
-        @if (previewList().length > 1) {
-        <span class="viewer__count">{{ previewIndex() + 1 }} / {{ previewList().length }}</span>
-        }
-        <a class="viewer__btn" [href]="pv.url" target="_blank" rel="noopener"
-          matTooltip="Abrir en pestaña"><mat-icon>open_in_new</mat-icon></a>
-        <a class="viewer__btn" [href]="pv.url" [download]="pv.original_name"
-          matTooltip="Descargar"><mat-icon>download</mat-icon></a>
-        <button type="button" class="viewer__btn viewer__btn--close" (click)="closePreview()"
-          matTooltip="Cerrar (Esc)"><mat-icon>close</mat-icon></button>
+        @if (previewList().length > 1) { <span class="viewer__count">{{ previewIndex() + 1 }} / {{ previewList().length
+          }}</span> }
+        <a class="viewer__btn" [href]="pv.url" target="_blank" rel="noopener"><mat-icon>open_in_new</mat-icon></a>
+        <button type="button" class="viewer__btn viewer__btn--close"
+          (click)="closePreview()"><mat-icon>close</mat-icon></button>
       </div>
     </div>
 
@@ -327,7 +305,6 @@
       <button type="button" class="viewer__nav viewer__nav--prev"
         (click)="prevPreview()"><mat-icon>chevron_left</mat-icon></button>
       }
-
       @if (isImage(pv.mime_type)) {
       <img class="viewer__img" [src]="previewSrc(pv)" [alt]="pv.original_name" />
       } @else if (safePreviewUrl(); as src) {
@@ -339,7 +316,6 @@
         <a class="btn-primary" [href]="pv.url" [download]="pv.original_name"><mat-icon>download</mat-icon> Descargar</a>
       </div>
       }
-
       @if (previewList().length > 1) {
       <button type="button" class="viewer__nav viewer__nav--next"
         (click)="nextPreview()"><mat-icon>chevron_right</mat-icon></button>

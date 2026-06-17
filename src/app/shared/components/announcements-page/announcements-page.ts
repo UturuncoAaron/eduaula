@@ -37,9 +37,7 @@ interface ArchivoItem {
   original_name: string;
   mime_type: string;
   size_bytes: number;
-  /** URL de descarga (Content-Disposition: attachment). */
   url?: string;
-  /** URL inline para previsualizar en el visor. */
   preview_url?: string;
 }
 
@@ -62,7 +60,7 @@ interface ComunicadoItem {
   activo: boolean;
   vistas: number;
   leido_por_mi?: boolean;
-  periodo_id?: string | null;
+  anio?: number | null;
   bimestre_label?: string | null;
   created_at: string;
   updated_at: string;
@@ -89,9 +87,14 @@ interface PeriodoItem {
   activo: boolean;
 }
 
+// FIX: auxiliares → staff
 const LABELS: Record<string, string> = {
-  todos: 'Todos', alumnos: 'Alumnos', docentes: 'Docentes',
-  padres: 'Padres', psicologas: 'Psicólogas', auxiliares: 'Auxiliares',
+  todos: 'Todos',
+  alumnos: 'Alumnos',
+  docentes: 'Docentes',
+  padres: 'Padres',
+  psicologas: 'Psicólogas',
+  staff: 'Personal de Apoyo',
 };
 
 @Component({
@@ -127,14 +130,12 @@ export class AnnouncementsPage implements OnInit {
 
   filteredNotifications = computed(() => {
     const list = this.notifications();
-    if (this.notifFilter() === 'no_leidas') {
-      return list.filter(n => !n.read);
-    }
-    return list;
+    return this.notifFilter() === 'no_leidas' ? list.filter(n => !n.read) : list;
   });
 
   iconFor = (tipo: string) => iconForType(tipo as any);
   colorFor = (tipo: string) => colorForType(tipo as any);
+
   items = signal<ComunicadoItem[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
@@ -155,11 +156,13 @@ export class AnnouncementsPage implements OnInit {
   showForm = signal(false);
 
   busqueda = new FormControl('');
-  periodoFiltro = new FormControl<string | null>(null);
+
+  // FIX: el filtro guarda el periodo seleccionado completo para extraer el anio
+  periodoFiltro = new FormControl<PeriodoItem | null>(null);
+
   soloImportantes = signal(false);
   soloNoLeidos = signal(false);
 
-  // ── Visor de adjuntos (lightbox) ────────────────────────────────
   previewList = signal<ArchivoItem[]>([]);
   previewIndex = signal(0);
 
@@ -167,7 +170,6 @@ export class AnnouncementsPage implements OnInit {
     () => this.previewList()[this.previewIndex()] ?? null,
   );
 
-  /** Fuente inline para imagen/iframe (preview_url con fallback a url). */
   previewSrc(arch: ArchivoItem): string {
     return arch.preview_url ?? arch.url ?? '';
   }
@@ -190,13 +192,14 @@ export class AnnouncementsPage implements OnInit {
 
   canDelete = computed(() => this.rol() === 'admin');
 
+  // FIX: auxiliares → staff
   destOptions: { value: string; label: string; icon: string }[] = [
     { value: 'todos', label: 'Todos', icon: 'groups' },
     { value: 'alumnos', label: 'Alumnos', icon: 'school' },
     { value: 'docentes', label: 'Docentes', icon: 'badge' },
     { value: 'padres', label: 'Padres', icon: 'family_restroom' },
     { value: 'psicologas', label: 'Psicólogas', icon: 'psychology' },
-    { value: 'auxiliares', label: 'Auxiliares', icon: 'support_agent' },
+    { value: 'staff', label: 'Personal de Apoyo', icon: 'support_agent' },
   ];
 
   form = this.fb.group({
@@ -207,7 +210,7 @@ export class AnnouncementsPage implements OnInit {
   });
 
   selectedDests = computed<string[]>(() =>
-    (this.form.get('destinatarios')?.value as string[]) ?? []
+    (this.form.get('destinatarios')?.value as string[]) ?? [],
   );
 
   labelDest(d: string): string {
@@ -277,20 +280,21 @@ export class AnnouncementsPage implements OnInit {
 
     const params: Record<string, string> = {};
     if (append && this.nextCursor()) params['cursor'] = this.nextCursor()!;
-    if (this.periodoFiltro.value) params['periodo_id'] = this.periodoFiltro.value;
+
+    // FIX: extraer anio del periodo seleccionado en lugar de enviar periodo_id
+    const periodoSel = this.periodoFiltro.value;
+    if (periodoSel) params['anio'] = String(periodoSel.anio);
+
     if (this.soloImportantes()) params['importante'] = 'true';
     if (this.soloNoLeidos()) params['no_leidos'] = 'true';
     if (this.busqueda.value?.trim()) params['buscar'] = this.busqueda.value!.trim();
 
     this.api.get<ComunicadosResponse>('comunicados', params).subscribe({
       next: r => {
-        const body = r.data;
-        const nuevos = body?.data ?? [];
-        if (append) {
-          this.items.update(list => [...list, ...nuevos]);
-        } else {
-          this.items.set(nuevos);
-        }
+        const body = (r as any).data ?? r;
+        const nuevos: ComunicadoItem[] = body?.data ?? [];
+        if (append) this.items.update(list => [...list, ...nuevos]);
+        else this.items.set(nuevos);
         this.hasNext.set(body?.has_next ?? false);
         this.nextCursor.set(body?.next_cursor ?? null);
         this.totalFijados.set(body?.total_fijados ?? 0);
@@ -311,19 +315,9 @@ export class AnnouncementsPage implements OnInit {
     this.cargar(true);
   }
 
-  toggleImportantes() {
-    this.soloImportantes.update(v => !v);
-    this.cargar();
-  }
-
-  toggleNoLeidos() {
-    this.soloNoLeidos.update(v => !v);
-    this.cargar();
-  }
-
-  onPeriodoChange() {
-    this.cargar();
-  }
+  toggleImportantes() { this.soloImportantes.update(v => !v); this.cargar(); }
+  toggleNoLeidos() { this.soloNoLeidos.update(v => !v); this.cargar(); }
+  onPeriodoChange() { this.cargar(); }
 
   publicar() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
@@ -338,8 +332,8 @@ export class AnnouncementsPage implements OnInit {
         if (newId && files.length > 0) {
           forkJoin(
             files.map(f =>
-              this.attachments.upload(f, 'announcement', newId).pipe(catchError(() => of(null)))
-            )
+              this.attachments.upload(f, 'announcement', newId).pipe(catchError(() => of(null))),
+            ),
           ).subscribe({
             next: results => {
               const failures = results.filter(x => x === null).length;
@@ -353,7 +347,7 @@ export class AnnouncementsPage implements OnInit {
           this.finishPublicar();
         }
       },
-      error: (err) => {
+      error: err => {
         this.toastr.error(err?.error?.message ?? 'No se pudo publicar', 'Error');
         this.saving.set(false);
       },
@@ -387,18 +381,9 @@ export class AnnouncementsPage implements OnInit {
     });
   }
 
-  // ── Adjuntos: tipo + previsualización ───────────────────────────
-  isImage(mime: string): boolean {
-    return !!mime && mime.startsWith('image/');
-  }
-
-  isPdf(mime: string): boolean {
-    return mime === 'application/pdf';
-  }
-
-  isPreviewable(mime: string): boolean {
-    return this.isImage(mime) || this.isPdf(mime);
-  }
+  isImage(mime: string): boolean { return !!mime && mime.startsWith('image/'); }
+  isPdf(mime: string): boolean { return mime === 'application/pdf'; }
+  isPreviewable(mime: string): boolean { return this.isImage(mime) || this.isPdf(mime); }
 
   imagenesDe(a: ComunicadoItem): ArchivoItem[] {
     return a.archivos.filter(x => this.isImage(x.mime_type) && (!!x.preview_url || !!x.url));
@@ -445,10 +430,7 @@ export class AnnouncementsPage implements OnInit {
     this.previewIndex.set(idx < 0 ? 0 : idx);
   }
 
-  closePreview(): void {
-    this.previewList.set([]);
-    this.previewIndex.set(0);
-  }
+  closePreview(): void { this.previewList.set([]); this.previewIndex.set(0); }
 
   nextPreview(): void {
     const n = this.previewList().length;
@@ -476,8 +458,6 @@ export class AnnouncementsPage implements OnInit {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
-  // ── Notificaciones ──────────────────────────────────────────────
-
   onNotifClick(n: NotificationItem) {
     if (!n.read) this.notifStore.markOneAsRead(n.id);
     const route = routeForReferenceType(n.referenceType);
@@ -489,18 +469,12 @@ export class AnnouncementsPage implements OnInit {
     this.notifStore.markOneAsRead(id);
   }
 
-  markAllNotifAsRead() {
-    this.notifStore.markAllAsRead();
-  }
+  markAllNotifAsRead() { this.notifStore.markAllAsRead(); }
 
-  toggleNotifFilter(filter: 'todas' | 'no_leidas') {
-    this.notifFilter.set(filter);
-  }
+  toggleNotifFilter(filter: 'todas' | 'no_leidas') { this.notifFilter.set(filter); }
 
   switchTab(tab: 'comunicados' | 'notificaciones') {
     this.activeTab.set(tab);
-    if (tab === 'notificaciones') {
-      this.notifStore.refresh();
-    }
+    if (tab === 'notificaciones') this.notifStore.refresh();
   }
 }

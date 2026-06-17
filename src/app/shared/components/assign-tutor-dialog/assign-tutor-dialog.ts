@@ -46,22 +46,22 @@ interface DocenteItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AssignTutorDialog implements OnInit {
-  private api    = inject(ApiService);
+  private api = inject(ApiService);
   private toastr = inject(ToastService);
   private dialog = inject(MatDialog);
-  public ref     = inject(MatDialogRef<AssignTutorDialog>);
-  public data    = inject<AssignTutorDialogData>(MAT_DIALOG_DATA);
+  public ref = inject(MatDialogRef<AssignTutorDialog>);
+  public data = inject<AssignTutorDialogData>(MAT_DIALOG_DATA);
 
-  docentes  = signal<DocenteItem[]>([]);
-  loading   = signal(true);
-  saving    = signal(false);
+  docentes = signal<DocenteItem[]>([]);
+  loading = signal(true);
+  saving = signal(false);
 
-  selectedId  = signal<string | null>(null);
-  search      = new FormControl('');
+  selectedId = signal<string | null>(null);
+  search = new FormControl('');
   searchValue = signal('');
 
   docentesFiltrados = computed(() => {
-    const q    = this.searchValue().toLowerCase().trim();
+    const q = this.searchValue().toLowerCase().trim();
     const list = this.docentes();
     if (!q) return list;
     return list.filter(d =>

@@ -147,6 +147,16 @@ export class RecordedClasses implements OnInit {
     });
   }
 
+  async verVistas(g: RecordedClass): Promise<void> {
+    const { RecordedClassViewersDialog } = await import('./recorded-class-viewers-dialog/recorded-class-viewers-dialog');
+    this.dialog.open(RecordedClassViewersDialog, {
+      data: { courseId: this.courseId(), grabada: g },
+      width: '460px',
+      maxWidth: '95vw',
+      autoFocus: false,
+    });
+  }
+
   toggleOculto(g: RecordedClass): void {
     this.csSvc.toggleRecordedClass(this.courseId(), g.id, !g.oculto).subscribe({
       next: () => {

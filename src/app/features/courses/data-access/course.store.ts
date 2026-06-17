@@ -6,6 +6,7 @@ import {
   CourseProgressEntry, LiveClass, SemanaResumen,
   RecordedClass,
   RecordedClassStats,
+  RecordedClassViewer,
 } from '../../../core/models/course';
 
 @Injectable({ providedIn: 'root' })
@@ -172,5 +173,8 @@ export class CourseService {
 
   getRecordedClassStats(courseId: string, id: string) {
     return this.api.get<RecordedClassStats>(`courses/${courseId}/recorded-classes/${id}/stats`);
+  }
+  getRecordedClassViewers(courseId: string, id: string) {
+    return this.api.get<RecordedClassViewer[]>(`courses/${courseId}/recorded-classes/${id}/viewers`);
   }
 }
