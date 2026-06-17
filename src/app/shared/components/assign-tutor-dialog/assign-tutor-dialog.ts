@@ -7,7 +7,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs/operators';
 
 import {
-  MatDialogModule, MatDialogRef, MAT_DIALOG_DATA,
+  MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -48,6 +48,7 @@ interface DocenteItem {
 export class AssignTutorDialog implements OnInit {
   private api    = inject(ApiService);
   private toastr = inject(ToastService);
+  private dialog = inject(MatDialog);
   public ref     = inject(MatDialogRef<AssignTutorDialog>);
   public data    = inject<AssignTutorDialogData>(MAT_DIALOG_DATA);
 
@@ -70,6 +71,7 @@ export class AssignTutorDialog implements OnInit {
     );
   });
 
+  /** Carga la lista de docentes y suscribe el buscador al iniciar el diálogo. */
   ngOnInit() {
     this.selectedId.set(this.data.tutorActualId);
 
@@ -90,38 +92,59 @@ export class AssignTutorDialog implements OnInit {
       .subscribe(v => this.searchValue.set(v ?? ''));
   }
 
+  /** Marca un docente como seleccionado. */
   select(d: DocenteItem) {
     this.selectedId.set(d.id);
   }
 
+  /** Devuelve las iniciales del docente para mostrarlas en el avatar. */
   initials(d: DocenteItem): string {
     return `${d.nombre[0] ?? ''}${d.apellido_paterno[0] ?? ''}`.toUpperCase();
   }
 
+  /** Indica si el docente ya es tutor de otra sección distinta a la actual. */
   isYaTutorDeOtra(d: DocenteItem): boolean {
     return !!(d.tutoria_actual && d.tutoria_actual.seccion_id !== this.data.seccionId);
   }
 
-  save() {
+  /** Valida la selección y, si el docente ya es tutor de otra sección, pide confirmación con ConfirmDialog antes de reasignar. */
+  async save() {
     const id = this.selectedId();
     if (!id) return;
 
-    const docente  = this.docentes().find(d => d.id === id);
-    const yaTutor  = docente && this.isYaTutorDeOtra(docente);
+    const docente = this.docentes().find(d => d.id === id);
+    const yaTutor = !!(docente && this.isYaTutorDeOtra(docente));
 
     if (yaTutor) {
-      const ok = confirm(
-        `${docente!.nombre} ${docente!.apellido_paterno} ya es tutor de ` +
-        `${docente!.tutoria_actual!.seccion_label}.\n\n` +
-        `¿Quieres reasignarlo a ${this.data.gradoNombre} – Sección ${this.data.seccionNombre}?`,
-      );
-      if (!ok) return;
+      const { ConfirmDialog } = await import('../confirm-dialog/confirm-dialog');
+      const ref = this.dialog.open(ConfirmDialog, {
+        width: '400px',
+        data: {
+          title: 'Reasignar tutor',
+          message:
+            `${docente!.nombre} ${docente!.apellido_paterno} ya es tutor de ` +
+            `${docente!.tutoria_actual!.seccion_label}.\n\n` +
+            `¿Quieres reasignarlo a ${this.data.gradoNombre} – Sección ${this.data.seccionNombre}?`,
+          confirm: 'Reasignar',
+          cancel: 'Cancelar',
+          danger: true,
+        },
+      });
+      ref.afterClosed().subscribe((ok: boolean) => {
+        if (ok) this.asignarTutor(id, true);
+      });
+      return;
     }
 
+    this.asignarTutor(id, false);
+  }
+
+  /** Ejecuta la petición que asigna el tutor a la sección y cierra el diálogo al terminar. */
+  private asignarTutor(id: string, force: boolean) {
     this.saving.set(true);
     this.api.patch<any>(
       `academic/secciones/${this.data.seccionId}/tutor`,
-      { docente_id: id, force: yaTutor || undefined },
+      { docente_id: id, force: force || undefined },
     ).subscribe({
       next: () => {
         this.saving.set(false);
@@ -138,26 +161,40 @@ export class AssignTutorDialog implements OnInit {
     });
   }
 
-  quitar() {
-    if (!confirm('¿Quitar el tutor de esta sección?')) return;
-
-    this.saving.set(true);
-    this.api.patch<any>(
-      `academic/secciones/${this.data.seccionId}/tutor`,
-      { docente_id: null },
-    ).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.toastr.success('Tutor removido correctamente', 'Éxito');
-        this.ref.close({ docente_id: null });
+  /** Pide confirmación con ConfirmDialog y, si se acepta, quita el tutor de la sección. */
+  async quitar() {
+    const { ConfirmDialog } = await import('../confirm-dialog/confirm-dialog');
+    const ref = this.dialog.open(ConfirmDialog, {
+      width: '380px',
+      data: {
+        title: '¿Quitar tutor?',
+        message: 'Se quitará el tutor asignado a esta sección.',
+        confirm: 'Quitar',
+        cancel: 'Cancelar',
+        danger: true,
       },
-      error: () => {
-        this.saving.set(false);
-        this.toastr.error('No se pudo quitar el tutor', 'Error');
-      },
+    });
+    ref.afterClosed().subscribe((ok: boolean) => {
+      if (!ok) return;
+      this.saving.set(true);
+      this.api.patch<any>(
+        `academic/secciones/${this.data.seccionId}/tutor`,
+        { docente_id: null },
+      ).subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.toastr.success('Tutor removido correctamente', 'Éxito');
+          this.ref.close({ docente_id: null });
+        },
+        error: () => {
+          this.saving.set(false);
+          this.toastr.error('No se pudo quitar el tutor', 'Error');
+        },
+      });
     });
   }
 
+  /** Cierra el diálogo sin realizar cambios. */
   cancel() {
     this.ref.close();
   }
