@@ -1,22 +1,37 @@
 <div class="dialog-container">
 
-    <!-- HEADER CORPORATIVO -->
     <header class="dialog-header">
         <div class="header-main">
 
             @if (isEdit) {
             <div class="avatar-wrapper" [style.background]="roleMeta().color">
-                @if (fotoPreview() || data.user?.foto_url) {
-                <img [src]="fotoPreview() || data.user!.foto_url!" alt="Fotografía de Perfil" />
-                } @else {
-                <span class="avatar-initials">{{ initials() }}</span>
-                }
+                <div class="avatar-inner">
+                    @if (fotoPreview() || data.user?.foto_url) {
+                    <img [src]="fotoPreview() || data.user!.foto_url!" alt="Fotografía de Perfil" />
+                    } @else {
+                    <span class="avatar-initials">{{ initials() }}</span>
+                    }
+                </div>
                 @if (isSelf) {
-                <label class="avatar-overlay" matTooltip="Subir imagen (.png, .jpg)">
+                <div class="avatar-overlay" (click)="toggleFotoMenu($event)">
                     <mat-icon>camera_enhance</mat-icon>
-                    <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onFotoSelected($event)"
-                        hidden />
-                </label>
+                </div>
+                @if (fotoMenuOpen()) {
+                <div class="avatar-action-menu">
+                    <label class="avatar-menu-item">
+                        <mat-icon>upload</mat-icon>
+                        <span>Cambiar foto</span>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onFotoSelected($event)"
+                            hidden />
+                    </label>
+                    @if (fotoPreview() || data.user?.foto_url) {
+                    <button class="avatar-menu-item avatar-menu-item--danger" type="button" (click)="onQuitarFoto()">
+                        <mat-icon>delete</mat-icon>
+                        <span>Quitar foto</span>
+                    </button>
+                    }
+                </div>
+                }
                 }
             </div>
             } @else {
@@ -52,17 +67,14 @@
         }
     </header>
 
-    <!-- FORM BODY SCROLLABLE -->
     <mat-dialog-content class="dialog-content-scroll">
         <form [formGroup]="form" class="layout-stack-form">
 
-            <!-- SECCIÓN: IDENTIFICACIÓN -->
             @if (isCreate || !isSelf) {
             <fieldset class="form-fieldset">
                 <legend class="fieldset-legend" [style.color]="roleMeta().color">
                     <mat-icon>fingerprint</mat-icon> Identificación Oficial
                 </legend>
-
                 <div class="form-grid-2">
                     <mat-form-field appearance="outline">
                         <mat-label>Tipo de Documento</mat-label>
@@ -72,7 +84,6 @@
                             <mat-option value="pasaporte">Pasaporte Internacional</mat-option>
                         </mat-select>
                     </mat-form-field>
-
                     <mat-form-field appearance="outline">
                         <mat-label>Número de Documento</mat-label>
                         <input matInput formControlName="numero_documento" placeholder="Ej. 74839201" />
@@ -84,50 +95,47 @@
             </fieldset>
             }
 
-            <!-- SECCIÓN: GENERALES -->
             <fieldset class="form-fieldset">
                 <legend class="fieldset-legend" [style.color]="roleMeta().color">
                     <mat-icon>account_box</mat-icon> Datos Generales
                 </legend>
-
                 <div class="form-grid-3">
                     <mat-form-field appearance="outline">
                         <mat-label>Nombres</mat-label>
                         <input matInput formControlName="nombre" placeholder="Ej. Carlos Alberto" />
                         @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
-                        <mat-error>Requerido</mat-error> }
+                        <mat-error>Requerido</mat-error>
+                        }
                     </mat-form-field>
-
                     <mat-form-field appearance="outline">
                         <mat-label>Apellido Paterno</mat-label>
                         <input matInput formControlName="apellido_paterno" placeholder="Ej. Mendoza" />
                         @if (form.controls.apellido_paterno.invalid && form.controls.apellido_paterno.touched) {
-                        <mat-error>Requerido</mat-error> }
+                        <mat-error>Requerido</mat-error>
+                        }
                     </mat-form-field>
-
                     <mat-form-field appearance="outline">
                         <mat-label>Apellido Materno</mat-label>
                         <input matInput formControlName="apellido_materno" placeholder="Ej. Alva" />
                     </mat-form-field>
                 </div>
-
                 <div class="form-grid-3">
                     <mat-form-field appearance="outline">
                         <mat-label>Correo Electrónico</mat-label>
                         <mat-icon matPrefix class="form-prefix-icon">mail</mat-icon>
                         <input matInput formControlName="email" type="email" placeholder="ejemplo@eduaula.edu.pe" />
-                        @if (form.controls.email.invalid && form.controls.email.touched) { <mat-error>Email
-                            obligatorio</mat-error> }
+                        @if (form.controls.email.invalid && form.controls.email.touched) {
+                        <mat-error>Email obligatorio</mat-error>
+                        }
                     </mat-form-field>
-
                     <mat-form-field appearance="outline">
                         <mat-label>Teléfono Móvil</mat-label>
                         <mat-icon matPrefix class="form-prefix-icon">phone_android</mat-icon>
                         <input matInput formControlName="telefono" placeholder="987654321" maxLength="9" />
-                        @if (form.controls.telefono.invalid && form.controls.telefono.touched) { <mat-error>Requerido (9
-                            dígitos)</mat-error> }
+                        @if (form.controls.telefono.invalid && form.controls.telefono.touched) {
+                        <mat-error>Requerido (9 dígitos)</mat-error>
+                        }
                     </mat-form-field>
-
                     <mat-form-field appearance="outline">
                         <mat-label>Fecha de Nacimiento {{ fechaRequerida ? '*' : '' }}</mat-label>
                         <mat-icon matPrefix class="form-prefix-icon">calendar_today</mat-icon>
@@ -136,23 +144,26 @@
                         <mat-datepicker-toggle matIconSuffix [for]="pickerNacimiento"></mat-datepicker-toggle>
                         <mat-datepicker #pickerNacimiento></mat-datepicker>
                         @if (form.controls.fecha_nacimiento.invalid && form.controls.fecha_nacimiento.touched) {
-                        <mat-error>Requerido para Alumnos</mat-error> }
+                        <mat-error>Requerido para Alumnos</mat-error>
+                        }
                     </mat-form-field>
                 </div>
             </fieldset>
 
-            <!-- SECCIÓN CONTEXTUAL POR ROLES -->
-            <!-- DOCENTE -->
             @if (data.rol === 'docente') {
             <fieldset class="form-fieldset dynamic-role-section">
-                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>business_center</mat-icon>
-                    Configuración de Contrato Docente</legend>
+                <legend class="fieldset-legend" [style.color]="roleMeta().color">
+                    <mat-icon>business_center</mat-icon> Configuración de Contrato Docente
+                </legend>
                 <div class="form-grid-2">
-                    <mat-form-field appearance="outline"><mat-label>Especialidad Principal</mat-label><input matInput
-                            formControlName="especialidad" placeholder="Ciencias / Computación" /></mat-form-field>
-                    <mat-form-field appearance="outline"><mat-label>Título Profesional</mat-label><input matInput
-                            formControlName="titulo_profesional"
-                            placeholder="Licenciado en Educación" /></mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Especialidad Principal</mat-label>
+                        <input matInput formControlName="especialidad" placeholder="Ciencias / Computación" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Título Profesional</mat-label>
+                        <input matInput formControlName="titulo_profesional" placeholder="Licenciado en Educación" />
+                    </mat-form-field>
                 </div>
                 <div class="form-grid-2">
                     <mat-form-field appearance="outline">
@@ -172,25 +183,29 @@
                     </mat-form-field>
                 </div>
                 <div class="form-grid-2">
-                    <mat-form-field appearance="outline"><mat-label>Fecha Inicio Contrato</mat-label><input matInput
-                            [matDatepicker]="pickerIni" formControlName="fecha_inicio_contrato" /><mat-datepicker-toggle
-                            matIconSuffix [for]="pickerIni"></mat-datepicker-toggle><mat-datepicker
-                            #pickerIni></mat-datepicker></mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Fecha Inicio Contrato</mat-label>
+                        <input matInput [matDatepicker]="pickerIni" formControlName="fecha_inicio_contrato" />
+                        <mat-datepicker-toggle matIconSuffix [for]="pickerIni"></mat-datepicker-toggle>
+                        <mat-datepicker #pickerIni></mat-datepicker>
+                    </mat-form-field>
                     @if (esContratado()) {
-                    <mat-form-field appearance="outline"><mat-label>Fecha Fin Contrato</mat-label><input matInput
-                            [matDatepicker]="pickerFin" formControlName="fecha_fin_contrato" /><mat-datepicker-toggle
-                            matIconSuffix [for]="pickerFin"></mat-datepicker-toggle><mat-datepicker
-                            #pickerFin></mat-datepicker></mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Fecha Fin Contrato</mat-label>
+                        <input matInput [matDatepicker]="pickerFin" formControlName="fecha_fin_contrato" />
+                        <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
+                        <mat-datepicker #pickerFin></mat-datepicker>
+                    </mat-form-field>
                     }
                 </div>
             </fieldset>
             }
 
-            <!-- ALUMNO -->
             @if (data.rol === 'alumno') {
             <fieldset class="form-fieldset dynamic-role-section">
-                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>accessibility</mat-icon>
-                    Ajustes del Alumno</legend>
+                <legend class="fieldset-legend" [style.color]="roleMeta().color">
+                    <mat-icon>accessibility</mat-icon> Ajustes del Alumno
+                </legend>
                 <div class="toggle-card-box" [class.toggle-card-box--active]="form.controls.es_inclusivo.value">
                     <mat-checkbox formControlName="es_inclusivo" color="primary">
                         <span class="toggle-card-label">Estudiante Inclusivo / Necesidades Educativas Especiales
@@ -202,11 +217,11 @@
             </fieldset>
             }
 
-            <!-- PADRE / APODERADO -->
             @if (data.rol === 'padre') {
             <fieldset class="form-fieldset dynamic-role-section">
-                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>family_restroom</mat-icon>
-                    Vinculación Familiar</legend>
+                <legend class="fieldset-legend" [style.color]="roleMeta().color">
+                    <mat-icon>family_restroom</mat-icon> Vinculación Familiar
+                </legend>
                 <mat-form-field appearance="outline" class="w-full">
                     <mat-label>Parentesco / Relación Con Estudiantes</mat-label>
                     <mat-select formControlName="relacion">
@@ -215,17 +230,18 @@
                         <mat-option value="tutor">Tutor Legal Designado</mat-option>
                         <mat-option value="apoderado">Apoderado Autorizado</mat-option>
                     </mat-select>
-                    @if (form.controls.relacion.invalid && form.controls.relacion.touched) { <mat-error>Parentesco
-                        requerido</mat-error> }
+                    @if (form.controls.relacion.invalid && form.controls.relacion.touched) {
+                    <mat-error>Parentesco requerido</mat-error>
+                    }
                 </mat-form-field>
             </fieldset>
             }
 
-            <!-- STAFF ADMINISTRATIVO O ADMINISTRADORES (BUG CARGO SOLUCIONADO) -->
             @if (data.rol === 'staff' || data.rol === 'admin') {
             <fieldset class="form-fieldset dynamic-role-section">
-                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>corporate_fare</mat-icon>
-                    Estructura Organizacional</legend>
+                <legend class="fieldset-legend" [style.color]="roleMeta().color">
+                    <mat-icon>corporate_fare</mat-icon> Estructura Organizacional
+                </legend>
                 <mat-form-field appearance="outline" class="w-full">
                     <mat-label>Cargo o Puesto Institucional</mat-label>
                     <input matInput formControlName="cargo"
@@ -234,28 +250,29 @@
             </fieldset>
             }
 
-            <!-- PSICÓLOGA -->
             @if (data.rol === 'psicologa') {
             <fieldset class="form-fieldset dynamic-role-section">
-                <legend class="fieldset-legend" [style.color]="roleMeta().color"><mat-icon>medical_services</mat-icon>
-                    Acreditación Sanitaria</legend>
+                <legend class="fieldset-legend" [style.color]="roleMeta().color">
+                    <mat-icon>medical_services</mat-icon> Acreditación Sanitaria
+                </legend>
                 <div class="form-grid-2">
-                    <mat-form-field appearance="outline"><mat-label>Especialidad Psicológica</mat-label><input matInput
-                            formControlName="especialidad" placeholder="Ej. Educativa o Infantil" /></mat-form-field>
-                    <mat-form-field appearance="outline"><mat-label>Número de Colegiatura Oficial
-                            (CPSP)</mat-label><input matInput formControlName="colegiatura"
-                            placeholder="Ej. CPSP-28341" /></mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Especialidad Psicológica</mat-label>
+                        <input matInput formControlName="especialidad" placeholder="Ej. Educativa o Infantil" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Número de Colegiatura Oficial (CPSP)</mat-label>
+                        <input matInput formControlName="colegiatura" placeholder="Ej. CPSP-28341" />
+                    </mat-form-field>
                 </div>
             </fieldset>
             }
 
-            <!-- SEGURIDAD Y ACCESOS (SOLO EDICIÓN) -->
             @if (isEdit) {
             <fieldset class="form-fieldset security-wrapper">
                 <legend class="fieldset-legend"><mat-icon>lock</mat-icon> Control de Credenciales</legend>
                 <p class="fieldset-hint-text">Deje los campos en blanco si desea preservar la clave actual del usuario.
                 </p>
-
                 <div class="form-grid-2">
                     @if (isSelf) {
                     <mat-form-field appearance="outline">
@@ -270,7 +287,6 @@
                         }
                     </mat-form-field>
                     }
-
                     <mat-form-field appearance="outline" [class.col-span-full]="!isSelf">
                         <mat-label>Nueva Contraseña</mat-label>
                         <input matInput [type]="showNew() ? 'text' : 'password'" formControlName="new_password"
@@ -278,14 +294,14 @@
                         <button mat-icon-button matSuffix type="button" (click)="showNew.set(!showNew())">
                             <mat-icon>{{ showNew() ? 'visibility_off' : 'visibility' }}</mat-icon>
                         </button>
-                        @if (form.controls.new_password.hasError('minlength')) { <mat-error>La clave debe tener mínimo 8
-                            caracteres</mat-error> }
+                        @if (form.controls.new_password.hasError('minlength')) {
+                        <mat-error>La clave debe tener mínimo 8 caracteres</mat-error>
+                        }
                     </mat-form-field>
                 </div>
             </fieldset>
             }
 
-            <!-- BANNER DINÁMICO DE FEEDBACK -->
             @if (error()) {
             <div class="feedback-banner error-banner">
                 <mat-icon>gpp_bad</mat-icon> <span>{{ error() }}</span>
@@ -300,7 +316,6 @@
         </form>
     </mat-dialog-content>
 
-    <!-- ACCIONES FOOTER -->
     <mat-dialog-actions class="dialog-actions-footer">
         <button mat-button mat-dialog-close [disabled]="busy()" class="btn-secondary-custom">Cancelar</button>
         <button mat-flat-button (click)="submit()" [disabled]="busy() || success()" class="btn-primary-custom"
@@ -308,10 +323,12 @@
             @if (busy()) {
             <span class="custom-loader-spinner"></span>
             <span>Procesando...</span>
-            } @else { <ng-container>
+            } @else {
+            <ng-container>
                 <mat-icon>{{ isCreate ? 'person_add' : 'check_circle' }}</mat-icon>
                 <span>{{ isCreate ? 'Registrar Usuario' : 'Confirmar Cambios' }}</span>
-            </ng-container>}
+            </ng-container>
+            }
         </button>
     </mat-dialog-actions>
 

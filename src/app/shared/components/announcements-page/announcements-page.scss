@@ -162,11 +162,8 @@ mat-icon {
     cursor: pointer;
     @include tr;
 
-    // ESTO ES CLAVE: Permite que el botón reduzca su tamaño de forma segura
     flex: 1;
     min-width: 0;
-
-    // Previene que el texto rompa la fila si es muy largo
     span {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -174,7 +171,7 @@ mat-icon {
     }
 
     mat-icon {
-      flex-shrink: 0; // El icono nunca debe deformarse
+      flex-shrink: 0;
     }
 
     &:hover {
@@ -204,27 +201,16 @@ mat-icon {
     place-items: center;
     background: $warn;
     color: #fff;
-    flex-shrink: 0; // Evita que el badge de conteo se aplaste
+    flex-shrink: 0;
   }
-
-  // OPTIMIZACIÓN EXTREMA PARA MÓVILES PEQUEÑOS (< 400px)
   @media (max-width: 400px) {
     &__btn {
       padding: 8px 6px;
       font-size: 12.5px;
       gap: 4px;
-
-      // Si el dispositivo es críticamente pequeño, ocultamos el texto largo 
-      // de "Notificaciones" para dejar una interfaz limpia (Icono + Badge)
       span {
         display: none;
       }
-
-      // Si prefieres mantener el texto truncado en lugar de ocultarlo por completo, 
-      // borra el `span { display: none; }` de arriba y descomenta lo siguiente:
-      /*
-      font-size: 12px;
-      */
     }
   }
 }

@@ -1,6 +1,7 @@
 import {
   Component, inject, signal, computed,
-  OnInit, ChangeDetectionStrategy, OnDestroy, ChangeDetectorRef
+  OnInit, ChangeDetectionStrategy, OnDestroy, ChangeDetectorRef,
+  HostListener
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -74,10 +75,10 @@ export class UserDialog implements OnInit, OnDestroy {
   readonly busy = signal(false);
   readonly success = signal(false);
   readonly error = signal('');
-
   readonly fotoFile = signal<File | null>(null);
   readonly fotoPreview = signal<string | null>(null);
-
+  readonly fotoMenuOpen = signal(false);
+  readonly deletingFoto = signal(false);
   readonly showCurrent = signal(false);
   readonly showNew = signal(false);
 
@@ -123,6 +124,16 @@ export class UserDialog implements OnInit, OnDestroy {
   private docSub?: Subscription;
   private passSub?: Subscription;
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.fotoMenuOpen()) return;
+    const target = event.target as HTMLElement;
+    if (!target.closest('.avatar-wrapper')) {
+      this.fotoMenuOpen.set(false);
+      this.cdr.markForCheck();
+    }
+  }
+
   ngOnInit(): void {
     this.setupDynamicValidators();
     this.initializeFormValues();
@@ -139,21 +150,13 @@ export class UserDialog implements OnInit, OnDestroy {
     }
 
     if (this.isEdit && this.data.user) {
-      // 1. Cargamos de inmediato lo que tenemos en memoria para que el usuario no vea la pantalla en blanco
       this.patchForm(this.data.user);
-
-      // 2. MEJORA DE ARQUITECTURA: Vamos a la API a traer la ficha fresca real con su fecha de nacimiento
       this.busy.set(true);
       const endpoint = `${ROLE_META[this.data.rol].endpoint}/${this.data.user.id}`;
-
       this.api.get<any>(endpoint).subscribe({
         next: (res) => {
-          // Si tu API envuelve la respuesta en un objeto "data", lo extraemos
           const userData = res?.data || res;
-
-          if (userData) {
-            this.patchForm(userData);
-          }
+          if (userData) this.patchForm(userData);
           this.busy.set(false);
           this.cdr.markForCheck();
         },
@@ -165,12 +168,8 @@ export class UserDialog implements OnInit, OnDestroy {
     }
   }
 
-  // Factorizamos el parchado en un método limpio y reutilizable
   private patchForm(u: any): void {
-    const rawFechaNacimiento = u.fecha_nacimiento ||
-      u.fechaNacimiento ||
-      (u as any).birthdate ||
-      null;
+    const rawFechaNacimiento = u.fecha_nacimiento ?? u.fechaNacimiento ?? (u as any).birthdate ?? null;
 
     this.form.patchValue({
       tipo_documento: u.tipo_documento ?? 'dni',
@@ -185,12 +184,11 @@ export class UserDialog implements OnInit, OnDestroy {
       colegiatura: u.colegiatura ?? '',
       relacion: u.relacion_familiar ?? '',
       es_inclusivo: u.inclusivo ?? false,
-      fecha_nacimiento: this.parseBackendDate(rawFechaNacimiento)
+      fecha_nacimiento: this.parseBackendDate(rawFechaNacimiento),
     });
 
     if (this.data.rol === 'staff' || this.data.rol === 'admin') {
-      const cargoValor = u.cargo || u.puesto || '';
-      this.form.get('cargo')?.setValue(cargoValor);
+      this.form.get('cargo')?.setValue(u.cargo || u.puesto || '');
     }
 
     this.form.updateValueAndValidity();
@@ -199,7 +197,6 @@ export class UserDialog implements OnInit, OnDestroy {
 
   private parseBackendDate(dateValue: any): Date | null {
     if (!dateValue) return null;
-
     if (dateValue instanceof Date) return isNaN(dateValue.getTime()) ? null : dateValue;
 
     const dateStr = dateValue.toString().trim();
@@ -207,8 +204,7 @@ export class UserDialog implements OnInit, OnDestroy {
     if (dateStr.includes('T')) {
       const baseDate = new Date(dateStr);
       if (!isNaN(baseDate.getTime())) {
-        const userTimezoneOffset = baseDate.getTimezoneOffset() * 60000;
-        return new Date(baseDate.getTime() + userTimezoneOffset);
+        return new Date(baseDate.getTime() + baseDate.getTimezoneOffset() * 60000);
       }
     }
 
@@ -217,10 +213,7 @@ export class UserDialog implements OnInit, OnDestroy {
       const year = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10) - 1;
       const day = parseInt(parts[2], 10);
-
-      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-        return new Date(year, month, day);
-      }
+      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) return new Date(year, month, day);
     }
 
     return null;
@@ -255,6 +248,11 @@ export class UserDialog implements OnInit, OnDestroy {
     this.form.get('tipo_documento')?.updateValueAndValidity();
   }
 
+  toggleFotoMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.fotoMenuOpen.set(!this.fotoMenuOpen());
+  }
+
   onFotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
@@ -263,14 +261,38 @@ export class UserDialog implements OnInit, OnDestroy {
       return;
     }
     this.fotoFile.set(file);
+    this.fotoMenuOpen.set(false);
     const reader = new FileReader();
     reader.onload = e => this.fotoPreview.set(e.target?.result as string);
     reader.readAsDataURL(file);
   }
 
-  removeFoto(): void {
-    this.fotoFile.set(null);
-    this.fotoPreview.set(null);
+  async onQuitarFoto(): Promise<void> {
+    this.fotoMenuOpen.set(false);
+
+    if (this.fotoFile()) {
+      this.fotoFile.set(null);
+      this.fotoPreview.set(null);
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (!this.data.user?.foto_url) return;
+
+    this.deletingFoto.set(true);
+    try {
+      await this.api.delete(`admin/users/${this.data.user!.id}/foto`).toPromise();
+      this.fotoPreview.set(null);
+      if (this.data.user) this.data.user.foto_url = null as any;
+      this.auth.updateCurrentUser({ foto_url: null });
+      this.toastr.success('Foto de perfil eliminada correctamente.', '¡Listo!');
+      this.cdr.markForCheck();
+    } catch (e: any) {
+      this.toastr.error(this.extractError(e), 'Error al eliminar foto');
+    } finally {
+      this.deletingFoto.set(false);
+      this.cdr.markForCheck();
+    }
   }
 
   private toISODate(d: Date | null | undefined): string | null {
@@ -337,7 +359,7 @@ export class UserDialog implements OnInit, OnDestroy {
     });
   }
 
-  private async submitEdit() {
+  private async submitEdit(): Promise<void> {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const v = this.form.value;
 
@@ -365,7 +387,7 @@ export class UserDialog implements OnInit, OnDestroy {
         apellido_materno: v.apellido_materno?.trim() || null,
         telefono: v.telefono?.trim(),
         email: v.email?.trim().toLowerCase(),
-        fecha_nacimiento: v.fecha_nacimiento ? this.toISODate(v.fecha_nacimiento as Date) : null
+        fecha_nacimiento: v.fecha_nacimiento ? this.toISODate(v.fecha_nacimiento as Date) : null,
       };
 
       if (v.especialidad) payload['especialidad'] = v.especialidad.trim();

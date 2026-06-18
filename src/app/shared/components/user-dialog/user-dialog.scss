@@ -1,4 +1,3 @@
-// ── Variables del Sistema de Diseño Avanzado ─────────────────────
 $font-family: 'Inter', system-ui, -apple-system, sans-serif;
 $color-bg-base: #ffffff;
 $color-border-smooth: #f1f5f9;
@@ -18,7 +17,6 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
     color: $color-text-main;
 }
 
-// ── Header Corporativo ──────────────────────────────────────────
 .dialog-header {
     padding: 24px 32px;
     background: #ffffff;
@@ -40,16 +38,26 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
     height: 80px;
     border-radius: $radius-squircle;
     position: relative;
-    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.08);
+    flex-shrink: 0;
 
-    img {
+    .avatar-inner {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        border-radius: $radius-squircle;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     }
 
     .avatar-initials {
@@ -62,6 +70,7 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
     .avatar-overlay {
         position: absolute;
         inset: 0;
+        border-radius: $radius-squircle;
         background: rgba(15, 23, 42, 0.75);
         display: flex;
         align-items: center;
@@ -78,6 +87,72 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
         &:hover {
             opacity: 1;
         }
+    }
+
+    &:hover .avatar-overlay {
+        opacity: 1;
+    }
+}
+
+.avatar-action-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    z-index: 200;
+    min-width: 160px;
+    border: 1px solid #e2e8f0;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 12px;
+        height: 12px;
+        background: #ffffff;
+        border-left: 1px solid #e2e8f0;
+        border-top: 1px solid #e2e8f0;
+        rotate: 45deg;
+    }
+}
+
+.avatar-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: $font-family;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    background: none;
+    color: #374151;
+    transition: background 0.15s;
+    text-align: left;
+
+    &:hover {
+        background: #f9fafb;
+    }
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.avatar-menu-item--danger {
+    color: #ef4444;
+
+    &:hover {
+        background: #fef2f2;
     }
 }
 
@@ -177,7 +252,6 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
     }
 }
 
-// ── Cuerpo del Diálogo Scrollable ───────────────────────────────
 .dialog-content-scroll {
     padding: 32px !important;
     max-height: 60vh !important;
@@ -230,7 +304,6 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
     }
 }
 
-// ── Grids de Estructuración Simétrica ──────────────────────────
 .form-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -251,7 +324,6 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
     grid-column: span 2;
 }
 
-// Secciones dinámicas contextuales
 .dynamic-role-section {
     background: #ffffff;
     padding: 20px;
@@ -276,7 +348,6 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
     }
 }
 
-// ── Inclusión Educativa (Card Box Style) ──────────────────────
 .toggle-card-box {
     display: flex;
     flex-direction: column;
@@ -311,7 +382,6 @@ $shadow-elevation: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0,
     }
 }
 
-// ── Overrides a Capa de Controles Material ──────────────────────
 mat-form-field {
     width: 100%;
 
@@ -333,7 +403,6 @@ mat-form-field {
     margin-right: 8px;
 }
 
-// ── Banners de Estado ───────────────────────────────────────────
 .feedback-banner {
     display: flex;
     align-items: center;
@@ -363,7 +432,6 @@ mat-form-field {
     border: 1px solid #bbf7d0;
 }
 
-// ── Footer y Botoneras Simétricas ──────────────────────────────
 .dialog-actions-footer {
     padding: 20px 32px !important;
     background: #ffffff;
@@ -414,7 +482,6 @@ mat-form-field {
     }
 }
 
-// Loader Lineal Animado para botones
 .custom-loader-spinner {
     width: 16px;
     height: 16px;
@@ -430,7 +497,6 @@ mat-form-field {
     }
 }
 
-// ── Tratamiento Responsive (Mobile Friendly) ───────────────────
 @media (max-width: 768px) {
     .dialog-header {
         padding: 20px 24px;
