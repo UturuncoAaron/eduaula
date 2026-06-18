@@ -38,7 +38,6 @@ $radius: 16px;
   box-sizing: border-box;
 }
 
-// Utility helper classes
 .u-hide-mobile {
   @media (max-width: 640px) {
     display: none !important;
@@ -73,7 +72,6 @@ mat-icon {
   }
 }
 
-// ── HEADER REDISEÑADO ───────────────────────────────────────────
 .cm-head {
   display: flex;
   align-items: center;
@@ -85,6 +83,7 @@ mat-icon {
     align-items: center;
     gap: 12px;
     min-width: 0;
+    flex: 1;
   }
 
   &__icon {
@@ -124,6 +123,10 @@ mat-icon {
     }
   }
 
+  .seg {
+    flex-shrink: 0;
+  }
+
   @media (max-width: 640px) {
     flex-direction: column;
     align-items: stretch;
@@ -132,11 +135,13 @@ mat-icon {
     &__titles h1 {
       font-size: 18px;
     }
+
+    .seg {
+      width: 100%;
+    }
   }
 }
 
-// Tabs segmentadas
-// ── SEGMENTED TABS (FIXED FOR MOBILE OVERFLOW) ───────────────────
 .seg {
   display: flex;
   padding: 4px;
@@ -144,7 +149,6 @@ mat-icon {
   border: 1px solid $border;
   border-radius: 12px;
   @include sh-1;
-  width: 100%; // Asegura que use el espacio disponible sin desbordar
   box-sizing: border-box;
 
   &__btn {
@@ -154,16 +158,16 @@ mat-icon {
     gap: 6px;
     border: 0;
     background: transparent;
-    padding: 8px 10px; // Reducido ligeramente para ganar espacio crítico
+    padding: 8px 10px;
     border-radius: 9px;
     font-size: 13.5px;
     font-weight: 600;
     color: $ink-soft;
     cursor: pointer;
     @include tr;
-
     flex: 1;
     min-width: 0;
+
     span {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -203,11 +207,13 @@ mat-icon {
     color: #fff;
     flex-shrink: 0;
   }
+
   @media (max-width: 400px) {
     &__btn {
       padding: 8px 6px;
       font-size: 12.5px;
       gap: 4px;
+
       span {
         display: none;
       }
@@ -215,7 +221,6 @@ mat-icon {
   }
 }
 
-// ── COMPOSER (CREACIÓN) ─────────────────────────────────────────
 .composer {
   background: $surface;
   border: 1px solid $border;
@@ -304,7 +309,6 @@ mat-icon {
   }
 }
 
-// Inputs de Formularios
 .fld {
   display: flex;
   flex-direction: column;
@@ -385,7 +389,6 @@ mat-icon {
   }
 }
 
-// ── FILTROS Y TOOLBAR (SWIPEABLE MÓVIL CRÍTICO) ─────────────────
 .toolbar {
   display: flex;
   flex-direction: column;
@@ -432,7 +435,6 @@ mat-icon {
     }
   }
 
-  // Contenedor inteligente de scroll horizontal para móviles
   &__scroll-wrapper {
     width: 100%;
     overflow: hidden;
@@ -466,7 +468,7 @@ mat-icon {
 
     &__filters {
       width: max-content;
-      padding-bottom: 4px; // Espacio para rebote elástico nativo
+      padding-bottom: 4px;
     }
   }
 }
@@ -542,7 +544,6 @@ mat-icon {
   }
 }
 
-// ── FEED Y PUBLICACIONES (CARDS NATIVAS) ──────────────────────────
 .feed {
   display: flex;
   flex-direction: column;
@@ -696,7 +697,6 @@ mat-icon {
   }
 }
 
-// Badges e Indicadores
 .flag {
   display: grid;
   place-items: center;
@@ -754,7 +754,6 @@ mat-icon {
   }
 }
 
-// ── MEDIA Y ADJUNTOS REDISEÑO FLUIDO ─────────────────────────────
 .media {
   margin-top: 12px;
   display: flex;
@@ -833,17 +832,15 @@ mat-icon {
   }
 }
 
-// Botón de archivo adjunto adaptable
 .file {
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1.5px solid $border;
+  border: 1px solid $border;
   border-radius: 12px;
   padding: 10px 12px;
   background: $surface;
   width: 100%;
-  border: 1px solid $border;
   text-align: left;
   font: inherit;
   color: inherit;
@@ -901,7 +898,6 @@ mat-icon {
   }
 }
 
-// ── BOTONES GLOBALES ─────────────────────────────────────────────
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -951,6 +947,11 @@ mat-icon {
   &:disabled {
     opacity: 0.5;
   }
+
+  &--sm {
+    padding: 6px 12px;
+    font-size: 12.5px;
+  }
 }
 
 .iconbtn {
@@ -990,7 +991,6 @@ mat-icon {
   margin: 8px 0;
 }
 
-// ── NOTIFICACIONES NATIVAS ───────────────────────────────────────
 .notifs {
   display: flex;
   flex-direction: column;
@@ -1062,7 +1062,6 @@ mat-icon {
   }
 }
 
-// ── VISTAS VACÍAS & SKELETONS ───────────────────────────────────
 .empty {
   text-align: center;
   padding: 40px 16px;
@@ -1139,7 +1138,6 @@ mat-icon {
   }
 }
 
-// ── LIGHTBOX (OPTIMIZADO MÓVIL INMERSIVO) ───────────────────────
 .viewer {
   position: fixed;
   inset: 0;
@@ -1293,7 +1291,6 @@ mat-icon {
   }
 }
 
-// Keyframes de Animaciones de Alto Rendimiento (GPU)
 @keyframes rise {
   from {
     opacity: 0;

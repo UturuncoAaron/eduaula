@@ -281,7 +281,7 @@ export class UserDialog implements OnInit, OnDestroy {
 
     this.deletingFoto.set(true);
     try {
-      await this.api.delete(`admin/users/${this.data.user!.id}/foto`).toPromise();
+      await this.api.delete('users/foto').toPromise();
       this.fotoPreview.set(null);
       if (this.data.user) this.data.user.foto_url = null as any;
       this.auth.updateCurrentUser({ foto_url: null });
