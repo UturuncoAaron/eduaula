@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://eduaula-api.duckdns.org/api'
+    apiUrl: 'https://api.iejpvyg-04comas.pe/api'
 };
