@@ -194,8 +194,7 @@ export class TabStaff implements OnInit {
       '../../../../../shared/components/horario-laboral-dialog/horario-laboral-dialog'
     );
     this.dialog.open(HorarioLaboralDialog, {
-      width: '100%',
-      maxWidth: '480px',
+
       disableClose: true,
       data: {
         cuenta_id: row.id,

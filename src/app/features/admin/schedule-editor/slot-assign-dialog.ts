@@ -97,7 +97,7 @@ interface HourOption {
         <mat-form-field appearance="outline" class="u-w100">
           <mat-label>Hora inicio</mat-label>
           <mat-select formControlName="hora_inicio">
-            @for (h of horaInicioOptions(); track h.value) {
+            @for (h of horaFinOptions(); track h.value) {
               <mat-option [value]="h.value" [disabled]="h.blocked"
                 [matTooltip]="h.blocked ? 'Ocupado por ' + h.blockedBy : ''">
                 <span class="time-value">{{ h.value }}</span>
@@ -382,7 +382,8 @@ export class SlotAssignDialog {
   private readonly fb = inject(FormBuilder);
 
   readonly dias = DIAS;
-  readonly hours = buildHourTicks(8, 15, 30);
+  readonly horaInicioHours = buildHourTicks();
+  readonly horaFinHours = buildHourTicks(true);
   readonly isEdit = computed(() => !!this.data.editingSlot);
   readonly rangeError = signal<string | null>(null);
 
@@ -410,7 +411,7 @@ export class SlotAssignDialog {
 
   readonly horaInicioOptions = computed<HourOption[]>(() => {
     const otros = this.otherSlotsForDay();
-    return this.hours.map(h => {
+    return this.horaInicioHours.map(h => {   // ← horaInicioHours
       const hMin = toMinutes(h);
       const clash = otros.find(o => hMin >= toMinutes(o.inicio) && hMin < toMinutes(o.fin));
       return { value: h, blocked: !!clash, blockedBy: clash?.curso ?? null };
@@ -420,7 +421,7 @@ export class SlotAssignDialog {
   readonly horaFinOptions = computed<HourOption[]>(() => {
     const otros = this.otherSlotsForDay();
     const inicio = this.form.value.hora_inicio;
-    return this.hours.map(h => {
+    return this.horaFinHours.map(h => {      // ← horaFinHours
       if (inicio && h <= inicio) return { value: h, blocked: false, blockedBy: null };
       const hMin = toMinutes(h);
       const inicioMin = inicio ? toMinutes(inicio) : 0;

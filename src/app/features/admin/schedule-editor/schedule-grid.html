@@ -14,8 +14,13 @@
 
     <div class="sg-hours-col">
       @for (r of rows(); track r.startMin) {
-      <div class="sg-hour-row" [style.height.px]="tickStepMin() * pxPerMin()">
+      <div class="sg-hour-row" [class.sg-hour-row--break]="r.isBreak"
+        [style.height.px]="(r.endMin - r.startMin) * pxPerMin()">
+        @if (r.isBreak) {
+        <span class="sg-break-label">{{ r.breakLabel }}</span>
+        } @else {
         <span class="sg-hour-range">{{ r.rangeLabel }}</span>
+        }
       </div>
       }
     </div>
@@ -25,7 +30,9 @@
       [attr.aria-label]="'Asignar bloque en ' + d.label">
 
       @for (r of rows(); track r.startMin) {
-      <div class="sg-grid-line" [style.height.px]="tickStepMin() * pxPerMin()"></div>
+      <div class="sg-grid-line" [class.sg-grid-line--break]="r.isBreak"
+        [style.height.px]="(r.endMin - r.startMin) * pxPerMin()">
+      </div>
       }
 
       @for (rs of slotsByDay()[d.key]; track trackSlot($index, rs)) {
@@ -44,5 +51,6 @@
       }
     </button>
     }
+
   </div>
 </div>
