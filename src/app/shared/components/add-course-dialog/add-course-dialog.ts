@@ -54,19 +54,18 @@ export class AddCourseDialog implements OnInit {
 
   form = this.fb.group({
     catalogo_id: ['', Validators.required],
-    descripcion: [null as string | null], // Inicializado en null por defecto
+    descripcion: [null as string | null],
     docente_id: [null as string | null],
   });
 
   ngOnInit(): void {
-    // Ya no consultamos la paleta de colores del backend, ahorrando un request redundante
     forkJoin({
       catalogo: this.api.get<any>('courses/catalog'),
-      docentes: this.api.get<any>('admin/users/docentes'),
+      docentes: this.api.get<any>('admin/users/docentes/select'),
     }).subscribe({
       next: ({ catalogo, docentes }) => {
         this.catalogo.set(catalogo?.data ?? []);
-        this.docentes.set(docentes?.data?.data ?? docentes?.data ?? []);
+        this.docentes.set(docentes?.data ?? docentes ?? []);
       },
       error: () => this.toastr.error('Error al cargar datos del formulario', 'Cerrar'),
     });
@@ -82,12 +81,11 @@ export class AddCourseDialog implements OnInit {
     const v = this.form.value;
     const cursoNombre = this.catalogo().find(c => c.id === v.catalogo_id)?.nombre ?? '';
 
-    // Estructura del payload ideal para el endpoint POST de NestJS
     const payload: Record<string, unknown> = {
       catalogo_id: v.catalogo_id,
       seccion_id: this.data.seccionId,
       anio: this.data.anio,
-      descripcion: v.descripcion?.trim() || null, // Se envía null si el usuario no ingresó nada
+      descripcion: v.descripcion?.trim() || null,
     };
 
     if (v.docente_id) payload['docente_id'] = v.docente_id;
