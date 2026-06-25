@@ -3,12 +3,12 @@ $text-muted: #64748b;
 $border: #e2e8f0;
 $c-teacher: #4f46e5;
 $c-orange: #f59e0b;
+$c-orange-dark: #b45309;
 $c-red: #ef4444;
 $c-amber: #f59e0b;
 $c-green: #10b981;
 $radius-card: 14px;
 
-// ── Layout ────────────────────────────────────────────────────────
 .dashboard-container {
     padding: 0 32px 48px;
     max-width: 1600px;
@@ -19,7 +19,6 @@ $radius-card: 14px;
     }
 }
 
-// ── Banner ────────────────────────────────────────────────────────
 .welcome-banner {
     background: #fff;
     border: 1px solid $border;
@@ -60,7 +59,6 @@ $radius-card: 14px;
     }
 }
 
-// ── Alert banner ──────────────────────────────────────────────────
 .alert-banner {
     display: flex;
     align-items: center;
@@ -94,16 +92,15 @@ $radius-card: 14px;
 
     &.orange {
         background: rgba($c-orange, .1);
-        color: darken($c-orange, 20%);
+        color: $c-orange-dark;
         border: 1px solid rgba($c-orange, .25);
 
         .alert-link {
-            color: darken($c-orange, 20%);
+            color: $c-orange-dark;
         }
     }
 }
 
-// ── Estados ───────────────────────────────────────────────────────
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -158,7 +155,6 @@ $radius-card: 14px;
     }
 }
 
-// ── Sección horario ───────────────────────────────────────────────
 .section {
     margin-bottom: 24px;
 }
@@ -184,7 +180,6 @@ $radius-card: 14px;
     }
 }
 
-// ── Grid inferior ─────────────────────────────────────────────────
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1.6fr 1fr;
@@ -202,7 +197,6 @@ $radius-card: 14px;
     gap: 24px;
 }
 
-// ── Widget panel ──────────────────────────────────────────────────
 .widget-panel {
     background: #fff;
     border: 1px solid $border;
@@ -229,7 +223,6 @@ $radius-card: 14px;
     padding: 8px 20px 12px;
 }
 
-// ── Tareas / entregas ─────────────────────────────────────────────
 .task-item {
     display: flex;
     align-items: center;
@@ -294,7 +287,7 @@ $radius-card: 14px;
     font-size: 11px;
     font-weight: 700;
     background: rgba($c-orange, .15);
-    color: darken($c-orange, 18%);
+    color: $c-orange-dark;
     border-radius: 20px;
     padding: 2px 8px;
 }
@@ -313,7 +306,6 @@ $radius-card: 14px;
     color: $text-muted;
 }
 
-// ── Comunicados ───────────────────────────────────────────────────
 .comm-item {
     padding: 11px 0;
     border-bottom: 1px dashed $border;
@@ -352,7 +344,6 @@ $radius-card: 14px;
     overflow: hidden;
 }
 
-// ── Empty widget ──────────────────────────────────────────────────
 .empty-widget {
     text-align: center;
     padding: 32px 0;

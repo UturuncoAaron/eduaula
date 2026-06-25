@@ -8,7 +8,7 @@ $c-orange: #f59e0b;
 $c-red: #ef4444;
 $c-green: #10b981;
 $c-auxiliar: #14b8a6;
-/* Teal — color del rol auxiliar */
+$c-auxiliar-light: #7dddd6;
 
 .dashboard-container {
     padding: 0 32px 40px 32px;
@@ -21,7 +21,6 @@ $c-auxiliar: #14b8a6;
     }
 }
 
-/* ─── Banner de bienvenida ─────────────────────────────────── */
 .welcome-banner {
     background: #ffffff;
     background-image: radial-gradient(circle at top right, #ecfdf5 0%, #ffffff 60%);
@@ -73,7 +72,6 @@ $c-auxiliar: #14b8a6;
     }
 }
 
-/* ─── Tarjetas de stats ─────────────────────────────────────── */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -155,7 +153,6 @@ $c-auxiliar: #14b8a6;
     }
 }
 
-/* ─── Section header ──────────────────────────────────────── */
 .section-header {
     margin-bottom: 20px;
 
@@ -167,7 +164,6 @@ $c-auxiliar: #14b8a6;
     }
 }
 
-/* ─── Action cards ────────────────────────────────────────── */
 .actions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -191,7 +187,7 @@ $c-auxiliar: #14b8a6;
     &:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 24px -8px rgba($c-auxiliar, 0.15);
-        border-color: lighten($c-auxiliar, 30%);
+        border-color: $c-auxiliar-light;
     }
 
     .action-icon {
@@ -236,7 +232,6 @@ $c-auxiliar: #14b8a6;
         height: 20px;
     }
 
-    /* Variante destacada — el botón principal de "Escanear QR" */
     &.primary {
         background: linear-gradient(135deg, $c-auxiliar 0%, #0d9488 100%);
         border-color: $c-auxiliar;
@@ -266,8 +261,6 @@ $c-auxiliar: #14b8a6;
         }
     }
 }
-
-// ── Agrega al final del scss existente ───────────────────────────
 
 @keyframes spin {
     to {
@@ -323,7 +316,6 @@ $c-auxiliar: #14b8a6;
     }
 }
 
-// ── Grid ──────────────────────────────────────────────────────────
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1.6fr 1fr;
@@ -341,7 +333,6 @@ $c-auxiliar: #14b8a6;
     gap: 20px;
 }
 
-// ── Secciones ─────────────────────────────────────────────────────
 .secciones-list {
     background: #fff;
     border: 1px solid $border-light;
@@ -454,7 +445,6 @@ $c-auxiliar: #14b8a6;
     }
 }
 
-// ── Widget panel ──────────────────────────────────────────────────
 .widget-panel {
     background: #fff;
     border: 1px solid $border-light;
@@ -478,7 +468,6 @@ $c-auxiliar: #14b8a6;
     padding: 8px 20px 12px;
 }
 
-// ── Comunicados ───────────────────────────────────────────────────
 .comm-item {
     padding: 10px 0;
     border-bottom: 1px dashed $border-light;
@@ -515,7 +504,6 @@ $c-auxiliar: #14b8a6;
     overflow: hidden;
 }
 
-// ── Empty widget ──────────────────────────────────────────────────
 .empty-widget {
     text-align: center;
     padding: 28px 0;

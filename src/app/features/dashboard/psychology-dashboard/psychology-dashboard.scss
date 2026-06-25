@@ -5,7 +5,9 @@ $c-psy: #9333ea;
 $c-coral: #f43f5e;
 $c-blue: #2563eb;
 $c-green: #059669;
+$c-green-dark: #047857;
 $c-amber: #d97706;
+$c-amber-dark: #b45309;
 
 .psy-dashboard {
     display: flex;
@@ -20,7 +22,6 @@ $c-amber: #d97706;
     }
 }
 
-// ── Banner ────────────────────────────────────────────────────────
 .welcome-banner {
     background: #fff;
     border: 1px solid $border;
@@ -60,7 +61,6 @@ $c-amber: #d97706;
     }
 }
 
-// ── Loading / error ───────────────────────────────────────────────
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -115,7 +115,6 @@ $c-amber: #d97706;
     }
 }
 
-// ── Stats ─────────────────────────────────────────────────────────
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -184,7 +183,6 @@ $c-amber: #d97706;
     }
 }
 
-// ── Grid ─────────────────────────────────────────────────────────
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1.6fr 1fr;
@@ -202,7 +200,6 @@ $c-amber: #d97706;
     gap: 20px;
 }
 
-// ── Widget panel ──────────────────────────────────────────────────
 .widget-panel {
     background: #fff;
     border: 1px solid $border;
@@ -242,7 +239,6 @@ $c-amber: #d97706;
     padding: 8px 20px 12px;
 }
 
-// ── Citas ─────────────────────────────────────────────────────────
 .cita-item {
     display: flex;
     gap: 14px;
@@ -303,12 +299,12 @@ $c-amber: #d97706;
 
     &.confirmada {
         background: rgba($c-green, .12);
-        color: darken($c-green, 5%);
+        color: $c-green-dark;
     }
 
     &.pendiente {
         background: rgba($c-amber, .12);
-        color: darken($c-amber, 5%);
+        color: $c-amber-dark;
     }
 }
 
@@ -328,7 +324,6 @@ $c-amber: #d97706;
     }
 }
 
-// ── Alumnos en seguimiento ────────────────────────────────────────
 .alumno-item {
     display: flex;
     align-items: center;
@@ -390,7 +385,6 @@ $c-amber: #d97706;
     }
 }
 
-// ── Comunicados ───────────────────────────────────────────────────
 .comm-item {
     padding: 10px 0;
     border-bottom: 1px dashed $border;
@@ -427,7 +421,6 @@ $c-amber: #d97706;
     overflow: hidden;
 }
 
-// ── Tabs de navegación ────────────────────────────────────────────
 .tabs-nav {
     display: flex;
     gap: 6px;
@@ -468,7 +461,6 @@ $c-amber: #d97706;
     }
 }
 
-// ── Tab outlet ────────────────────────────────────────────────────
 .tab-outlet {
     background: #fff;
     border: 1px solid $border;
@@ -481,7 +473,6 @@ $c-amber: #d97706;
     }
 }
 
-// ── Empty widget ──────────────────────────────────────────────────
 .empty-widget {
     text-align: center;
     padding: 28px 0;
