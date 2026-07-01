@@ -9,7 +9,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from 'ngx-toastr-notifier';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../../../core/auth/auth';
 import { BimestreFilterService } from '@core/models/bimestre-filter';
@@ -44,6 +44,7 @@ export class TabContenido implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly toastr = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   courseId = input.required<string>({ alias: 'id' });
 
@@ -200,38 +201,10 @@ export class TabContenido implements OnInit {
     if (item.kind === 'tarea') {
       const t = item.raw as Task;
       if (this.auth.isAlumno()) {
-        this.taskSvc.getMySubmission(t.id).subscribe({
-          next: async r => {
-            const submission = r.data ?? null;
-            const { MySubmissionView } = await import('../../../../tasks/my-submission-view/my-submission-view');
-            this.dialog.open(MySubmissionView, {
-              data: { task: t, submission },
-              width: '92vw', maxWidth: '100vw', height: '100vh', maxHeight: '100vh',
-              position: { right: '0', top: '0' },
-              panelClass: 'material-preview-pane',
-              enterAnimationDuration: 200, exitAnimationDuration: 150,
-            });
-          },
-          error: async () => {
-            const { MySubmissionView } = await import('../../../../tasks/my-submission-view/my-submission-view');
-            this.dialog.open(MySubmissionView, {
-              data: { task: t, submission: null },
-              width: '92vw', maxWidth: '100vw', height: '100vh', maxHeight: '100vh',
-              position: { right: '0', top: '0' },
-              panelClass: 'material-preview-pane',
-              enterAnimationDuration: 200, exitAnimationDuration: 150,
-            });
-          },
-        });
+        const path = t.permite_alternativas ? 'tomar' : 'entregar';
+        this.router.navigate(['/tareas', t.id, path]);
       } else {
-        const { TaskSubmissionsPane } = await import('../../../../tasks/task-submissions-pane/task-submissions-pane');
-        this.dialog.open(TaskSubmissionsPane, {
-          data: { task: t },
-          width: '92vw', maxWidth: '100vw', height: '100vh', maxHeight: '100vh',
-          position: { right: '0', top: '0' },
-          panelClass: 'material-preview-pane',
-          enterAnimationDuration: 200, exitAnimationDuration: 150,
-        });
+        this.router.navigate(['/tareas', t.id, 'calificar']);
       }
       return;
     }
@@ -244,7 +217,6 @@ export class TabContenido implements OnInit {
       data: { forumId: f.id, courseId: this.courseId() },
     });
   }
-
   toggleSemana(s: SemanaResumen): void {
     const oculta = !s.oculta;
     this.csSvc.toggleSemana(this.courseId(), s.semana, oculta).subscribe({
@@ -299,16 +271,56 @@ export class TabContenido implements OnInit {
       });
   }
 
-  eliminarItem(item: SemanaItem): void {
-    if (item.kind !== 'material') return;
-    if (!confirm(`¿Estás seguro de eliminar el recurso "${item.titulo}"?`)) return;
-    this.csSvc.deleteMaterial(this.courseId(), item.id).subscribe({
-      next: () => {
-        this.refreshItems();
-        this.toastr.success('Material eliminado del catálogo del aula', 'Éxito');
-      },
-      error: () => this.toastr.error('No se pudo eliminar el recurso', 'Error'),
-    });
+  async eliminarItem(item: SemanaItem): Promise<void> {
+    const { ConfirmDialog } = await import('../../../../../shared/components/confirm-dialog/confirm-dialog');
+
+    if (item.kind === 'material') {
+      const ref = this.dialog.open(ConfirmDialog, {
+        data: {
+          title: 'Eliminar recurso',
+          message: `¿Estás seguro de eliminar "${item.titulo}"?\n\nEsta acción no se puede deshacer.`,
+          confirm: 'Eliminar',
+          cancel: 'Cancelar',
+          danger: true,
+        },
+        width: '400px',
+      });
+      ref.afterClosed().subscribe(confirmed => {
+        if (!confirmed) return;
+        this.csSvc.deleteMaterial(this.courseId(), item.id).subscribe({
+          next: () => {
+            this.refreshItems();
+            this.toastr.success('Material eliminado del catálogo del aula', 'Éxito');
+          },
+          error: () => this.toastr.error('No se pudo eliminar el recurso', 'Error'),
+        });
+      });
+      return;
+    }
+
+    if (item.kind === 'tarea') {
+      const ref = this.dialog.open(ConfirmDialog, {
+        data: {
+          title: 'Eliminar tarea',
+          message: `¿Estás seguro de eliminar "${item.titulo}"?\n\nSe perderán todas las entregas y calificaciones de los alumnos. Esta acción no se puede deshacer.`,
+          confirm: 'Eliminar',
+          cancel: 'Cancelar',
+          danger: true,
+        },
+        width: '400px',
+      });
+      ref.afterClosed().subscribe(confirmed => {
+        if (!confirmed) return;
+        this.taskSvc.deleteTask(item.id).subscribe({
+          next: () => {
+            this.refreshItems();
+            this.toastr.success('Tarea eliminada correctamente', 'Éxito');
+          },
+          error: () => this.toastr.error('No se pudo eliminar la tarea', 'Error'),
+        });
+      });
+      return;
+    }
   }
 
   async crearMaterial(s: SemanaResumen): Promise<void> {

@@ -278,7 +278,7 @@
                 </div>
                 }
 
-                @if (!vencida()) {
+                @if (!vencida() && !calificada()) {
                 <div class="resubmit-hint">
                     <mat-icon>info_outline</mat-icon>
                     <span>Puedes reemplazar tu entrega antes del vencimiento.</span>
@@ -290,7 +290,7 @@
         }
 
         <!-- ══ FORMULARIO DE ENTREGA ════════════════════════════════ -->
-        @if (!vencida()) {
+        @if (!vencida() && !calificada()) {
         <mat-card class="card card--form">
             <mat-card-content>
                 <div class="card-header">

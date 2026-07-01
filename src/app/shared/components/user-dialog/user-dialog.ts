@@ -70,7 +70,6 @@ export class UserDialog implements OnInit, OnDestroy {
   readonly isEdit = this.data.mode === 'edit';
   readonly isCreate = this.data.mode === 'create';
   readonly isSelf = this.data.isSelf ?? false;
-  readonly fechaRequerida = this.data.rol === 'alumno';
 
   readonly busy = signal(false);
   readonly success = signal(false);
@@ -93,7 +92,7 @@ export class UserDialog implements OnInit, OnDestroy {
 
   readonly progressWidth = computed(() => {
     const c = this.form.controls;
-    const fieldsToTrack = [c.tipo_documento, c.numero_documento, c.nombre, c.apellido_paterno, c.email];
+    const fieldsToTrack = [c.tipo_documento, c.numero_documento, c.nombre, c.apellido_paterno];
     const filled = fieldsToTrack.filter(ctrl => ctrl.value?.toString().trim()).length;
     return `${Math.round((filled / fieldsToTrack.length) * 100)}%`;
   });
@@ -104,8 +103,8 @@ export class UserDialog implements OnInit, OnDestroy {
     nombre: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/)]],
     apellido_paterno: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/)]],
     apellido_materno: ['', [Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/)]],
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
-    telefono: ['', [Validators.required, Validators.pattern(/^9\d{8}$/)]],
+    email: ['', [Validators.email, Validators.maxLength(255)]],
+    telefono: ['', [Validators.pattern(/^9\d{8}$/)]],
     fecha_nacimiento: [null as Date | null],
     especialidad: ['', Validators.maxLength(100)],
     titulo_profesional: ['', Validators.maxLength(100)],
@@ -145,10 +144,6 @@ export class UserDialog implements OnInit, OnDestroy {
   }
 
   private initializeFormValues(): void {
-    if (this.fechaRequerida) {
-      this.form.get('fecha_nacimiento')?.setValidators([Validators.required]);
-    }
-
     if (this.isEdit && this.data.user) {
       this.patchForm(this.data.user);
       this.busy.set(true);
@@ -322,8 +317,8 @@ export class UserDialog implements OnInit, OnDestroy {
       nombre: v.nombre?.trim(),
       apellido_paterno: v.apellido_paterno?.trim(),
       ...(v.apellido_materno?.trim() && { apellido_materno: v.apellido_materno.trim() }),
-      email: v.email?.trim().toLowerCase(),
-      telefono: v.telefono?.trim(),
+      ...(v.email?.trim() && { email: v.email.trim().toLowerCase() }),
+      ...(v.telefono?.trim() && { telefono: v.telefono.trim() }),
       ...(v.fecha_nacimiento && { fecha_nacimiento: this.toISODate(v.fecha_nacimiento as Date) }),
     };
 
@@ -385,8 +380,8 @@ export class UserDialog implements OnInit, OnDestroy {
         nombre: v.nombre?.trim(),
         apellido_paterno: v.apellido_paterno?.trim(),
         apellido_materno: v.apellido_materno?.trim() || null,
-        telefono: v.telefono?.trim(),
-        email: v.email?.trim().toLowerCase(),
+        telefono: v.telefono?.trim() || null,
+        email: v.email?.trim() ? v.email.trim().toLowerCase() : null,
         fecha_nacimiento: v.fecha_nacimiento ? this.toISODate(v.fecha_nacimiento as Date) : null,
       };
 
@@ -414,8 +409,8 @@ export class UserDialog implements OnInit, OnDestroy {
           nombre: v.nombre!,
           apellido_paterno: v.apellido_paterno!,
           apellido_materno: v.apellido_materno || null,
-          telefono: v.telefono!,
-          email: v.email!,
+          telefono: v.telefono || null,
+          email: v.email || null,
         });
       }
 

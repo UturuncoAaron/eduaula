@@ -50,7 +50,8 @@
                     {{ isCreate ? 'Nuevo Registro' : (data.user?.nombre + ' ' + data.user?.apellido_paterno) }}
                 </h2>
                 <p class="subtitle-desc">
-                    {{ isCreate ? 'Completa los accesos institucionales obligatorios' : 'Modificación segura de ficha técnica' }}
+                    {{ isCreate ? 'Completa los accesos institucionales obligatorios' : 'Modificación segura de ficha 
+                    técnica' }}
                 </p>
             </div>
         </div>
@@ -125,7 +126,7 @@
                         <mat-icon matPrefix class="form-prefix-icon">mail</mat-icon>
                         <input matInput formControlName="email" type="email" placeholder="ejemplo@eduaula.edu.pe" />
                         @if (form.controls.email.invalid && form.controls.email.touched) {
-                        <mat-error>Email obligatorio</mat-error>
+                        <mat-error>Formato de correo no válido</mat-error>
                         }
                     </mat-form-field>
                     <mat-form-field appearance="outline">
@@ -133,19 +134,16 @@
                         <mat-icon matPrefix class="form-prefix-icon">phone_android</mat-icon>
                         <input matInput formControlName="telefono" placeholder="987654321" maxLength="9" />
                         @if (form.controls.telefono.invalid && form.controls.telefono.touched) {
-                        <mat-error>Requerido (9 dígitos)</mat-error>
+                        <mat-error>Formato inválido (debe empezar con 9 y tener 9 dígitos)</mat-error>
                         }
                     </mat-form-field>
                     <mat-form-field appearance="outline">
-                        <mat-label>Fecha de Nacimiento {{ fechaRequerida ? '*' : '' }}</mat-label>
+                        <mat-label>Fecha de Nacimiento</mat-label>
                         <mat-icon matPrefix class="form-prefix-icon">calendar_today</mat-icon>
                         <input matInput [matDatepicker]="pickerNacimiento" formControlName="fecha_nacimiento"
                             placeholder="DD/MM/AAAA" />
                         <mat-datepicker-toggle matIconSuffix [for]="pickerNacimiento"></mat-datepicker-toggle>
                         <mat-datepicker #pickerNacimiento></mat-datepicker>
-                        @if (form.controls.fecha_nacimiento.invalid && form.controls.fecha_nacimiento.touched) {
-                        <mat-error>Requerido para Alumnos</mat-error>
-                        }
                     </mat-form-field>
                 </div>
             </fieldset>

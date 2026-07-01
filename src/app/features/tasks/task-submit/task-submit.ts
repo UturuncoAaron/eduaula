@@ -19,13 +19,11 @@ import { TaskService } from '../data-access/task.store';
 import { Task, Submission, tipoEntregaTarea } from '../../../core/models/task';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 
-// ── Tipos de previsualización ─────────────────────────────────
-interface VistaPdf { tipo: 'pdf'; url: SafeResourceUrl }
-interface VistaImagen { tipo: 'imagen'; url: string }
-interface VistaOtro { tipo: 'otro'; nombre: string; extension: string; icono: string }
-type VistaArchivo = VistaPdf | VistaImagen | VistaOtro;
+export interface VistaPdf { tipo: 'pdf'; url: SafeResourceUrl }
+export interface VistaImagen { tipo: 'imagen'; url: string }
+export interface VistaOtro { tipo: 'otro'; nombre: string; extension: string; icono: string }
+export type VistaArchivo = VistaPdf | VistaImagen | VistaOtro;
 
-// ── Tipo colapsable reutilizado para enunciado y materiales ───
 export interface ItemColapsable {
   id: string;
   titulo: string;
@@ -56,7 +54,6 @@ export interface MaterialReferencia {
   orden: number;
 }
 
-// ── Utilidades puras ──────────────────────────────────────────
 function extensionDe(nombre: string): string {
   return (nombre.split('.').pop() ?? '').toLowerCase();
 }
@@ -69,7 +66,7 @@ function iconoPorExtension(ext: string): string {
   return 'insert_drive_file';
 }
 
-function resolverVista(nombre: string, url: string, sanitizer: DomSanitizer): VistaArchivo {
+export function resolverVista(nombre: string, url: string, sanitizer: DomSanitizer): VistaArchivo {
   const ext = extensionDe(nombre);
   if (ext === 'pdf') {
     return { tipo: 'pdf', url: sanitizer.bypassSecurityTrustResourceUrl(url) };
@@ -80,7 +77,7 @@ function resolverVista(nombre: string, url: string, sanitizer: DomSanitizer): Vi
   return { tipo: 'otro', nombre, extension: ext.toUpperCase(), icono: iconoPorExtension(ext) };
 }
 
-function toItemColapsable(
+export function toItemColapsable(
   id: string,
   titulo: string,
   tipo: string,
@@ -127,31 +124,21 @@ export class TaskSubmit implements OnInit, OnDestroy {
 
   taskId = this.route.snapshot.paramMap.get('id')!;
 
-  // ── Estado principal ─────────────────────────────────────────
   task = signal<Task | null>(null);
   loading = signal(true);
   sending = signal(false);
 
-  // ── Enunciado de la tarea (collapse) ─────────────────────────
-  // El docente puede subir un archivo directamente en la tarea
   enunciado = signal<ItemColapsable | null>(null);
-
-  // ── Materiales del curso (hasta 3, collapse) ──────────────────
   materiales = signal<ItemColapsable[]>([]);
-
-  // ── Entrega previa del alumno (collapse) ─────────────────────
   entregaPrevia = signal<Submission | null>(null);
   vistaEntrega = signal<VistaArchivo | null>(null);
   entregaExpandida = signal(true);
   cargandoUrl = signal(false);
-
-  // ── Archivo seleccionado localmente (collapse) ────────────────
   selectedFile = signal<File | null>(null);
   vistaLocal = signal<VistaArchivo | null>(null);
   archivoExpandido = signal(true);
   private objectUrl: string | null = null;
 
-  // ── Derivados ────────────────────────────────────────────────
   puedeTexto = computed(() => !!this.task()?.permite_texto);
   puedeArchivo = computed(() => !!this.task()?.permite_archivo);
 
@@ -166,7 +153,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
 
   form = this.fb.group({ respuesta_texto: [''] });
 
-  // ── Getters de narrowing — enunciado ─────────────────────────
   get enunciadoPdf(): VistaPdf | null {
     const v = this.enunciado()?.vista;
     return v?.tipo === 'pdf' ? v : null;
@@ -180,7 +166,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
     return v?.tipo === 'otro' ? v : null;
   }
 
-  // ── Getters de narrowing — entrega previa ────────────────────
   get entregaPdf(): VistaPdf | null {
     const v = this.vistaEntrega();
     return v?.tipo === 'pdf' ? v : null;
@@ -194,7 +179,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
     return v?.tipo === 'otro' ? v : null;
   }
 
-  // ── Getters de narrowing — archivo local ─────────────────────
   get localPdf(): VistaPdf | null {
     const v = this.vistaLocal();
     return v?.tipo === 'pdf' ? v : null;
@@ -208,8 +192,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
     return v?.tipo === 'otro' ? v : null;
   }
 
-  // ── Getters de narrowing — materiales del curso ───────────────
-  // Necesarios porque Angular no puede narrowear unions en el template
   materialPdf(m: ItemColapsable): VistaPdf | null {
     return m.vista?.tipo === 'pdf' ? (m.vista as VistaPdf) : null;
   }
@@ -220,7 +202,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
     return m.vista?.tipo === 'otro' ? (m.vista as VistaOtro) : null;
   }
 
-  // ── Toggle collapse ───────────────────────────────────────────
   toggleEnunciado() {
     this.enunciado.update(e => e ? { ...e, expandido: !e.expandido } : e);
   }
@@ -239,7 +220,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
     this.archivoExpandido.update(v => !v);
   }
 
-  // ── Init ─────────────────────────────────────────────────────
   ngOnInit() {
     forkJoin({
       tarea: this.taskSvc.getTask(this.taskId),
@@ -255,7 +235,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
           return;
         }
 
-        // Enunciado de la tarea (archivo que sube el docente en el formulario)
         if (t.enunciado_storage_key || t.enunciado_url) {
           this.taskSvc.getEnunciadoUrl(t.id).subscribe({
             next: res => {
@@ -277,7 +256,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
           });
         }
 
-        // Materiales del curso (filtrados por bimestre/semana, máx 3)
         const lista: ItemColapsable[] = (materiales?.data ?? []).map(
           (m: MaterialReferencia) => toItemColapsable(
             m.id, m.titulo, m.tipo,
@@ -288,7 +266,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
         );
         this.materiales.set(lista);
 
-        // Entrega previa
         const e = entrega?.data ?? null;
         this.entregaPrevia.set(e);
 
@@ -324,7 +301,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
   }
 
-  // ── Selección de archivo local ────────────────────────────────
   onFileSelected(ev: Event) {
     const input = ev.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
@@ -360,7 +336,6 @@ export class TaskSubmit implements OnInit, OnDestroy {
 
   goBack() { this.location.back(); }
 
-  // ── Submit ────────────────────────────────────────────────────
   submit() {
     if (this.sending() || this.vencida()) return;
     if (!this.task()) return;

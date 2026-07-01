@@ -17,6 +17,38 @@
         </div>
         }
 
+        @if (enunciado(); as en) {
+        <div class="info-banner" style="flex-direction:column; align-items:stretch; gap:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <mat-icon class="icon">attach_file</mat-icon>
+                    <strong>Archivo de la tarea</strong>
+                </div>
+                <button type="button" mat-icon-button (click)="toggleEnunciado()">
+                    <mat-icon>{{ en.expandido ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </button>
+            </div>
+            @if (en.expandido) {
+            @if (enunciadoPdf) {
+            <iframe [src]="enunciadoPdf.url" style="width:100%; height:480px; border:none; border-radius:8px;"
+                title="Enunciado de la tarea"></iframe>
+            } @else if (enunciadoImagen) {
+            <img [src]="enunciadoImagen.url" alt="Enunciado de la tarea" style="max-width:100%; border-radius:8px;" />
+            } @else if (enunciadoOtro) {
+            <div style="display:flex; align-items:center; gap:8px;">
+                <mat-icon>{{ enunciadoOtro.icono }}</mat-icon>
+                <span>{{ enunciadoOtro.nombre }}</span>
+                @if (en.url) {
+                <a mat-stroked-button [href]="en.url" target="_blank" rel="noopener">
+                    <mat-icon>download</mat-icon> Descargar
+                </a>
+                }
+            </div>
+            }
+            }
+        </div>
+        }
+
         <div class="progress-dashboard">
             <div class="stats">
                 <span class="label">Preguntas respondidas</span>

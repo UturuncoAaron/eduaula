@@ -51,6 +51,10 @@ export class TaskService {
         return this.api.patch<Task>(`tasks/${taskId}/toggle`, { activo });
     }
 
+    deleteTask(taskId: string) {
+        return this.api.delete<{ message: string }>(`tasks/${taskId}`);
+    }
+
     // Docente: archivo enunciado
     uploadEnunciado(taskId: string, file: File) {
         const fd = new FormData();

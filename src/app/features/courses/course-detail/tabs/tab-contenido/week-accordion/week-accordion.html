@@ -105,7 +105,7 @@
                             <mat-icon>{{ it.oculto ? 'visibility' : 'visibility_off' }}</mat-icon>
                             <span>{{ it.oculto ? 'Mostrar a alumnos' : 'Ocultar a alumnos' }}</span>
                         </button>
-                        @if (it.kind === 'material') {
+                        @if (it.kind === 'material' || it.kind === 'tarea') {
                         <button mat-menu-item class="danger" (click)="itemDelete.emit(it)">
                             <mat-icon>delete</mat-icon>
                             <span>Eliminar</span>
